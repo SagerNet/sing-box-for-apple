@@ -1,0 +1,41 @@
+{
+  "pins" : [
+    {
+      "identity" : "binarycodable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/christophhagen/BinaryCodable",
+      "state" : {
+        "revision" : "295ca6399b2b01d1aa4fa84d666416f3bf99ffde",
+        "version" : "2.0.0"
+      }
+    },
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift",
+      "state" : {
+        "revision" : "284a4ee1acf9bf6c8b3d045494d0a7e3046ebf92",
+        "version" : "6.15.1"
+      }
+    },
+    {
+      "identity" : "maccontrolcenterui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/orchetect/MacControlCenterUI",
+      "state" : {
+        "revision" : "e7f7e0834a146b59a9d86b5751b711eb3a57be69",
+        "version" : "2.0.1"
+      }
+    },
+    {
+      "identity" : "menubarextraaccess",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/orchetect/MenuBarExtraAccess",
+      "state" : {
+        "revision" : "8757eb7c2cd708320df92e6ad6572efe90e58f16",
+        "version" : "1.0.4"
+      }
+    }
+  ],
+  "version" : 2
+}
