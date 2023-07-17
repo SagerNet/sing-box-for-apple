@@ -29,7 +29,9 @@ public struct ExtensionStatusView: View {
                             StatusItem("Uplink Total", LibboxFormatBytes(message.uplinkTotal))
                             StatusItem("Downlink Total", LibboxFormatBytes(message.downlinkTotal))
                         } else {
-                            StatusItem("Connections", "\(message.connectionsOut)")
+                            #if os(macOS)
+                                StatusItem("Connections", "\(message.connectionsOut)")
+                            #endif
                         }
                     } else {
                         StatusItem("Memory", "Loading...")

@@ -3,6 +3,7 @@ import Libbox
 import Library
 import SwiftUI
 #if os(macOS)
+    import AppKit
     import ServiceManagement
 #endif
 
@@ -69,17 +70,29 @@ public struct SettingView: View {
                             NavigationLink(destination: ServiceLogView()) {
                                 Text("View Service Log")
                             }
+                            Button("Clear Working Directory") {
+                                Task.detached {
+                                    clearWorkingDirectory()
+                                }
+                            }
+                            .foregroundColor(.red)
                         #elseif os(macOS)
-                            Button("View Service Log") {
-                                openWindow(id: ServiceLogView.windowID)
-                            }
+                            HStack {
+                                Button("View Service Log") {
+                                    openWindow(id: ServiceLogView.windowID)
+                                }
+                                Button("Open Working Directory") {
+                                    NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FilePath.workingDirectory.relativePath)
+                                }
+                                Button {
+                                    Task.detached {
+                                        clearWorkingDirectory()
+                                    }
+                                } label: {
+                                    Text("Clear Working Directory").foregroundColor(.red)
+                                }
+                            }.frame(maxWidth: .infinity, alignment: .trailing)
                         #endif
-                        Button("Clear Working Directory") {
-                            Task.detached {
-                                clearWorkingDirectory()
-                            }
-                        }
-                        .foregroundColor(.red)
                     }
                     Section("Debug") {
                         FormTextItem("Taiwan Flag Available", taiwanFlagAvailable.description)
