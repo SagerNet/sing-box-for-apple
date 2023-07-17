@@ -6,11 +6,13 @@ public struct DashboardView: View {
     public init() {}
 
     public var body: some View {
-        FormView {
+        viewBuilder {
             if let profile = extensionProfile.wrappedValue {
                 ActiveDashboardView().environmentObject(profile)
             } else {
-                InstallProfileButton()
+                FormView {
+                    InstallProfileButton()
+                }
             }
         }.navigationTitle("Dashboard")
     }

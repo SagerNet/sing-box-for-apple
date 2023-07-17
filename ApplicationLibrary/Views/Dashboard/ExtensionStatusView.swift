@@ -6,6 +6,7 @@ public struct ExtensionStatusView: View {
     @State private var commandClient: LibboxCommandClient?
     @State private var message: LibboxStatusMessage?
     @State private var connectTask: Task<Void, Error>?
+    @State private var columnCount: Int = 4
     @State private var errorPresented = false
     @State private var errorMessage = ""
 
@@ -15,23 +16,43 @@ public struct ExtensionStatusView: View {
 
     public var body: some View {
         viewBuilder {
-            if let message {
-                FormTextItem("Memory", LibboxFormatBytes(message.memory))
-                FormTextItem("Goroutines", "\(message.goroutines)")
-                FormTextItem("Connections", "\(message.connections)").contextMenu {
-                    Button("Close", role: .destructive) {
-                        Task.detached {
-                            closeConnections()
+            VStack {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
+                    if let message {
+                        StatusItem("Memory", LibboxFormatBytes(message.memory))
+                        StatusItem("Goroutines", "\(message.goroutines)")
+                        if message.trafficAvailable {
+                            StatusItem("Inbound Connections", "\(message.connectionsIn)")
+                            StatusItem("Outbound Connections", "\(message.connectionsOut)")
+                            StatusItem("Uplink", LibboxFormatBytes(message.uplink) + "/s")
+                            StatusItem("Downlink", LibboxFormatBytes(message.downlink) + "/s")
+                            StatusItem("Uplink Total", LibboxFormatBytes(message.uplinkTotal))
+                            StatusItem("Downlink Total", LibboxFormatBytes(message.downlinkTotal))
+                        } else {
+                            StatusItem("Connections", "\(message.connectionsOut)")
                         }
+                    } else {
+                        StatusItem("Memory", "Loading...")
+                        StatusItem("Goroutines", "Loading...")
+                        StatusItem("Connections", "Loading...")
                     }
+                }.background {
+                    GeometryReader { geometry in
+                        Rectangle()
+                            .fill(.clear)
+                            .frame(height: 1)
+                            .onChange(of: geometry.size.width) { newValue in
+                                updateColumnCount(newValue)
+                            }
+                            .onAppear {
+                                updateColumnCount(geometry.size.width)
+                            }
+                    }.padding()
                 }
-            } else {
-                FormTextItem("Memory", "Loading...")
-                FormTextItem("Goroutines", "Loading...")
-                FormTextItem("Connections", "Loading...")
             }
+            .frame(alignment: .topLeading)
+            .padding([.top, .leading, .trailing])
         }
-
         .onAppear(perform: doReload)
         .onDisappear {
             connectTask?.cancel()
@@ -85,6 +106,15 @@ public struct ExtensionStatusView: View {
         }
     }
 
+    private func updateColumnCount(_ width: Double) {
+        let v = Int(Int(width) / 155)
+        let new = v < 1 ? 1 : (v > 4 ? 4 : (v % 2 == 0 ? v : v - 1))
+
+        if new != columnCount {
+            columnCount = new
+        }
+    }
+
     private func closeConnections() {
         do {
             try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.closeConnections()
@@ -112,5 +142,39 @@ public struct ExtensionStatusView: View {
         }
 
         func writeGroups(_: LibboxOutboundGroupIteratorProtocol?) {}
+    }
+
+    private struct StatusItem: View {
+        private let name: String
+        private let value: String
+        init(_ name: String, _ value: String) {
+            self.name = name
+            self.value = value
+        }
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(name)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                Text(value)
+                    .font(.system(size: 16))
+            }
+            .frame(minWidth: 125)
+            .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
+            .background(backgroundColor)
+            .cornerRadius(10)
+        }
+
+        private var backgroundColor: Color {
+            #if os(iOS)
+                return Color(uiColor: .secondarySystemGroupedBackground)
+            #elseif os(macOS)
+                return Color(nsColor: .textBackgroundColor)
+            #endif
+        }
     }
 }

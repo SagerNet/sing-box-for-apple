@@ -16,4 +16,8 @@ public enum SharedPreferences {
         @Preference<Bool>("show_menu_bar_extra", defaultValue: true) public static var showMenuBarExtra
         @Preference<Bool>("started_by_user", defaultValue: false) public static var startedByUser
     #endif
+
+    #if os(iOS)
+        @Preference<Bool>("network_permission_requested", defaultValue: false) public static var networkPermissionRequested
+    #endif
 }

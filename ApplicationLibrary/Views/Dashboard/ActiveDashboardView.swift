@@ -34,30 +34,38 @@ public struct ActiveDashboardView: View {
                 if profileList.isEmpty {
                     Text("Empty profiles")
                 } else {
-                    #if os(iOS)
-                        StartStopButton()
-                    #endif
-                    if profile.status.isConnected {
-                        Section("Status") {
-                            ExtensionStatusView()
-                        }
-                    }
-                    Section("Profile") {
+                    VStack {
                         #if os(iOS)
-                            Picker(selection: $selectedProfileID) {
-                                ForEach(profileList, id: \.id) { profile in
-                                    Text(profile.name).tag(profile.id)
-                                }
-                            } label: {}
-                                .pickerStyle(.inline)
-
-                        #elseif os(macOS)
-                            ForEach(profileList, id: \.id) { profile in
-                                Picker(profile.name, selection: $selectedProfileID) {
-                                    Text("").tag(profile.id)
+                            if profile.status.isConnected {
+                                ExtensionStatusView()
+                                    .listStyle(.automatic)
+                                    .navigationBarTitleDisplayMode(.inline)
+                            }
+                            FormView {
+                                StartStopButton()
+                                Section("Profile") {
+                                    Picker(selection: $selectedProfileID) {
+                                        ForEach(profileList, id: \.id) { profile in
+                                            Text(profile.name).tag(profile.id)
+                                        }
+                                    } label: {}
+                                        .pickerStyle(.inline)
                                 }
                             }
-                            .pickerStyle(.radioGroup)
+                        #else
+                            if profile.status.isConnected {
+                                ExtensionStatusView()
+                            }
+                            FormView {
+                                Section("Profile") {
+                                    ForEach(profileList, id: \.id) { profile in
+                                        Picker(profile.name, selection: $selectedProfileID) {
+                                            Text("").tag(profile.id)
+                                        }
+                                    }
+                                    .pickerStyle(.radioGroup)
+                                }
+                            }
                         #endif
                     }
                     .onChange(of: selectedProfileID) { _ in

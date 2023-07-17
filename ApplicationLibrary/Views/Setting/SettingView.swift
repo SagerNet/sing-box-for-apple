@@ -21,6 +21,7 @@ public struct SettingView: View {
     @State private var disableMemoryLimit = false
     @State private var version = ""
     @State private var dataSize = ""
+    @State private var taiwanFlagAvailable = false
 
     @State private var errorPresented = false
     @State private var errorMessage = ""
@@ -80,6 +81,9 @@ public struct SettingView: View {
                         }
                         .foregroundColor(.red)
                     }
+                    Section("Debug") {
+                        FormTextItem("Taiwan Flag Available", taiwanFlagAvailable.description)
+                    }
                 }
             }
         }
@@ -121,6 +125,7 @@ public struct SettingView: View {
         dataSize = "Loading..."
         isLoading = false
         dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
+        taiwanFlagAvailable = !DeviceCensorship.isChinaDevice()
     }
 
     private func clearWorkingDirectory() {
