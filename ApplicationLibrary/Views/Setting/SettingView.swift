@@ -17,6 +17,7 @@ public struct SettingView: View {
     #if os(macOS)
         @State private var startAtLogin = false
         @Environment(\.showMenuBarExtra) private var showMenuBarExtra
+        @State private var keepMenuBarInBackground = false
     #endif
 
     @State private var disableMemoryLimit = false
@@ -51,8 +52,19 @@ public struct SettingView: View {
                                 .onChange(of: showMenuBarExtra.wrappedValue) { newValue in
                                     Task.detached {
                                         SharedPreferences.showMenuBarExtra = newValue
+                                        if !newValue {
+                                            keepMenuBarInBackground = false
+                                        }
                                     }
                                 }
+                            if showMenuBarExtra.wrappedValue {
+                                Toggle("Keep Menu Bar in Background", isOn: $keepMenuBarInBackground)
+                                    .onChange(of: keepMenuBarInBackground) { newValue in
+                                        Task.detached {
+                                            SharedPreferences.menuBarExtraInBackground = newValue
+                                        }
+                                    }
+                            }
                         }
                     #endif
                     Section("Packet Tunnel") {
@@ -132,6 +144,7 @@ public struct SettingView: View {
     private func loadSettings() async {
         #if os(macOS)
             startAtLogin = SMAppService.mainApp.status == .enabled
+            keepMenuBarInBackground = SharedPreferences.menuBarExtraInBackground
         #endif
         disableMemoryLimit = SharedPreferences.disableMemoryLimit
         version = LibboxVersion()

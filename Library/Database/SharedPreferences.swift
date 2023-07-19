@@ -14,6 +14,7 @@ public enum SharedPreferences {
 
     #if os(macOS)
         @Preference<Bool>("show_menu_bar_extra", defaultValue: true) public static var showMenuBarExtra
+        @Preference<Bool>("menu_bar_extra_in_background", defaultValue: false) public static var menuBarExtraInBackground
         @Preference<Bool>("started_by_user", defaultValue: false) public static var startedByUser
     #endif
 

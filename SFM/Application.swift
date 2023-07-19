@@ -61,14 +61,32 @@ struct Application: App {
         .menuBarExtraAccess(isPresented: $isMenuPresented)
     }
 
-    private func initialize() async {
+    private func initialize() {
         let initialShowMenuBarExtra = SharedPreferences.showMenuBarExtra
-        await MainActor.run {
+        DispatchQueue.main.async {
             showMenuBarExtra = initialShowMenuBarExtra
         }
     }
 
     private func hide(closeApp: Bool) {
+        Task.detached {
+            if SharedPreferences.menuBarExtraInBackground {
+                DispatchQueue.main.async {
+                    hide0(closeApp: closeApp)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    if closeApp {
+                        NSApp.terminate(nil)
+                    } else {
+                        NSApp.keyWindow?.close()
+                    }
+                }
+            }
+        }
+    }
+
+    private func hide0(closeApp: Bool) {
         if closeApp || NSApp.keyWindow?.identifier?.rawValue == "main" {
             let transformState = ProcessApplicationTransformState(kProcessTransformToUIElementApplication)
             var psn = ProcessSerialNumber(highLongOfPSN: 0, lowLongOfPSN: UInt32(kCurrentProcess))

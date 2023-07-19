@@ -28,15 +28,10 @@ public struct ExtensionStatusView: View {
                             StatusItem("Downlink", LibboxFormatBytes(message.downlink) + "/s")
                             StatusItem("Uplink Total", LibboxFormatBytes(message.uplinkTotal))
                             StatusItem("Downlink Total", LibboxFormatBytes(message.downlinkTotal))
-                        } else {
-                            #if os(macOS)
-                                StatusItem("Connections", "\(message.connectionsOut)")
-                            #endif
                         }
                     } else {
                         StatusItem("Memory", "Loading...")
                         StatusItem("Goroutines", "Loading...")
-                        StatusItem("Connections", "Loading...")
                     }
                 }.background {
                     GeometryReader { geometry in

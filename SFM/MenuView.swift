@@ -40,6 +40,12 @@ struct MenuView: View {
             MenuCommand {
                 NSApp.setActivationPolicy(.regular)
                 openWindow(id: "main")
+                if let dockApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first {
+                    dockApp.activate()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
+                        NSApp.activate(ignoringOtherApps: true)
+                    }
+                }
             } label: {
                 Text("Open")
             }
