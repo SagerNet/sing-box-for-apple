@@ -36,7 +36,7 @@ public struct ActiveDashboardView: View {
                 } else {
                     VStack {
                         #if os(iOS)
-                            if profile.status.isConnected {
+                            if ApplicationLibrary.inPreview || profile.status.isConnected {
                                 ExtensionStatusView()
                                     .listStyle(.automatic)
                                     .navigationBarTitleDisplayMode(.inline)
@@ -53,7 +53,7 @@ public struct ActiveDashboardView: View {
                                 }
                             }
                         #else
-                            if profile.status.isConnected {
+                            if ApplicationLibrary.inPreview || profile.status.isConnected {
                                 ExtensionStatusView()
                             }
                             FormView {
@@ -74,7 +74,7 @@ public struct ActiveDashboardView: View {
                             await switchProfile(selectedProfileID!)
                         }
                     }
-                    .disabled(!profile.status.isSwitchable || reasserting)
+                    .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || reasserting))
                 }
             }
         }
@@ -115,24 +115,32 @@ public struct ActiveDashboardView: View {
         defer {
             isLoading = false
         }
-        do {
-            profileList = try ProfileManager.list()
-        } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
-            return
-        }
-        if profileList.isEmpty {
-            return
-        }
+        if ApplicationLibrary.inPreview {
+            profileList = [
+                Profile(id: 0, name: "profile local", type: .local, path: ""),
+                Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0)),
+            ]
+            selectedProfileID = 0
+        } else {
+            do {
+                profileList = try ProfileManager.list()
+            } catch {
+                errorMessage = error.localizedDescription
+                errorPresented = true
+                return
+            }
+            if profileList.isEmpty {
+                return
+            }
 
-        selectedProfileID = SharedPreferences.selectedProfileID
-        if profileList.filter({ profile in
-            profile.id == selectedProfileID
-        })
-        .isEmpty {
-            selectedProfileID = profileList[0].id!
-            SharedPreferences.selectedProfileID = selectedProfileID
+            selectedProfileID = SharedPreferences.selectedProfileID
+            if profileList.filter({ profile in
+                profile.id == selectedProfileID
+            })
+            .isEmpty {
+                selectedProfileID = profileList[0].id!
+                SharedPreferences.selectedProfileID = selectedProfileID
+            }
         }
     }
 

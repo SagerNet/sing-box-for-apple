@@ -165,6 +165,7 @@ public struct NewProfileView: View {
 
         var savePath = ""
         var remoteURL: String? = nil
+        var lastUpdated: Date? = nil
 
         if profileType == .local {
             let profileConfigDirectory = FilePath.sharedDirectory.appendingPathComponent("configs", isDirectory: true)
@@ -217,6 +218,7 @@ public struct NewProfileView: View {
             try remoteContent.write(to: profileConfig, atomically: true, encoding: .utf8)
             savePath = profileConfig.relativePath
             remoteURL = remotePath
+            lastUpdated = .now
         }
         try ProfileManager.create(Profile(name: profileName, type: profileType, path: savePath, remoteURL: remoteURL))
     }

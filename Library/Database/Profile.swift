@@ -15,19 +15,16 @@ public class Profile: Record, Identifiable, ObservableObject {
     @Published public var autoUpdate: Bool
     public var lastUpdated: Date?
 
-    public init(id: Int64? = nil, name: String, order: UInt32 = 0, type: ProfileType, path: String, remoteURL: String? = nil) {
+    public init(id: Int64? = nil, name: String, order: UInt32 = 0, type: ProfileType, path: String, remoteURL: String? = nil, lastUpdated: Date? = nil) {
         self.id = id
         self.name = name
         self.order = order
         self.type = type
         self.path = path
         self.remoteURL = remoteURL
+        self.lastUpdated = lastUpdated
 
         autoUpdate = false
-        lastUpdated = nil
-        if type == .remote {
-            lastUpdated = Date()
-        }
         super.init()
     }
 

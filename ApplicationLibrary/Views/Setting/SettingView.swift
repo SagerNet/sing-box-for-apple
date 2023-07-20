@@ -148,10 +148,16 @@ public struct SettingView: View {
         #endif
         disableMemoryLimit = SharedPreferences.disableMemoryLimit
         version = LibboxVersion()
-        dataSize = "Loading..."
-        isLoading = false
-        dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
-        taiwanFlagAvailable = !DeviceCensorship.isChinaDevice()
+        if ApplicationLibrary.inPreview {
+            dataSize = LibboxFormatBytes(1024 * 1024 * 10)
+            taiwanFlagAvailable = true
+            isLoading = false
+        } else {
+            dataSize = "Loading..."
+            taiwanFlagAvailable = !DeviceCensorship.isChinaDevice()
+            isLoading = false
+            dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
+        }
     }
 
     private func clearWorkingDirectory() {

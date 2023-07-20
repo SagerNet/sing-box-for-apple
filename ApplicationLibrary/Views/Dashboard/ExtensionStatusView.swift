@@ -18,7 +18,16 @@ public struct ExtensionStatusView: View {
         viewBuilder {
             VStack {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
-                    if let message {
+                    if ApplicationLibrary.inPreview {
+                        StatusItem("Memory", "6.4 MiB")
+                        StatusItem("Goroutines", "89")
+                        StatusItem("Inbound Connections", "34")
+                        StatusItem("Outbound Connections", "28")
+                        StatusItem("Uplink", "38 B/s")
+                        StatusItem("Downlink", "249 MiB/s")
+                        StatusItem("Uplink Total", "52 MiB")
+                        StatusItem("Downlink Total", "5.6 GiB")
+                    } else if let message {
                         StatusItem("Memory", LibboxFormatBytes(message.memory))
                         StatusItem("Goroutines", "\(message.goroutines)")
                         if message.trafficAvailable {

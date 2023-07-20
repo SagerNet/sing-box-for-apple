@@ -169,12 +169,19 @@ public struct ProfileView: View {
         defer {
             isLoading = false
         }
-        do {
-            profileList = try ProfileManager.list()
-        } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
-            return
+        if ApplicationLibrary.inPreview {
+            profileList = [
+                Profile(id: 0, name: "profile local", type: .local, path: ""),
+                Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0)),
+            ]
+        } else {
+            do {
+                profileList = try ProfileManager.list()
+            } catch {
+                errorMessage = error.localizedDescription
+                errorPresented = true
+                return
+            }
         }
     }
 

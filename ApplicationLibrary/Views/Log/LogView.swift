@@ -61,11 +61,15 @@ public struct LogView: View {
         }
 
         private func connectLog() {
-            guard let profile = extensionProfile.wrappedValue else {
-                return
-            }
-            if profile.status.isConnected, !logClient.isConnected {
+            if ApplicationLibrary.inPreview {
                 logClient.reconnect()
+            } else {
+                guard let profile = extensionProfile.wrappedValue else {
+                    return
+                }
+                if profile.status.isConnected, !logClient.isConnected {
+                    logClient.reconnect()
+                }
             }
         }
     }

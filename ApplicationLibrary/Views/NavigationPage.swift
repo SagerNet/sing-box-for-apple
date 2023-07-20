@@ -70,15 +70,12 @@ public extension NavigationPage {
     }
 
     func visible(_ profile: ExtensionProfile?) -> Bool {
+        if ApplicationLibrary.inPreview {
+            return true
+        }
         switch self {
         case .groups:
             return profile?.status.isConnectedStrict == true
-        case .profiles, .settings:
-            #if os(iOS)
-                return profile?.status.isConnected != true
-            #else
-                fallthrough
-            #endif
         default:
             return true
         }

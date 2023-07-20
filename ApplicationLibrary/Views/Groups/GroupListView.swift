@@ -43,9 +43,24 @@ public struct GroupListView: View {
     }
 
     private func doReload() {
-        connectTask?.cancel()
-        connectTask = Task.detached {
-            await connect()
+        if ApplicationLibrary.inPreview {
+            groups = [
+                OutboundGroup(tag: "my_group", type: "selector", selected: "server", selectable: true, items: [
+                    OutboundGroupItem(tag: "server", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 12),
+                    OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 34),
+                    OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 100),
+                ]),
+                OutboundGroup(tag: "group2", type: "urltest", selected: "client", selectable: false, items:
+                    (0 ..< 234).map { index in
+                        OutboundGroupItem(tag: "client\(index)", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: UInt16(100 + index * 10))
+                    }),
+            ]
+            isLoading = false
+        } else {
+            connectTask?.cancel()
+            connectTask = Task.detached {
+                await connect()
+            }
         }
     }
 

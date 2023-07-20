@@ -7,7 +7,9 @@ public struct DashboardView: View {
 
     public var body: some View {
         viewBuilder {
-            if let profile = extensionProfile.wrappedValue {
+            if ApplicationLibrary.inPreview {
+                ActiveDashboardView()
+            } else if let profile = extensionProfile.wrappedValue {
                 ActiveDashboardView().environmentObject(profile)
             } else {
                 FormView {

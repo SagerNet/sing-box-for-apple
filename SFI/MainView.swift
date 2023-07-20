@@ -54,11 +54,15 @@ struct MainView: View {
         .environment(\.selection, $selection)
         .environment(\.extensionProfile, $extensionProfile)
         .environment(\.logClient, $logClient)
+        .preferredColorScheme(.dark)
     }
 
     private func loadProfile() async {
         defer {
             profileLoading = false
+        }
+        if ApplicationLibrary.inPreview {
+            return
         }
         if let newProfile = try? await ExtensionProfile.load() {
             if extensionProfile == nil || extensionProfile?.status == .invalid {
