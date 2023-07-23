@@ -52,7 +52,7 @@ struct MenuView: View {
             MenuCommand {
                 NSApp.terminate(nil)
             } label: {
-                Text("Exit")
+                Text("Quit")
             }
         }
     }
