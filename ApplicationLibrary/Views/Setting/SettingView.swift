@@ -74,6 +74,27 @@ public struct SettingView: View {
                                     SharedPreferences.disableMemoryLimit = newValue
                                 }
                             }
+                        #if os(macOS)
+                            if Variant.useSystemExtension {
+                                HStack {
+                                    Button("Update System Extension") {
+                                        Task {
+                                            do {
+                                                if let result = try await SystemExtension.install(forceUpdate: true) {
+                                                    if result == .willCompleteAfterReboot {
+                                                        errorMessage = "Need reboot"
+                                                        errorPresented = true
+                                                    }
+                                                }
+                                            } catch {
+                                                errorMessage = error.localizedDescription
+                                                errorPresented = true
+                                            }
+                                        }
+                                    }
+                                }.frame(maxWidth: .infinity, alignment: .trailing)
+                            }
+                        #endif
                     }
                     Section("Core") {
                         FormTextItem("Version", version)

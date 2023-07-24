@@ -8,6 +8,7 @@ class Database {
         if let writer {
             return writer
         }
+        try FileManager.default.createDirectory(at: FilePath.sharedDirectory, withIntermediateDirectories: true)
         let database = try DatabasePool(path: FilePath.sharedDirectory.appendingPathComponent("settings.db").relativePath)
         var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
         migrator.eraseDatabaseOnSchemaChange = true

@@ -6,17 +6,21 @@ import MacControlCenterUI
 import MenuBarExtraAccess
 import SwiftUI
 
-struct MenuView: View {
+public struct MenuView: View {
     @Environment(\.openWindow) private var openWindow
 
     private static let sliderWidth: CGFloat = 270
 
-    @Binding var isMenuPresented: Bool
+    @Binding private var isMenuPresented: Bool
 
     @State private var isLoading = true
     @State private var profile: ExtensionProfile?
 
-    var body: some View {
+    public init(isMenuPresented: Binding<Bool>) {
+        _isMenuPresented = isMenuPresented
+    }
+
+    public var body: some View {
         MacControlCenterMenu(isPresented: $isMenuPresented) {
             MenuHeader("sing-box") {
                 if isLoading {

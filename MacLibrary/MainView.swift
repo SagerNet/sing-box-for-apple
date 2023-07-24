@@ -2,7 +2,7 @@ import ApplicationLibrary
 import Library
 import SwiftUI
 
-struct MainView: View {
+public struct MainView: View {
     @Environment(\.controlActiveState) private var controlActiveState
 
     @State private var selection = NavigationPage.dashboard
@@ -14,7 +14,8 @@ struct MainView: View {
     @State private var serviceNotificationContent = ""
     @State private var serviceNotificationPresented = false
 
-    var body: some View {
+    public init() {}
+    public var body: some View {
         NavigationSplitView {
             VStack {
                 SidebarView()

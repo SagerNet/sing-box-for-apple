@@ -12,15 +12,25 @@ public enum FilePath {
 public extension FilePath {
     static let groupName = "group.\(packageName)"
 
-    static let sharedDirectory: URL! = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupName)
+    static var sharedDirectory = defaultSharedDirectory
 
-    static let cacheDirectory = sharedDirectory
-        .appendingPathComponent("Library", isDirectory: true)
-        .appendingPathComponent("Caches", isDirectory: true)
+    private static var defaultSharedDirectory: URL {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: FilePath.groupName)!
+    }
 
-    static let workingDirectory = cacheDirectory.appendingPathComponent("Working", isDirectory: true)
+    static var cacheDirectory: URL {
+        sharedDirectory
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Caches", isDirectory: true)
+    }
 
-    static let iCloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)!.appendingPathComponent("Documents", isDirectory: true)
+    static var workingDirectory: URL {
+        cacheDirectory.appendingPathComponent("Working", isDirectory: true)
+    }
+
+    static var iCloudDirectory: URL {
+        FileManager.default.url(forUbiquityContainerIdentifier: nil)!.appendingPathComponent("Documents", isDirectory: true)
+    }
 }
 
 public extension URL {

@@ -2,11 +2,12 @@ import ApplicationLibrary
 import Library
 import SwiftUI
 
-struct SidebarView: View {
+public struct SidebarView: View {
     @Environment(\.selection) private var selection
     @Environment(\.extensionProfile) private var extensionProfile
 
-    var body: some View {
+    public init() {}
+    public var body: some View {
         viewBuilder {
             if let profile = extensionProfile.wrappedValue {
                 SidebarView0().environmentObject(profile)

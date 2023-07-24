@@ -2,7 +2,7 @@ import Foundation
 import Libbox
 import NetworkExtension
 
-class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
+public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
     private let tunnel: NEPacketTunnelProvider
     private let commandServer: LibboxCommandServer
 
@@ -11,7 +11,7 @@ class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
         commandServer = logServer
     }
 
-    func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?) throws {
+    public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?) throws {
         guard let options else {
             throw NSError(domain: "nil options", code: 0)
         }
@@ -105,52 +105,52 @@ class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
         }
     }
 
-    func usePlatformAutoDetectControl() -> Bool {
+    public func usePlatformAutoDetectControl() -> Bool {
         true
     }
 
-    func autoDetectControl(_: Int32) throws {}
+    public func autoDetectControl(_: Int32) throws {}
 
-    func findConnectionOwner(_: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?, destinationPort _: Int32, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
+    public func findConnectionOwner(_: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?, destinationPort _: Int32, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
         throw NSError(domain: "not implemented", code: 0)
     }
 
-    func packageName(byUid _: Int32, error _: NSErrorPointer) -> String {
+    public func packageName(byUid _: Int32, error _: NSErrorPointer) -> String {
         ""
     }
 
-    func uid(byPackageName _: String?, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
+    public func uid(byPackageName _: String?, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
         throw NSError(domain: "not implemented", code: 0)
     }
 
-    func useProcFS() -> Bool {
+    public func useProcFS() -> Bool {
         false
     }
 
-    func writeLog(_ message: String?) {
+    public func writeLog(_ message: String?) {
         guard let message else {
             return
         }
         commandServer.writeMessage(message)
     }
 
-    func usePlatformDefaultInterfaceMonitor() -> Bool {
+    public func usePlatformDefaultInterfaceMonitor() -> Bool {
         false
     }
 
-    func startDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {}
+    public func startDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {}
 
-    func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {}
+    public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {}
 
-    func useGetter() -> Bool {
+    public func useGetter() -> Bool {
         false
     }
 
-    func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
+    public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
         throw NSError(domain: "not implemented", code: 0)
     }
 
-    func underNetworkExtension() -> Bool {
+    public func underNetworkExtension() -> Bool {
         true
     }
 }

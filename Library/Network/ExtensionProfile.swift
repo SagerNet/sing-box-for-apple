@@ -41,6 +41,14 @@ public class ExtensionProfile: ObservableObject {
     public func start() async throws {
         manager.isEnabled = true
         try await manager.saveToPreferences()
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                try manager.connection.startVPNTunnel(options: [
+                    "username": NSString(string: NSUserName()),
+                ])
+                return
+            }
+        #endif
         try manager.connection.startVPNTunnel()
     }
 
@@ -61,7 +69,11 @@ public class ExtensionProfile: ObservableObject {
         let manager = NETunnelProviderManager()
         manager.localizedDescription = "utun interface"
         let tunnelProtocol = NETunnelProviderProtocol()
-        tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).extension"
+        if Variant.useSystemExtension {
+            tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).system"
+        } else {
+            tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).extension"
+        }
         tunnelProtocol.serverAddress = "sing-box"
         manager.protocolConfiguration = tunnelProtocol
         manager.isEnabled = true

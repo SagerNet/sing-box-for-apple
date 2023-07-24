@@ -48,7 +48,7 @@ public struct EditProfileContentView: View {
                     }
                 }
                 .font(Font.system(.caption2, design: .monospaced))
-                .disableAutocorrection(true)
+                .autocorrectionDisabled()
                 #if os(iOS)
                     .textInputAutocapitalization(.none)
                     .background(Color(UIColor.secondarySystemGroupedBackground))
