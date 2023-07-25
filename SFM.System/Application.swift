@@ -4,11 +4,7 @@ import SwiftUI
 
 @main
 struct Application: App {
-    @NSApplicationDelegateAdaptor private var appDelegate: ApplicationDelegate
-
-    init() {
-        Variant.useSystemExtension = true
-    }
+    @NSApplicationDelegateAdaptor private var appDelegate: IndependentApplicationDelegate
 
     var body: some Scene {
         MacApplication()

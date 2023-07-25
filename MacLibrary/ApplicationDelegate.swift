@@ -20,29 +20,16 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate {
         }
         Task.detached {
             do {
-                if Variant.useSystemExtension {
-                    if await SystemExtension.isInstalled() {
-                        if let result = try await SystemExtension.install() {
-                            if result == .willCompleteAfterReboot {
-                                return
-                            }
+                try ProfileUpdateTask.setup()
+                if launchedAsLogInItem {
+                    if SharedPreferences.startedByUser {
+                        if let profile = try await ExtensionProfile.load() {
+                            try await profile.start()
                         }
                     }
                 }
-                try await self.postStart(launchedAsLogInItem)
             } catch {
                 NSLog("application setup error: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    private func postStart(_ launchedAsLogInItem: Bool) async throws {
-        try ProfileUpdateTask.setup()
-        if launchedAsLogInItem {
-            if SharedPreferences.startedByUser {
-                if let profile = try await ExtensionProfile.load() {
-                    try await profile.start()
-                }
             }
         }
     }

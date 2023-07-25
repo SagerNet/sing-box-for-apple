@@ -2,11 +2,6 @@ import Foundation
 
 public enum FilePath {
     public static let packageName = "io.nekohasekai.sfa"
-    #if os(iOS)
-        public static let httpClientName = "SFI"
-    #elseif os(macOS)
-        public static let httpClientName = "SFM"
-    #endif
 }
 
 public extension FilePath {

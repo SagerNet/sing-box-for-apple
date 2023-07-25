@@ -67,7 +67,7 @@ public class ExtensionProfile: ObservableObject {
 
     public static func install() async throws {
         let manager = NETunnelProviderManager()
-        manager.localizedDescription = "utun interface"
+        manager.localizedDescription = Variant.applicationName
         let tunnelProtocol = NETunnelProviderProtocol()
         if Variant.useSystemExtension {
             tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).system"

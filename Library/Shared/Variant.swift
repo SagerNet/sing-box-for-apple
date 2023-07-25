@@ -6,4 +6,10 @@ public enum Variant {
     #else
         public static let useSystemExtension = false
     #endif
+
+    #if os(iOS)
+        public static let applicationName = "SFI"
+    #elseif os(macOS)
+        public static let applicationName = "SFM"
+    #endif
 }

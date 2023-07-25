@@ -78,6 +78,13 @@ public struct ActiveDashboardView: View {
                 }
             }
         }
+        .alert(isPresented: $errorPresented) {
+            Alert(
+                title: Text("Error"),
+                message: Text(errorMessage),
+                dismissButton: .default(Text("Ok"))
+            )
+        }
         #if os(iOS)
         .onChange(of: scenePhase, perform: { newValue in
             if newValue == .active {

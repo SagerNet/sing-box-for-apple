@@ -3,7 +3,7 @@ import Libbox
 
 public class HTTPClient {
     private static var userAgent: String {
-        var userAgent = FilePath.httpClientName
+        var userAgent = Variant.applicationName
         userAgent += "/"
         userAgent += Bundle.main.version
         userAgent += " (Build "
