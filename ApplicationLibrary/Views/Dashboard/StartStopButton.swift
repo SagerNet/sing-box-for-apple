@@ -41,8 +41,7 @@ public struct StartStopButton: View {
     private struct Button0: View {
         @Environment(\.logClient) private var logClient
         @ObservedObject private var profile: ExtensionProfile
-        @State private var errorPresented = false
-        @State private var errorMessage = ""
+        @State private var alert: Alert?
 
         init(_ profile: ExtensionProfile) {
             self.profile = profile
@@ -75,13 +74,7 @@ public struct StartStopButton: View {
                 #endif
             }
             .disabled(!profile.status.isEnabled)
-            .alert(isPresented: $errorPresented) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text(errorMessage),
-                    dismissButton: .default(Text("Ok"))
-                )
-            }
+            .alertBinding($alert)
         }
 
         private func switchProfile(_ isEnabled: Bool) async {
@@ -93,8 +86,7 @@ public struct StartStopButton: View {
                     profile.stop()
                 }
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
         }

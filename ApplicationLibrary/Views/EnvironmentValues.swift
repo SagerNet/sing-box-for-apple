@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 import Library
 import SwiftUI
 
@@ -52,6 +53,19 @@ public extension EnvironmentValues {
         }
         set {
             self[logClientKey.self] = newValue
+        }
+    }
+
+    private struct importRemoteProfileKey: EnvironmentKey {
+        static var defaultValue: Binding<LibboxImportRemoteProfile?> = .constant(nil)
+    }
+
+    var importRemoteProfile: Binding<LibboxImportRemoteProfile?> {
+        get {
+            self[importRemoteProfileKey.self]
+        }
+        set {
+            self[importRemoteProfileKey.self] = newValue
         }
     }
 }

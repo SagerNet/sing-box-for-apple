@@ -1,4 +1,3 @@
-
 import Library
 import SwiftUI
 
@@ -16,8 +15,7 @@ import SwiftUI
 
         @State private var isLoading = true
         @State private var profile: Profile!
-        @State private var errorPresented = false
-        @State private var errorMessage = ""
+        @State private var alert: Alert?
 
         public var body: some View {
             viewBuilder {
@@ -27,19 +25,11 @@ import SwiftUI
                             await doReload()
                         }
                     }
-                    .alert(isPresented: $errorPresented) {
-                        Alert(
-                            title: Text("Error"),
-                            message: Text(errorMessage),
-                            dismissButton: .default(Text("Ok"), action: {
-                                dismiss()
-                            })
-                        )
-                    }
                 } else {
                     EditProfileView().environmentObject(profile!)
                 }
             }
+            .alertBinding($alert)
             .onExitCommand {
                 dismiss()
             }
@@ -47,20 +37,17 @@ import SwiftUI
 
         private func doReload() async {
             guard let profileID else {
-                errorMessage = "Context destroyed"
-                errorPresented = true
+                alert = Alert(errorMessage: "Context destroyed")
                 return
             }
             do {
                 profile = try ProfileManager.get(profileID)
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
             if profile == nil {
-                errorMessage = "Profile deleted"
-                errorPresented = true
+                alert = Alert(errorMessage: "Profile deleted")
                 return
             }
             isLoading = false

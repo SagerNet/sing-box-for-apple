@@ -1,4 +1,5 @@
 import ApplicationLibrary
+import Libbox
 import Library
 import SwiftUI
 
@@ -13,6 +14,8 @@ struct MainView: View {
     @State private var serviceNotificationTitle = ""
     @State private var serviceNotificationContent = ""
     @State private var serviceNotificationPresented = false
+
+    @State private var importRemoteProfile: LibboxImportRemoteProfile?
 
     var body: some View {
         viewBuilder {
@@ -54,7 +57,22 @@ struct MainView: View {
         .environment(\.selection, $selection)
         .environment(\.extensionProfile, $extensionProfile)
         .environment(\.logClient, $logClient)
-        .preferredColorScheme(.dark)
+        .environment(\.importRemoteProfile, $importRemoteProfile)
+        .handlesExternalEvents(preferring: [], allowing: ["*"])
+        .onOpenURL(perform: openURL)
+    }
+
+    private func openURL(url: URL) {
+        if url.host == "import-remote-profile" {
+            var error: NSError?
+            importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
+            if error != nil {
+                return
+            }
+            if selection != .profiles {
+                selection = .profiles
+            }
+        }
     }
 
     private func loadProfile() async {

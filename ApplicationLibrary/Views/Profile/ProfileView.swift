@@ -1,16 +1,19 @@
 import Foundation
+import Libbox
 import Library
 import SwiftUI
 
 public struct ProfileView: View {
     public static let notificationName = Notification.Name("\(FilePath.packageName).update-profile")
 
+    @Environment(\.importRemoteProfile) private var importRemoteProfile
+    @State private var importRemoteProfileRequest: NewProfileView.ImportRequest?
+    @State private var importRemoteProfilePresented = false
+
     @State private var isLoading = true
     @State private var isUpdating = false
 
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
-
+    @State private var alert: Alert?
     @State private var profileList: [Profile] = []
 
     #if os(iOS)
@@ -33,36 +36,51 @@ public struct ProfileView: View {
                 }
             } else {
                 #if os(iOS)
-                    FormView {
-                        NavigationLink {
-                            NewProfileView {
-                                Task.detached {
-                                    doReload()
+                    ZStack {
+                        if let importRemoteProfileRequest {
+                            NavigationLink(
+                                destination: NewProfileView(importRemoteProfileRequest) {
+                                    Task.detached {
+                                        doReload()
+                                    }
+                                },
+                                isActive: $importRemoteProfilePresented,
+                                label: {
+                                    EmptyView()
                                 }
-                            }
-                        } label: {
-                            Text("New Profile").foregroundColor(.accentColor)
+                            )
                         }
-                        .disabled(editMode.isEditing)
-                        if profileList.isEmpty {
-                            Text("Empty Profiles")
-                        } else {
-                            List {
-                                ForEach(profileList, id: \.mustID) { profile in
-                                    viewBuilder {
-                                        if editMode.isEditing == true {
-                                            Text(profile.name)
-                                        } else {
-                                            NavigationLink {
-                                                EditProfileView().environmentObject(profile)
-                                            } label: {
+                        FormView {
+                            NavigationLink {
+                                NewProfileView {
+                                    Task.detached {
+                                        doReload()
+                                    }
+                                }
+                            } label: {
+                                Text("New Profile").foregroundColor(.accentColor)
+                            }
+                            .disabled(editMode.isEditing)
+                            if profileList.isEmpty {
+                                Text("Empty Profiles")
+                            } else {
+                                List {
+                                    ForEach(profileList, id: \.mustID) { profile in
+                                        viewBuilder {
+                                            if editMode.isEditing == true {
                                                 Text(profile.name)
+                                            } else {
+                                                NavigationLink {
+                                                    EditProfileView().environmentObject(profile)
+                                                } label: {
+                                                    Text(profile.name)
+                                                }
                                             }
                                         }
                                     }
+                                    .onMove(perform: moveProfile)
+                                    .onDelete(perform: deleteProfile)
                                 }
-                                .onMove(perform: moveProfile)
-                                .onDelete(perform: deleteProfile)
                             }
                         }
                     }
@@ -92,6 +110,9 @@ public struct ProfileView: View {
                                                 }, label: {
                                                     Image(systemName: "arrow.clockwise")
                                                 })
+                                                ShareLink(item: profile.shareLink) {
+                                                    Image(systemName: "square.and.arrow.up.fill")
+                                                }
                                             }
                                             Button(action: {
                                                 openWindow(id: EditProfileWindowView.windowID, value: profile.mustID)
@@ -119,8 +140,13 @@ public struct ProfileView: View {
         }
         .disabled(isUpdating)
         .navigationTitle("Profiles")
-        #if os(macOS)
-            .onAppear {
+        .alertBinding($alert, $isLoading)
+        .onAppear {
+            if let remoteProfile = importRemoteProfile.wrappedValue {
+                importRemoteProfile.wrappedValue = nil
+                createImportRemoteProfileDialog(remoteProfile)
+            }
+            #if os(macOS)
                 if observer == nil {
                     observer = NotificationCenter.default.addObserver(forName: ProfileView.notificationName, object: nil, queue: .main) { _ in
                         Task.detached {
@@ -128,30 +154,54 @@ public struct ProfileView: View {
                         }
                     }
                 }
+            #endif
+        }
+        .onChange(of: importRemoteProfile.wrappedValue) { newValue in
+            if let newValue {
+                importRemoteProfile.wrappedValue = nil
+                createImportRemoteProfileDialog(newValue)
             }
-            .onDisappear {
-                if let observer {
-                    NotificationCenter.default.removeObserver(observer)
-                }
-                observer = nil
+        }
+        #if os(macOS)
+        .onDisappear {
+            if let observer {
+                NotificationCenter.default.removeObserver(observer)
             }
-            .toolbar {
-                ToolbarItem {
-                    Button(action: {
-                        openWindow(id: NewProfileView.windowID)
-                    }, label: {
-                        Label("New Profile", systemImage: "plus.square.fill")
-                    })
-                }
+            observer = nil
+        }
+        .toolbar {
+            ToolbarItem {
+                Button(action: {
+                    openWindow(id: NewProfileView.windowID)
+                }, label: {
+                    Label("New Profile", systemImage: "plus.square.fill")
+                })
             }
+        }
         #elseif os(iOS)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton().disabled(profileList.isEmpty)
-                }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                EditButton().disabled(profileList.isEmpty)
             }
-            .environment(\.editMode, $editMode)
+        }
+        .environment(\.editMode, $editMode)
         #endif
+    }
+
+    private func createImportRemoteProfileDialog(_ newValue: LibboxImportRemoteProfile) {
+        importRemoteProfileRequest = .init(name: newValue.name, url: newValue.url)
+        alert = Alert(
+            title: Text("Import Remote Profile"),
+            message: Text("Are you sure to import remote configuration \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
+            primaryButton: .default(Text("Import")) {
+                #if os(iOS)
+                    importRemoteProfilePresented = true
+                #elseif os(macOS)
+                    openWindow(id: NewProfileView.windowID, value: importRemoteProfileRequest!)
+                #endif
+            },
+            secondaryButton: .cancel()
+        )
     }
 
     private func deleteSelectedProfiles(_ profileID: [Int64]) {
@@ -160,8 +210,7 @@ public struct ProfileView: View {
                 isLoading = true
             }
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
         }
     }
 
@@ -178,8 +227,7 @@ public struct ProfileView: View {
             do {
                 profileList = try ProfileManager.list()
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
         }
@@ -189,8 +237,7 @@ public struct ProfileView: View {
         do {
             _ = try profile.updateRemoteProfile()
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
         }
         isUpdating = false
     }
@@ -200,8 +247,7 @@ public struct ProfileView: View {
             do {
                 _ = try ProfileManager.delete(profile)
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
             isLoading = true
@@ -216,8 +262,7 @@ public struct ProfileView: View {
         do {
             try ProfileManager.update(profileList)
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
             return
         }
     }
@@ -231,8 +276,7 @@ public struct ProfileView: View {
             do {
                 _ = try ProfileManager.delete(profileToDelete)
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
             }
         }
     }

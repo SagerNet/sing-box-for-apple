@@ -24,9 +24,7 @@ public struct SettingView: View {
     @State private var version = ""
     @State private var dataSize = ""
     @State private var taiwanFlagAvailable = false
-
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
+    @State private var alert: Alert?
 
     public init() {}
 
@@ -82,13 +80,11 @@ public struct SettingView: View {
                                             do {
                                                 if let result = try await SystemExtension.install(forceUpdate: true) {
                                                     if result == .willCompleteAfterReboot {
-                                                        errorMessage = "Need reboot"
-                                                        errorPresented = true
+                                                        alert = Alert(errorMessage: "Need reboot")
                                                     }
                                                 }
                                             } catch {
-                                                errorMessage = error.localizedDescription
-                                                errorPresented = true
+                                                alert = Alert(error)
                                             }
                                         }
                                     }
@@ -134,13 +130,7 @@ public struct SettingView: View {
             }
         }
         .navigationTitle("Settings")
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"))
-            )
-        }
+        .alertBinding($alert)
     }
 
     #if os(macOS)
@@ -156,8 +146,7 @@ public struct SettingView: View {
                     try SMAppService.mainApp.unregister()
                 }
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
             }
         }
     #endif

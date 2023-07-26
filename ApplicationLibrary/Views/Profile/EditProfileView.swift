@@ -10,8 +10,7 @@ public struct EditProfileView: View {
 
     @State private var isLoading = false
     @State private var isChanged = false
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
+    @State private var alert: Alert?
 
     public init() {}
 
@@ -68,6 +67,17 @@ public struct EditProfileView: View {
                             }
                         }
                         .disabled(isLoading)
+                    }
+                    if #available(iOS 16.0, *) {
+                        ShareLink(item: profile.shareLink) {
+                            Text("Share")
+                        }
+                    } else {
+                        Button("Share") {
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [profile.shareLink], applicationActivities: nil), animated: true, completion: nil)
+                            }
+                        }
                     }
                 }
             #endif
@@ -132,13 +142,7 @@ public struct EditProfileView: View {
                 }
             }
         #endif
-            .alert(isPresented: $errorPresented) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text(errorMessage),
-                    dismissButton: .default(Text("Ok"))
-                )
-            }
+            .alertBinding($alert)
             .navigationTitle("Edit Profile")
     }
 
@@ -150,8 +154,7 @@ public struct EditProfileView: View {
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
             try profile.updateRemoteProfile()
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
         }
     }
 
@@ -159,8 +162,7 @@ public struct EditProfileView: View {
         do {
             _ = try ProfileManager.update(profile)
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
             return
         }
         isChanged = false

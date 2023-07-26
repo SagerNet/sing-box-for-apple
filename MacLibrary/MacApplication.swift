@@ -12,7 +12,7 @@ public struct MacApplication: Scene {
             MainView()
                 .onAppear {
                     Task.detached {
-                        await initialize()
+                        initialize()
                     }
                 }
                 .environment(\.showMenuBarExtra, $showMenuBarExtra)
@@ -35,9 +35,9 @@ public struct MacApplication: Scene {
             SidebarCommands()
         }
 
-        Window("New Profile", id: NewProfileView.windowID) {
-            NewProfileView()
-        }
+        WindowGroup("New Profile", id: NewProfileView.windowID, for: NewProfileView.ImportRequest.self) { importRequest in
+            NewProfileView(importRequest.wrappedValue)
+        }.commandsRemoved()
 
         WindowGroup("Edit Profile", id: EditProfileWindowView.windowID, for: Int64.self) { profileID in
             EditProfileWindowView(profileID.wrappedValue)

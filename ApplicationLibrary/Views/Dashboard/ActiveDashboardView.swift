@@ -16,9 +16,7 @@ public struct ActiveDashboardView: View {
     @State private var selectedProfileID: Int64!
     @State private var reasserting = false
     @State private var observer: Any?
-
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
+    @State private var alert: Alert?
 
     public init() {}
 
@@ -78,43 +76,37 @@ public struct ActiveDashboardView: View {
                 }
             }
         }
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"))
-            )
-        }
+        .alertBinding($alert)
         #if os(iOS)
-        .onChange(of: scenePhase, perform: { newValue in
-            if newValue == .active {
-                Task.detached {
-                    await doReload()
-                }
-            }
-        })
-        .onChange(of: selection.wrappedValue, perform: { newValue in
-            if newValue == .dashboard {
-                Task.detached {
-                    await doReload()
-                }
-            }
-        })
-        #elseif os(macOS)
-        .onAppear {
-            if observer == nil {
-                observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
+            .onChange(of: scenePhase, perform: { newValue in
+                if newValue == .active {
                     Task.detached {
                         await doReload()
                     }
-                })
+                }
+            })
+            .onChange(of: selection.wrappedValue, perform: { newValue in
+                if newValue == .dashboard {
+                    Task.detached {
+                        await doReload()
+                    }
+                }
+            })
+        #elseif os(macOS)
+            .onAppear {
+                if observer == nil {
+                    observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
+                        Task.detached {
+                            await doReload()
+                        }
+                    })
+                }
             }
-        }
-        .onDisappear {
-            if let observer {
-                NotificationCenter.default.removeObserver(observer)
+            .onDisappear {
+                if let observer {
+                    NotificationCenter.default.removeObserver(observer)
+                }
             }
-        }
         #endif
     }
 
@@ -132,8 +124,7 @@ public struct ActiveDashboardView: View {
             do {
                 profileList = try ProfileManager.list()
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
             if profileList.isEmpty {
@@ -158,8 +149,7 @@ public struct ActiveDashboardView: View {
             do {
                 try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.serviceReload()
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
             }
         }
         reasserting = false

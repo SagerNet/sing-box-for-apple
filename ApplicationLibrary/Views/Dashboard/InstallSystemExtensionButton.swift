@@ -4,8 +4,7 @@
     import SwiftUI
 
     public struct InstallSystemExtensionButton: View {
-        @State private var errorPresented = false
-        @State private var errorMessage = ""
+        @State private var alert: Alert?
         private let callback: () -> Void
         public init(_ callback: @escaping () -> Void) {
             self.callback = callback
@@ -17,27 +16,19 @@
                     await installSystemExtension()
                 }
             }
-            .alert(isPresented: $errorPresented) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text(errorMessage),
-                    dismissButton: .default(Text("Ok"))
-                )
-            }
+            .alertBinding($alert)
         }
 
         private func installSystemExtension() async {
             do {
                 if let result = try await SystemExtension.install() {
                     if result == .willCompleteAfterReboot {
-                        errorMessage = "Need reboot"
-                        errorPresented = true
+                        alert = Alert(errorMessage: "Need Reboot")
                     }
                 }
                 callback()
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
             }
         }
     }

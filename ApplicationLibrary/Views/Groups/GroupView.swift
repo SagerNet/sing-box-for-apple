@@ -3,16 +3,13 @@ import Library
 import SwiftUI
 
 public struct GroupView: View {
-    private var expland: Binding<Bool>
+    @Binding private var expland: Bool
     @State private var group: OutboundGroup
     @State private var geometryWidth: CGFloat = 300
 
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
-
     public init(_ group: OutboundGroup, _ expland: Binding<Bool>) {
         self.group = group
-        self.expland = expland
+        _expland = expland
     }
 
     private var title: some View {
@@ -28,9 +25,9 @@ public struct GroupView: View {
                 .background(Color.gray.opacity(0.5))
                 .cornerRadius(4)
             Button {
-                expland.wrappedValue = !expland.wrappedValue
+                expland = !expland
             } label: {
-                if expland.wrappedValue {
+                if expland {
                     Image(systemName: "arrow.down.to.line")
                 } else {
                     Image(systemName: "arrow.up.to.line")
@@ -51,18 +48,11 @@ public struct GroupView: View {
             #endif
             Spacer(minLength: 6)
         }
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"))
-            )
-        }
     }
 
     public var body: some View {
         Section {
-            if expland.wrappedValue {
+            if expland {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
                                          count: explandColumnCount()))
                 {
@@ -123,12 +113,7 @@ public struct GroupView: View {
     }
 
     private func doURLTest() {
-        do {
-            try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)!.urlTest(group.tag)
-        } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
-        }
+        try? LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)!.urlTest(group.tag)
     }
 }
 

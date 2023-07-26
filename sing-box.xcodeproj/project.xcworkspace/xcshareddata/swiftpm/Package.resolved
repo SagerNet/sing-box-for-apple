@@ -35,6 +35,15 @@
         "revision" : "8757eb7c2cd708320df92e6ad6572efe90e58f16",
         "version" : "1.0.4"
       }
+    },
+    {
+      "identity" : "swift-markdown-ui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/gonzalezreal/swift-markdown-ui",
+      "state" : {
+        "revision" : "12b351a75201a8124c2f2e1f9fc6ef5cd812c0b9",
+        "version" : "2.1.0"
+      }
     }
   ],
   "version" : 2

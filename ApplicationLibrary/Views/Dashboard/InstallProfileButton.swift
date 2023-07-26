@@ -4,8 +4,7 @@ import SwiftUI
 public struct InstallProfileButton: View {
     @Environment(\.extensionProfile) private var extensionProfile
 
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
+    @State private var alert: Alert?
 
     public init() {}
 
@@ -15,21 +14,14 @@ public struct InstallProfileButton: View {
                 await installProfile()
             }
         }
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"))
-            )
-        }
+        .alertBinding($alert)
     }
 
     private func installProfile() async {
         do {
             try await ExtensionProfile.install()
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
         }
     }
 }

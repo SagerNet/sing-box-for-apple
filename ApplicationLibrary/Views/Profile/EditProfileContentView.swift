@@ -26,10 +26,7 @@ public struct EditProfileContentView: View {
     @State private var profile: Profile!
     @State private var profileContent: String = ""
     @State private var isChanged = false
-
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
-    @State private var fatalError = false
+    @State private var alert: Alert?
 
     public var body: some View {
         viewBuilder {
@@ -60,17 +57,7 @@ public struct EditProfileContentView: View {
                     }
             }
         }
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"), action: {
-                    if fatalError {
-                        dismiss()
-                    }
-                })
-            )
-        }
+        .alertBinding($alert)
         .navigationTitle(navigationTitle)
         #if os(macOS)
             .toolbar {
@@ -115,9 +102,7 @@ public struct EditProfileContentView: View {
         do {
             try loadContent0()
         } catch {
-            errorMessage = error.localizedDescription
-            fatalError = true
-            errorPresented = true
+            alert = Alert(error, dismiss.callAsFunction)
         }
     }
 
@@ -140,8 +125,7 @@ public struct EditProfileContentView: View {
         do {
             try profile.write(profileContent)
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
             return
         }
         isChanged = false

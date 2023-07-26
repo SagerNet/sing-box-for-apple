@@ -1,4 +1,5 @@
 import ApplicationLibrary
+import Libbox
 import Library
 import SwiftUI
 
@@ -9,11 +10,8 @@ public struct MainView: View {
     @State private var extensionProfile: ExtensionProfile?
     @State private var profileLoading = true
     @State private var logClient: LogClient!
-
-    @State private var dialogTitle = ""
-    @State private var dialogContent = ""
-    @State private var dialogAction: (() -> Void)?
-    @State private var dialogPresented = false
+    @State private var alert: Alert?
+    @State private var importRemoteProfile: LibboxImportRemoteProfile?
 
     public init() {}
     public var body: some View {
@@ -44,19 +42,10 @@ public struct MainView: View {
                 }
             }
         #endif
-            .alert(isPresented: $dialogPresented, content: {
-                Alert(
-                    title: Text(dialogTitle),
-                    message: Text(dialogContent),
-                    dismissButton: .default(Text("Ok"), action: dialogAction)
-                )
-            })
+            .alertBinding($alert)
             .onAppear {
                 ServiceNotification.setServiceNotificationListener { notification in
-                    dialogTitle = notification.title
-                    dialogContent = notification.body
-                    dialogAction = nil
-                    dialogPresented = true
+                    alert = Alert(title: Text(notification.title), message: Text(notification.body))
                 }
             }
             .onDisappear {
@@ -84,6 +73,22 @@ public struct MainView: View {
             .environment(\.selection, $selection)
             .environment(\.extensionProfile, $extensionProfile)
             .environment(\.logClient, $logClient)
+            .environment(\.importRemoteProfile, $importRemoteProfile)
+            .handlesExternalEvents(preferring: [], allowing: ["*"])
+            .onOpenURL(perform: openURL)
+    }
+
+    private func openURL(url: URL) {
+        if url.host == "import-remote-profile" {
+            var error: NSError?
+            importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
+            if error != nil {
+                return
+            }
+            if selection != .profiles {
+                selection = .profiles
+            }
+        }
     }
 
     private func loadProfile() async {
@@ -115,13 +120,14 @@ public struct MainView: View {
     private func checkApplicationPath() {
         let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.last
         if directoryName != "Applications" {
-            dialogTitle = "Wrong application location"
-            dialogContent = "This app needs to be placed under ~/Applications to work."
-            dialogAction = {
-                NSWorkspace.shared.selectFile(Bundle.main.bundlePath, inFileViewerRootedAtPath: "")
-                NSApp.terminate(nil)
-            }
-            dialogPresented = true
+            alert = Alert(
+                title: Text("Wrong application location"),
+                message: Text("This app needs to be placed under ~/Applications to work."),
+                dismissButton: .default(Text("Ok")) {
+                    NSWorkspace.shared.selectFile(Bundle.main.bundlePath, inFileViewerRootedAtPath: "")
+                    NSApp.terminate(nil)
+                }
+            )
         }
     }
 }

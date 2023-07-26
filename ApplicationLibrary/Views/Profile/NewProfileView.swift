@@ -17,12 +17,21 @@ public struct NewProfileView: View {
     @State private var fileURL: URL!
     @State private var remotePath = ""
     @State private var pickerPresented = false
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
+    @State private var alert: Alert?
+
+    public struct ImportRequest: Codable, Hashable {
+        public let name: String
+        public let url: String
+    }
 
     private let callback: (() -> Void)?
-    public init(_ callback: (() -> Void)? = nil) {
+    public init(_ importRequest: ImportRequest? = nil, _ callback: (() -> Void)? = nil) {
         self.callback = callback
+        if let importRequest {
+            _profileName = .init(initialValue: importRequest.name)
+            _profileType = .init(initialValue: .remote)
+            _remotePath = .init(initialValue: importRequest.url)
+        }
     }
 
     public var body: some View {
@@ -88,13 +97,7 @@ public struct NewProfileView: View {
             }
         }
         .navigationTitle("New Profile")
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"))
-            )
-        }
+        .alertBinding($alert)
         .fileImporter(
             isPresented: $pickerPresented,
             allowedContentTypes: [.json],
@@ -106,8 +109,7 @@ public struct NewProfileView: View {
                     fileURL = urls[0]
                 }
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
         }
@@ -118,26 +120,22 @@ public struct NewProfileView: View {
             isSaving = false
         }
         if profileName.isEmpty {
-            errorMessage = "Missing profile name"
-            errorPresented = true
+            alert = Alert(errorMessage: "Missing profile name")
             return
         }
         if remotePath.isEmpty {
             if profileType == .icloud {
-                errorMessage = "Missing path"
-                errorPresented = true
+                alert = Alert(errorMessage: "Missing path")
                 return
             } else if profileType == .remote {
-                errorMessage = "Missing URL"
-                errorPresented = true
+                alert = Alert(errorMessage: "Missing URL")
                 return
             }
         }
         do {
             try createProfile0()
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
             return
         }
         await MainActor.run {
@@ -173,13 +171,11 @@ public struct NewProfileView: View {
             let profileConfig = profileConfigDirectory.appendingPathComponent("config_\(nextProfileID).json")
             if fileImport {
                 guard let fileURL else {
-                    errorMessage = "Missing file"
-                    errorPresented = true
+                    alert = Alert(errorMessage: "Missing file")
                     return
                 }
                 if !fileURL.startAccessingSecurityScopedResource() {
-                    errorMessage = "Missing access to selected file"
-                    errorPresented = true
+                    alert = Alert(errorMessage: "Missing access to selected file")
                     return
                 }
                 defer {

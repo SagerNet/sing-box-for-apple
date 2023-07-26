@@ -7,8 +7,7 @@ public struct ExtensionStatusView: View {
     @State private var message: LibboxStatusMessage?
     @State private var connectTask: Task<Void, Error>?
     @State private var columnCount: Int = 4
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
+    @State private var alert: Alert?
 
     private let infoFont = Font.system(.caption, design: .monospaced)
 
@@ -67,13 +66,7 @@ public struct ExtensionStatusView: View {
             }
             commandClient = nil
         }
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"))
-            )
-        }
+        .alertBinding($alert)
     }
 
     private func doReload() {
@@ -125,8 +118,7 @@ public struct ExtensionStatusView: View {
         do {
             try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.closeConnections()
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
         }
     }
 

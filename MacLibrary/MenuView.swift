@@ -71,8 +71,7 @@ public struct MenuView: View {
 
     private struct StatusSwitch: View {
         @ObservedObject private var profile: ExtensionProfile
-        @State private var errorPresented = false
-        @State private var errorMessage = ""
+        @State private var alert: Alert?
 
         init(_ profile: ExtensionProfile) {
             self.profile = profile
@@ -88,13 +87,7 @@ public struct MenuView: View {
             })) {}
                 .toggleStyle(.switch)
                 .disabled(!profile.status.isEnabled)
-                .alert(isPresented: $errorPresented) {
-                    Alert(
-                        title: Text("Error"),
-                        message: Text(errorMessage),
-                        dismissButton: .default(Text("Ok"))
-                    )
-                }
+                .alertBinding($alert)
         }
 
         private func switchProfile(_ isEnabled: Bool) async {
@@ -105,8 +98,7 @@ public struct MenuView: View {
                     profile.stop()
                 }
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
         }
@@ -123,10 +115,8 @@ public struct MenuView: View {
         @State private var profileList: [Profile] = []
         @State private var selectedProfileID: Int64!
         @State private var reasserting = false
-
-        @State private var errorPresented = false
-        @State private var errorMessage = ""
         @State private var observer: Any?
+        @State private var alert: Alert?
 
         var body: some View {
             viewBuilder {
@@ -169,13 +159,7 @@ public struct MenuView: View {
                     NotificationCenter.default.removeObserver(observer)
                 }
             }
-            .alert(isPresented: $errorPresented) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text(errorMessage),
-                    dismissButton: .default(Text("Ok"))
-                )
-            }
+            .alertBinding($alert)
         }
 
         private func doReload() {
@@ -185,8 +169,7 @@ public struct MenuView: View {
             do {
                 profileList = try ProfileManager.list()
             } catch {
-                errorMessage = error.localizedDescription
-                errorPresented = true
+                alert = Alert(error)
                 return
             }
             if profileList.isEmpty {
@@ -210,8 +193,7 @@ public struct MenuView: View {
                 do {
                     try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.serviceReload()
                 } catch {
-                    errorMessage = error.localizedDescription
-                    errorPresented = true
+                    alert = Alert(error)
                 }
             }
             reasserting = false
