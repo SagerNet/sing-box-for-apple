@@ -31,6 +31,7 @@ public struct GroupListView: View {
                 Text("Empty groups")
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .onAppear(perform: doReload)
         .onDisappear {
             connectTask?.cancel()

@@ -34,7 +34,6 @@ public enum ServiceNotification {
 
     private class Delegate: NSObject, UNUserNotificationCenterDelegate {
         func userNotificationCenter(_: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
-            NSLog("userNotificationCenter")
             if let listener = ServiceNotification.listener {
                 listener(notification.request.content)
                 return []

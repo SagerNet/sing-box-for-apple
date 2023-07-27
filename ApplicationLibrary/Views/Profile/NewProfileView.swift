@@ -216,6 +216,6 @@ public struct NewProfileView: View {
             remoteURL = remotePath
             lastUpdated = .now
         }
-        try ProfileManager.create(Profile(name: profileName, type: profileType, path: savePath, remoteURL: remoteURL))
+        try ProfileManager.create(Profile(name: profileName, type: profileType, path: savePath, remoteURL: remoteURL, lastUpdated: lastUpdated))
     }
 }
