@@ -67,7 +67,7 @@ public struct SettingView: View {
                     #endif
                     Section("Packet Tunnel") {
                         Toggle("Disable Memory Limit", isOn: $disableMemoryLimit)
-                            .onChange(of: disableMemoryLimit) { newValue in
+                            .onChangeCompat(of: disableMemoryLimit) { newValue in
                                 Task.detached {
                                     SharedPreferences.disableMemoryLimit = newValue
                                 }

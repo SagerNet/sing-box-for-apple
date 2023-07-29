@@ -25,11 +25,10 @@ struct ContentView: View {
                 ForEach(NavigationPage.allCases.filter { it in
                     it.visible(extensionProfile)
                 }, id: \.self) { page in
-                    NavigationView {
+                    NavigationStackCompat {
                         page.contentView
                             .focusSection()
                     }
-                    .navigationViewStyle(.stack)
                     .tag(page)
                     .tabItem { page.label }
                 }
@@ -49,11 +48,10 @@ struct ContentView: View {
                 ForEach(NavigationPage.allCases.filter { it in
                     it.visible(nil)
                 }, id: \.self) { page in
-                    NavigationView {
+                    NavigationStackCompat {
                         page.contentView
                             .focusSection()
                     }
-                    .navigationViewStyle(.stack)
                     .tag(page)
                     .tabItem { page.label }
                 }

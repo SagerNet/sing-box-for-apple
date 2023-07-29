@@ -76,6 +76,9 @@
 		3A9144D92A46AE370036E9AD /* ShadredPreferences+Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9144D82A46AE370036E9AD /* ShadredPreferences+Database.swift */; };
 		3A9759202A4EB69C00E4404B /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A9759212A4EB69C00E4404B /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3A99B42A2A7526990010D4B0 /* NavigationStackCompat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99B4292A7526990010D4B0 /* NavigationStackCompat.swift */; };
+		3A99B42C2A75288C0010D4B0 /* ViewCompat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */; };
+		3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */; };
 		3AB1220B2A70FD500087CD55 /* Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB1220A2A70FD500087CD55 /* Alert.swift */; };
 		3AC03B992A72BF3300B7946F /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC03B982A72BF3300B7946F /* Application.swift */; };
 		3AC03B9B2A72BF3300B7946F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC03B9A2A72BF3300B7946F /* ContentView.swift */; };
@@ -447,6 +450,9 @@
 		3A7E90342A46756300D53052 /* SharedPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedPreferences.swift; sourceTree = "<group>"; };
 		3A9108E32A511AE70088B196 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		3A9144D82A46AE370036E9AD /* ShadredPreferences+Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShadredPreferences+Database.swift"; sourceTree = "<group>"; };
+		3A99B4292A7526990010D4B0 /* NavigationStackCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStackCompat.swift; sourceTree = "<group>"; };
+		3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCompat.swift; sourceTree = "<group>"; };
+		3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationDestinationCompat.swift; sourceTree = "<group>"; };
 		3AA1ABB92A4C4054000FD4BA /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		3AA1ABBB2A4C4107000FD4BA /* LogClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogClient.swift; sourceTree = "<group>"; };
 		3AAB5E712A4BF6F6009757F1 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
@@ -926,6 +932,9 @@
 				3ADF8E022A4B118700900CC8 /* Binding+Unwrap.swift */,
 				3AC5EC072A6417470077AF34 /* DeviceCensorship.swift */,
 				3AB1220A2A70FD500087CD55 /* Alert.swift */,
+				3A99B4292A7526990010D4B0 /* NavigationStackCompat.swift */,
+				3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */,
+				3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */,
 			);
 			path = Abstract;
 			sourceTree = "<group>";
@@ -1338,6 +1347,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A99B42A2A7526990010D4B0 /* NavigationStackCompat.swift in Sources */,
 				3A4EAD2E2A4FEB77005435B3 /* EditProfileView.swift in Sources */,
 				3A4EAD2A2A4FEB6D005435B3 /* Binding+Unwrap.swift in Sources */,
 				3A4EAD2D2A4FEB77005435B3 /* ProfileView.swift in Sources */,
@@ -1357,6 +1367,7 @@
 				3A4EAD2F2A4FEB77005435B3 /* EditProfileContentView.swift in Sources */,
 				3A4EAD272A4FEB65005435B3 /* DashboardView.swift in Sources */,
 				3A4EAD342A4FEB7F005435B3 /* LogView.swift in Sources */,
+				3A99B42C2A75288C0010D4B0 /* ViewCompat.swift in Sources */,
 				3AB1220B2A70FD500087CD55 /* Alert.swift in Sources */,
 				3A4EAD362A4FEB9C005435B3 /* ProfileUpdateTask.swift in Sources */,
 				3A1CF2F62A50EE9C000A8289 /* GroupView.swift in Sources */,
@@ -1364,6 +1375,7 @@
 				3A1CF2F22A50E613000A8289 /* OutboundGroup.swift in Sources */,
 				3A4EAD2C2A4FEB77005435B3 /* EditProfileWindowView.swift in Sources */,
 				3A1CF2FA2A50F0BD000A8289 /* OutboundGroupItem.swift in Sources */,
+				3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */,
 				3A4EAD332A4FEB7F005435B3 /* LogClient.swift in Sources */,
 				3A4EAD262A4FEB65005435B3 /* ExtensionStatusView.swift in Sources */,
 				3A4EAD252A4FEB65005435B3 /* StartStopButton.swift in Sources */,
@@ -1607,6 +1619,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1646,6 +1659,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1769,6 +1783,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.intents;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1808,6 +1823,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.intents;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2052,6 +2068,7 @@
 				);
 				MARKETING_VERSION = 1.3.5;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2092,6 +2109,7 @@
 				);
 				MARKETING_VERSION = 1.3.5;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2131,6 +2149,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.3.5;
 				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2169,6 +2188,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.3.5;
 				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2216,6 +2236,7 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				OTHER_CODE_SIGN_FLAGS = "--deep";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.library;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2270,6 +2291,7 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				OTHER_CODE_SIGN_FLAGS = "--deep";
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.library;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2309,6 +2331,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.3.4;
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2344,6 +2367,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.3.4;
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2384,6 +2408,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.3.5;
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2423,6 +2448,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.3.5;
+				OTHER_LDFLAGS = "-ld_classic";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";

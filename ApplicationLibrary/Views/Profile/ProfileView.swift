@@ -43,17 +43,13 @@ public struct ProfileView: View {
                 #if os(iOS) || os(tvOS)
                     ZStack {
                         if let importRemoteProfileRequest {
-                            NavigationLink(
-                                destination: NewProfileView(importRemoteProfileRequest) {
+                            NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
+                                NewProfileView(importRemoteProfileRequest) {
                                     Task.detached {
                                         doReload()
                                     }
-                                },
-                                isActive: $importRemoteProfilePresented,
-                                label: {
-                                    EmptyView()
                                 }
-                            )
+                            }
                         }
                         FormView {
                             #if os(iOS) || os(tvOS)

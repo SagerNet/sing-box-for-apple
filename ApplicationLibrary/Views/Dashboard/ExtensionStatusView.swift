@@ -46,7 +46,7 @@ public struct ExtensionStatusView: View {
                         Rectangle()
                             .fill(.clear)
                             .frame(height: 1)
-                            .onChange(of: geometry.size.width) { newValue in
+                            .onChangeCompat(of: geometry.size.width) { newValue in
                                 updateColumnCount(newValue)
                             }
                             .onAppear {

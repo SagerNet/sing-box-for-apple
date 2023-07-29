@@ -46,7 +46,7 @@ public struct LogView: View {
                                     Spacer(minLength: 5)
                                 }
 
-                                .onChange(of: logClient.logList.count) { newCount in
+                                .onChangeCompat(of: logClient.logList.count) { newCount in
                                     withAnimation {
                                         reader.scrollTo(newCount - 1)
                                     }

@@ -54,6 +54,7 @@ public extension NavigationPage {
             switch self {
             case .dashboard:
                 DashboardView()
+
             case .groups:
                 GroupListView()
             case .logs:
@@ -78,8 +79,9 @@ public extension NavigationPage {
             #if os(tvOS)
                 // TODO: fix groups ui
                 return false
+            #else
+                return profile?.status.isConnectedStrict == true
             #endif
-            return profile?.status.isConnectedStrict == true
         default:
             return true
         }

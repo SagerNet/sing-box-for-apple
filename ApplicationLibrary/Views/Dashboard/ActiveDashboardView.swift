@@ -68,7 +68,7 @@ public struct ActiveDashboardView: View {
                             }
                         #endif
                     }
-                    .onChange(of: selectedProfileID) { _ in
+                    .onChangeCompat(of: selectedProfileID) {
                         reasserting = true
                         Task.detached {
                             await switchProfile(selectedProfileID!)
