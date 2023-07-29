@@ -40,6 +40,9 @@ public struct LogView: View {
                                 ForEach(Array(logClient.logList.enumerated()), id: \.offset) { it in
                                     Text(it.element)
                                         .font(logFont)
+                                    #if os(tvOS)
+                                        .focusable()
+                                    #endif
                                     Spacer(minLength: 5)
                                 }
 
@@ -52,6 +55,10 @@ public struct LogView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                             .padding()
                         }
+                        #if os(tvOS)
+                        .focusEffectDisabled()
+                        .focusSection()
+                        #endif
                         .onAppear {
                             reader.scrollTo(logClient.logList.count - 1)
                         }

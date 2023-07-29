@@ -35,7 +35,7 @@ struct StartServiceIntent: AppIntent {
             if !profileChanged {
                 return .result()
             }
-            try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.serviceReload()
+            try LibboxNewStandaloneCommandClient()!.serviceReload()
         } else if extensionProfile.status.isConnected {
             extensionProfile.stop()
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
@@ -62,7 +62,7 @@ struct RestartServiceIntent: AppIntent {
             return .result()
         }
         if extensionProfile.status == .connected {
-            try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.serviceReload()
+            try LibboxNewStandaloneCommandClient()!.serviceReload()
         } else if extensionProfile.status.isConnected {
             extensionProfile.stop()
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))

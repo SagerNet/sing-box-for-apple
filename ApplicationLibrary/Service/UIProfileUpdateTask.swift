@@ -2,7 +2,7 @@ import BackgroundTasks
 import Foundation
 import Library
 
-#if os(iOS)
+#if os(iOS) || os(tvOS)
     public class UIProfileUpdateTask: BGAppRefreshTask {
         public static let taskSchedulerPermittedIdentifier = "\(FilePath.packageName).update_profiles"
 

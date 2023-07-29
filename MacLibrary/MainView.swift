@@ -43,14 +43,6 @@ public struct MainView: View {
             }
         #endif
             .alertBinding($alert)
-            .onAppear {
-                ServiceNotification.setServiceNotificationListener { notification in
-                    alert = Alert(title: Text(notification.title), message: Text(notification.body))
-                }
-            }
-            .onDisappear {
-                ServiceNotification.removeServiceNotificationListener()
-            }
             .toolbar {
                 ToolbarItem(placement: .navigation) {
                     StartStopButton()

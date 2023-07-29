@@ -33,11 +33,13 @@ public struct ActiveDashboardView: View {
                     Text("Empty profiles")
                 } else {
                     VStack {
-                        #if os(iOS)
+                        #if os(iOS) || os(tvOS)
                             if ApplicationLibrary.inPreview || profile.status.isConnected {
                                 ExtensionStatusView()
                                     .listStyle(.automatic)
+                                #if os(iOS)
                                     .navigationBarTitleDisplayMode(.inline)
+                                #endif
                             }
                             FormView {
                                 StartStopButton()
@@ -50,7 +52,7 @@ public struct ActiveDashboardView: View {
                                         .pickerStyle(.inline)
                                 }
                             }
-                        #else
+                        #elseif os(macOS)
                             if ApplicationLibrary.inPreview || profile.status.isConnected {
                                 ExtensionStatusView()
                             }
@@ -77,36 +79,48 @@ public struct ActiveDashboardView: View {
             }
         }
         .alertBinding($alert)
-        #if os(iOS)
-            .onChange(of: scenePhase, perform: { newValue in
-                if newValue == .active {
-                    Task.detached {
-                        await doReload()
-                    }
-                }
-            })
-            .onChange(of: selection.wrappedValue, perform: { newValue in
-                if newValue == .dashboard {
-                    Task.detached {
-                        await doReload()
-                    }
-                }
-            })
-        #elseif os(macOS)
-            .onAppear {
-                if observer == nil {
-                    observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
-                        Task.detached {
-                            await doReload()
+        .onChange(of: profile.status, perform: { newValue in
+            if newValue == .disconnecting || newValue == .connected {
+                Task.detached {
+                    if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
+                        DispatchQueue.main.async {
+                            alert = Alert(errorMessage: serviceError)
                         }
-                    })
+                        try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
+                    }
                 }
             }
-            .onDisappear {
-                if let observer {
-                    NotificationCenter.default.removeObserver(observer)
+        })
+        #if os(iOS) || os(tvOS)
+        .onChange(of: scenePhase, perform: { newValue in
+            if newValue == .active {
+                Task.detached {
+                    await doReload()
                 }
             }
+        })
+        .onChange(of: selection.wrappedValue, perform: { newValue in
+            if newValue == .dashboard {
+                Task.detached {
+                    await doReload()
+                }
+            }
+        })
+        #elseif os(macOS)
+        .onAppear {
+            if observer == nil {
+                observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
+                    Task.detached {
+                        await doReload()
+                    }
+                })
+            }
+        }
+        .onDisappear {
+            if let observer {
+                NotificationCenter.default.removeObserver(observer)
+            }
+        }
         #endif
     }
 
@@ -147,7 +161,7 @@ public struct ActiveDashboardView: View {
         NotificationCenter.default.post(name: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil)
         if profile.status.isConnected {
             do {
-                try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.serviceReload()
+                try LibboxNewStandaloneCommandClient()!.serviceReload()
             } catch {
                 alert = Alert(error)
             }

@@ -46,20 +46,24 @@ public struct EditProfileView: View {
                     FormTextItem("Last Updated", profile.lastUpdatedString)
                 }
             }
-            #if os(iOS)
+            #if os(iOS) || os(tvOS)
                 Section("Action") {
                     if profile.type != .remote {
-                        NavigationLink {
-                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                        } label: {
-                            Text("Edit Content").foregroundColor(.accentColor)
-                        }
+                        #if os(iOS)
+                            NavigationLink {
+                                EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
+                            } label: {
+                                Text("Edit Content").foregroundColor(.accentColor)
+                            }
+                        #endif
                     } else {
-                        NavigationLink {
-                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                        } label: {
-                            Text("View Content").foregroundColor(.accentColor)
-                        }
+                        #if os(iOS)
+                            NavigationLink {
+                                EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
+                            } label: {
+                                Text("View Content").foregroundColor(.accentColor)
+                            }
+                        #endif
                         Button("Update") {
                             isLoading = true
                             Task.detached {
@@ -67,17 +71,19 @@ public struct EditProfileView: View {
                             }
                         }
                         .disabled(isLoading)
-                    }
-                    if #available(iOS 16.0, *) {
-                        ShareLink(item: profile.shareLink) {
-                            Text("Share")
-                        }
-                    } else {
-                        Button("Share") {
-                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                                windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [profile.shareLink], applicationActivities: nil), animated: true, completion: nil)
+                        #if os(iOS)
+                            if #available(iOS 16.0, *) {
+                                ShareLink(item: profile.shareLink) {
+                                    Text("Share")
+                                }
+                            } else {
+                                Button("Share") {
+                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                        windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [profile.shareLink], applicationActivities: nil), animated: true, completion: nil)
+                                    }
+                                }
                             }
-                        }
+                        #endif
                     }
                 }
             #endif

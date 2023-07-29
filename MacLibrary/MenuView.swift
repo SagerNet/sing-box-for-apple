@@ -191,7 +191,7 @@ public struct MenuView: View {
             NotificationCenter.default.post(name: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil)
             if profile.status.isConnected {
                 do {
-                    try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.serviceReload()
+                    try LibboxNewStandaloneCommandClient()?.serviceReload()
                 } catch {
                     alert = Alert(error)
                 }

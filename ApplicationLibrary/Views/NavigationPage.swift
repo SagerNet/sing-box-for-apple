@@ -75,6 +75,10 @@ public extension NavigationPage {
         }
         switch self {
         case .groups:
+            #if os(tvOS)
+                // TODO: fix groups ui
+                return false
+            #endif
             return profile?.status.isConnectedStrict == true
         default:
             return true

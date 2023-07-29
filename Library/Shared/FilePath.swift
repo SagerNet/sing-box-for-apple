@@ -7,25 +7,42 @@ public enum FilePath {
 public extension FilePath {
     static let groupName = "group.\(packageName)"
 
-    static var sharedDirectory = defaultSharedDirectory
+    private static let defaultSharedDirectory: URL! = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: FilePath.groupName)
 
-    private static var defaultSharedDirectory: URL {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: FilePath.groupName)!
-    }
-
-    static var cacheDirectory: URL {
-        sharedDirectory
+    #if os(iOS)
+        static let sharedDirectory = defaultSharedDirectory!
+    #elseif os(tvOS)
+        static let sharedDirectory = defaultSharedDirectory
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Caches", isDirectory: true)
-    }
+    #elseif os(macOS)
+        static var sharedDirectory: URL! = defaultSharedDirectory
+    #endif
 
-    static var workingDirectory: URL {
-        cacheDirectory.appendingPathComponent("Working", isDirectory: true)
-    }
+    #if os(iOS)
+        static let cacheDirectory = sharedDirectory
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Caches", isDirectory: true)
+    #elseif os(tvOS)
+        static let cacheDirectory = sharedDirectory
+    #elseif os(macOS)
+        static var cacheDirectory: URL {
+            sharedDirectory
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Caches", isDirectory: true)
+        }
+    #endif
 
-    static var iCloudDirectory: URL {
-        FileManager.default.url(forUbiquityContainerIdentifier: nil)!.appendingPathComponent("Documents", isDirectory: true)
-    }
+    #if os(macOS)
+        static var workingDirectory: URL {
+            cacheDirectory.appendingPathComponent("Working", isDirectory: true)
+        }
+    #else
+        static let workingDirectory = cacheDirectory.appendingPathComponent("Working", isDirectory: true)
+
+    #endif
+
+    static var iCloudDirectory: URL! = FileManager.default.url(forUbiquityContainerIdentifier: nil)!.appendingPathComponent("Documents", isDirectory: true)
 }
 
 public extension URL {

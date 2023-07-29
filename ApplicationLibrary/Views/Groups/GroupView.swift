@@ -113,7 +113,7 @@ public struct GroupView: View {
     }
 
     private func doURLTest() {
-        try? LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)!.urlTest(group.tag)
+        try? LibboxNewStandaloneCommandClient()!.urlTest(group.tag)
     }
 }
 

@@ -41,8 +41,10 @@ public struct NewProfileView: View {
                     .multilineTextAlignment(.trailing)
             }
             Picker(selection: $profileType) {
-                Text("Local").tag(ProfileType.local)
-                Text("iCloud").tag(ProfileType.icloud)
+                #if !os(tvOS)
+                    Text("Local").tag(ProfileType.local)
+                    Text("iCloud").tag(ProfileType.icloud)
+                #endif
                 Text("Remote").tag(ProfileType.remote)
             } label: {
                 Text("Type")
@@ -54,6 +56,9 @@ public struct NewProfileView: View {
                 } label: {
                     Text("File")
                 }
+                #if os(tvOS)
+                .disabled(true)
+                #endif
                 viewBuilder {
                     if fileImport {
                         HStack {
@@ -98,21 +103,23 @@ public struct NewProfileView: View {
         }
         .navigationTitle("New Profile")
         .alertBinding($alert)
-        .fileImporter(
-            isPresented: $pickerPresented,
-            allowedContentTypes: [.json],
-            allowsMultipleSelection: false
-        ) { result in
-            do {
-                let urls = try result.get()
-                if !urls.isEmpty {
-                    fileURL = urls[0]
+        #if os(iOS) || os(macOS)
+            .fileImporter(
+                isPresented: $pickerPresented,
+                allowedContentTypes: [.json],
+                allowsMultipleSelection: false
+            ) { result in
+                do {
+                    let urls = try result.get()
+                    if !urls.isEmpty {
+                        fileURL = urls[0]
+                    }
+                } catch {
+                    alert = Alert(error)
+                    return
                 }
-            } catch {
-                alert = Alert(error)
-                return
             }
-        }
+        #endif
     }
 
     private func createProfile() async {

@@ -116,7 +116,7 @@ public struct ExtensionStatusView: View {
 
     private func closeConnections() {
         do {
-            try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)?.closeConnections()
+            try LibboxNewStandaloneCommandClient()!.closeConnections()
         } catch {
             alert = Alert(error)
         }
@@ -162,9 +162,13 @@ public struct ExtensionStatusView: View {
                     .font(.system(size: 16))
             }
             .frame(minWidth: 125)
-            .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
-            .background(backgroundColor)
-            .cornerRadius(10)
+            #if os(tvOS)
+                .padding(EdgeInsets(top: 20, leading: 26, bottom: 20, trailing: 26))
+            #else
+                .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
+            #endif
+                .background(backgroundColor)
+                .cornerRadius(10)
         }
 
         private var backgroundColor: Color {
@@ -172,6 +176,8 @@ public struct ExtensionStatusView: View {
                 return Color(uiColor: .secondarySystemGroupedBackground)
             #elseif os(macOS)
                 return Color(nsColor: .textBackgroundColor)
+            #elseif os(tvOS)
+                return Color(uiColor: .black)
             #endif
         }
     }

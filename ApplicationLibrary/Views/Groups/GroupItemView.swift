@@ -14,8 +14,7 @@ public struct GroupItemView: View {
         self.item = item
     }
 
-    @State private var errorPresented = false
-    @State private var errorMessage = ""
+    @State private var alert: Alert?
 
     public var body: some View {
         HStack {
@@ -60,24 +59,17 @@ public struct GroupItemView: View {
                 }
             }
         }
-        .alert(isPresented: $errorPresented) {
-            Alert(
-                title: Text("Error"),
-                message: Text(errorMessage),
-                dismissButton: .default(Text("Ok"))
-            )
-        }
+        .alertBinding($alert)
     }
 
     private func selectOutbound() {
         do {
-            try LibboxNewStandaloneCommandClient(FilePath.sharedDirectory.relativePath)!.selectOutbound(group.tag, outboundTag: item.tag)
+            try LibboxNewStandaloneCommandClient()!.selectOutbound(group.tag, outboundTag: item.tag)
             var newGroup = group
             newGroup.selected = item.tag
             _group.wrappedValue = newGroup
         } catch {
-            errorMessage = error.localizedDescription
-            errorPresented = true
+            alert = Alert(error)
             return
         }
     }
@@ -87,6 +79,8 @@ public struct GroupItemView: View {
             return Color(uiColor: .secondarySystemGroupedBackground)
         #elseif os(macOS)
             return Color(nsColor: .textBackgroundColor)
+        #elseif os(tvOS)
+            return Color.black
         #endif
     }
 }

@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import Network
 
 public class Profile: Record, Identifiable, ObservableObject {
     public var id: Int64?
@@ -15,16 +16,15 @@ public class Profile: Record, Identifiable, ObservableObject {
     @Published public var autoUpdate: Bool
     public var lastUpdated: Date?
 
-    public init(id: Int64? = nil, name: String, order: UInt32 = 0, type: ProfileType, path: String, remoteURL: String? = nil, lastUpdated: Date? = nil) {
+    public init(id: Int64? = nil, name: String, order: UInt32 = 0, type: ProfileType, path: String, remoteURL: String? = nil, autoUpdate: Bool = false, lastUpdated: Date? = nil) {
         self.id = id
         self.name = name
         self.order = order
         self.type = type
         self.path = path
         self.remoteURL = remoteURL
+        self.autoUpdate = autoUpdate
         self.lastUpdated = lastUpdated
-
-        autoUpdate = false
         super.init()
     }
 

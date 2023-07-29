@@ -3,12 +3,16 @@ import Libbox
 import NetworkExtension
 
 open class ExtensionProvider: NEPacketTunnelProvider {
+    public static let errorFile = FilePath.workingDirectory.appendingPathComponent("network_extension_error")
+
     public var username: String? = nil
     private var commandServer: LibboxCommandServer!
     private var boxService: LibboxBoxService!
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
         NSLog("Here I am")
+
+        try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
 
         do {
             try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
@@ -19,13 +23,17 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
         if let username {
             var error: NSError?
-            LibboxSetupWithUsername(FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, username, &error)
+            LibboxSetupWithUsername(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, username, &error)
             if let error {
                 writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
                 return
             }
         } else {
-            LibboxSetup(FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath)
+            var isTVOS = false
+            #if os(tvOS)
+                isTVOS = true
+            #endif
+            LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, isTVOS)
         }
 
         var error: NSError?
@@ -36,7 +44,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
         LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit)
 
-        commandServer = LibboxNewCommandServer(FilePath.sharedDirectory.relativePath, serverInterface(self), Int32(SharedPreferences.maxLogLines))
+        commandServer = LibboxNewCommandServer(serverInterface(self), Int32(SharedPreferences.maxLogLines))
         do {
             try commandServer.start()
         } catch {
@@ -58,19 +66,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     private func writeError(_ message: String) {
         writeMessage(message)
-        #if os(iOS)
-            ServiceNotification.postServiceNotification(title: "Service Error", message: message)
-        #else
-            if Variant.useSystemExtension {
-                NSLog(message)
-            } else {
-                displayMessage(message) { _ in
-                }
-            }
-        #endif
+        try? message.write(to: ExtensionProvider.errorFile, atomically: true, encoding: .utf8)
     }
 
     public func writeFatalError(_ message: String) {
+        #if DEBUG
+            NSLog(message)
+        #endif
         writeError(message)
         cancelTunnelWithError(NSError(domain: message, code: 0))
     }
@@ -91,7 +93,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         do {
             configContent = try profile.read()
         } catch {
-            writeFatalError("(packet-tunnel) error: read config file: \(error.localizedDescription)")
+            writeFatalError("(packet-tunnel) error: read config file \(profile.path): \(error.localizedDescription)")
             return
         }
         var error: NSError?

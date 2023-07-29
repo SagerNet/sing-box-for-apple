@@ -1,6 +1,6 @@
 # sing-box-for-apple
 
-Experimental iOS/macOS client for sing-box, the universal proxy platform.
+Experimental iOS/macOS/tvOS client for sing-box, the universal proxy platform.
 
 ## Documentation
 

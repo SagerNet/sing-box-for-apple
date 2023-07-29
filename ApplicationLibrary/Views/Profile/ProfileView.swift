@@ -1,6 +1,7 @@
 import Foundation
 import Libbox
 import Library
+import Network
 import SwiftUI
 
 public struct ProfileView: View {
@@ -16,10 +17,14 @@ public struct ProfileView: View {
     @State private var alert: Alert?
     @State private var profileList: [Profile] = []
 
-    #if os(iOS)
+    #if os(iOS) || os(tvOS)
         @State private var editMode = EditMode.inactive
     #elseif os(macOS)
         @Environment(\.openWindow) private var openWindow
+    #endif
+
+    #if os(tvOS)
+        @Environment(\.devicePickerSupports) private var devicePickerSupports
     #endif
 
     @State private var observer: Any?
@@ -35,7 +40,7 @@ public struct ProfileView: View {
                     }
                 }
             } else {
-                #if os(iOS)
+                #if os(iOS) || os(tvOS)
                     ZStack {
                         if let importRemoteProfileRequest {
                             NavigationLink(
@@ -51,16 +56,31 @@ public struct ProfileView: View {
                             )
                         }
                         FormView {
-                            NavigationLink {
-                                NewProfileView {
-                                    Task.detached {
-                                        doReload()
+                            #if os(iOS) || os(tvOS)
+                                NavigationLink {
+                                    NewProfileView {
+                                        Task.detached {
+                                            doReload()
+                                        }
+                                    }
+                                } label: {
+                                    Text("New Profile").foregroundColor(.accentColor)
+                                }
+                                .disabled(editMode.isEditing)
+                            #endif
+                            #if os(tvOS)
+                                if devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
+                                    NavigationLink {
+                                        ImportProfileView {
+                                            Task.detached {
+                                                doReload()
+                                            }
+                                        }
+                                    } label: {
+                                        Text("Import Profile").foregroundColor(.accentColor)
                                     }
                                 }
-                            } label: {
-                                Text("New Profile").foregroundColor(.accentColor)
-                            }
-                            .disabled(editMode.isEditing)
+                            #endif
                             if profileList.isEmpty {
                                 Text("Empty Profiles")
                             } else {
@@ -75,6 +95,23 @@ public struct ProfileView: View {
                                                 } label: {
                                                     Text(profile.name)
                                                 }
+                                            }
+                                        }
+                                        .contextMenu {
+                                            if profile.type == .remote {
+                                                Button {
+                                                    isUpdating = true
+                                                    Task.detached {
+                                                        updateProfile(profile)
+                                                    }
+                                                } label: {
+                                                    Label("Update", systemImage: "arrow.clockwise")
+                                                }
+                                            }
+                                            Button(role: .destructive) {
+                                                deleteProfile(profile)
+                                            } label: {
+                                                Label("Delete", systemImage: "trash.fill")
                                             }
                                         }
                                     }
@@ -194,7 +231,7 @@ public struct ProfileView: View {
             title: Text("Import Remote Profile"),
             message: Text("Are you sure to import remote configuration \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
             primaryButton: .default(Text("Import")) {
-                #if os(iOS)
+                #if os(iOS) || os(tvOS)
                     importRemoteProfilePresented = true
                 #elseif os(macOS)
                     openWindow(id: NewProfileView.windowID, value: importRemoteProfileRequest!)

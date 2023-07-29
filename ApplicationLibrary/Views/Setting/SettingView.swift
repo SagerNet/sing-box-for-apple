@@ -95,7 +95,7 @@ public struct SettingView: View {
                     Section("Core") {
                         FormTextItem("Version", version)
                         FormTextItem("Data Size", dataSize)
-                        #if os(iOS)
+                        #if os(iOS) || os(tvOS)
                             NavigationLink(destination: ServiceLogView()) {
                                 Text("View Service Log")
                             }

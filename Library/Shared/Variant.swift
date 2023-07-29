@@ -11,5 +11,7 @@ public enum Variant {
         public static let applicationName = "SFI"
     #elseif os(macOS)
         public static let applicationName = "SFM"
+    #elseif os(tvOS)
+        public static let applicationName = "SFT"
     #endif
 }

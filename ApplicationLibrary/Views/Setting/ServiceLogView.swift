@@ -34,12 +34,15 @@ public struct ServiceLogView: View {
                 }
             }
         }
+        #if !os(tvOS)
         .toolbar {
             Button("Export") {
                 fileExporterPresented = true
             }
             .disabled(content.isEmpty)
         }
+        #endif
+        #if !os(tvOS)
         .fileExporter(
             isPresented: $fileExporterPresented,
             document: LogDocument(content),
@@ -47,9 +50,13 @@ public struct ServiceLogView: View {
             defaultFilename: "service-log.txt",
             onCompletion: { _ in }
         )
+        #endif
         .navigationTitle("Service Log")
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+        #endif
+        #if os(tvOS)
+        .focusable()
         #endif
     }
 
@@ -65,25 +72,27 @@ public struct ServiceLogView: View {
         isLoading = false
     }
 
-    private struct LogDocument: FileDocument {
-        static var readableContentTypes = [UTType.text]
+    #if !os(tvOS)
+        private struct LogDocument: FileDocument {
+            static var readableContentTypes = [UTType.text]
 
-        let content: String
+            let content: String
 
-        init(_ content: String) {
-            self.content = content
-        }
+            init(_ content: String) {
+                self.content = content
+            }
 
-        init(configuration: ReadConfiguration) throws {
-            if let data = configuration.file.regularFileContents {
-                content = String(decoding: data, as: UTF8.self)
-            } else {
-                content = ""
+            init(configuration: ReadConfiguration) throws {
+                if let data = configuration.file.regularFileContents {
+                    content = String(decoding: data, as: UTF8.self)
+                } else {
+                    content = ""
+                }
+            }
+
+            func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
+                FileWrapper(regularFileWithContents: Data(content.utf8))
             }
         }
-
-        func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
-            FileWrapper(regularFileWithContents: Data(content.utf8))
-        }
-    }
+    #endif
 }

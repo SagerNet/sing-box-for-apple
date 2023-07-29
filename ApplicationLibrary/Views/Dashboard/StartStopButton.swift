@@ -10,7 +10,7 @@ public struct StartStopButton: View {
     public var body: some View {
         viewBuilder {
             if ApplicationLibrary.inPreview {
-                #if os(iOS)
+                #if os(iOS) || os(tvOS)
                     Toggle(isOn: .constant(true)) {
                         Text("Enabled")
                     }
@@ -23,7 +23,7 @@ public struct StartStopButton: View {
             } else if let profile = extensionProfile.wrappedValue {
                 Button0(profile)
             } else {
-                #if os(iOS)
+                #if os(iOS) || os(tvOS)
                     Toggle(isOn: .constant(false)) {
                         Text("Enabled")
                     }
@@ -49,7 +49,7 @@ public struct StartStopButton: View {
 
         var body: some View {
             viewBuilder {
-                #if os(iOS)
+                #if os(iOS) || os(tvOS)
                     Toggle(isOn: Binding(get: {
                         profile.status.isConnected
                     }, set: { newValue, _ in

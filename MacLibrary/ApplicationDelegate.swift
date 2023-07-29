@@ -7,7 +7,7 @@ import Library
 open class ApplicationDelegate: NSObject, NSApplicationDelegate {
     public func applicationDidFinishLaunching(_: Notification) {
         NSLog("Here I stand")
-        // ServiceNotification.register() // Not work
+        LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
         let event = NSAppleEventManager.shared().currentAppleEvent
         let launchedAsLogInItem =
             event?.eventID == kAEOpenApplication &&

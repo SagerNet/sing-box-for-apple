@@ -1,12 +1,16 @@
 import ApplicationLibrary
 import Foundation
+import Libbox
 import Library
+import Network
 import UIKit
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
+    private var profileServer: ProfileServer?
+
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         NSLog("Here I stand")
-        ServiceNotification.register()
+        LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
         Task.detached {
             do {
                 try await UIProfileUpdateTask.setup()
@@ -18,7 +22,23 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         Task.detached {
             await self.requestNetworkPermission()
         }
+        if #available(iOS 16.0, *) {
+            Task.detached {
+                await self.setupProfileServer()
+            }
+        }
         return true
+    }
+
+    @available(iOS 16.0, *)
+    private func setupProfileServer() {
+        do {
+            let profileServer = try ProfileServer()
+            profileServer.start()
+            self.profileServer = profileServer
+        } catch {
+            NSLog("setup profile server error: \(error.localizedDescription)")
+        }
     }
 
     private func requestNetworkPermission() {
