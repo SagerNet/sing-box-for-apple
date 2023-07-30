@@ -79,48 +79,36 @@ public struct ActiveDashboardView: View {
             }
         }
         .alertBinding($alert)
-        .onChangeCompat(of: profile.status) { newValue in
-            if newValue == .disconnecting || newValue == .connected {
-                Task.detached {
-                    if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
-                        DispatchQueue.main.async {
-                            alert = Alert(errorMessage: serviceError)
-                        }
-                        try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
-                    }
-                }
-            }
-        }
         #if os(iOS) || os(tvOS)
-        .onChangeCompat(of: scenePhase) { newValue in
-            if newValue == .active {
-                Task.detached {
-                    await doReload()
-                }
-            }
-        }
-        .onChangeCompat(of: selection.wrappedValue) { newValue in
-            if newValue == .dashboard {
-                Task.detached {
-                    await doReload()
-                }
-            }
-        }
-        #elseif os(macOS)
-        .onAppear {
-            if observer == nil {
-                observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
+            .onChangeCompat(of: scenePhase) { newValue in
+                if newValue == .active {
                     Task.detached {
                         await doReload()
                     }
-                })
+                }
             }
-        }
-        .onDisappear {
-            if let observer {
-                NotificationCenter.default.removeObserver(observer)
+            .onChangeCompat(of: selection.wrappedValue) { newValue in
+                if newValue == .dashboard {
+                    Task.detached {
+                        await doReload()
+                    }
+                }
             }
-        }
+        #elseif os(macOS)
+            .onAppear {
+                if observer == nil {
+                    observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
+                        Task.detached {
+                            await doReload()
+                        }
+                    })
+                }
+            }
+            .onDisappear {
+                if let observer {
+                    NotificationCenter.default.removeObserver(observer)
+                }
+            }
         #endif
     }
 
@@ -167,5 +155,16 @@ public struct ActiveDashboardView: View {
             }
         }
         reasserting = false
+    }
+
+    private struct ServiceErrorReporter: View {
+        private let parent: ActiveDashboardView
+        init(_ parent: ActiveDashboardView) {
+            self.parent = parent
+        }
+
+        var body: some View {
+            EmptyView()
+        }
     }
 }

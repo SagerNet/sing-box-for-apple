@@ -66,7 +66,7 @@ public struct ProfileView: View {
                                 .disabled(editMode.isEditing)
                             #endif
                             #if os(tvOS)
-                                if devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
+                                if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
                                     NavigationLink {
                                         ImportProfileView {
                                             Task.detached {

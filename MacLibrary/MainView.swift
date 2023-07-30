@@ -49,7 +49,7 @@ public struct MainView: View {
                     StartStopButton()
                 }
             }
-            .onChangeComat(of: controlActiveState) { newValue in
+            .onChangeCompat(of: controlActiveState) { newValue in
                 if newValue != .inactive {
                     Task {
                         await loadProfile()

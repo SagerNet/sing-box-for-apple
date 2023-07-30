@@ -1,10 +1,3 @@
-//
-//  Profile+Date.swift
-//  Library
-//
-//  Created by 世界 on 2023/6/29.
-//
-
 import Foundation
 
 public extension Profile {

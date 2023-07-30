@@ -58,12 +58,36 @@ public struct DashboardView: View {
             if ApplicationLibrary.inPreview {
                 ActiveDashboardView()
             } else if let profile = extensionProfile.wrappedValue {
-                ActiveDashboardView().environmentObject(profile)
+                DashboardView1().environmentObject(profile)
             } else {
                 FormView {
                     InstallProfileButton()
                 }
             }
+        }
+    }
+
+    struct DashboardView1: View {
+        @EnvironmentObject private var profile: ExtensionProfile
+        @State private var alert: Alert?
+
+        var body: some View {
+            ActiveDashboardView()
+                .environmentObject(profile)
+            EmptyView()
+                .alertBinding($alert)
+                .onChangeCompat(of: profile.status) { newValue in
+                    if newValue == .disconnecting || newValue == .connected {
+                        Task.detached {
+                            if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
+                                DispatchQueue.main.async {
+                                    alert = Alert(errorMessage: serviceError)
+                                }
+                                try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
+                            }
+                        }
+                    }
+                }
         }
     }
 }

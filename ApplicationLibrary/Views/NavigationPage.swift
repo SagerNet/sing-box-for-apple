@@ -71,15 +71,15 @@ public extension NavigationPage {
     }
 
     func visible(_ profile: ExtensionProfile?) -> Bool {
-        if ApplicationLibrary.inPreview {
-            return true
-        }
         switch self {
         case .groups:
             #if os(tvOS)
                 // TODO: fix groups ui
                 return false
             #else
+                if ApplicationLibrary.inPreview {
+                    return true
+                }
                 return profile?.status.isConnectedStrict == true
             #endif
         default:
