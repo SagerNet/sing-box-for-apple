@@ -6,13 +6,16 @@ public struct EditProfileView: View {
         @Environment(\.openWindow) private var openWindow
     #endif
 
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var profile: Profile
 
     @State private var isLoading = false
     @State private var isChanged = false
     @State private var alert: Alert?
-
-    public init() {}
+    private let updateCallback: (() -> Void)?
+    public init(_ updateCallback: (() -> Void)? = nil) {
+        self.updateCallback = updateCallback
+    }
 
     public var body: some View {
         FormView {
@@ -63,6 +66,11 @@ public struct EditProfileView: View {
                             } label: {
                                 Text("View Content").foregroundColor(.accentColor)
                             }
+                            ShareButton($alert) {
+                                Text("Share")
+                            } items: {
+                                try [profile.toContent().generateShareFile()]
+                            }
                         #endif
                         Button("Update") {
                             isLoading = true
@@ -71,32 +79,24 @@ public struct EditProfileView: View {
                             }
                         }
                         .disabled(isLoading)
-                        #if os(iOS)
-                            if #available(iOS 16.0, *) {
-                                ShareLink(item: profile.shareLink) {
-                                    Text("Share")
-                                }
-                            } else {
-                                Button("Share") {
-                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                                        windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [profile.shareLink], applicationActivities: nil), animated: true, completion: nil)
-                                    }
-                                }
+                        Button("Delete", role: .destructive) {
+                            Task.detached {
+                                await deleteProfile()
                             }
-                        #endif
+                        }
                     }
                 }
             #endif
         }
-        .onChange(of: profile.name, perform: { _ in
+        .onChangeCompat(of: profile.name) {
             isChanged = true
-        })
-        .onChange(of: profile.remoteURL, perform: { _ in
+        }
+        .onChangeCompat(of: profile.remoteURL) {
             isChanged = true
-        })
-        .onChange(of: profile.autoUpdate, perform: { _ in
+        }
+        .onChangeCompat(of: profile.autoUpdate) {
             isChanged = true
-        })
+        }
         .disabled(isLoading)
         #if os(macOS)
             .toolbar {
@@ -164,6 +164,17 @@ public struct EditProfileView: View {
         }
     }
 
+    private func deleteProfile() async {
+        do {
+            try ProfileManager.delete(profile)
+        } catch {
+            alert = Alert(error)
+            return
+        }
+        await performCallback()
+        dismiss()
+    }
+
     private func saveProfile() async {
         do {
             _ = try ProfileManager.update(profile)
@@ -173,8 +184,16 @@ public struct EditProfileView: View {
         }
         isChanged = false
         isLoading = false
-        await MainActor.run {
-            NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
+        await performCallback()
+    }
+
+    private func performCallback() async {
+        if let updateCallback {
+            updateCallback()
+        } else {
+            await MainActor.run {
+                NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
+            }
         }
     }
 }

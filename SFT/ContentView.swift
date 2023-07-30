@@ -32,7 +32,7 @@ struct ContentView: View {
                     .tag(page)
                     .tabItem { page.label }
                 }
-            }.onChange(of: extensionProfile.status) { _ in
+            }.onChangeCompat(of: extensionProfile.status) {
                 if !selection.wrappedValue.visible(extensionProfile) {
                     selection.wrappedValue = NavigationPage.dashboard
                 }

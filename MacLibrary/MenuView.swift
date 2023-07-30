@@ -137,7 +137,7 @@ public struct MenuView: View {
                             }
                         }
                         .pickerStyle(.inline)
-                        .onChange(of: selectedProfileID) { _ in
+                        .onChangeCompat(of: selectedProfileID) {
                             reasserting = true
                             Task.detached {
                                 await switchProfile(selectedProfileID!)

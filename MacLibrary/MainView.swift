@@ -10,8 +10,9 @@ public struct MainView: View {
     @State private var extensionProfile: ExtensionProfile?
     @State private var profileLoading = true
     @State private var logClient: LogClient!
-    @State private var alert: Alert?
+    @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
+    @State private var alert: Alert?
 
     public init() {}
     public var body: some View {
@@ -48,23 +49,25 @@ public struct MainView: View {
                     StartStopButton()
                 }
             }
-            .onChange(of: controlActiveState, perform: { newValue in
+            .onChangeComat(of: controlActiveState) { newValue in
                 if newValue != .inactive {
                     Task {
                         await loadProfile()
                         connectLog()
                     }
                 }
-            })
-            .onChange(of: selection, perform: { value in
+            }
+            .onChangeCompat(of: selection) { value in
                 if value == .logs {
                     connectLog()
                 }
-            })
+            }
             .formStyle(.grouped)
             .environment(\.selection, $selection)
             .environment(\.extensionProfile, $extensionProfile)
             .environment(\.logClient, $logClient)
+
+            .environment(\.importProfile, $importProfile)
             .environment(\.importRemoteProfile, $importRemoteProfile)
             .handlesExternalEvents(preferring: [], allowing: ["*"])
             .onOpenURL(perform: openURL)
@@ -80,6 +83,20 @@ public struct MainView: View {
             if selection != .profiles {
                 selection = .profiles
             }
+        } else if url.pathExtension == "bpf" {
+            do {
+                _ = url.startAccessingSecurityScopedResource()
+                importProfile = try .from(Data(contentsOf: url))
+                url.stopAccessingSecurityScopedResource()
+            } catch {
+                alert = Alert(error)
+                return
+            }
+            if selection != .profiles {
+                selection = .profiles
+            }
+        } else {
+            alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
         }
     }
 

@@ -86,6 +86,8 @@
 		3AC194492A50013F00BD8CB9 /* IntentsExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 3A77016D2A4E6B34008F031F /* IntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3AC1944F2A50247300BD8CB9 /* ApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC1944E2A50247300BD8CB9 /* ApplicationDelegate.swift */; };
 		3AC5EC082A6417470077AF34 /* DeviceCensorship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC5EC072A6417470077AF34 /* DeviceCensorship.swift */; };
+		3AC729F02A75D9D000FE8EC1 /* Profile+Transferable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC729EF2A75D9D000FE8EC1 /* Profile+Transferable.swift */; };
+		3AC729F22A76088E00FE8EC1 /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC729F12A76088E00FE8EC1 /* ShareButton.swift */; };
 		3AC8CF9B2A736C750002AF3C /* ImportProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC8CF9A2A736C750002AF3C /* ImportProfileView.swift */; };
 		3AD0953D2A70EB310052764E /* Profile+Share.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD0953C2A70EB310052764E /* Profile+Share.swift */; };
 		3ADBB4252A7389640041D44F /* ProfileServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADBB4242A7389640041D44F /* ProfileServer.swift */; };
@@ -468,6 +470,8 @@
 		3AC1944E2A50247300BD8CB9 /* ApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
 		3AC194512A50303300BD8CB9 /* ApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
 		3AC5EC072A6417470077AF34 /* DeviceCensorship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCensorship.swift; sourceTree = "<group>"; };
+		3AC729EF2A75D9D000FE8EC1 /* Profile+Transferable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+Transferable.swift"; sourceTree = "<group>"; };
+		3AC729F12A76088E00FE8EC1 /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
 		3AC8CF9A2A736C750002AF3C /* ImportProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProfileView.swift; sourceTree = "<group>"; };
 		3AD0953C2A70EB310052764E /* Profile+Share.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+Share.swift"; sourceTree = "<group>"; };
 		3ADBB4242A7389640041D44F /* ProfileServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileServer.swift; sourceTree = "<group>"; };
@@ -830,6 +834,7 @@
 				3A57DF362A4D5D2600690BC5 /* Profile+Date.swift */,
 				3A57DF412A4D927A00690BC5 /* Profile+Hashable.swift */,
 				3AD0953C2A70EB310052764E /* Profile+Share.swift */,
+				3AC729EF2A75D9D000FE8EC1 /* Profile+Transferable.swift */,
 			);
 			path = Database;
 			sourceTree = "<group>";
@@ -935,6 +940,7 @@
 				3A99B4292A7526990010D4B0 /* NavigationStackCompat.swift */,
 				3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */,
 				3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */,
+				3AC729F12A76088E00FE8EC1 /* ShareButton.swift */,
 			);
 			path = Abstract;
 			sourceTree = "<group>";
@@ -1377,6 +1383,7 @@
 				3A1CF2FA2A50F0BD000A8289 /* OutboundGroupItem.swift in Sources */,
 				3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */,
 				3A4EAD332A4FEB7F005435B3 /* LogClient.swift in Sources */,
+				3AC729F22A76088E00FE8EC1 /* ShareButton.swift in Sources */,
 				3A4EAD262A4FEB65005435B3 /* ExtensionStatusView.swift in Sources */,
 				3A4EAD252A4FEB65005435B3 /* StartStopButton.swift in Sources */,
 				3A4EAD2B2A4FEB6D005435B3 /* ViewBuilder.swift in Sources */,
@@ -1430,6 +1437,7 @@
 				3AE4D0B52A6E2BAC009FEA9E /* ExtensionProvider.swift in Sources */,
 				3A2223562A6E1BDE00C50B23 /* Variant.swift in Sources */,
 				3AEC214A2A45AA5600A63465 /* Profile+RW.swift in Sources */,
+				3AC729F02A75D9D000FE8EC1 /* Profile+Transferable.swift in Sources */,
 				3A57DF422A4D927A00690BC5 /* Profile+Hashable.swift in Sources */,
 				3A7E90352A46756300D53052 /* SharedPreferences.swift in Sources */,
 				3AD0953D2A70EB310052764E /* Profile+Share.swift in Sources */,

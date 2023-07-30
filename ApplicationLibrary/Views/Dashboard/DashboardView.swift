@@ -30,7 +30,7 @@ public struct DashboardView: View {
             #endif
         }
         #if os(macOS)
-        .onChange(of: controlActiveState, perform: { newValue in
+        .onChangeCompat(of: controlActiveState) { newValue in
             if newValue != .inactive {
                 if Variant.useSystemExtension {
                     if !isLoading {
@@ -38,7 +38,7 @@ public struct DashboardView: View {
                     }
                 }
             }
-        })
+        }
         #endif
         .navigationTitle("Dashboard")
     }

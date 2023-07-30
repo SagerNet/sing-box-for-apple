@@ -68,4 +68,17 @@ public extension EnvironmentValues {
             self[importRemoteProfileKey.self] = newValue
         }
     }
+
+    private struct importProfileKey: EnvironmentKey {
+        static var defaultValue: Binding<LibboxProfileContent?> = .constant(nil)
+    }
+
+    var importProfile: Binding<LibboxProfileContent?> {
+        get {
+            self[importProfileKey.self]
+        }
+        set {
+            self[importProfileKey.self] = newValue
+        }
+    }
 }

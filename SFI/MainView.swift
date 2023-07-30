@@ -10,7 +10,9 @@ struct MainView: View {
     @State private var extensionProfile: ExtensionProfile?
     @State private var profileLoading = true
     @State private var logClient: LogClient!
+    @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
+    @State private var alert: Alert?
 
     var body: some View {
         viewBuilder {
@@ -25,16 +27,18 @@ struct MainView: View {
                 ContentView()
             }
         }
-        .onChange(of: scenePhase, perform: { newValue in
+        .alertBinding($alert)
+        .onChangeCompat(of: scenePhase) { newValue in
             if newValue == .active {
                 Task.detached {
                     await loadProfile()
                 }
             }
-        })
+        }
         .environment(\.selection, $selection)
         .environment(\.extensionProfile, $extensionProfile)
         .environment(\.logClient, $logClient)
+        .environment(\.importProfile, $importProfile)
         .environment(\.importRemoteProfile, $importRemoteProfile)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
         .onOpenURL(perform: openURL)
@@ -44,12 +48,27 @@ struct MainView: View {
         if url.host == "import-remote-profile" {
             var error: NSError?
             importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
-            if error != nil {
+            if let error {
+                alert = Alert(error)
                 return
             }
             if selection != .profiles {
                 selection = .profiles
             }
+        } else if url.pathExtension == "bpf" {
+            do {
+                _ = url.startAccessingSecurityScopedResource()
+                importProfile = try .from(Data(contentsOf: url))
+                url.stopAccessingSecurityScopedResource()
+            } catch {
+                alert = Alert(error)
+                return
+            }
+            if selection != .profiles {
+                selection = .profiles
+            }
+        } else {
+            alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
         }
     }
 

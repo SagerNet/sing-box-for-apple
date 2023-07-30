@@ -25,13 +25,13 @@ struct MainView: View {
                 ContentView()
             }
         }
-        .onChange(of: scenePhase, perform: { newValue in
+        .onChangeCompat(of: scenePhase) { newValue in
             if newValue == .active {
                 Task.detached {
                     await loadProfile()
                 }
             }
-        })
+        }
         .environment(\.selection, $selection)
         .environment(\.extensionProfile, $extensionProfile)
         .environment(\.logClient, $logClient)

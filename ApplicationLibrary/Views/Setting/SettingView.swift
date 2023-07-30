@@ -41,7 +41,7 @@ public struct SettingView: View {
                     #if os(macOS)
                         Section("MacOS") {
                             Toggle("Start At Login", isOn: $startAtLogin)
-                                .onChange(of: startAtLogin) { newValue in
+                                .onChangeCompat(of: startAtLogin) { newValue in
                                     Task.detached {
                                         updateLoginItems(newValue)
                                     }
@@ -57,7 +57,7 @@ public struct SettingView: View {
                                 }
                             if showMenuBarExtra.wrappedValue {
                                 Toggle("Keep Menu Bar in Background", isOn: $keepMenuBarInBackground)
-                                    .onChange(of: keepMenuBarInBackground) { newValue in
+                                    .onChangeCompat(of: keepMenuBarInBackground) { newValue in
                                         Task.detached {
                                             SharedPreferences.menuBarExtraInBackground = newValue
                                         }

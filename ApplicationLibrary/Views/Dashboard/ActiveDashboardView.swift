@@ -79,7 +79,7 @@ public struct ActiveDashboardView: View {
             }
         }
         .alertBinding($alert)
-        .onChange(of: profile.status, perform: { newValue in
+        .onChangeCompat(of: profile.status) { newValue in
             if newValue == .disconnecting || newValue == .connected {
                 Task.detached {
                     if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
@@ -90,22 +90,22 @@ public struct ActiveDashboardView: View {
                     }
                 }
             }
-        })
+        }
         #if os(iOS) || os(tvOS)
-        .onChange(of: scenePhase, perform: { newValue in
+        .onChangeCompat(of: scenePhase) { newValue in
             if newValue == .active {
                 Task.detached {
                     await doReload()
                 }
             }
-        })
-        .onChange(of: selection.wrappedValue, perform: { newValue in
+        }
+        .onChangeCompat(of: selection.wrappedValue) { newValue in
             if newValue == .dashboard {
                 Task.detached {
                     await doReload()
                 }
             }
-        })
+        }
         #elseif os(macOS)
         .onAppear {
             if observer == nil {

@@ -7,6 +7,7 @@ import SwiftUI
 public struct ProfileView: View {
     public static let notificationName = Notification.Name("\(FilePath.packageName).update-profile")
 
+    @Environment(\.importProfile) private var importProfile
     @Environment(\.importRemoteProfile) private var importRemoteProfile
     @State private var importRemoteProfileRequest: NewProfileView.ImportRequest?
     @State private var importRemoteProfilePresented = false
@@ -86,28 +87,7 @@ public struct ProfileView: View {
                                             if editMode.isEditing == true {
                                                 Text(profile.name)
                                             } else {
-                                                NavigationLink {
-                                                    EditProfileView().environmentObject(profile)
-                                                } label: {
-                                                    Text(profile.name)
-                                                }
-                                            }
-                                        }
-                                        .contextMenu {
-                                            if profile.type == .remote {
-                                                Button {
-                                                    isUpdating = true
-                                                    Task.detached {
-                                                        updateProfile(profile)
-                                                    }
-                                                } label: {
-                                                    Label("Update", systemImage: "arrow.clockwise")
-                                                }
-                                            }
-                                            Button(role: .destructive) {
-                                                deleteProfile(profile)
-                                            } label: {
-                                                Label("Delete", systemImage: "trash.fill")
+                                                ProfileItem(self, profile)
                                             }
                                         }
                                     }
@@ -124,44 +104,7 @@ public struct ProfileView: View {
                         FormView {
                             List {
                                 ForEach(profileList, id: \.mustID) { profile in
-
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            Text(profile.name)
-                                            if profile.type == .remote {
-                                                Spacer(minLength: 4)
-                                                Text("Last Updated: \(profile.lastUpdatedString)").font(.caption)
-                                            }
-                                        }
-                                        HStack {
-                                            if profile.type == .remote {
-                                                Button(action: {
-                                                    isUpdating = true
-                                                    Task.detached {
-                                                        updateProfile(profile)
-                                                    }
-                                                }, label: {
-                                                    Image(systemName: "arrow.clockwise")
-                                                })
-                                                ShareLink(item: profile.shareLink) {
-                                                    Image(systemName: "square.and.arrow.up.fill")
-                                                }
-                                            }
-                                            Button(action: {
-                                                openWindow(id: EditProfileWindowView.windowID, value: profile.mustID)
-                                            }, label: {
-                                                Image(systemName: "pencil")
-                                            })
-                                            Button(action: {
-                                                deleteProfile(profile)
-                                            }, label: {
-                                                Image(systemName: "trash.fill")
-                                            })
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
-                                    }
-                                    .padding(.vertical, 8)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    ProfileItem(self, profile)
                                 }
                                 .onMove(perform: moveProfile)
                                 .onDelete(perform: deleteProfile)
@@ -175,6 +118,10 @@ public struct ProfileView: View {
         .navigationTitle("Profiles")
         .alertBinding($alert, $isLoading)
         .onAppear {
+            if let profile = importProfile.wrappedValue {
+                importProfile.wrappedValue = nil
+                createImportProfileDialog(profile)
+            }
             if let remoteProfile = importRemoteProfile.wrappedValue {
                 importRemoteProfile.wrappedValue = nil
                 createImportRemoteProfileDialog(remoteProfile)
@@ -189,7 +136,13 @@ public struct ProfileView: View {
                 }
             #endif
         }
-        .onChange(of: importRemoteProfile.wrappedValue) { newValue in
+        .onChangeCompat(of: importProfile.wrappedValue) { newValue in
+            if let newValue {
+                importProfile.wrappedValue = nil
+                createImportProfileDialog(newValue)
+            }
+        }
+        .onChangeCompat(of: importRemoteProfile.wrappedValue) { newValue in
             if let newValue {
                 importRemoteProfile.wrappedValue = nil
                 createImportRemoteProfileDialog(newValue)
@@ -221,11 +174,30 @@ public struct ProfileView: View {
         #endif
     }
 
+    private func createImportProfileDialog(_ profile: LibboxProfileContent) {
+        alert = Alert(
+            title: Text("Import Profile"),
+            message: Text("Are you sure to import profile \(profile.name)?"),
+            primaryButton: .default(Text("Import")) {
+                do {
+                    try profile.importProfile()
+                } catch {
+                    alert = Alert(error)
+                    return
+                }
+                Task.detached {
+                    doReload()
+                }
+            },
+            secondaryButton: .cancel()
+        )
+    }
+
     private func createImportRemoteProfileDialog(_ newValue: LibboxImportRemoteProfile) {
         importRemoteProfileRequest = .init(name: newValue.name, url: newValue.url)
         alert = Alert(
             title: Text("Import Remote Profile"),
-            message: Text("Are you sure to import remote configuration \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
+            message: Text("Are you sure to import remote profile \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
             primaryButton: .default(Text("Import")) {
                 #if os(iOS) || os(tvOS)
                     importRemoteProfilePresented = true
@@ -283,7 +255,7 @@ public struct ProfileView: View {
                 alert = Alert(error)
                 return
             }
-            isLoading = true
+            doReload()
         }
     }
 
@@ -310,6 +282,105 @@ public struct ProfileView: View {
                 _ = try ProfileManager.delete(profileToDelete)
             } catch {
                 alert = Alert(error)
+            }
+        }
+    }
+
+    public struct ProfileItem: View {
+        private let parent: ProfileView
+        private let profile: Profile
+        public init(_ parent: ProfileView, _ profile: Profile) {
+            self.parent = parent
+            self.profile = profile
+        }
+
+        public var body: some View {
+            #if os(iOS) || os(macOS)
+                if #available(iOS 16.0, macOS 13.0,*) {
+                    body0.draggable(profile)
+                } else {
+                    body0
+                }
+            #else
+                body0
+            #endif
+        }
+
+        private var body0: some View {
+            viewBuilder {
+                #if !os(macOS)
+                    NavigationLink {
+                        EditProfileView {
+                            Task.detached {
+                                parent.doReload()
+                            }
+                        }.environmentObject(profile)
+                    } label: {
+                        Text(profile.name)
+                    }
+                    .contextMenu {
+                        ShareButton(parent.$alert) {
+                            Label("Share", systemImage: "square.and.arrow.up.fill")
+                        } items: {
+                            try [profile.toContent().generateShareFile()]
+                        }
+                        if profile.type == .remote {
+                            Button {
+                                parent.isUpdating = true
+                                Task.detached {
+                                    parent.updateProfile(profile)
+                                }
+                            } label: {
+                                Label("Update", systemImage: "arrow.clockwise")
+                            }
+                        }
+                        Button(role: .destructive) {
+                            parent.deleteProfile(profile)
+                        } label: {
+                            Label("Delete", systemImage: "trash.fill")
+                        }
+                    }
+                #else
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(profile.name)
+                            if profile.type == .remote {
+                                Spacer(minLength: 4)
+                                Text("Last Updated: \(profile.lastUpdatedString)").font(.caption)
+                            }
+                        }
+                        HStack {
+                            if profile.type == .remote {
+                                Button(action: {
+                                    parent.isUpdating = true
+                                    Task.detached {
+                                        parent.updateProfile(profile)
+                                    }
+                                }, label: {
+                                    Image(systemName: "arrow.clockwise")
+                                })
+                            }
+                            ShareButton(parent.$alert) {
+                                Image(systemName: "square.and.arrow.up.fill")
+                            } items: {
+                                try [profile.toContent().generateShareFile()]
+                            }
+                            Button(action: {
+                                parent.openWindow(id: EditProfileWindowView.windowID, value: profile.mustID)
+                            }, label: {
+                                Image(systemName: "pencil")
+                            })
+                            Button(action: {
+                                parent.deleteProfile(profile)
+                            }, label: {
+                                Image(systemName: "trash.fill")
+                            })
+                        }
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    .padding(.vertical, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                #endif
             }
         }
     }

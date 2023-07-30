@@ -53,7 +53,7 @@
                     #elseif os(macOS)
                         .padding()
                     #endif
-                        .onChange(of: profileContent) { _ in
+                        .onChangeCompat(of: profileContent) {
                             isChanged = true
                         }
                 }

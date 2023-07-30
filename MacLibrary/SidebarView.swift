@@ -26,7 +26,7 @@ public struct SidebarView: View {
                 it.visible(extensionProfile)
             }, selection: selection) { it in
                 it.label
-            }.onChange(of: extensionProfile.status) { _ in
+            }.onChangeCompat(of: extensionProfile.status) {
                 if !selection.wrappedValue.visible(extensionProfile) {
                     selection.wrappedValue = NavigationPage.dashboard
                 }
