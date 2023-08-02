@@ -161,9 +161,17 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         messageData
     }
 
-    override open func sleep() async {}
+    override open func sleep() async {
+        if let boxService {
+            boxService.sleep()
+        }
+    }
 
-    override open func wake() {}
+    override open func wake() {
+        if let boxService {
+            boxService.wake()
+        }
+    }
 
     private class serverInterface: NSObject, LibboxCommandServerHandlerProtocol {
         unowned let tunnel: ExtensionProvider
