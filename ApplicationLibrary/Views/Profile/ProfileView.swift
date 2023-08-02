@@ -115,7 +115,6 @@ public struct ProfileView: View {
             }
         }
         .disabled(isUpdating)
-        .navigationTitle("Profiles")
         .alertBinding($alert, $isLoading)
         .onAppear {
             if let profile = importProfile.wrappedValue {

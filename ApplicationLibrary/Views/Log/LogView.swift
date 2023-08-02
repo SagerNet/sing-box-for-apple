@@ -13,7 +13,6 @@ public struct LogView: View {
                 Text("Service not started")
             }
         }
-        .navigationTitle("Logs")
     }
 
     private struct LogView0: View {
@@ -43,7 +42,7 @@ public struct LogView: View {
                                     #if os(tvOS)
                                         .focusable()
                                     #endif
-                                    Spacer(minLength: 5)
+                                    Spacer(minLength: 8)
                                 }
 
                                 .onChangeCompat(of: logClient.logList.count) { newCount in

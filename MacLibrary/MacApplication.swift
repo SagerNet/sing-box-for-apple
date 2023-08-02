@@ -53,7 +53,7 @@ public struct MacApplication: Scene {
         MenuBarExtra(isInserted: $showMenuBarExtra) {
             MenuView(isMenuPresented: $isMenuPresented)
         } label: {
-            Image(systemName: "network.badge.shield.half.filled")
+            Image("MenuIcon")
         }
         .menuBarExtraStyle(.window)
         .menuBarExtraAccess(isPresented: $isMenuPresented)

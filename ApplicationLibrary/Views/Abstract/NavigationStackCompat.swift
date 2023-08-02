@@ -1,6 +1,6 @@
 import SwiftUI
 
-public func NavigationStackCompat<T>(@ViewBuilder content: () -> T) -> some View where T: View{
+public func NavigationStackCompat(@ViewBuilder content: () -> some View) -> some View {
     viewBuilder {
         if #available(iOS 17.0, *) {
             // view not updating in iOS 16, but why?

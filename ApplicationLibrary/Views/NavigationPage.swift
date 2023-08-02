@@ -8,13 +8,19 @@ public enum NavigationPage: Int, CaseIterable, Identifiable {
     }
 
     case dashboard
-    case groups
+    #if os(macOS)
+        case groups
+    #endif
     case logs
     case profiles
     case settings
 }
 
 public extension NavigationPage {
+    static var macosDefaultPages: [NavigationPage] {
+        [.logs, .profiles, .settings]
+    }
+
     var label: some View {
         Label(title, systemImage: iconImage)
     }
@@ -23,8 +29,10 @@ public extension NavigationPage {
         switch self {
         case .dashboard:
             return NSLocalizedString("Dashboard", comment: "")
-        case .groups:
-            return NSLocalizedString("Groups", comment: "")
+        #if os(macOS)
+            case .groups:
+                return NSLocalizedString("Groups", comment: "")
+        #endif
         case .logs:
             return NSLocalizedString("Logs", comment: "")
         case .profiles:
@@ -38,8 +46,10 @@ public extension NavigationPage {
         switch self {
         case .dashboard:
             return "text.and.command.macwindow"
-        case .groups:
-            return "rectangle.3.group.fill"
+        #if os(macOS)
+            case .groups:
+                return "rectangle.3.group.fill"
+        #endif
         case .logs:
             return "doc.text.fill"
         case .profiles:
@@ -54,9 +64,10 @@ public extension NavigationPage {
             switch self {
             case .dashboard:
                 DashboardView()
-
-            case .groups:
-                GroupListView()
+            #if os(macOS)
+                case .groups:
+                    GroupListView()
+            #endif
             case .logs:
                 LogView()
             case .profiles:
@@ -70,20 +81,14 @@ public extension NavigationPage {
         #endif
     }
 
-    func visible(_ profile: ExtensionProfile?) -> Bool {
-        switch self {
-        case .groups:
-            #if os(tvOS)
-                // TODO: fix groups ui
-                return false
-            #else
-                if ApplicationLibrary.inPreview {
-                    return true
-                }
+    #if os(macOS)
+        func visible(_ profile: ExtensionProfile?) -> Bool {
+            switch self {
+            case .groups:
                 return profile?.status.isConnectedStrict == true
-            #endif
-        default:
-            return true
+            default:
+                return true
+            }
         }
-    }
+    #endif
 }

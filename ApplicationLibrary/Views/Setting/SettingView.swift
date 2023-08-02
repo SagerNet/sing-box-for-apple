@@ -129,7 +129,6 @@ public struct SettingView: View {
                 }
             }
         }
-        .navigationTitle("Settings")
         .alertBinding($alert)
     }
 

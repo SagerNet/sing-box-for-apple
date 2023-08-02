@@ -23,7 +23,6 @@ public struct GroupListView: View {
                             }, set: { newValue in
                                 groupExpand[it.tag] = newValue
                             }))
-                            Spacer()
                         }
                     }.padding()
                 }
@@ -40,7 +39,6 @@ public struct GroupListView: View {
             }
             commandClient = nil
         }
-        .navigationTitle("Groups")
     }
 
     private func doReload() {
@@ -51,7 +49,7 @@ public struct GroupListView: View {
                     OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 34),
                     OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 100),
                 ]),
-                OutboundGroup(tag: "group2", type: "urltest", selected: "client", selectable: false, items:
+                OutboundGroup(tag: "group2", type: "urltest", selected: "client", selectable: true, items:
                     (0 ..< 234).map { index in
                         OutboundGroupItem(tag: "client\(index)", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: UInt16(100 + index * 10))
                     }),

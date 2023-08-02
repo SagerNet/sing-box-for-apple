@@ -4,82 +4,53 @@ import Library
 import SwiftUI
 
 public struct ActiveDashboardView: View {
-    public static let NotificationUpdateSelectedProfile = Notification.Name("update-selected-profile")
-
     @Environment(\.scenePhase) var scenePhase
-    @Environment(\.selection) private var selection
-
+    @Environment(\.selection) private var parentSelection
     @EnvironmentObject private var profile: ExtensionProfile
-
     @State private var isLoading = true
     @State private var profileList: [Profile] = []
     @State private var selectedProfileID: Int64!
-    @State private var reasserting = false
-    @State private var observer: Any?
     @State private var alert: Alert?
+    @State private var selection = DashboardPage.overview
 
     public init() {}
-
     public var body: some View {
-        viewBuilder {
-            if isLoading {
-                ProgressView().onAppear {
-                    Task.detached {
-                        await doReload()
-                    }
-                }
-            } else {
-                if profileList.isEmpty {
-                    Text("Empty profiles")
-                } else {
-                    VStack {
-                        #if os(iOS) || os(tvOS)
-                            if ApplicationLibrary.inPreview || profile.status.isConnected {
-                                ExtensionStatusView()
-                                    .listStyle(.automatic)
-                                #if os(iOS)
-                                    .navigationBarTitleDisplayMode(.inline)
-                                #endif
-                            }
-                            FormView {
-                                StartStopButton()
-                                Section("Profile") {
-                                    Picker(selection: $selectedProfileID) {
-                                        ForEach(profileList, id: \.id) { profile in
-                                            Text(profile.name).tag(profile.id)
-                                        }
-                                    } label: {}
-                                        .pickerStyle(.inline)
-                                }
-                            }
-                        #elseif os(macOS)
-                            if ApplicationLibrary.inPreview || profile.status.isConnected {
-                                ExtensionStatusView()
-                            }
-                            FormView {
-                                Section("Profile") {
-                                    ForEach(profileList, id: \.id) { profile in
-                                        Picker(profile.name, selection: $selectedProfileID) {
-                                            Text("").tag(profile.id)
-                                        }
-                                    }
-                                    .pickerStyle(.radioGroup)
-                                }
-                            }
-                        #endif
-                    }
-                    .onChangeCompat(of: selectedProfileID) {
-                        reasserting = true
-                        Task.detached {
-                            await switchProfile(selectedProfileID!)
-                        }
-                    }
-                    .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || reasserting))
+        if isLoading {
+            ProgressView().onAppear {
+                Task.detached {
+                    await doReload()
                 }
             }
-        }
-        .alertBinding($alert)
-        #if os(iOS) || os(tvOS)
+        } else {
+            viewBuilder {
+                #if os(iOS) || os(tvOS)
+                    if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
+                        Picker("Page", selection: $selection) {
+                            ForEach(DashboardPage.allCases) { page in
+                                page.label
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        #if os(iOS)
+
+                            .padding([.leading, .trailing])
+                            .navigationBarTitleDisplayMode(.inline)
+                        #endif
+                        TabView(selection: $selection) {
+                            ForEach(DashboardPage.allCases) { page in
+                                page.contentView($profileList, $selectedProfileID)
+                                    .tag(page)
+                            }
+                        }
+                        .tabViewStyle(.page(indexDisplayMode: .always))
+                    } else {
+                        OverviewView($profileList, $selectedProfileID)
+                    }
+                #elseif os(macOS)
+                    OverviewView($profileList, $selectedProfileID)
+                #endif
+            }
+            #if os(iOS) || os(tvOS)
             .onChangeCompat(of: scenePhase) { newValue in
                 if newValue == .active {
                     Task.detached {
@@ -87,29 +58,16 @@ public struct ActiveDashboardView: View {
                     }
                 }
             }
-            .onChangeCompat(of: selection.wrappedValue) { newValue in
+            .onChangeCompat(of: parentSelection.wrappedValue) { newValue in
                 if newValue == .dashboard {
                     Task.detached {
                         await doReload()
                     }
                 }
             }
-        #elseif os(macOS)
-            .onAppear {
-                if observer == nil {
-                    observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
-                        Task.detached {
-                            await doReload()
-                        }
-                    })
-                }
-            }
-            .onDisappear {
-                if let observer {
-                    NotificationCenter.default.removeObserver(observer)
-                }
-            }
-        #endif
+            #endif
+            .alertBinding($alert)
+        }
     }
 
     private func doReload() {
@@ -141,30 +99,6 @@ public struct ActiveDashboardView: View {
                 selectedProfileID = profileList[0].id!
                 SharedPreferences.selectedProfileID = selectedProfileID
             }
-        }
-    }
-
-    private func switchProfile(_ newProfileID: Int64) {
-        SharedPreferences.selectedProfileID = newProfileID
-        NotificationCenter.default.post(name: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil)
-        if profile.status.isConnected {
-            do {
-                try LibboxNewStandaloneCommandClient()!.serviceReload()
-            } catch {
-                alert = Alert(error)
-            }
-        }
-        reasserting = false
-    }
-
-    private struct ServiceErrorReporter: View {
-        private let parent: ActiveDashboardView
-        init(_ parent: ActiveDashboardView) {
-            self.parent = parent
-        }
-
-        var body: some View {
-            EmptyView()
         }
     }
 }

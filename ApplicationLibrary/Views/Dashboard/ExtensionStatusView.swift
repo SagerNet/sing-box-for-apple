@@ -18,28 +18,50 @@ public struct ExtensionStatusView: View {
             VStack {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
                     if ApplicationLibrary.inPreview {
-                        StatusItem("Memory", "6.4 MiB")
-                        StatusItem("Goroutines", "89")
-                        StatusItem("Inbound Connections", "34")
-                        StatusItem("Outbound Connections", "28")
-                        StatusItem("Uplink", "38 B/s")
-                        StatusItem("Downlink", "249 MiB/s")
-                        StatusItem("Uplink Total", "52 MiB")
-                        StatusItem("Downlink Total", "5.6 GiB")
+                        StatusItem("Status") {
+                            StatusLine("Memory", "6.4 MiB")
+                            StatusLine("Goroutines", "89")
+                        }
+                        StatusItem("Connections") {
+                            StatusLine("Inbound", "34")
+                            StatusLine("Outbound", "28")
+                        }
+                        StatusItem("Traffic") {
+                            StatusLine("Uplink", "38 B/s")
+                            StatusLine("Downlink", "249 MiB/s")
+                        }
+                        StatusItem("TrafficTotal") {
+                            StatusLine("Uplink", "52 MiB")
+                            StatusLine("Downlink", "5.6 GiB")
+                        }
                     } else if let message {
-                        StatusItem("Memory", LibboxFormatBytes(message.memory))
-                        StatusItem("Goroutines", "\(message.goroutines)")
+                        StatusItem("Status") {
+                            StatusLine("Memory", LibboxFormatBytes(message.memory))
+                            StatusLine("Goroutines", "\(message.goroutines)")
+                        }
+                        StatusItem("Connections") {
+                            StatusLine("Inbound", "\(message.connectionsIn)")
+                            StatusLine("Outbound", "\(message.connectionsOut)")
+                        }
                         if message.trafficAvailable {
-                            StatusItem("Inbound Connections", "\(message.connectionsIn)")
-                            StatusItem("Outbound Connections", "\(message.connectionsOut)")
-                            StatusItem("Uplink", LibboxFormatBytes(message.uplink) + "/s")
-                            StatusItem("Downlink", LibboxFormatBytes(message.downlink) + "/s")
-                            StatusItem("Uplink Total", LibboxFormatBytes(message.uplinkTotal))
-                            StatusItem("Downlink Total", LibboxFormatBytes(message.downlinkTotal))
+                            StatusItem("Traffic") {
+                                StatusLine("Uplink", "\(LibboxFormatBytes(message.uplink))/s")
+                                StatusLine("Downlink", "\(LibboxFormatBytes(message.downlink))/s")
+                            }
+                            StatusItem("TrafficTotal") {
+                                StatusLine("Uplink", LibboxFormatBytes(message.uplinkTotal))
+                                StatusLine("Downlink", LibboxFormatBytes(message.downlinkTotal))
+                            }
                         }
                     } else {
-                        StatusItem("Memory", "Loading...")
-                        StatusItem("Goroutines", "Loading...")
+                        StatusItem("Status") {
+                            StatusLine("Memory", "...")
+                            StatusLine("Goroutines", "...")
+                        }
+                        StatusItem("Connections") {
+                            StatusLine("Inbound", "...")
+                            StatusLine("Outbound", "...")
+                        }
                     }
                 }.background {
                     GeometryReader { geometry in
@@ -142,26 +164,25 @@ public struct ExtensionStatusView: View {
         func writeGroups(_: LibboxOutboundGroupIteratorProtocol?) {}
     }
 
-    private struct StatusItem: View {
-        private let name: String
-        private let value: String
-        init(_ name: String, _ value: String) {
-            self.name = name
-            self.value = value
+    private struct StatusItem<T>: View where T: View {
+        private let title: String
+        @ViewBuilder private let content: () -> T
+
+        init(_ title: String, @ViewBuilder content: @escaping () -> T) {
+            self.title = title
+            self.content = content
         }
 
         var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading) {
                 HStack {
-                    Text(name)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    Text(title)
+                        .font(.headline)
                     Spacer()
-                }
-                Text(value)
-                    .font(.system(size: 16))
+                }.padding(.bottom, 8)
+                content()
             }
-            .frame(minWidth: 125)
+            .frame(minWidth: 125, alignment: .topLeading)
             #if os(tvOS)
                 .padding(EdgeInsets(top: 20, leading: 26, bottom: 20, trailing: 26))
             #else
@@ -179,6 +200,27 @@ public struct ExtensionStatusView: View {
             #elseif os(tvOS)
                 return Color(uiColor: .black)
             #endif
+        }
+    }
+
+    private struct StatusLine: View {
+        private let name: String
+        private let value: String
+
+        init(_ name: String, _ value: String) {
+            self.name = name
+            self.value = value
+        }
+
+        var body: some View {
+            HStack {
+                Text(name)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text(value)
+                    .font(.subheadline)
+            }
         }
     }
 }

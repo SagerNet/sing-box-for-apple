@@ -22,7 +22,17 @@ struct MainView: View {
                     }
                 }
             } else {
-                ContentView()
+                TabView(selection: $selection) {
+                    ForEach(NavigationPage.allCases, id: \.self) { page in
+                        NavigationStackCompat {
+                            page.contentView
+                                .navigationTitle(page.title)
+                                .focusSection()
+                        }
+                        .tag(page)
+                        .tabItem { page.label }
+                    }
+                }
             }
         }
         .onChangeCompat(of: scenePhase) { newValue in

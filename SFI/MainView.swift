@@ -24,7 +24,16 @@ struct MainView: View {
                     }
                 }
             } else {
-                ContentView()
+                TabView(selection: $selection) {
+                    ForEach(NavigationPage.allCases, id: \.self) { page in
+                        NavigationStackCompat {
+                            page.contentView
+                                .navigationTitle(page.title)
+                        }
+                        .tag(page)
+                        .tabItem { page.label }
+                    }
+                }
             }
         }
         .alertBinding($alert)

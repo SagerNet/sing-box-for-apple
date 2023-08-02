@@ -149,8 +149,8 @@ public struct MenuView: View {
             }
             .onAppear {
                 if observer == nil {
-                    observer = NotificationCenter.default.addObserver(forName: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { _ in
-                        doReload()
+                    observer = NotificationCenter.default.addObserver(forName: OverviewView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { notification in
+                        selectedProfileID = notification.object as! Int64
                     })
                 }
             }
@@ -188,7 +188,7 @@ public struct MenuView: View {
 
         private func switchProfile(_ newProfileID: Int64) {
             SharedPreferences.selectedProfileID = newProfileID
-            NotificationCenter.default.post(name: ActiveDashboardView.NotificationUpdateSelectedProfile, object: nil)
+            NotificationCenter.default.post(name: OverviewView.NotificationUpdateSelectedProfile, object: newProfileID)
             if profile.status.isConnected {
                 do {
                     try LibboxNewStandaloneCommandClient()?.serviceReload()

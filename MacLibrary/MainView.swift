@@ -17,11 +17,7 @@ public struct MainView: View {
     public init() {}
     public var body: some View {
         NavigationSplitView {
-            VStack {
-                SidebarView()
-            }
-
-            .frame(minWidth: 150)
+            SidebarView()
         } detail: {
             if profileLoading {
                 ProgressView().onAppear {
@@ -32,6 +28,7 @@ public struct MainView: View {
                 }
             } else {
                 selection.contentView
+                    .navigationTitle(selection.title)
             }
         }
         #if !DEBUG

@@ -15,12 +15,12 @@ public struct GroupView: View {
     private var title: some View {
         HStack {
             Text(group.tag)
-                .font(.system(size: 17))
+                .font(.headline)
             Text(group.displayType)
-                .font(.system(size: 13))
+                .font(.subheadline)
                 .foregroundColor(.secondary)
             Text("\(group.items.count)")
-                .font(.system(size: 11))
+                .font(.subheadline)
                 .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
                 .background(Color.gray.opacity(0.5))
                 .cornerRadius(4)
@@ -33,7 +33,7 @@ public struct GroupView: View {
                     Image(systemName: "arrow.up.to.line")
                 }
             }
-            #if os(macOS)
+            #if os(macOS) || os(tvOS)
             .buttonStyle(.plain)
             #endif
             Button {
@@ -43,11 +43,10 @@ public struct GroupView: View {
             } label: {
                 Image(systemName: "bolt.fill")
             }
-            #if os(macOS)
+            #if os(macOS) || os(tvOS)
             .buttonStyle(.plain)
             #endif
-            Spacer(minLength: 6)
-        }
+        }.padding([.top, .bottom], 8)
     }
 
     public var body: some View {
@@ -61,13 +60,17 @@ public struct GroupView: View {
                     }
                 }
             } else {
-                VStack {
+                VStack(spacing: 5) {
                     ForEach(Array(itemGroups.enumerated()), id: \.offset) { items in
-                        HStack {
+                        HStack(spacing: 5) {
                             ForEach(items.element, id: \.tag) { it in
                                 Rectangle()
                                     .fill(it.delayColor)
+                                #if !os(tvOS)
                                     .frame(width: 10, height: 10)
+                                #else
+                                    .frame(width: 30, height: 30)
+                                #endif
                             }
                         }.frame(maxWidth: .infinity, alignment: .topLeading)
                     }
@@ -93,7 +96,12 @@ public struct GroupView: View {
     }
 
     private var itemGroups: [[OutboundGroupItem]] {
-        let count = Int(Int(geometryWidth) / 20)
+        let count: Int
+        #if os(tvOS)
+            count = Int(Int(geometryWidth) / 40)
+        #else
+            count = Int(Int(geometryWidth) / 20)
+        #endif
         if count == 0 {
             return [group.items]
         } else {
@@ -104,11 +112,13 @@ public struct GroupView: View {
     }
 
     private func explandColumnCount() -> Int {
-        let count = Int(Int(geometryWidth) / 180)
+        let standardCount = Int(Int(geometryWidth) / 180)
         #if os(iOS)
-            return count < 2 ? 2 : count
+            return standardCount < 2 ? 2 : standardCount
+        #elseif os(tvOS)
+            return Int(Int(geometryWidth) / 400)
         #else
-            return count < 1 ? 1 : count
+            return standardCount < 1 ? 1 : standardCount
         #endif
     }
 

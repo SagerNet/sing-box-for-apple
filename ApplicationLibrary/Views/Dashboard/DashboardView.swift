@@ -40,7 +40,6 @@ public struct DashboardView: View {
             }
         }
         #endif
-        .navigationTitle("Dashboard")
     }
 
     #if os(macOS)
