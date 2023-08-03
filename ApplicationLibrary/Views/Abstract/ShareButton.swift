@@ -1,4 +1,5 @@
 import Foundation
+import Library
 import SwiftUI
 #if canImport(UIKit)
     import UIKit
@@ -6,55 +7,101 @@ import SwiftUI
     import AppKit
 #endif
 
-public struct ShareButton<Label>: View where Label: View {
-    private let items: () throws -> [Any]
-    private let label: Label
-    @Binding private var alert: Alert?
+public struct ProfileShareButton<Label>: View where Label: View {
+    private let alert: Binding<Alert?>
+    private let profile: Profile
+    private let label: () -> Label
 
-    public init(_ alert: Binding<Alert?>, @ViewBuilder label: () -> Label, items: @escaping () throws -> [Any]) {
-        _alert = alert
-        self.items = items
-        self.label = label()
+    public init(_ alert: Binding<Alert?>, _ profile: Profile, label: @escaping () -> Label) {
+        self.alert = alert
+        self.profile = profile
+        self.label = label
     }
+
+    public var body: some View {
+        #if os(iOS)
+            if #available(iOS 16.0, *) {
+                ShareLink(item: profile, subject: Text(profile.name), preview: SharePreview("Share profile"), label: label)
+            } else if UIDevice.current.userInterfaceIdiom != .pad {
+                bodyCompat
+            }
+        #else
+            bodyCompat
+        #endif
+    }
+
+    private var bodyCompat: some View {
+        ShareButtonCompat(alert, label: label) {
+            try profile.toContent().generateShareFile()
+        }
+    }
+}
+
+public struct ShareButtonCompat<Label>: View where Label: View {
+    private let label: () -> Label
+    private let itemURL: () throws -> URL
+
+    @Binding private var alert: Alert?
 
     #if canImport(AppKit)
         @State private var sharePresented = false
     #endif
 
+    public init(_ alert: Binding<Alert?>, @ViewBuilder label: @escaping () -> Label, itemURL: @escaping () throws -> URL) {
+        _alert = alert
+        self.label = label
+        self.itemURL = itemURL
+    }
+
     public var body: some View {
-        Button {
-            #if os(iOS)
-                do {
-                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                        try windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: items(), applicationActivities: nil), animated: true, completion: nil)
-                    }
-                } catch {
-                    alert = Alert(error)
-                }
-            #elseif canImport(AppKit)
-                sharePresented = true
-            #endif
-        } label: {
-            label
-        }
+        Button(action: shareItem, label: label)
         #if canImport(AppKit)
-        .background(SharingServicePicker($sharePresented, $alert, items))
+            .background(SharingServicePicker($sharePresented, $alert, itemURL))
         #endif
     }
 
-    private func shareItems() {}
+    private func shareItem() {
+        #if canImport(UIKit)
+            Task.detached {
+                shareItem0()
+            }
+        #elseif canImport(AppKit)
+            sharePresented = true
+        #endif
+    }
+
+    #if canImport(UIKit)
+        private func shareItem0() {
+            do {
+                let shareItem = try itemURL()
+                DispatchQueue.main.async {
+                    shareItem1(shareItem)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    alert = Alert(error)
+                }
+            }
+        }
+
+        private func shareItem1(_ item: URL) {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                try windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [item], applicationActivities: nil), animated: true, completion: nil)
+            }
+        }
+    #endif
 }
 
 #if canImport(AppKit)
     private struct SharingServicePicker: NSViewRepresentable {
         @Binding private var isPresented: Bool
         @Binding private var alert: Alert?
-        private let items: () throws -> [Any]
+        private let item: () throws -> URL
 
-        init(_ isPresented: Binding<Bool>, _ alert: Binding<Alert?>, _ items: @escaping () throws -> [Any]) {
+        init(_ isPresented: Binding<Bool>, _ alert: Binding<Alert?>, _ item: @escaping () throws -> URL) {
             _isPresented = isPresented
             _alert = alert
-            self.items = items
+            self.item = item
         }
 
         func makeNSView(context _: Context) -> NSView {
@@ -65,7 +112,7 @@ public struct ShareButton<Label>: View where Label: View {
         func updateNSView(_ nsView: NSView, context: Context) {
             if isPresented {
                 do {
-                    let picker = try NSSharingServicePicker(items: items())
+                    let picker = try NSSharingServicePicker(items: [item()])
                     picker.delegate = context.coordinator
                     DispatchQueue.main.async {
                         picker.show(relativeTo: .zero, of: nsView, preferredEdge: .minY)

@@ -33,7 +33,6 @@ public struct GroupItemView: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                         Spacer(minLength: 0)
-                        
                     }
                     Spacer(minLength: 8)
                     HStack {
@@ -41,12 +40,11 @@ public struct GroupItemView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Spacer(minLength: 0)
-                        
                     }
                 }
                 Spacer(minLength: 0)
                 VStack {
-                if  group.selected == item.tag {
+                    if group.selected == item.tag {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(Color.accentColor)
                     }

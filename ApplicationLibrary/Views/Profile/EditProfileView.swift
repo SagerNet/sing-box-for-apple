@@ -66,10 +66,8 @@ public struct EditProfileView: View {
                             } label: {
                                 Text("View Content").foregroundColor(.accentColor)
                             }
-                            ShareButton($alert) {
+                            ProfileShareButton($alert, profile) {
                                 Text("Share")
-                            } items: {
-                                try [profile.toContent().generateShareFile()]
                             }
                         #endif
                         Button("Update") {

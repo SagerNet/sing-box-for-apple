@@ -22,7 +22,7 @@ public struct ActiveDashboardView: View {
                 }
             }
         } else {
-            viewBuilder {
+            VStack {
                 #if os(iOS) || os(tvOS)
                     if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
                         Picker("Page", selection: $selection) {

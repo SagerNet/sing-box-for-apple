@@ -318,10 +318,8 @@ public struct ProfileView: View {
                         Text(profile.name)
                     }
                     .contextMenu {
-                        ShareButton(parent.$alert) {
+                        ProfileShareButton(parent.$alert, profile) {
                             Label("Share", systemImage: "square.and.arrow.up.fill")
-                        } items: {
-                            try [profile.toContent().generateShareFile()]
                         }
                         if profile.type == .remote {
                             Button {
@@ -359,10 +357,8 @@ public struct ProfileView: View {
                                     Image(systemName: "arrow.clockwise")
                                 })
                             }
-                            ShareButton(parent.$alert) {
+                            ProfileShareButton(parent.$alert, profile) {
                                 Image(systemName: "square.and.arrow.up.fill")
-                            } items: {
-                                try [profile.toContent().generateShareFile()]
                             }
                             Button(action: {
                                 parent.openWindow(id: EditProfileWindowView.windowID, value: profile.mustID)
