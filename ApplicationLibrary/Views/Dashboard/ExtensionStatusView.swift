@@ -48,7 +48,7 @@ public struct ExtensionStatusView: View {
                                 StatusLine("Uplink", "\(LibboxFormatBytes(message.uplink))/s")
                                 StatusLine("Downlink", "\(LibboxFormatBytes(message.downlink))/s")
                             }
-                            StatusItem("TrafficTotal") {
+                            StatusItem("Traffic Total") {
                                 StatusLine("Uplink", LibboxFormatBytes(message.uplinkTotal))
                                 StatusLine("Downlink", LibboxFormatBytes(message.downlinkTotal))
                             }

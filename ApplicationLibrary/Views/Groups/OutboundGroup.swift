@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 import SwiftUI
 
 public struct OutboundGroup: Codable {
@@ -20,13 +21,6 @@ public struct OutboundGroup: Codable {
 
 public extension OutboundGroup {
     var displayType: String {
-        switch type {
-        case "selector":
-            return "Selector"
-        case "urltest":
-            return "URLTest"
-        default:
-            return "Unknown"
-        }
+        LibboxProxyDisplayType(type)
     }
 }

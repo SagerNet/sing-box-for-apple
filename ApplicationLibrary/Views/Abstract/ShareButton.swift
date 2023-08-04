@@ -1,9 +1,9 @@
 import Foundation
 import Library
 import SwiftUI
-#if canImport(UIKit)
+#if os(iOS)
     import UIKit
-#elseif canImport(AppKit)
+#elseif os(macOS)
     import AppKit
 #endif
 
@@ -43,7 +43,7 @@ public struct ShareButtonCompat<Label>: View where Label: View {
 
     @Binding private var alert: Alert?
 
-    #if canImport(AppKit)
+    #if os(macOS)
         @State private var sharePresented = false
     #endif
 
@@ -55,22 +55,22 @@ public struct ShareButtonCompat<Label>: View where Label: View {
 
     public var body: some View {
         Button(action: shareItem, label: label)
-        #if canImport(AppKit)
+        #if os(macOS)
             .background(SharingServicePicker($sharePresented, $alert, itemURL))
         #endif
     }
 
     private func shareItem() {
-        #if canImport(UIKit)
+        #if os(iOS)
             Task.detached {
                 shareItem0()
             }
-        #elseif canImport(AppKit)
+        #elseif os(macOS)
             sharePresented = true
         #endif
     }
 
-    #if canImport(UIKit)
+    #if os(iOS)
         private func shareItem0() {
             do {
                 let shareItem = try itemURL()
@@ -86,13 +86,13 @@ public struct ShareButtonCompat<Label>: View where Label: View {
 
         private func shareItem1(_ item: URL) {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                try windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [item], applicationActivities: nil), animated: true, completion: nil)
+                windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [item], applicationActivities: nil), animated: true, completion: nil)
             }
         }
     #endif
 }
 
-#if canImport(AppKit)
+#if os(macOS)
     private struct SharingServicePicker: NSViewRepresentable {
         @Binding private var isPresented: Bool
         @Binding private var alert: Alert?

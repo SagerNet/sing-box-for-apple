@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 import SwiftUI
 
 public struct OutboundGroupItem: Codable {
@@ -10,6 +11,10 @@ public struct OutboundGroupItem: Codable {
 }
 
 public extension OutboundGroupItem {
+    var displayType: String {
+        LibboxProxyDisplayType(type)
+    }
+
     var delayString: String {
         "\(urlTestDelay)ms"
     }

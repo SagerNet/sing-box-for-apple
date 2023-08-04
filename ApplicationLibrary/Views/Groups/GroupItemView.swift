@@ -36,7 +36,7 @@ public struct GroupItemView: View {
                     }
                     Spacer(minLength: 8)
                     HStack {
-                        Text(item.type)
+                        Text(item.displayType)
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Spacer(minLength: 0)
