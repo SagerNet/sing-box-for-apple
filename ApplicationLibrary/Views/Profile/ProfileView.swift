@@ -79,7 +79,7 @@ public struct ProfileView: View {
                                 }
                             #endif
                             if profileList.isEmpty {
-                                Text("Empty Profiles")
+                                Text("Empty profiles")
                             } else {
                                 List {
                                     ForEach(profileList, id: \.mustID) { profile in
@@ -99,7 +99,7 @@ public struct ProfileView: View {
                     }
                 #elseif os(macOS)
                     if profileList.isEmpty {
-                        Text("Empty Profiles")
+                        Text("Empty profiles")
                     } else {
                         FormView {
                             List {

@@ -1,7 +1,11 @@
 import Foundation
 
 public enum FilePath {
-    public static let packageName = "io.nekohasekai.sfa"
+    #if !NEXT
+        public static let packageName = "io.nekohasekai.sfa"
+    #else
+        public static let packageName = "io.nekohasekai.sfa.next"
+    #endif
 }
 
 public extension FilePath {

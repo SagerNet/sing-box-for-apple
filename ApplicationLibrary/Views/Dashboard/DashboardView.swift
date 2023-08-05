@@ -71,22 +71,23 @@ public struct DashboardView: View {
         @State private var alert: Alert?
 
         var body: some View {
-            ActiveDashboardView()
-                .environmentObject(profile)
-            EmptyView()
-                .alertBinding($alert)
-                .onChangeCompat(of: profile.status) { newValue in
-                    if newValue == .disconnecting || newValue == .connected {
-                        Task.detached {
-                            if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
-                                DispatchQueue.main.async {
-                                    alert = Alert(errorMessage: serviceError)
-                                }
-                                try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
+            VStack {
+                ActiveDashboardView()
+                    .environmentObject(profile)
+            }
+            .alertBinding($alert)
+            .onChangeCompat(of: profile.status) { newValue in
+                if newValue == .disconnecting || newValue == .connected {
+                    Task.detached {
+                        if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
+                            DispatchQueue.main.async {
+                                alert = Alert(title: Text("Service Error"), message: Text(serviceError))
                             }
+                            try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
                         }
                     }
                 }
+            }
         }
     }
 }

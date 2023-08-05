@@ -25,29 +25,34 @@ public struct OverviewView: View {
             if ApplicationLibrary.inPreview || profile.status.isConnected {
                 ExtensionStatusView()
             }
-            FormView {
-                #if os(iOS) || os(tvOS)
-                    StartStopButton()
-                    Section("Profile") {
-                        Picker(selection: $selectedProfileID) {
-                            ForEach(profileList, id: \.id) { profile in
-                                Text(profile.name).tag(profile.id)
-                            }
-                        } label: {}
-                            .pickerStyle(.inline)
-                    }
-                #elseif os(macOS)
-                    Section("Profile") {
-                        ForEach(profileList, id: \.id) { profile in
-                            Picker(profile.name, selection: $selectedProfileID) {
-                                Text("").tag(profile.id)
-                            }
+            if profileList.isEmpty {
+                Text("Empty profiles")
+            } else {
+                FormView {
+                    #if os(iOS) || os(tvOS)
+                        StartStopButton()
+                        Section("Profile") {
+                            Picker(selection: $selectedProfileID) {
+                                ForEach(profileList, id: \.id) { profile in
+                                    Text(profile.name).tag(profile.id)
+                                }
+                            } label: {}
+                                .pickerStyle(.inline)
                         }
-                        .pickerStyle(.radioGroup)
-                    }
-                #endif
+                    #elseif os(macOS)
+                        Section("Profile") {
+                            ForEach(profileList, id: \.id) { profile in
+                                Picker(profile.name, selection: $selectedProfileID) {
+                                    Text("").tag(profile.id)
+                                }
+                            }
+                            .pickerStyle(.radioGroup)
+                        }
+                    #endif
+                }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .alertBinding($alert)
         .onChangeCompat(of: selectedProfileID) {
             reasserting = true

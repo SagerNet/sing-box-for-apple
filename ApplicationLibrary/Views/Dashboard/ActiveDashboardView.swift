@@ -32,7 +32,6 @@ public struct ActiveDashboardView: View {
                         }
                         .pickerStyle(.segmented)
                         #if os(iOS)
-
                             .padding([.leading, .trailing])
                             .navigationBarTitleDisplayMode(.inline)
                         #endif
