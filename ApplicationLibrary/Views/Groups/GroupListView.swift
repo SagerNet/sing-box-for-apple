@@ -27,7 +27,7 @@ public struct GroupListView: View {
                     }.padding()
                 }
             } else {
-                Text("Empty Groups")
+                Text("Empty groups")
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
