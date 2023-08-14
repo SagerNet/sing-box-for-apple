@@ -7,6 +7,7 @@ public struct OutboundGroup: Codable {
     let type: String
     var selected: String
     let selectable: Bool
+    var isExpand: Bool
     let items: [OutboundGroupItem]
 
     var hashValue: Int {

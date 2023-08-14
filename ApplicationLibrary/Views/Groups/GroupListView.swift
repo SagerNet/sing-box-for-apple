@@ -18,11 +18,7 @@ public struct GroupListView: View {
                 ScrollView {
                     VStack {
                         ForEach(groups, id: \.hashValue) { it in
-                            GroupView(it, Binding(get: {
-                                groupExpand[it.tag] ?? it.selectable
-                            }, set: { newValue in
-                                groupExpand[it.tag] = newValue
-                            }))
+                            GroupView(it)
                         }
                     }.padding()
                 }
@@ -44,12 +40,12 @@ public struct GroupListView: View {
     private func doReload() {
         if ApplicationLibrary.inPreview {
             groups = [
-                OutboundGroup(tag: "my_group", type: "selector", selected: "server", selectable: true, items: [
+                OutboundGroup(tag: "my_group", type: "selector", selected: "server", selectable: true, isExpand: true, items: [
                     OutboundGroupItem(tag: "server", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 12),
                     OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 34),
                     OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 100),
                 ]),
-                OutboundGroup(tag: "group2", type: "urltest", selected: "client", selectable: true, items:
+                OutboundGroup(tag: "group2", type: "urltest", selected: "client", selectable: true, isExpand: true, items:
                     (0 ..< 234).map { index in
                         OutboundGroupItem(tag: "client\(index)", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: UInt16(100 + index * 10))
                     }),
@@ -105,7 +101,7 @@ public struct GroupListView: View {
                 let goItem = itemIterator.next()!
                 items.append(OutboundGroupItem(tag: goItem.tag, type: goItem.type, urlTestTime: Date(timeIntervalSince1970: Double(goItem.urlTestTime)), urlTestDelay: UInt16(goItem.urlTestDelay)))
             }
-            groups.append(OutboundGroup(tag: goGroup.tag, type: goGroup.type, selected: goGroup.selected, selectable: goGroup.selectable, items: items))
+            groups.append(OutboundGroup(tag: goGroup.tag, type: goGroup.type, selected: goGroup.selected, selectable: goGroup.selectable, isExpand: goGroup.isExpand(), items: items))
         }
         self.groups = groups
         isLoading = false

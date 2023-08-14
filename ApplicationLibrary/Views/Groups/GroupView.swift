@@ -3,13 +3,12 @@ import Library
 import SwiftUI
 
 public struct GroupView: View {
-    @Binding private var expland: Bool
     @State private var group: OutboundGroup
     @State private var geometryWidth: CGFloat = 300
+    @State private var alert: Alert?
 
-    public init(_ group: OutboundGroup, _ expland: Binding<Bool>) {
-        self.group = group
-        _expland = expland
+    public init(_ group: OutboundGroup) {
+        _group = State(initialValue: group)
     }
 
     private var title: some View {
@@ -25,9 +24,12 @@ public struct GroupView: View {
                 .background(Color.gray.opacity(0.5))
                 .cornerRadius(4)
             Button {
-                expland = !expland
+                group.isExpand = !group.isExpand
+                Task.detached {
+                    setGroupExpand()
+                }
             } label: {
-                if expland {
+                if group.isExpand {
                     Image(systemName: "arrow.down.to.line")
                 } else {
                     Image(systemName: "arrow.up.to.line")
@@ -46,12 +48,14 @@ public struct GroupView: View {
             #if os(macOS) || os(tvOS)
             .buttonStyle(.plain)
             #endif
-        }.padding([.top, .bottom], 8)
+        }
+        .alertBinding($alert)
+        .padding([.top, .bottom], 8)
     }
 
     public var body: some View {
         Section {
-            if expland {
+            if group.isExpand {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
                                          count: explandColumnCount()))
                 {
@@ -123,7 +127,19 @@ public struct GroupView: View {
     }
 
     private func doURLTest() {
-        try? LibboxNewStandaloneCommandClient()!.urlTest(group.tag)
+        do {
+            try LibboxNewStandaloneCommandClient()!.urlTest(group.tag)
+        } catch {
+            alert = Alert(error)
+        }
+    }
+
+    private func setGroupExpand() {
+        do {
+            try LibboxNewStandaloneCommandClient()!.setGroupExpand(group.tag, isExpand: group.isExpand)
+        } catch {
+            alert = Alert(error)
+        }
     }
 }
 

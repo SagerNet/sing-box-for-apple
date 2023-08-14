@@ -8,6 +8,7 @@ public struct ServiceLogView: View {
         public static let windowID = "service-log"
     #endif
 
+    @Environment(\.dismiss) private var dismiss
     @State private var isLoading = true
     @State private var content = ""
     @State private var fileExporterPresented = false
@@ -28,7 +29,9 @@ public struct ServiceLogView: View {
                     Text("Empty content")
                 } else {
                     ScrollView {
-                        Text(content).font(logFont)
+                        Text(content)
+                            .font(logFont)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
                     }
                     .padding()
                 }
@@ -36,10 +39,16 @@ public struct ServiceLogView: View {
         }
         #if !os(tvOS)
         .toolbar {
-            Button("Export") {
-                fileExporterPresented = true
+            if !content.isEmpty {
+                Button("Export") {
+                    fileExporterPresented = true
+                }
+                Button("Delete", role: .destructive) {
+                    Task.detached {
+                        deleteContent()
+                    }
+                }
             }
-            .disabled(content.isEmpty)
         }
         #endif
         #if !os(tvOS)
@@ -52,11 +61,8 @@ public struct ServiceLogView: View {
         )
         #endif
         .navigationTitle("Service Log")
-        #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
         #if os(tvOS)
-        .focusable()
+            .focusable()
         #endif
     }
 
@@ -67,9 +73,19 @@ public struct ServiceLogView: View {
         if content.isEmpty {
             do {
                 content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
-            } catch {}
+            } catch {
+            }
         }
+
         isLoading = false
+    }
+
+    private func deleteContent() {
+        try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log"))
+        try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
+        DispatchQueue.main.async {
+            dismiss()
+        }
     }
 
     #if !os(tvOS)

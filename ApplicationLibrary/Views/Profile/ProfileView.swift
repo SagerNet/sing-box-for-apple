@@ -53,7 +53,7 @@ public struct ProfileView: View {
                             }
                         }
                         FormView {
-                            #if os(iOS) || os(tvOS)
+                            #if os(iOS)
                                 NavigationLink {
                                     NewProfileView {
                                         Task.detached {
@@ -64,17 +64,27 @@ public struct ProfileView: View {
                                     Text("New Profile").foregroundColor(.accentColor)
                                 }
                                 .disabled(editMode.isEditing)
-                            #endif
-                            #if os(tvOS)
-                                if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
+                            #elseif os(tvOS)
+                                Section {
                                     NavigationLink {
-                                        ImportProfileView {
+                                        NewProfileView {
                                             Task.detached {
                                                 doReload()
                                             }
                                         }
                                     } label: {
-                                        Text("Import Profile").foregroundColor(.accentColor)
+                                        Text("New Profile").foregroundColor(.accentColor)
+                                    }
+                                    if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
+                                        NavigationLink {
+                                            ImportProfileView {
+                                                Task.detached {
+                                                    doReload()
+                                                }
+                                            }
+                                        } label: {
+                                            Text("Import Profile").foregroundColor(.accentColor)
+                                        }
                                     }
                                 }
                             #endif
