@@ -4,49 +4,40 @@ import Library
 import SwiftUI
 
 struct MainView: View {
-    @Environment(\.scenePhase) var scenePhase
+    @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var environments: ExtensionEnvironments
 
     @State private var selection = NavigationPage.dashboard
-    @State private var extensionProfile: ExtensionProfile?
-    @State private var profileLoading = true
-    @State private var logClient: LogClient!
     @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
     @State private var alert: Alert?
 
     var body: some View {
-        viewBuilder {
-            if profileLoading {
-                ProgressView().onAppear {
-                    Task.detached {
-                        logClient = LogClient(SharedPreferences.maxLogLines)
-                        await loadProfile()
-                    }
+        TabView(selection: $selection) {
+            ForEach(NavigationPage.allCases, id: \.self) { page in
+                NavigationStackCompat {
+                    page.contentView
+                        .navigationTitle(page.title)
                 }
-            } else {
-                TabView(selection: $selection) {
-                    ForEach(NavigationPage.allCases, id: \.self) { page in
-                        NavigationStackCompat {
-                            page.contentView
-                                .navigationTitle(page.title)
-                        }
-                        .tag(page)
-                        .tabItem { page.label }
-                    }
-                }
+                .tag(page)
+                .tabItem { page.label }
             }
+        }
+        .onAppear {
+            environments.postReload()
         }
         .alertBinding($alert)
         .onChangeCompat(of: scenePhase) { newValue in
             if newValue == .active {
-                Task.detached {
-                    await loadProfile()
-                }
+                environments.postReload()
+            }
+        }
+        .onChangeCompat(of: selection) { newValue in
+            if newValue == .logs {
+                environments.connectLog()
             }
         }
         .environment(\.selection, $selection)
-        .environment(\.extensionProfile, $extensionProfile)
-        .environment(\.logClient, $logClient)
         .environment(\.importProfile, $importProfile)
         .environment(\.importRemoteProfile, $importRemoteProfile)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
@@ -78,35 +69,6 @@ struct MainView: View {
             }
         } else {
             alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
-        }
-    }
-
-    private func loadProfile() async {
-        defer {
-            profileLoading = false
-        }
-        if ApplicationLibrary.inPreview {
-            return
-        }
-        if let newProfile = try? await ExtensionProfile.load() {
-            if extensionProfile == nil || extensionProfile?.status == .invalid {
-                newProfile.register()
-                extensionProfile = newProfile
-            }
-        } else {
-            extensionProfile = nil
-        }
-    }
-
-    private func connectLog() {
-        guard let profile = extensionProfile else {
-            return
-        }
-        guard let logClient else {
-            return
-        }
-        if profile.status.isConnected, !logClient.isConnected {
-            logClient.reconnect()
         }
     }
 }

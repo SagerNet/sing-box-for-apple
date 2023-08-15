@@ -5,6 +5,7 @@ import SwiftUI
 public struct MacApplication: Scene {
     @State private var showMenuBarExtra = false
     @State private var isMenuPresented = false
+    @StateObject private var environments = ExtensionEnvironments()
 
     public init() {}
     public var body: some Scene {
@@ -12,10 +13,11 @@ public struct MacApplication: Scene {
             MainView()
                 .onAppear {
                     Task.detached {
-                        initialize()
+                        await initialize()
                     }
                 }
                 .environment(\.showMenuBarExtra, $showMenuBarExtra)
+                .environmentObject(environments)
         })
         .commands {
             if showMenuBarExtra {

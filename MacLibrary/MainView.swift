@@ -5,11 +5,9 @@ import SwiftUI
 
 public struct MainView: View {
     @Environment(\.controlActiveState) private var controlActiveState
+    @EnvironmentObject private var environments: ExtensionEnvironments
 
     @State private var selection = NavigationPage.dashboard
-    @State private var extensionProfile: ExtensionProfile?
-    @State private var profileLoading = true
-    @State private var logClient: LogClient!
     @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
     @State private var alert: Alert?
@@ -19,55 +17,41 @@ public struct MainView: View {
         NavigationSplitView {
             SidebarView()
         } detail: {
-            if profileLoading {
-                ProgressView().onAppear {
-                    Task {
-                        logClient = LogClient(SharedPreferences.maxLogLines)
-                        await loadProfile()
-                    }
-                }
-            } else {
-                selection.contentView
-                    .navigationTitle(selection.title)
-            }
+            selection.contentView
+                .navigationTitle(selection.title)
         }
-        #if !DEBUG
         .onAppear {
+            environments.postReload()
+            #if !DEBUG
                 if Variant.useSystemExtension {
                     Task.detached {
                         checkApplicationPath()
                     }
                 }
+            #endif
+        }
+        .alertBinding($alert)
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                StartStopButton()
             }
-        #endif
-            .alertBinding($alert)
-            .toolbar {
-                ToolbarItem(placement: .navigation) {
-                    StartStopButton()
-                }
+        }
+        .onChangeCompat(of: controlActiveState) { newValue in
+            if newValue != .inactive {
+                environments.postReload()
             }
-            .onChangeCompat(of: controlActiveState) { newValue in
-                if newValue != .inactive {
-                    Task {
-                        await loadProfile()
-                        connectLog()
-                    }
-                }
+        }
+        .onChangeCompat(of: selection) { value in
+            if value == .logs {
+                environments.connectLog()
             }
-            .onChangeCompat(of: selection) { value in
-                if value == .logs {
-                    connectLog()
-                }
-            }
-            .formStyle(.grouped)
-            .environment(\.selection, $selection)
-            .environment(\.extensionProfile, $extensionProfile)
-            .environment(\.logClient, $logClient)
-
-            .environment(\.importProfile, $importProfile)
-            .environment(\.importRemoteProfile, $importRemoteProfile)
-            .handlesExternalEvents(preferring: [], allowing: ["*"])
-            .onOpenURL(perform: openURL)
+        }
+        .formStyle(.grouped)
+        .environment(\.selection, $selection)
+        .environment(\.importProfile, $importProfile)
+        .environment(\.importRemoteProfile, $importRemoteProfile)
+        .handlesExternalEvents(preferring: [], allowing: ["*"])
+        .onOpenURL(perform: openURL)
     }
 
     private func openURL(url: URL) {
@@ -94,32 +78,6 @@ public struct MainView: View {
             }
         } else {
             alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
-        }
-    }
-
-    private func loadProfile() async {
-        defer {
-            profileLoading = false
-        }
-        if let newProfile = try? await ExtensionProfile.load() {
-            if extensionProfile == nil {
-                newProfile.register()
-                extensionProfile = newProfile
-            }
-        } else {
-            extensionProfile = nil
-        }
-    }
-
-    private func connectLog() {
-        guard let profile = extensionProfile else {
-            return
-        }
-        guard let logClient else {
-            return
-        }
-        if profile.status.isConnected, !logClient.isConnected {
-            logClient.reconnect()
         }
     }
 

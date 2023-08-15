@@ -20,6 +20,8 @@
 		3A2223582A6E1CC700C50B23 /* MacApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2223572A6E1CC700C50B23 /* MacApplication.swift */; };
 		3A22235A2A6E212A00C50B23 /* SystemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2223592A6E212A00C50B23 /* SystemExtension.swift */; };
 		3A251C122A52D09700651082 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AAB5E7A2A4C1446009757F1 /* Assets.xcassets */; };
+		3A27D9002A89BE230031EBCC /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D8FF2A89BE230031EBCC /* CommandClient.swift */; };
+		3A27D9022A89C6870031EBCC /* ExtensionEnvironments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */; };
 		3A2EAEED2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */; };
 		3A3AA7FC2A4EFDAE002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3AA7FF2A4EFDB3002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
@@ -44,7 +46,6 @@
 		3A4EAD302A4FEB77005435B3 /* NewProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADF8DF82A4AFCB400900CC8 /* NewProfileView.swift */; };
 		3A4EAD312A4FEB7B005435B3 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AAB5E712A4BF6F6009757F1 /* SettingView.swift */; };
 		3A4EAD322A4FEB7B005435B3 /* ServiceLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AAB5E732A4BF90B009757F1 /* ServiceLogView.swift */; };
-		3A4EAD332A4FEB7F005435B3 /* LogClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA1ABBB2A4C4107000FD4BA /* LogClient.swift */; };
 		3A4EAD342A4FEB7F005435B3 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA1ABB92A4C4054000FD4BA /* LogView.swift */; };
 		3A4EAD352A4FEB9C005435B3 /* UIProfileUpdateTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A55F9572A4D137E003C4EF4 /* UIProfileUpdateTask.swift */; };
 		3A4EAD362A4FEB9C005435B3 /* ProfileUpdateTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A55F9592A4D1554003C4EF4 /* ProfileUpdateTask.swift */; };
@@ -435,6 +436,8 @@
 		3A2223552A6E1BDE00C50B23 /* Variant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variant.swift; sourceTree = "<group>"; };
 		3A2223572A6E1CC700C50B23 /* MacApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacApplication.swift; sourceTree = "<group>"; };
 		3A2223592A6E212A00C50B23 /* SystemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtension.swift; sourceTree = "<group>"; };
+		3A27D8FF2A89BE230031EBCC /* CommandClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandClient.swift; sourceTree = "<group>"; };
+		3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionEnvironments.swift; sourceTree = "<group>"; };
 		3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndependentApplicationDelegate.swift; sourceTree = "<group>"; };
 		3A3DEBE12A4FFA1A00373BF4 /* ExtensionFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExtensionFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.0.sdk/System/Library/Frameworks/ExtensionFoundation.framework; sourceTree = DEVELOPER_DIR; };
 		3A3DEBE62A4FFA6000373BF4 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.0.sdk/System/Library/Frameworks/AppIntents.framework; sourceTree = DEVELOPER_DIR; };
@@ -467,7 +470,6 @@
 		3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCompat.swift; sourceTree = "<group>"; };
 		3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationDestinationCompat.swift; sourceTree = "<group>"; };
 		3AA1ABB92A4C4054000FD4BA /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
-		3AA1ABBB2A4C4107000FD4BA /* LogClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogClient.swift; sourceTree = "<group>"; };
 		3AAB5E712A4BF6F6009757F1 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
 		3AAB5E732A4BF90B009757F1 /* ServiceLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLogView.swift; sourceTree = "<group>"; };
 		3AAB5E752A4BFB0B009757F1 /* EditProfileContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileContentView.swift; sourceTree = "<group>"; };
@@ -711,7 +713,6 @@
 			isa = PBXGroup;
 			children = (
 				3AA1ABB92A4C4054000FD4BA /* LogView.swift */,
-				3AA1ABBB2A4C4107000FD4BA /* LogClient.swift */,
 			);
 			path = Log;
 			sourceTree = "<group>";
@@ -883,6 +884,8 @@
 				3A4EAD3B2A4FECCE005435B3 /* NEVPNStatus+isConnected.swift */,
 				3A2223592A6E212A00C50B23 /* SystemExtension.swift */,
 				3AF342A62A4AA0FF002B34AC /* ExtensionPlatformInterface.swift */,
+				3A27D8FF2A89BE230031EBCC /* CommandClient.swift */,
+				3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -1446,7 +1449,6 @@
 				3A4EAD2C2A4FEB77005435B3 /* EditProfileWindowView.swift in Sources */,
 				3A1CF2FA2A50F0BD000A8289 /* OutboundGroupItem.swift in Sources */,
 				3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */,
-				3A4EAD332A4FEB7F005435B3 /* LogClient.swift in Sources */,
 				3AC729F22A76088E00FE8EC1 /* ShareButton.swift in Sources */,
 				3A0C6D3C2A79D46500A4DF2B /* OverviewView.swift in Sources */,
 				3A4EAD262A4FEB65005435B3 /* ExtensionStatusView.swift in Sources */,
@@ -1506,6 +1508,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A27D9022A89C6870031EBCC /* ExtensionEnvironments.swift in Sources */,
 				3AE4D0B52A6E2BAC009FEA9E /* ExtensionProvider.swift in Sources */,
 				3A2223562A6E1BDE00C50B23 /* Variant.swift in Sources */,
 				3AEC214A2A45AA5600A63465 /* Profile+RW.swift in Sources */,
@@ -1530,6 +1533,7 @@
 				3AE4D0B22A6E2B6A009FEA9E /* ExtensionPlatformInterface.swift in Sources */,
 				3AEC21402A45A28F00A63465 /* ProfileManager.swift in Sources */,
 				3A9144D92A46AE370036E9AD /* ShadredPreferences+Database.swift in Sources */,
+				3A27D9002A89BE230031EBCC /* CommandClient.swift in Sources */,
 				3AF342A02A4A9916002B34AC /* ExtensionProfile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

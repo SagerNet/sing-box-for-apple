@@ -3,7 +3,7 @@ import NetworkExtension
 import SwiftUI
 
 public struct StartStopButton: View {
-    @Environment(\.extensionProfile) private var extensionProfile
+    @EnvironmentObject private var environments: ExtensionEnvironments
 
     public init() {}
 
@@ -20,8 +20,8 @@ public struct StartStopButton: View {
                     })
                 #endif
 
-            } else if let profile = extensionProfile.wrappedValue {
-                Button0(profile)
+            } else if let profile = environments.extensionProfile {
+                Button0().environmentObject(profile)
             } else {
                 #if os(iOS) || os(tvOS)
                     Toggle(isOn: .constant(false)) {
@@ -39,13 +39,9 @@ public struct StartStopButton: View {
     }
 
     private struct Button0: View {
-        @Environment(\.logClient) private var logClient
-        @ObservedObject private var profile: ExtensionProfile
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @EnvironmentObject private var profile: ExtensionProfile
         @State private var alert: Alert?
-
-        init(_ profile: ExtensionProfile) {
-            self.profile = profile
-        }
 
         var body: some View {
             viewBuilder {
@@ -81,7 +77,7 @@ public struct StartStopButton: View {
             do {
                 if isEnabled {
                     try await profile.start()
-                    logClient.wrappedValue?.reconnect()
+                    environments.logClient.connect()
                 } else {
                     profile.stop()
                 }

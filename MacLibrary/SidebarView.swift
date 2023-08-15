@@ -4,12 +4,14 @@ import SwiftUI
 
 public struct SidebarView: View {
     @Environment(\.selection) private var selection
-    @Environment(\.extensionProfile) private var extensionProfile
+    @EnvironmentObject private var environments: ExtensionEnvironments
 
     public init() {}
     public var body: some View {
         VStack {
-            if let profile = extensionProfile.wrappedValue {
+            if environments.extensionProfileLoading {
+                ProgressView()
+            } else if let profile = environments.extensionProfile {
                 SidebarView0().environmentObject(profile)
             } else {
                 SidebarView1()

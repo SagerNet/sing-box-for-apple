@@ -2,8 +2,6 @@ import Library
 import SwiftUI
 
 public struct InstallProfileButton: View {
-    @Environment(\.extensionProfile) private var extensionProfile
-
     @State private var alert: Alert?
 
     public init() {}

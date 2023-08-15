@@ -3,16 +3,13 @@ import Library
 import SwiftUI
 
 public struct ExtensionStatusView: View {
-    @State private var commandClient: LibboxCommandClient?
-    @State private var message: LibboxStatusMessage?
-    @State private var connectTask: Task<Void, Error>?
+    @StateObject private var commandClient = CommandClient(.status)
     @State private var columnCount: Int = 4
     @State private var alert: Alert?
 
     private let infoFont = Font.system(.caption, design: .monospaced)
 
     public init() {}
-
     public var body: some View {
         viewBuilder {
             VStack {
@@ -34,7 +31,7 @@ public struct ExtensionStatusView: View {
                             StatusLine("Uplink", "52 MiB")
                             StatusLine("Downlink", "5.6 GiB")
                         }
-                    } else if let message {
+                    } else if let message = commandClient.status {
                         StatusItem("Status") {
                             StatusLine("Memory", LibboxFormatBytes(message.memory))
                             StatusLine("Goroutines", "\(message.goroutines)")
@@ -80,51 +77,13 @@ public struct ExtensionStatusView: View {
             .frame(alignment: .topLeading)
             .padding([.top, .leading, .trailing])
         }
-        .onAppear(perform: doReload)
+        .onAppear {
+            commandClient.connect()
+        }
         .onDisappear {
-            connectTask?.cancel()
-            if let commandClient {
-                try? commandClient.disconnect()
-            }
-            commandClient = nil
+            commandClient.disconnect()
         }
         .alertBinding($alert)
-    }
-
-    private func doReload() {
-        connectTask?.cancel()
-        connectTask = Task.detached {
-            await connect()
-        }
-    }
-
-    private func connect() async {
-        let clientOptions = LibboxCommandClientOptions()
-        clientOptions.command = LibboxCommandStatus
-        clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
-        let client = LibboxNewCommandClient(FilePath.sharedDirectory.relativePath, statusHandler(self), clientOptions)!
-
-        do {
-            for i in 0 ..< 10 {
-                try await Task.sleep(nanoseconds: UInt64(Double(100 + (i * 50)) * Double(NSEC_PER_MSEC)))
-                try Task.checkCancellation()
-                let isConnected: Bool
-                do {
-                    try client.connect()
-                    isConnected = true
-                } catch {
-                    isConnected = false
-                }
-                try Task.checkCancellation()
-                if isConnected {
-                    commandClient = client
-                    return
-                }
-            }
-        } catch {
-            NSLog("failed to connect status: \(error.localizedDescription)")
-            try? client.disconnect()
-        }
     }
 
     private func updateColumnCount(_ width: Double) {
@@ -142,26 +101,6 @@ public struct ExtensionStatusView: View {
         } catch {
             alert = Alert(error)
         }
-    }
-
-    private class statusHandler: NSObject, LibboxCommandClientHandlerProtocol {
-        private let statusView: ExtensionStatusView
-
-        init(_ statusView: ExtensionStatusView) {
-            self.statusView = statusView
-        }
-
-        func connected() {}
-
-        func disconnected(_: String?) {}
-
-        func writeLog(_: String?) {}
-
-        func writeStatus(_ message: LibboxStatusMessage?) {
-            statusView.message = message
-        }
-
-        func writeGroups(_: LibboxOutboundGroupIteratorProtocol?) {}
     }
 
     private struct StatusItem<T>: View where T: View {

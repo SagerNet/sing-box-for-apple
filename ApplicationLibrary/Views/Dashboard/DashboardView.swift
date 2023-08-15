@@ -52,11 +52,14 @@ public struct DashboardView: View {
     #endif
 
     struct DashboardView0: View {
-        @Environment(\.extensionProfile) private var extensionProfile
+        @EnvironmentObject private var environments: ExtensionEnvironments
+
         var body: some View {
             if ApplicationLibrary.inPreview {
                 ActiveDashboardView()
-            } else if let profile = extensionProfile.wrappedValue {
+            } else if environments.extensionProfileLoading {
+                ProgressView()
+            } else if let profile = environments.extensionProfile {
                 DashboardView1().environmentObject(profile)
             } else {
                 FormView {
@@ -67,13 +70,13 @@ public struct DashboardView: View {
     }
 
     struct DashboardView1: View {
+        @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var profile: ExtensionProfile
         @State private var alert: Alert?
 
         var body: some View {
             VStack {
                 ActiveDashboardView()
-                    .environmentObject(profile)
             }
             .alertBinding($alert)
             .onChangeCompat(of: profile.status) { newValue in

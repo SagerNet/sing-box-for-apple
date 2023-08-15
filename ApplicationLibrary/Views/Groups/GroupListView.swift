@@ -4,10 +4,8 @@ import SwiftUI
 
 public struct GroupListView: View {
     @State private var isLoading = true
-    @State private var connectTask: Task<Void, Error>?
-    @State private var commandClient: LibboxCommandClient?
+    @StateObject private var commandClient = CommandClient(.groups)
     @State private var groups: [OutboundGroup] = []
-    @State private var groupExpand: [String: Bool] = [:]
 
     public init() {}
     public var body: some View {
@@ -27,17 +25,20 @@ public struct GroupListView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .onAppear(perform: doReload)
-        .onDisappear {
-            connectTask?.cancel()
-            if let commandClient {
-                try? commandClient.disconnect()
-            }
-            commandClient = nil
+        .onAppear {
+            connect()
         }
+        .onDisappear {
+            commandClient.disconnect()
+        }
+        .onReceive(commandClient.$groups, perform: { groups in
+            if let groups {
+                setGroups(groups)
+            }
+        })
     }
 
-    private func doReload() {
+    private func connect() {
         if ApplicationLibrary.inPreview {
             groups = [
                 OutboundGroup(tag: "my_group", type: "selector", selected: "server", selectable: true, isExpand: true, items: [
@@ -52,47 +53,11 @@ public struct GroupListView: View {
             ]
             isLoading = false
         } else {
-            connectTask?.cancel()
-            connectTask = Task.detached {
-                await connect()
-            }
+            commandClient.connect()
         }
     }
 
-    private func connect() async {
-        let clientOptions = LibboxCommandClientOptions()
-        clientOptions.command = LibboxCommandGroup
-        clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
-        let client = LibboxNewCommandClient(FilePath.sharedDirectory.relativePath, groupsHandler(self), clientOptions)!
-
-        do {
-            for i in 0 ..< 10 {
-                try await Task.sleep(nanoseconds: UInt64(Double(100 + (i * 50)) * Double(NSEC_PER_MSEC)))
-                try Task.checkCancellation()
-                let isConnected: Bool
-                do {
-                    try client.connect()
-                    isConnected = true
-                } catch {
-                    isConnected = false
-                }
-                try Task.checkCancellation()
-                if isConnected {
-                    commandClient = client
-                    return
-                }
-            }
-        } catch {
-            NSLog("failed to connect status: \(error.localizedDescription)")
-            try? client.disconnect()
-        }
-    }
-
-    private func setGroups(_ groupIterator: LibboxOutboundGroupIteratorProtocol) {
-        var goGroups = [LibboxOutboundGroup]()
-        while groupIterator.hasNext() {
-            goGroups.append(groupIterator.next()!)
-        }
+    private func setGroups(_ goGroups: [LibboxOutboundGroup]) {
         var groups = [OutboundGroup]()
         for goGroup in goGroups {
             var items = [OutboundGroupItem]()
@@ -105,25 +70,5 @@ public struct GroupListView: View {
         }
         self.groups = groups
         isLoading = false
-    }
-
-    private class groupsHandler: NSObject, LibboxCommandClientHandlerProtocol {
-        private let groupListView: GroupListView
-
-        init(_ statusView: GroupListView) {
-            groupListView = statusView
-        }
-
-        func connected() {}
-
-        func disconnected(_: String?) {}
-
-        func writeLog(_: String?) {}
-
-        func writeStatus(_: LibboxStatusMessage?) {}
-
-        func writeGroups(_ groupIterator: LibboxOutboundGroupIteratorProtocol?) {
-            groupListView.setGroups(groupIterator!)
-        }
     }
 }

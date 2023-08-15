@@ -73,10 +73,8 @@ public struct ServiceLogView: View {
         if content.isEmpty {
             do {
                 content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
-            } catch {
-            }
+            } catch {}
         }
-
         isLoading = false
     }
 
@@ -85,6 +83,7 @@ public struct ServiceLogView: View {
         try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
         DispatchQueue.main.async {
             dismiss()
+            isLoading = true
         }
     }
 

@@ -30,32 +30,6 @@ public extension EnvironmentValues {
         }
     }
 
-    private struct extensionProfileKey: EnvironmentKey {
-        static let defaultValue: Binding<ExtensionProfile?> = .constant(nil)
-    }
-
-    var extensionProfile: Binding<ExtensionProfile?> {
-        get {
-            self[extensionProfileKey.self]
-        }
-        set {
-            self[extensionProfileKey.self] = newValue
-        }
-    }
-
-    private struct logClientKey: EnvironmentKey {
-        static let defaultValue: Binding<LogClient?> = .constant(nil)
-    }
-
-    var logClient: Binding<LogClient?> {
-        get {
-            self[logClientKey.self]
-        }
-        set {
-            self[logClientKey.self] = newValue
-        }
-    }
-
     private struct importRemoteProfileKey: EnvironmentKey {
         static var defaultValue: Binding<LibboxImportRemoteProfile?> = .constant(nil)
     }
