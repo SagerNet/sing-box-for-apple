@@ -68,12 +68,23 @@ public struct GroupView: View {
                     ForEach(Array(itemGroups.enumerated()), id: \.offset) { items in
                         HStack(spacing: 5) {
                             ForEach(items.element, id: \.tag) { it in
-                                Rectangle()
-                                    .fill(it.delayColor)
+                                ZStack {
+                                    Rectangle()
+                                        .fill(it.delayColor)
+                                    if it.tag == group.selected {
+                                        Rectangle()
+                                            .fill(Color.white)
+                                        #if !os(tvOS)
+                                            .frame(width: 5, height: 5)
+                                        #else
+                                            .frame(width: 15, height: 15)
+                                        #endif
+                                    }
+                                }
                                 #if !os(tvOS)
-                                    .frame(width: 10, height: 10)
+                                .frame(width: 10, height: 10)
                                 #else
-                                    .frame(width: 30, height: 30)
+                                .frame(width: 30, height: 30)
                                 #endif
                             }
                         }.frame(maxWidth: .infinity, alignment: .topLeading)

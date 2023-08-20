@@ -59,23 +59,17 @@ public class CommandClient: ObservableObject {
             clientOptions.command = LibboxCommandLog
         }
         clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
-        let client = LibboxNewCommandClient(FilePath.sharedDirectory.relativePath, clientHandler(self), clientOptions)!
+        let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
         do {
             for i in 0 ..< 10 {
                 try await Task.sleep(nanoseconds: UInt64(Double(100 + (i * 50)) * Double(NSEC_PER_MSEC)))
                 try Task.checkCancellation()
-                let isConnected: Bool
                 do {
                     try client.connect()
-                    isConnected = true
-                } catch {
-                    isConnected = false
-                }
-                try Task.checkCancellation()
-                if isConnected {
                     commandClient = client
                     return
                 }
+                try Task.checkCancellation()
             }
         } catch {
             try? client.disconnect()

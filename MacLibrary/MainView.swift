@@ -25,7 +25,7 @@ public struct MainView: View {
             #if !DEBUG
                 if Variant.useSystemExtension {
                     Task.detached {
-                        checkApplicationPath()
+                        await checkApplicationPath()
                     }
                 }
             #endif

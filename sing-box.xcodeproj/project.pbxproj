@@ -2551,7 +2551,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.4.0-beta.5";
+				MARKETING_VERSION = "1.4.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2590,7 +2590,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.4.0-beta.5";
+				MARKETING_VERSION = "1.4.0-beta.6";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
