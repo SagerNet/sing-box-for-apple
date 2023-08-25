@@ -6,6 +6,7 @@ public class CommandClient: ObservableObject {
         case status
         case groups
         case log
+        case clashMode
     }
 
     private let connectionType: ConnectionType
@@ -17,11 +18,15 @@ public class CommandClient: ObservableObject {
     @Published public var status: LibboxStatusMessage?
     @Published public var groups: [LibboxOutboundGroup]?
     @Published public var logList: [String]
+    @Published public var clashModeList: [String]
+    @Published public var clashMode: String
 
     public init(_ connectionType: ConnectionType, logMaxLines: Int = 300) {
         self.connectionType = connectionType
         self.logMaxLines = logMaxLines
         logList = []
+        clashModeList = []
+        clashMode = ""
         isConnected = false
     }
 
@@ -57,6 +62,8 @@ public class CommandClient: ObservableObject {
             clientOptions.command = LibboxCommandGroup
         case .log:
             clientOptions.command = LibboxCommandLog
+        case .clashMode:
+            clientOptions.command = LibboxCommandClashMode
         }
         clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
         let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
@@ -68,6 +75,7 @@ public class CommandClient: ObservableObject {
                     try client.connect()
                     commandClient = client
                     return
+                } catch {
                 }
                 try Task.checkCancellation()
             }
@@ -125,6 +133,19 @@ public class CommandClient: ObservableObject {
             }
             DispatchQueue.main.sync {
                 self.commandClient.groups = newGroups
+            }
+        }
+
+        func initializeClashMode(_ modeList: LibboxStringIteratorProtocol?, currentMode: String?) {
+            DispatchQueue.main.sync {
+                self.commandClient.clashModeList = modeList!.toArray()
+                self.commandClient.clashMode = currentMode!
+            }
+        }
+
+        func updateClashMode(_ newMode: String?) {
+            DispatchQueue.main.sync {
+                self.commandClient.clashMode = newMode!
             }
         }
     }

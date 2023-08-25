@@ -3,6 +3,7 @@ import Library
 import SwiftUI
 
 public struct ExtensionStatusView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var commandClient = CommandClient(.status)
     @State private var columnCount: Int = 4
     @State private var alert: Alert?
@@ -82,6 +83,13 @@ public struct ExtensionStatusView: View {
         }
         .onDisappear {
             commandClient.disconnect()
+        }
+        .onChangeCompat(of: scenePhase) { newValue in
+            if newValue == .active {
+                commandClient.connect()
+            } else {
+                commandClient.disconnect()
+            }
         }
         .alertBinding($alert)
     }

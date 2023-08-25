@@ -38,8 +38,26 @@ public class ExtensionProfile: ObservableObject {
         }
     }
 
+    private func setOnDemandRules() {
+        let interfaceRule = NEOnDemandRuleConnect()
+        interfaceRule.interfaceTypeMatch = .any
+        let probeRule = NEOnDemandRuleConnect()
+        probeRule.probeURL = URL(string: "http://captive.apple.com")
+        manager.onDemandRules = [interfaceRule, probeRule]
+    }
+
+    public func updateAlwaysOn(_ newState: Bool) async throws {
+        manager.isOnDemandEnabled = newState
+        setOnDemandRules()
+        try await manager.saveToPreferences()
+    }
+
     public func start() async throws {
         manager.isEnabled = true
+        if SharedPreferences.alwaysOn {
+            manager.isOnDemandEnabled = true
+            setOnDemandRules()
+        }
         try await manager.saveToPreferences()
         #if os(macOS)
             if Variant.useSystemExtension {
@@ -53,6 +71,7 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func stop() {
+        manager.isOnDemandEnabled = false
         manager.connection.stopVPNTunnel()
     }
 

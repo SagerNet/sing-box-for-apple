@@ -51,6 +51,7 @@
 		3A4EAD362A4FEB9C005435B3 /* ProfileUpdateTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A55F9592A4D1554003C4EF4 /* ProfileUpdateTask.swift */; };
 		3A4EAD372A4FEC20005435B3 /* ApplicationLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */; };
 		3A4EAD3C2A4FECCE005435B3 /* NEVPNStatus+isConnected.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4EAD3B2A4FECCE005435B3 /* NEVPNStatus+isConnected.swift */; };
+		3A4F68B02A97602C003D66D3 /* ClashModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4F68AF2A97602C003D66D3 /* ClashModeView.swift */; };
 		3A4FB1572A73467F007012B9 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A4FB1582A73467F007012B9 /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3A4FB15C2A73468C007012B9 /* ApplicationLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */; };
@@ -447,6 +448,7 @@
 		3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ApplicationLibrary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A4EAD202A4FEB3C005435B3 /* ApplicationLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationLibrary.swift; sourceTree = "<group>"; };
 		3A4EAD3B2A4FECCE005435B3 /* NEVPNStatus+isConnected.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NEVPNStatus+isConnected.swift"; sourceTree = "<group>"; };
+		3A4F68AF2A97602C003D66D3 /* ClashModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClashModeView.swift; sourceTree = "<group>"; };
 		3A4FB1642A73568E007012B9 /* SFT.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SFT.entitlements; sourceTree = "<group>"; };
 		3A4FB1652A73574B007012B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3A4FB1672A7358C9007012B9 /* ApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
@@ -963,6 +965,7 @@
 				3AE4D0C02A6E4852009FEA9E /* InstallSystemExtensionButton.swift */,
 				3A0C6D3B2A79D46500A4DF2B /* OverviewView.swift */,
 				3A0C6D3D2A79D6A600A4DF2B /* DashboardPage.swift */,
+				3A4F68AF2A97602C003D66D3 /* ClashModeView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -1432,6 +1435,7 @@
 				3A4EAD242A4FEB65005435B3 /* InstallProfileButton.swift in Sources */,
 				3AE4D0C12A6E4852009FEA9E /* InstallSystemExtensionButton.swift in Sources */,
 				3A4EAD232A4FEB5A005435B3 /* EnvironmentValues.swift in Sources */,
+				3A4F68B02A97602C003D66D3 /* ClashModeView.swift in Sources */,
 				3A4EAD282A4FEB65005435B3 /* ActiveDashboardView.swift in Sources */,
 				3A1CF2F02A50E5EE000A8289 /* GroupListView.swift in Sources */,
 				3A4EAD322A4FEB7B005435B3 /* ServiceLogView.swift in Sources */,
@@ -1699,6 +1703,7 @@
 				INFOPLIST_FILE = Extension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Extension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1738,6 +1743,7 @@
 				INFOPLIST_FILE = Extension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Extension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -2017,13 +2023,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,3";
+				TARGETED_DEVICE_FAMILY = 3;
 			};
 			name = Debug;
 		};
@@ -2049,13 +2055,13 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = "appletvos appletvsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,3";
+				TARGETED_DEVICE_FAMILY = 3;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -2475,7 +2481,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.4.0-beta.5";
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2511,7 +2517,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.4.0-beta.5";
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2551,7 +2557,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.4.0-beta.6";
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2590,7 +2596,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.4.0-beta.6";
+				MARKETING_VERSION = 1.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";

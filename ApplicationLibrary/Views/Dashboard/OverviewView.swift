@@ -6,7 +6,6 @@ import SwiftUI
 public struct OverviewView: View {
     public static let NotificationUpdateSelectedProfile = Notification.Name("update-selected-profile")
 
-    @Environment(\.scenePhase) var scenePhase
     @Environment(\.selection) private var selection
     @EnvironmentObject private var profile: ExtensionProfile
     @Binding private var profileList: [Profile]
@@ -24,6 +23,7 @@ public struct OverviewView: View {
         VStack {
             if ApplicationLibrary.inPreview || profile.status.isConnected {
                 ExtensionStatusView()
+                ClashModeView()
             }
             if profileList.isEmpty {
                 Text("Empty profiles")

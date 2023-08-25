@@ -20,6 +20,7 @@ public struct SettingView: View {
         @State private var keepMenuBarInBackground = false
     #endif
 
+    @State private var alwaysOn = false
     @State private var disableMemoryLimit = false
     @State private var version = ""
     @State private var dataSize = ""
@@ -66,6 +67,13 @@ public struct SettingView: View {
                         }
                     #endif
                     Section("Packet Tunnel") {
+                        Toggle("Always On", isOn: $alwaysOn)
+                            .onChangeCompat(of: alwaysOn) { newValue in
+                                Task.detached {
+                                    SharedPreferences.alwaysOn = newValue
+                                    await updateAlwaysOn(newValue)
+                                }
+                            }
                         Toggle("Disable Memory Limit", isOn: $disableMemoryLimit)
                             .onChangeCompat(of: disableMemoryLimit) { newValue in
                                 Task.detached {
@@ -155,6 +163,7 @@ public struct SettingView: View {
             startAtLogin = SMAppService.mainApp.status == .enabled
             keepMenuBarInBackground = SharedPreferences.menuBarExtraInBackground
         #endif
+        alwaysOn = SharedPreferences.alwaysOn
         disableMemoryLimit = SharedPreferences.disableMemoryLimit
         version = LibboxVersion()
         if ApplicationLibrary.inPreview {
@@ -172,6 +181,17 @@ public struct SettingView: View {
     private func clearWorkingDirectory() {
         try? FileManager.default.removeItem(at: FilePath.workingDirectory)
         isLoading = true
+    }
+
+    private func updateAlwaysOn(_ newState: Bool) async {
+        guard let profile = try? await ExtensionProfile.load() else {
+            return
+        }
+        do {
+            try await profile.updateAlwaysOn(newState)
+        } catch {
+            alert = Alert(error)
+        }
     }
 }
 

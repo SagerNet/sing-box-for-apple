@@ -5,6 +5,7 @@ import NetworkExtension
 public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
     private let tunnel: NEPacketTunnelProvider
     private let commandServer: LibboxCommandServer
+    private var networkSettings: NEPacketTunnelNetworkSettings?
 
     init(_ tunnel: NEPacketTunnelProvider, _ logServer: LibboxCommandServer) {
         self.tunnel = tunnel
@@ -88,6 +89,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             settings.proxySettings = proxySettings
         }
 
+        networkSettings = settings
         try runBlocking { [self] in
             try await tunnel.setTunnelNetworkSettings(settings)
         }
@@ -152,5 +154,22 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
     public func underNetworkExtension() -> Bool {
         true
+    }
+
+    public func clearDNSCache() {
+        guard let networkSettings else {
+            return
+        }
+        tunnel.reasserting = true
+        tunnel.setTunnelNetworkSettings(nil) { _ in
+        }
+        tunnel.setTunnelNetworkSettings(networkSettings) { _ in
+        }
+        tunnel.reasserting = false
+    }
+    
+    public func closeTun() throws {
+        tunnel.setTunnelNetworkSettings(nil) { _ in
+        }
     }
 }

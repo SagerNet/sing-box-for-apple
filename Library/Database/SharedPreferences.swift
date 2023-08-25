@@ -11,6 +11,7 @@ public enum SharedPreferences {
     @Preference<Bool>("disable_memory_limit", defaultValue: disableMemoryLimitByDefault) public static var disableMemoryLimit
 
     @Preference<Int>("max_log_lines", defaultValue: 300) public static var maxLogLines
+    @Preference<Bool>("always_on", defaultValue: false) public static var alwaysOn
 
     #if os(macOS)
         @Preference<Bool>("show_menu_bar_extra", defaultValue: true) public static var showMenuBarExtra
