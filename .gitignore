@@ -2,3 +2,5 @@
 /Libbox.xcframework/
 xcuserdata/
 .DS_Store/
+/build/
+/sing-box.xcodeproj/project.pbxproj.back

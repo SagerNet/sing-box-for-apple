@@ -167,9 +167,4 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         }
         tunnel.reasserting = false
     }
-    
-    public func closeTun() throws {
-        tunnel.setTunnelNetworkSettings(nil) { _ in
-        }
-    }
 }

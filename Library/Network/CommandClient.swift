@@ -75,8 +75,7 @@ public class CommandClient: ObservableObject {
                     try client.connect()
                     commandClient = client
                     return
-                } catch {
-                }
+                } catch {}
                 try Task.checkCancellation()
             }
         } catch {

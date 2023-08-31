@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>destination</key>
+	<string>upload</string>
+	<key>method</key>
+	<string>developer-id</string>
+	<key>uploadSymbols</key>
+	<true/>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>io.nekohasekai.sfa.independent</key>
+		<string>XC io nekohasekai sfa independent</string>
+		<key>io.nekohasekai.sfa.system</key>
+		<string>XC io nekohasekai sfa system</string>
+	</dict>
+</dict>
+</plist>
