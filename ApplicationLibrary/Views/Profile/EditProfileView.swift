@@ -70,6 +70,11 @@ public struct EditProfileView: View {
                                 Text("Share")
                             }
                         #endif
+                        ShareButtonCompat($alert) {
+                            Text("Share URL")
+                        } itemURL: {
+                            profile.shareLink
+                        }
                         Button("Update") {
                             isLoading = true
                             Task.detached {
@@ -77,10 +82,10 @@ public struct EditProfileView: View {
                             }
                         }
                         .disabled(isLoading)
-                        Button("Delete", role: .destructive) {
-                            Task.detached {
-                                await deleteProfile()
-                            }
+                    }
+                    Button("Delete", role: .destructive) {
+                        Task.detached {
+                            await deleteProfile()
                         }
                     }
                 }
