@@ -2,14 +2,12 @@ import Foundation
 import Libbox
 import NetworkExtension
 
-public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol {
-    private let tunnel: NEPacketTunnelProvider
-    private let commandServer: LibboxCommandServer
+public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol, LibboxCommandServerHandlerProtocol {
+    private let tunnel: ExtensionProvider
     private var networkSettings: NEPacketTunnelNetworkSettings?
 
-    init(_ tunnel: NEPacketTunnelProvider, _ logServer: LibboxCommandServer) {
+    init(_ tunnel: ExtensionProvider) {
         self.tunnel = tunnel
-        commandServer = logServer
     }
 
     public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?) throws {
@@ -82,10 +80,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         if options.isHTTPProxyEnabled() {
             let proxySettings = NEProxySettings()
             let proxyServer = NEProxyServer(address: options.getHTTPProxyServer(), port: Int(options.getHTTPProxyServerPort()))
-            proxySettings.httpEnabled = true
             proxySettings.httpServer = proxyServer
-            proxySettings.httpsEnabled = true
             proxySettings.httpsServer = proxyServer
+            if SharedPreferences.systemProxyEnabled {
+                proxySettings.httpEnabled = true
+                proxySettings.httpsEnabled = true
+            }
             settings.proxySettings = proxySettings
         }
 
@@ -133,7 +133,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         guard let message else {
             return
         }
-        commandServer.writeMessage(message)
+        tunnel.writeMessage(message)
     }
 
     public func usePlatformDefaultInterfaceMonitor() -> Bool {
@@ -166,5 +166,46 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         tunnel.setTunnelNetworkSettings(networkSettings) { _ in
         }
         tunnel.reasserting = false
+    }
+
+    public func serviceReload() throws {
+        tunnel.reloadService()
+    }
+
+    public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {
+        let status = LibboxSystemProxyStatus()
+        guard let networkSettings else {
+            return status
+        }
+        guard let proxySettings = networkSettings.proxySettings else {
+            return status
+        }
+        if proxySettings.httpServer == nil {
+            return status
+        }
+        status.available = true
+        status.enabled = proxySettings.httpEnabled
+        return status
+    }
+
+    public func setSystemProxyEnabled(_ isEnabled: Bool) throws {
+        guard let networkSettings else {
+            return
+        }
+        guard let proxySettings = networkSettings.proxySettings else {
+            return
+        }
+        if proxySettings.httpServer == nil {
+            return
+        }
+        if proxySettings.httpEnabled == isEnabled {
+            return
+        }
+        proxySettings.httpEnabled = isEnabled
+        proxySettings.httpsEnabled = isEnabled
+        networkSettings.proxySettings = proxySettings
+        try runBlocking {
+            try await self.tunnel.setTunnelNetworkSettings(networkSettings)
+        }
     }
 }

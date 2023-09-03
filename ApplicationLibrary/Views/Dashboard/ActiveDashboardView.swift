@@ -12,6 +12,8 @@ public struct ActiveDashboardView: View {
     @State private var selectedProfileID: Int64!
     @State private var alert: Alert?
     @State private var selection = DashboardPage.overview
+    @State private var systemProxyAvailable = false
+    @State private var systemProxyEnabled = false
 
     public init() {}
     public var body: some View {
@@ -37,16 +39,16 @@ public struct ActiveDashboardView: View {
                         #endif
                         TabView(selection: $selection) {
                             ForEach(DashboardPage.allCases) { page in
-                                page.contentView($profileList, $selectedProfileID)
+                                page.contentView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
                                     .tag(page)
                             }
                         }
                         .tabViewStyle(.page(indexDisplayMode: .always))
                     } else {
-                        OverviewView($profileList, $selectedProfileID)
+                        OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
                     }
                 #elseif os(macOS)
-                    OverviewView($profileList, $selectedProfileID)
+                    OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
                 #endif
             }
             #if os(iOS) || os(tvOS)
@@ -65,6 +67,13 @@ public struct ActiveDashboardView: View {
                 }
             }
             #endif
+            .onChangeCompat(of: profile.status) { newStatus in
+                if newStatus == .connected {
+                    Task.detached {
+                        await doReloadSystemProxy()
+                    }
+                }
+            }
             .alertBinding($alert)
         }
     }
@@ -98,6 +107,16 @@ public struct ActiveDashboardView: View {
                 selectedProfileID = profileList[0].id!
                 SharedPreferences.selectedProfileID = selectedProfileID
             }
+        }
+    }
+
+    private func doReloadSystemProxy() {
+        do {
+            let status = try LibboxNewStandaloneCommandClient()!.getSystemProxyStatus()
+            systemProxyAvailable = status.available
+            systemProxyEnabled = status.enabled
+        } catch {
+            alert = Alert(error)
         }
     }
 }

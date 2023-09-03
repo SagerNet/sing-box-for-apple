@@ -30,11 +30,11 @@ public extension DashboardPage {
         }
     }
 
-    func contentView(_ profileList: Binding<[Profile]>, _ selectedProfileID: Binding<Int64?>) -> some View {
+    func contentView(_ profileList: Binding<[Profile]>, _ selectedProfileID: Binding<Int64?>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>) -> some View {
         viewBuilder {
             switch self {
             case .overview:
-                OverviewView(profileList, selectedProfileID)
+                OverviewView(profileList, selectedProfileID, systemProxyAvailable, systemProxyEnabled)
             case .groups:
                 GroupListView()
             }

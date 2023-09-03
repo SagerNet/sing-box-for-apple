@@ -8,6 +8,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     public var username: String? = nil
     private var commandServer: LibboxCommandServer!
     private var boxService: LibboxBoxService!
+    private var systemProxyAvailable = false
+    private var systemProxyEnabled = false
+    private var platformInterface: ExtensionPlatformInterface!
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
         NSLog("Here I am")
@@ -44,7 +47,10 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
         LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit)
 
-        commandServer = LibboxNewCommandServer(serverInterface(self), Int32(SharedPreferences.maxLogLines))
+        if platformInterface == nil {
+            platformInterface = ExtensionPlatformInterface(self)
+        }
+        commandServer = LibboxNewCommandServer(platformInterface, Int32(SharedPreferences.maxLogLines))
         do {
             try commandServer.start()
         } catch {
@@ -56,7 +62,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         startService()
     }
 
-    private func writeMessage(_ message: String) {
+    func writeMessage(_ message: String) {
         if let commandServer {
             commandServer.writeMessage(message)
         } else {
@@ -64,7 +70,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
     }
 
-    private func writeError(_ message: String) {
+    func writeError(_ message: String) {
         writeMessage(message)
         try? message.write(to: ExtensionProvider.errorFile, atomically: true, encoding: .utf8)
     }
@@ -97,7 +103,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             return
         }
         var error: NSError?
-        let service = LibboxNewService(configContent, ExtensionPlatformInterface(self, commandServer), &error)
+        let service = LibboxNewService(configContent, platformInterface, &error)
         if let error {
             writeError("(packet-tunnel) error: create service: \(error.localizedDescription)")
             return
@@ -132,7 +138,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
     }
 
-    private func reloadService() {
+    func reloadService() {
         writeMessage("(packet-tunnel) reloading service")
         reasserting = true
         defer {
@@ -170,24 +176,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     override open func wake() {
         if let boxService {
             boxService.wake()
-        }
-    }
-
-    private class serverInterface: NSObject, LibboxCommandServerHandlerProtocol {
-        unowned let tunnel: ExtensionProvider
-
-        init(_ tunnel: ExtensionProvider) {
-            self.tunnel = tunnel
-            super.init()
-        }
-
-        func serviceReload() throws {
-            tunnel.reloadService()
-        }
-
-        func serviceStop() throws {
-            tunnel.stopService()
-            tunnel.writeMessage("(packet-tunnel) debug: service stopped")
         }
     }
 }

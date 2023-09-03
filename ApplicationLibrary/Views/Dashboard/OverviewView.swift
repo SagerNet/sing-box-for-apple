@@ -10,13 +10,17 @@ public struct OverviewView: View {
     @EnvironmentObject private var profile: ExtensionProfile
     @Binding private var profileList: [Profile]
     @Binding private var selectedProfileID: Int64!
+    @Binding private var systemProxyAvailable: Bool
+    @Binding private var systemProxyEnabled: Bool
     @State private var alert: Alert?
     @State private var reasserting = false
     @State private var observer: Any?
 
-    public init(_ profileList: Binding<[Profile]>, _ selectedProfileID: Binding<Int64?>) {
+    public init(_ profileList: Binding<[Profile]>, _ selectedProfileID: Binding<Int64?>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>) {
         _profileList = profileList
         _selectedProfileID = selectedProfileID
+        _systemProxyAvailable = systemProxyAvailable
+        _systemProxyEnabled = systemProxyEnabled
     }
 
     public var body: some View {
@@ -31,6 +35,14 @@ public struct OverviewView: View {
                 FormView {
                     #if os(iOS) || os(tvOS)
                         StartStopButton()
+                        if profile.status.isConnectedStrict, systemProxyAvailable {
+                            Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
+                                .onChangeCompat(of: systemProxyEnabled) { newValue in
+                                    Task.detached {
+                                        await setSystemProxyEnabled(newValue)
+                                    }
+                                }
+                        }
                         Section("Profile") {
                             Picker(selection: $selectedProfileID) {
                                 ForEach(profileList, id: \.id) { profile in
@@ -40,6 +52,14 @@ public struct OverviewView: View {
                                 .pickerStyle(.inline)
                         }
                     #elseif os(macOS)
+                        if profile.status.isConnectedStrict, systemProxyAvailable {
+                            Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
+                                .onChangeCompat(of: systemProxyEnabled) { newValue in
+                                    Task.detached {
+                                        await setSystemProxyEnabled(newValue)
+                                    }
+                                }
+                        }
                         Section("Profile") {
                             ForEach(profileList, id: \.id) { profile in
                                 Picker(profile.name, selection: $selectedProfileID) {
@@ -88,5 +108,14 @@ public struct OverviewView: View {
             }
         }
         reasserting = false
+    }
+
+    private func setSystemProxyEnabled(_ isEnabled: Bool) {
+        do {
+            try LibboxNewStandaloneCommandClient()!.setSystemProxyEnabled(isEnabled)
+            SharedPreferences.systemProxyEnabled = isEnabled
+        } catch {
+            alert = Alert(error)
+        }
     }
 }

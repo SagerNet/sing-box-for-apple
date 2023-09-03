@@ -22,4 +22,6 @@ public enum SharedPreferences {
     #if os(iOS)
         @Preference<Bool>("network_permission_requested", defaultValue: false) public static var networkPermissionRequested
     #endif
+
+    @Preference<Bool>("system_proxy_enabled", defaultValue: true) public static var systemProxyEnabled
 }
