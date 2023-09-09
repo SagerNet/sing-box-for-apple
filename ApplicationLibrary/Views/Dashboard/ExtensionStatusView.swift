@@ -12,6 +12,16 @@ public struct ExtensionStatusView: View {
 
     public init() {}
     public var body: some View {
+        if columnCount == 1 {
+            ScrollView {
+                body0
+            }
+        } else {
+            body0
+        }
+    }
+    
+    public var body0: some View {
         viewBuilder {
             VStack {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
@@ -96,7 +106,7 @@ public struct ExtensionStatusView: View {
 
     private func updateColumnCount(_ width: Double) {
         let v = Int(Int(width) / 155)
-        let new = v < 1 ? 1 : (v > 4 ? 4 : (v % 2 == 0 ? v : v - 1))
+        let new = v <= 1 ? 1 : (v > 4 ? 4 : (v % 2 == 0 ? v : v - 1))
 
         if new != columnCount {
             columnCount = new
