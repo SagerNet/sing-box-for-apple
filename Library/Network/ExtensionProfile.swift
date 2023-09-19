@@ -58,6 +58,9 @@ public class ExtensionProfile: ObservableObject {
             manager.isOnDemandEnabled = true
             setOnDemandRules()
         }
+        if let protocolConfiguration = manager.protocolConfiguration {
+            protocolConfiguration.includeAllNetworks = SharedPreferences.includeAllNetworks
+        }
         try await manager.saveToPreferences()
         #if os(macOS)
             if Variant.useSystemExtension {

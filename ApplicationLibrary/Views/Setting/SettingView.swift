@@ -22,6 +22,7 @@ public struct SettingView: View {
 
     @State private var alwaysOn = false
     @State private var disableMemoryLimit = false
+    @State private var includeAllNetworks = false
     @State private var version = ""
     @State private var dataSize = ""
     @State private var taiwanFlagAvailable = false
@@ -78,6 +79,12 @@ public struct SettingView: View {
                             .onChangeCompat(of: disableMemoryLimit) { newValue in
                                 Task.detached {
                                     SharedPreferences.disableMemoryLimit = newValue
+                                }
+                            }
+                        Toggle("Include All Networks", isOn: $includeAllNetworks)
+                            .onChangeCompat(of: includeAllNetworks) { newValue in
+                                Task.detached {
+                                    SharedPreferences.includeAllNetworks = newValue
                                 }
                             }
                         #if os(macOS)
@@ -165,6 +172,7 @@ public struct SettingView: View {
         #endif
         alwaysOn = SharedPreferences.alwaysOn
         disableMemoryLimit = SharedPreferences.disableMemoryLimit
+        includeAllNetworks = SharedPreferences.includeAllNetworks
         version = LibboxVersion()
         if ApplicationLibrary.inPreview {
             dataSize = LibboxFormatBytes(1024 * 1024 * 10)

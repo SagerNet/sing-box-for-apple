@@ -9,6 +9,7 @@ public enum SharedPreferences {
         private static let disableMemoryLimitByDefault = false
     #endif
     @Preference<Bool>("disable_memory_limit", defaultValue: disableMemoryLimitByDefault) public static var disableMemoryLimit
+    @Preference<Bool>("include_all_networks", defaultValue: false) public static var includeAllNetworks
 
     @Preference<Int>("max_log_lines", defaultValue: 300) public static var maxLogLines
     @Preference<Bool>("always_on", defaultValue: false) public static var alwaysOn

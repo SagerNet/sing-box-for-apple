@@ -20,7 +20,7 @@ public struct ExtensionStatusView: View {
             body0
         }
     }
-    
+
     public var body0: some View {
         viewBuilder {
             VStack {
