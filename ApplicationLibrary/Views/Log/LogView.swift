@@ -10,7 +10,34 @@ public struct LogView: View {
     public init() {}
 
     public var body: some View {
-        if environments.logClient.logList.isEmpty {
+        if ApplicationLibrary.inPreview {
+            let logList = [
+                "(packet-tunnel) log server started",
+                "INFO[0000] router: loaded geoip database: 250 codes",
+                "INFO[0000] router: loaded geosite database: 1400 codes",
+                "INFO[0000] router: updated default interface en0, index 11",
+                "inbound/tun[0]: started at utun3",
+                "sing-box started (1.666s)",
+            ]
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(logList.enumerated()), id: \.offset) { it in
+                        Text(it.element)
+                            .font(logFont)
+                        #if os(tvOS)
+                            .focusable()
+                        #endif
+                        Spacer(minLength: 8)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding()
+            }
+            #if os(tvOS)
+            .focusEffectDisabled()
+            .focusSection()
+            #endif
+        } else if environments.logClient.logList.isEmpty {
             VStack {
                 if environments.logClient.isConnected {
                     Text("Empty logs")
@@ -19,7 +46,7 @@ public struct LogView: View {
                         environments.connectLog()
                     }
                 }
-            }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
         } else {
             ScrollViewReader { reader in
                 ScrollView {

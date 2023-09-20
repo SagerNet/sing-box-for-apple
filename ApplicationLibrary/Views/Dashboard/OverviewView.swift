@@ -35,7 +35,7 @@ public struct OverviewView: View {
                 FormView {
                     #if os(iOS) || os(tvOS)
                         StartStopButton()
-                        if profile.status.isConnectedStrict, systemProxyAvailable {
+                        if ApplicationLibrary.inPreview || profile.status.isConnectedStrict, systemProxyAvailable {
                             Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
                                 .onChangeCompat(of: systemProxyEnabled) { newValue in
                                     Task.detached {
@@ -52,7 +52,7 @@ public struct OverviewView: View {
                                 .pickerStyle(.inline)
                         }
                     #elseif os(macOS)
-                        if profile.status.isConnectedStrict, systemProxyAvailable {
+                        if ApplicationLibrary.inPreview || profile.status.isConnectedStrict, systemProxyAvailable {
                             Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
                                 .onChangeCompat(of: systemProxyEnabled) { newValue in
                                     Task.detached {
@@ -72,7 +72,6 @@ public struct OverviewView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .alertBinding($alert)
         .onChangeCompat(of: selectedProfileID) {
             reasserting = true

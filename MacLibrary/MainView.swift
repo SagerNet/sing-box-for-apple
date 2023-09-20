@@ -14,6 +14,14 @@ public struct MainView: View {
 
     public init() {}
     public var body: some View {
+        if ApplicationLibrary.inPreview {
+            body1.frame(width: 1280, height: 750, alignment: .topLeading)
+        } else {
+            body1
+        }
+    }
+
+    private var body1: some View {
         NavigationSplitView {
             SidebarView()
         } detail: {

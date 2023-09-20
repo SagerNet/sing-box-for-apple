@@ -24,58 +24,66 @@ public struct ActiveDashboardView: View {
                 }
             }
         } else {
-            VStack {
-                #if os(iOS) || os(tvOS)
-                    if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
-                        Picker("Page", selection: $selection) {
-                            ForEach(DashboardPage.allCases) { page in
-                                page.label
+            if ApplicationLibrary.inPreview {
+                body1
+            } else {
+                body1
+                    .onChangeCompat(of: profile.status) { newStatus in
+                        if newStatus == .connected {
+                            Task.detached {
+                                await doReloadSystemProxy()
                             }
                         }
-                        .pickerStyle(.segmented)
-                        #if os(iOS)
-                            .padding([.leading, .trailing])
-                            .navigationBarTitleDisplayMode(.inline)
-                        #endif
-                        TabView(selection: $selection) {
-                            ForEach(DashboardPage.allCases) { page in
-                                page.contentView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
-                                    .tag(page)
-                            }
-                        }
-                        .tabViewStyle(.page(indexDisplayMode: .always))
-                    } else {
-                        OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
                     }
-                #elseif os(macOS)
-                    OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
-                #endif
             }
-            #if os(iOS) || os(tvOS)
-            .onChangeCompat(of: scenePhase) { newValue in
-                if newValue == .active {
-                    Task.detached {
-                        await doReload()
-                    }
-                }
-            }
-            .onChangeCompat(of: parentSelection.wrappedValue) { newValue in
-                if newValue == .dashboard {
-                    Task.detached {
-                        await doReload()
-                    }
-                }
-            }
-            #endif
-            .onChangeCompat(of: profile.status) { newStatus in
-                if newStatus == .connected {
-                    Task.detached {
-                        await doReloadSystemProxy()
-                    }
-                }
-            }
-            .alertBinding($alert)
         }
+    }
+
+    private var body1: some View {
+        VStack {
+            #if os(iOS) || os(tvOS)
+                if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
+                    Picker("Page", selection: $selection) {
+                        ForEach(DashboardPage.allCases) { page in
+                            page.label
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    #if os(iOS)
+                        .padding([.leading, .trailing])
+                        .navigationBarTitleDisplayMode(.inline)
+                    #endif
+                    TabView(selection: $selection) {
+                        ForEach(DashboardPage.allCases) { page in
+                            page.contentView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
+                                .tag(page)
+                        }
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .always))
+                } else {
+                    OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
+                }
+            #elseif os(macOS)
+                OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
+            #endif
+        }
+        #if os(iOS) || os(tvOS)
+        .onChangeCompat(of: scenePhase) { newValue in
+            if newValue == .active {
+                Task.detached {
+                    await doReload()
+                }
+            }
+        }
+        .onChangeCompat(of: parentSelection.wrappedValue) { newValue in
+            if newValue == .dashboard {
+                Task.detached {
+                    await doReload()
+                }
+            }
+        }
+        #endif
+        .alertBinding($alert)
     }
 
     private func doReload() {
@@ -87,6 +95,8 @@ public struct ActiveDashboardView: View {
                 Profile(id: 0, name: "profile local", type: .local, path: ""),
                 Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0)),
             ]
+            systemProxyAvailable = true
+            systemProxyEnabled = true
             selectedProfileID = 0
         } else {
             do {

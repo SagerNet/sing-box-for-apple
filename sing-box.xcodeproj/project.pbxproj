@@ -2293,7 +2293,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 54;
+				CURRENT_PROJECT_VERSION = 55;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2331,7 +2331,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 54;
+				CURRENT_PROJECT_VERSION = 55;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2489,7 +2489,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.0-beta.11;
+				MARKETING_VERSION = 1.5.0-rc.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2525,7 +2525,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.0-beta.11;
+				MARKETING_VERSION = 1.5.0-rc.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2565,7 +2565,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.0-beta.11;
+				MARKETING_VERSION = 1.5.0-rc.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2604,7 +2604,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.0-beta.11;
+				MARKETING_VERSION = 1.5.0-rc.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";

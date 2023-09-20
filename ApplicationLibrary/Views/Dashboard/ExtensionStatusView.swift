@@ -27,7 +27,7 @@ public struct ExtensionStatusView: View {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
                     if ApplicationLibrary.inPreview {
                         StatusItem("Status") {
-                            StatusLine("Memory", "6.4 MiB")
+                            StatusLine("Memory", "6.4 MB")
                             StatusLine("Goroutines", "89")
                         }
                         StatusItem("Connections") {
@@ -36,15 +36,15 @@ public struct ExtensionStatusView: View {
                         }
                         StatusItem("Traffic") {
                             StatusLine("Uplink", "38 B/s")
-                            StatusLine("Downlink", "249 MiB/s")
+                            StatusLine("Downlink", "249 MB/s")
                         }
                         StatusItem("TrafficTotal") {
-                            StatusLine("Uplink", "52 MiB")
-                            StatusLine("Downlink", "5.6 GiB")
+                            StatusLine("Uplink", "52 MB")
+                            StatusLine("Downlink", "5.6 GB")
                         }
                     } else if let message = commandClient.status {
                         StatusItem("Status") {
-                            StatusLine("Memory", LibboxFormatBytes(message.memory))
+                            StatusLine("Memory", LibboxFormatMemoryBytes(message.memory))
                             StatusLine("Goroutines", "\(message.goroutines)")
                         }
                         StatusItem("Connections") {

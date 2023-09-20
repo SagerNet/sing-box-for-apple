@@ -46,7 +46,7 @@ public extension FilePath {
 
     #endif
 
-    static var iCloudDirectory: URL! = FileManager.default.url(forUbiquityContainerIdentifier: nil)!.appendingPathComponent("Documents", isDirectory: true)
+    static var iCloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents", isDirectory: true) ?? URL(string: "stub")!
 }
 
 public extension URL {

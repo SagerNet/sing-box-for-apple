@@ -13,6 +13,14 @@ struct MainView: View {
     @State private var alert: Alert?
 
     var body: some View {
+        if ApplicationLibrary.inPreview {
+            body1.preferredColorScheme(.dark)
+        } else {
+            body1
+        }
+    }
+
+    var body1: some View {
         TabView(selection: $selection) {
             ForEach(NavigationPage.allCases, id: \.self) { page in
                 NavigationStackCompat {

@@ -22,7 +22,11 @@ public struct SettingView: View {
 
     @State private var alwaysOn = false
     @State private var disableMemoryLimit = false
-    @State private var includeAllNetworks = false
+
+    #if !os(tvOS)
+        @State private var includeAllNetworks = false
+    #endif
+
     @State private var version = ""
     @State private var dataSize = ""
     @State private var taiwanFlagAvailable = false
@@ -81,12 +85,14 @@ public struct SettingView: View {
                                     SharedPreferences.disableMemoryLimit = newValue
                                 }
                             }
-                        Toggle("Include All Networks", isOn: $includeAllNetworks)
-                            .onChangeCompat(of: includeAllNetworks) { newValue in
-                                Task.detached {
-                                    SharedPreferences.includeAllNetworks = newValue
+                        #if !os(tvOS)
+                            Toggle("Include All Networks", isOn: $includeAllNetworks)
+                                .onChangeCompat(of: includeAllNetworks) { newValue in
+                                    Task.detached {
+                                        SharedPreferences.includeAllNetworks = newValue
+                                    }
                                 }
-                            }
+                        #endif
                         #if os(macOS)
                             if Variant.useSystemExtension {
                                 HStack {
@@ -172,13 +178,16 @@ public struct SettingView: View {
         #endif
         alwaysOn = SharedPreferences.alwaysOn
         disableMemoryLimit = SharedPreferences.disableMemoryLimit
-        includeAllNetworks = SharedPreferences.includeAllNetworks
-        version = LibboxVersion()
+        #if !os(tvOS)
+            includeAllNetworks = SharedPreferences.includeAllNetworks
+        #endif
         if ApplicationLibrary.inPreview {
-            dataSize = LibboxFormatBytes(1024 * 1024 * 10)
+            version = "<redacted>"
+            dataSize = LibboxFormatBytes(1000 * 1000 * 10)
             taiwanFlagAvailable = true
             isLoading = false
         } else {
+            version = LibboxVersion()
             dataSize = "Loading..."
             taiwanFlagAvailable = !DeviceCensorship.isChinaDevice()
             isLoading = false
