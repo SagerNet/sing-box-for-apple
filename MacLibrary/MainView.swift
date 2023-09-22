@@ -3,6 +3,7 @@ import Libbox
 import Library
 import SwiftUI
 
+@MainActor
 public struct MainView: View {
     @Environment(\.controlActiveState) private var controlActiveState
     @EnvironmentObject private var environments: ExtensionEnvironments
@@ -32,8 +33,8 @@ public struct MainView: View {
             environments.postReload()
             #if !DEBUG
                 if Variant.useSystemExtension {
-                    Task.detached {
-                        await checkApplicationPath()
+                    Task {
+                        checkApplicationPath()
                     }
                 }
             #endif
@@ -73,20 +74,30 @@ public struct MainView: View {
                 selection = .profiles
             }
         } else if url.pathExtension == "bpf" {
-            do {
-                _ = url.startAccessingSecurityScopedResource()
-                importProfile = try .from(Data(contentsOf: url))
-                url.stopAccessingSecurityScopedResource()
-            } catch {
-                alert = Alert(error)
-                return
-            }
-            if selection != .profiles {
-                selection = .profiles
+            Task {
+                await importURLProfile(url)
             }
         } else {
             alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
         }
+    }
+
+    private func importURLProfile(_ url: URL) async {
+        do {
+            _ = url.startAccessingSecurityScopedResource()
+            importProfile = try await .from(readURL(url))
+            url.stopAccessingSecurityScopedResource()
+        } catch {
+            alert = Alert(error)
+            return
+        }
+        if selection != .profiles {
+            selection = .profiles
+        }
+    }
+
+    private nonisolated func readURL(_ url: URL) async throws -> Data {
+        try Data(contentsOf: url)
     }
 
     private func checkApplicationPath() {

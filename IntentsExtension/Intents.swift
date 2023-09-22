@@ -20,12 +20,13 @@ struct StartServiceIntent: AppIntent {
         guard let extensionProfile = try await (ExtensionProfile.load()) else {
             throw NSError(domain: "NetworkExtension not installed", code: 0)
         }
-        let profileList = try ProfileManager.list()
+        let profileList = try await ProfileManager.list()
         let specifiedProfile = profileList.first { $0.name == profile }
         var profileChanged = false
         if let specifiedProfile {
-            if SharedPreferences.selectedProfileID != specifiedProfile.id! {
-                SharedPreferences.selectedProfileID = specifiedProfile.id!
+            let specifiedProfileID = specifiedProfile.mustID
+            if await SharedPreferences.selectedProfileID.get() != specifiedProfileID {
+                await SharedPreferences.selectedProfileID.set(specifiedProfileID)
                 profileChanged = true
             }
         } else if profile != "default" {
@@ -147,7 +148,7 @@ struct GetCurrentProfile: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        guard let profile = try ProfileManager.get(SharedPreferences.selectedProfileID) else {
+        guard let profile = try await ProfileManager.get(SharedPreferences.selectedProfileID.get()) else {
             throw NSError(domain: "No profile selected", code: 0)
         }
         return .result(value: profile.name)
@@ -169,20 +170,20 @@ struct UpdateProfileIntent: AppIntent {
 
     init() {}
     func perform() async throws -> some IntentResult {
-        guard let profile = try ProfileManager.get(by: profile) else {
+        guard let profile = try await ProfileManager.get(by: profile) else {
             throw NSError(domain: "Specified profile not found: \(profile)", code: 0)
         }
         if profile.type != .remote {
             throw NSError(domain: "Specified profile is not a remote profile", code: 0)
         }
-        try profile.updateRemoteProfile()
+        try await profile.updateRemoteProfile()
         return .result()
     }
 }
 
 class ProfileProvider: DynamicOptionsProvider {
     func results() async throws -> [String] {
-        var profileNames = try ProfileManager.list().map(\.name)
+        var profileNames = try await ProfileManager.list().map(\.name)
         if !profileNames.contains("default") {
             profileNames.insert("default", at: 0)
         }
@@ -192,6 +193,6 @@ class ProfileProvider: DynamicOptionsProvider {
 
 class RemoteProfileProvider: DynamicOptionsProvider {
     func results() async throws -> [String] {
-        try ProfileManager.listRemote().map(\.name)
+        try await ProfileManager.listRemote().map(\.name)
     }
 }

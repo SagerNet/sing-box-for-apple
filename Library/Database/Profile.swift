@@ -14,9 +14,10 @@ public class Profile: Record, Identifiable, ObservableObject {
     public var path: String
     @Published public var remoteURL: String?
     @Published public var autoUpdate: Bool
+    @Published public var autoUpdateInterval: Int32
     public var lastUpdated: Date?
 
-    public init(id: Int64? = nil, name: String, order: UInt32 = 0, type: ProfileType, path: String, remoteURL: String? = nil, autoUpdate: Bool = false, lastUpdated: Date? = nil) {
+    public init(id: Int64? = nil, name: String, order: UInt32 = 0, type: ProfileType, path: String, remoteURL: String? = nil, autoUpdate: Bool = false, autoUpdateInterval: Int32 = 0, lastUpdated: Date? = nil) {
         self.id = id
         self.name = name
         self.order = order
@@ -24,6 +25,7 @@ public class Profile: Record, Identifiable, ObservableObject {
         self.path = path
         self.remoteURL = remoteURL
         self.autoUpdate = autoUpdate
+        self.autoUpdateInterval = autoUpdateInterval
         self.lastUpdated = lastUpdated
         super.init()
     }
@@ -33,7 +35,7 @@ public class Profile: Record, Identifiable, ObservableObject {
     }
 
     enum Columns: String, ColumnExpression {
-        case id, name, order, type, path, remoteURL, autoUpdate, lastUpdated, userAgent
+        case id, name, order, type, path, remoteURL, autoUpdate, autoUpdateInterval, lastUpdated, userAgent
     }
 
     required init(row: Row) throws {
@@ -44,6 +46,7 @@ public class Profile: Record, Identifiable, ObservableObject {
         path = row[Columns.path] ?? ""
         remoteURL = row[Columns.remoteURL] ?? ""
         autoUpdate = row[Columns.autoUpdate] ?? false
+        autoUpdateInterval = row[Columns.autoUpdateInterval] ?? 0
         lastUpdated = row[Columns.lastUpdated] ?? Date()
         try super.init(row: row)
     }
@@ -56,6 +59,7 @@ public class Profile: Record, Identifiable, ObservableObject {
         container[Columns.path] = path
         container[Columns.remoteURL] = remoteURL
         container[Columns.autoUpdate] = autoUpdate
+        container[Columns.autoUpdateInterval] = autoUpdateInterval
         container[Columns.lastUpdated] = lastUpdated
     }
 

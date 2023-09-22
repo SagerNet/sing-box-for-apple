@@ -7,6 +7,7 @@ import SwiftUI
     import AppKit
 #endif
 
+@MainActor
 public struct ProfileShareButton<Label>: View where Label: View {
     private let alert: Binding<Alert?>
     private let profile: Profile
@@ -62,8 +63,8 @@ public struct ShareButtonCompat<Label>: View where Label: View {
 
     private func shareItem() {
         #if os(iOS)
-            Task.detached {
-                shareItem0()
+            Task {
+                await shareItem0()
             }
         #elseif os(macOS)
             sharePresented = true
@@ -71,14 +72,14 @@ public struct ShareButtonCompat<Label>: View where Label: View {
     }
 
     #if os(iOS)
-        private func shareItem0() {
+        private nonisolated func shareItem0() async {
             do {
                 let shareItem = try itemURL()
-                DispatchQueue.main.async {
+                await MainActor.run {
                     shareItem1(shareItem)
                 }
             } catch {
-                DispatchQueue.main.async {
+                await MainActor.run {
                     alert = Alert(error)
                 }
             }

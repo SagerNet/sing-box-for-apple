@@ -3,6 +3,7 @@
     import Library
     import SwiftUI
 
+    @MainActor
     public struct EditProfileContentView: View {
         #if os(macOS)
             public static let windowID = "edit-profile-content"
@@ -33,8 +34,8 @@
             viewBuilder {
                 if isLoading {
                     ProgressView().onAppear {
-                        Task.detached {
-                            loadContent()
+                        Task {
+                            await loadContent()
                         }
                     }
                 } else {
@@ -64,13 +65,13 @@
                 .toolbar {
                     ToolbarItemGroup(placement: .navigation) {
                         if !readOnly {
-                            Button(action: {
-                                Task.detached {
-                                    saveContent()
+                            Button {
+                                Task {
+                                    await saveContent()
                                 }
-                            }, label: {
+                            } label: {
                                 Image("save", label: Text("Save"))
-                            })
+                            }
                             .disabled(!isChanged)
                         }
                     }
@@ -80,8 +81,8 @@
                     ToolbarItem(placement: .navigationBarTrailing) {
                         if !readOnly {
                             Button("Save") {
-                                Task.detached {
-                                    saveContent()
+                                Task {
+                                    await saveContent()
                                 }
                             }.disabled(!isChanged)
                         }
@@ -99,37 +100,44 @@
             }
         }
 
-        private func loadContent() {
+        private func loadContent() async {
             do {
-                try loadContent0()
+                try await loadContentBackground()
             } catch {
-                alert = Alert(error, dismiss.callAsFunction)
+                alert = Alert(error)
             }
-        }
-
-        private func loadContent0() throws {
-            guard let profileID else {
-                throw NSError(domain: "Context destroyed", code: 0)
-            }
-            guard let profile = try ProfileManager.get(profileID) else {
-                throw NSError(domain: "Profile missing", code: 0)
-            }
-            profileContent = try profile.read()
-            self.profile = profile
             isLoading = false
         }
 
-        private func saveContent() {
+        private nonisolated func loadContentBackground() async throws {
+            guard let profileID else {
+                throw NSError(domain: "Context destroyed", code: 0)
+            }
+            guard let profile = try await ProfileManager.get(profileID) else {
+                throw NSError(domain: "Profile missing", code: 0)
+            }
+            let profileContent = try profile.read()
+            await MainActor.run {
+                self.profile = profile
+                self.profileContent = profileContent
+            }
+        }
+
+        private func saveContent() async {
             guard let profile else {
                 return
             }
             do {
-                try profile.write(profileContent)
+                try await saveContentBackground(profile)
             } catch {
                 alert = Alert(error)
                 return
             }
             isChanged = false
+        }
+
+        private nonisolated func saveContentBackground(_ profile: Profile) async throws {
+            try await profile.write(profileContent)
         }
     }
 

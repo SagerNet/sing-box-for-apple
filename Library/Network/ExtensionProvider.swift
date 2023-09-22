@@ -13,8 +13,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private var platformInterface: ExtensionPlatformInterface!
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
-        NSLog("Here I am")
-
         try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
 
         do {
@@ -45,12 +43,12 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             writeError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
         }
 
-        LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit)
+        try await LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit.get())
 
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
         }
-        commandServer = LibboxNewCommandServer(platformInterface, Int32(SharedPreferences.maxLogLines))
+        commandServer = try await LibboxNewCommandServer(platformInterface, Int32(SharedPreferences.maxLogLines.get()))
         do {
             try commandServer.start()
         } catch {
@@ -58,8 +56,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             return
         }
         writeMessage("(packet-tunnel) log server started")
-
-        startService()
+        await startService()
     }
 
     func writeMessage(_ message: String) {
@@ -83,10 +80,10 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         cancelTunnelWithError(NSError(domain: message, code: 0))
     }
 
-    private func startService() {
+    private func startService() async {
         let profile: Profile?
         do {
-            profile = try ProfileManager.get(Int64(SharedPreferences.selectedProfileID))
+            profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get()))
         } catch {
             writeFatalError("(packet-tunnel) error: missing default profile: \(error.localizedDescription)")
             return
@@ -97,7 +94,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         let configContent: String
         do {
-            configContent = try profile.read()
+            configContent = try await profile.read()
         } catch {
             writeFatalError("(packet-tunnel) error: read config file \(profile.path): \(error.localizedDescription)")
             return
@@ -120,9 +117,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         boxService = service
         commandServer.setService(service)
         #if os(macOS)
-            Task.detached {
-                SharedPreferences.startedByUser = true
-            }
+            await SharedPreferences.startedByUser.set(true)
         #endif
     }
 
@@ -138,14 +133,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
     }
 
-    func reloadService() {
+    func reloadService() async {
         writeMessage("(packet-tunnel) reloading service")
         reasserting = true
         defer {
             reasserting = false
         }
         stopService()
-        startService()
+        await startService()
     }
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {
@@ -158,7 +153,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         #if os(macOS)
             if reason == .userInitiated {
-                SharedPreferences.startedByUser = reason == .userInitiated
+                await SharedPreferences.startedByUser.set(reason == .userInitiated)
             }
         #endif
     }

@@ -2,6 +2,7 @@ import Library
 import SwiftUI
 
 #if os(macOS)
+    @MainActor
     public struct EditProfileWindowView: View {
         public static let windowID = "edit-profile"
 
@@ -21,7 +22,7 @@ import SwiftUI
             viewBuilder {
                 if isLoading {
                     ProgressView().onAppear {
-                        Task.detached {
+                        Task {
                             await doReload()
                         }
                     }
@@ -41,7 +42,7 @@ import SwiftUI
                 return
             }
             do {
-                profile = try ProfileManager.get(profileID)
+                profile = try await ProfileManager.get(profileID)
             } catch {
                 alert = Alert(error)
                 return
@@ -53,4 +54,5 @@ import SwiftUI
             isLoading = false
         }
     }
+
 #endif

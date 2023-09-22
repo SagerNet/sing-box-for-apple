@@ -3,7 +3,7 @@ import Foundation
 import GRDB
 
 extension SharedPreferences {
-    @propertyWrapper public class Preference<T: Codable> {
+    public class Preference<T: Codable> {
         private let name: String
         private let defaultValue: T
 
@@ -12,53 +12,32 @@ extension SharedPreferences {
             self.defaultValue = defaultValue
         }
 
-        public var wrappedValue: T {
-            get {
-                do {
-                    return try SharedPreferences.read(name) ?? defaultValue
-                } catch {
-                    NSLog("read preferences error: \(error)")
-                    return defaultValue
-                }
+        public nonisolated func get() async -> T {
+            do {
+                return try await SharedPreferences.read(name) ?? defaultValue
+            } catch {
+                NSLog("read preferences error: \(error)")
+                return defaultValue
             }
-            set {
-                do {
-                    try SharedPreferences.write(name, newValue)
-                } catch {
-                    NSLog("write preferences error: \(error)")
-                }
+        }
+
+        public func getBlocking() -> T {
+            runBlocking { [self] in
+                await get()
+            }
+        }
+
+        public nonisolated func set(_ newValue: T) async {
+            do {
+                try await SharedPreferences.write(name, newValue)
+            } catch {
+                NSLog("write preferences error: \(error)")
             }
         }
     }
 
-    @propertyWrapper public class NullablePreference<T: Codable> {
-        private let name: String
-
-        init(_ name: String) {
-            self.name = name
-        }
-
-        public var wrappedValue: T? {
-            get {
-                do {
-                    return try SharedPreferences.read(name)
-                } catch {
-                    NSLog("read preferences error: \(error)")
-                    return nil
-                }
-            }
-            set {
-                do {
-                    try SharedPreferences.write(name, newValue)
-                } catch {
-                    NSLog("write preferences error: \(error)")
-                }
-            }
-        }
-    }
-
-    private static func read<T: Codable>(_ name: String) throws -> T? {
-        guard let item = try (Database.sharedWriter().read { db in
+    private nonisolated static func read<T: Codable>(_ name: String) async throws -> T? {
+        guard let item = try await (Database.sharedWriter().read { db in
             try Item.fetchOne(db, id: name)
         })
         else {
@@ -67,14 +46,14 @@ extension SharedPreferences {
         return try BinaryDecoder().decode(from: item.data)
     }
 
-    private static func write(_ name: String, _ value: (some Codable)?) throws {
+    private nonisolated static func write(_ name: String, _ value: (some Codable)?) async throws {
         if value == nil {
-            _ = try Database.sharedWriter().write { db in
+            _ = try await Database.sharedWriter().write { db in
                 try Item.deleteOne(db, id: name)
             }
         } else {
             let data = try BinaryEncoder().encode(value)
-            try Database.sharedWriter().write { db in
+            try await Database.sharedWriter().write { db in
                 try Item(name: name, data: data).insert(db)
             }
         }

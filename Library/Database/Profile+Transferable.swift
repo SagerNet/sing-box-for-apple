@@ -14,6 +14,7 @@ public extension Profile {
         }
         if type == .remote {
             content.autoUpdate = autoUpdate
+            content.autoUpdateInterval = autoUpdateInterval
             if let lastUpdated {
                 content.lastUpdated = Int64(lastUpdated.timeIntervalSince1970)
             }
@@ -41,8 +42,8 @@ public extension LibboxProfileContent {
         return content!
     }
 
-    func importProfile() throws {
-        let nextProfileID = try ProfileManager.nextID()
+    func importProfile() async throws {
+        let nextProfileID = try await ProfileManager.nextID()
         let profileConfigDirectory = FilePath.sharedDirectory.appendingPathComponent("configs", isDirectory: true)
         try FileManager.default.createDirectory(at: profileConfigDirectory, withIntermediateDirectories: true)
         let profileConfig = profileConfigDirectory.appendingPathComponent("config_\(nextProfileID).json")
@@ -51,7 +52,7 @@ public extension LibboxProfileContent {
         if lastUpdated > 0 {
             lastUpdatedAt = Date(timeIntervalSince1970: Double(lastUpdated))
         }
-        try ProfileManager.create(Profile(name: name, type: ProfileType(rawValue: Int(type))!, path: profileConfig.relativePath, remoteURL: remotePath, autoUpdate: autoUpdate, lastUpdated: lastUpdatedAt))
+        try await ProfileManager.create(Profile(name: name, type: ProfileType(rawValue: Int(type))!, path: profileConfig.relativePath, remoteURL: remotePath, autoUpdate: autoUpdate, autoUpdateInterval: autoUpdateInterval, lastUpdated: lastUpdatedAt))
     }
 
     func generateShareFile() throws -> URL {

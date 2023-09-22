@@ -1,6 +1,7 @@
 import Library
 import SwiftUI
 
+@MainActor
 public struct DashboardView: View {
     #if os(macOS)
         @Environment(\.controlActiveState) private var controlActiveState
@@ -16,12 +17,18 @@ public struct DashboardView: View {
                     viewBuilder {
                         if !systemExtensionInstalled {
                             FormView {
-                                InstallSystemExtensionButton(reload)
+                                InstallSystemExtensionButton {
+                                    await reload()
+                                }
                             }
                         } else {
                             DashboardView0()
                         }
-                    }.onAppear(perform: reload)
+                    }.onAppear {
+                        Task {
+                            await reload()
+                        }
+                    }
                 } else {
                     DashboardView0()
                 }
@@ -34,7 +41,9 @@ public struct DashboardView: View {
             if newValue != .inactive {
                 if Variant.useSystemExtension {
                     if !isLoading {
-                        reload()
+                        Task {
+                            await reload()
+                        }
                     }
                 }
             }
@@ -43,9 +52,10 @@ public struct DashboardView: View {
     }
 
     #if os(macOS)
-        private func reload() {
-            Task {
-                systemExtensionInstalled = await SystemExtension.isInstalled()
+        private nonisolated func reload() async {
+            let systemExtensionInstalled = await SystemExtension.isInstalled()
+            await MainActor.run {
+                self.systemExtensionInstalled = systemExtensionInstalled
                 isLoading = false
             }
         }
@@ -81,15 +91,19 @@ public struct DashboardView: View {
             .alertBinding($alert)
             .onChangeCompat(of: profile.status) { newValue in
                 if newValue == .disconnecting || newValue == .connected {
-                    Task.detached {
-                        if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
-                            DispatchQueue.main.async {
-                                alert = Alert(title: Text("Service Error"), message: Text(serviceError))
-                            }
-                            try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
-                        }
+                    Task {
+                        await checkServiceError()
                     }
                 }
+            }
+        }
+
+        private nonisolated func checkServiceError() async {
+            if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
+                await MainActor.run {
+                    alert = Alert(title: Text("Service Error"), message: Text(serviceError))
+                }
+                try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
             }
         }
     }

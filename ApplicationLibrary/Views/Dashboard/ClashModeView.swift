@@ -2,6 +2,7 @@ import Libbox
 import Library
 import SwiftUI
 
+@MainActor
 public struct ClashModeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var commandClient = CommandClient(.clashMode)
@@ -16,8 +17,8 @@ public struct ClashModeView: View {
                     clashMode
                 }, set: { newMode in
                     clashMode = newMode
-                    Task.detached {
-                        await setMode(newMode)
+                    Task {
+                        await setClashMode(newMode)
                     }
                 }), content: {
                     ForEach(commandClient.clashModeList, id: \.self) { it in
@@ -48,11 +49,13 @@ public struct ClashModeView: View {
         .alertBinding($alert)
     }
 
-    private func setMode(_ newMode: String) {
+    private nonisolated func setClashMode(_ newMode: String) async {
         do {
             try LibboxNewStandaloneCommandClient()!.setClashMode(newMode)
         } catch {
-            alert = Alert(error)
+            await MainActor.run {
+                alert = Alert(error)
+            }
         }
     }
 }

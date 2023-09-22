@@ -3,6 +3,7 @@ import Libbox
 import Library
 import SwiftUI
 
+@MainActor
 public struct NewProfileView: View {
     #if os(macOS)
         public static let windowID = "new-profile"
@@ -16,6 +17,8 @@ public struct NewProfileView: View {
     @State private var fileImport = false
     @State private var fileURL: URL!
     @State private var remotePath = ""
+    @State private var autoUpdate = true
+    @State private var autoUpdateInterval: Int32 = 60
     @State private var pickerPresented = false
     @State private var alert: Alert?
 
@@ -24,8 +27,8 @@ public struct NewProfileView: View {
         public let url: String
     }
 
-    private let callback: (() -> Void)?
-    public init(_ importRequest: ImportRequest? = nil, _ callback: (() -> Void)? = nil) {
+    private let callback: (() async -> Void)?
+    public init(_ importRequest: ImportRequest? = nil, _ callback: (() async -> Void)? = nil) {
         self.callback = callback
         if let importRequest {
             _profileName = .init(initialValue: importRequest.name)
@@ -87,12 +90,20 @@ public struct NewProfileView: View {
                     TextField("URL", text: $remotePath, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
                 }
+                Toggle("Auto Update", isOn: $autoUpdate)
+                FormItem("Auto Update Interval") {
+                    TextField("Auto Update Interval", text: $autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
+                        .multilineTextAlignment(.trailing)
+                    #if os(iOS)
+                        .keyboardType(.numberPad)
+                    #endif
+                }
             }
             Section {
                 if !isSaving {
                     Button("Create") {
                         isSaving = true
-                        Task.detached {
+                        Task {
                             await createProfile()
                         }
                     }
@@ -140,21 +151,19 @@ public struct NewProfileView: View {
             }
         }
         do {
-            try createProfile0()
+            try await createProfileBackground()
         } catch {
             alert = Alert(error)
             return
         }
-        await MainActor.run {
-            dismiss()
-            if let callback {
-                callback()
-            }
-            #if os(macOS)
-                NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
-                resetFields()
-            #endif
+        if let callback {
+            await callback()
         }
+        dismiss()
+        #if os(macOS)
+            NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
+            resetFields()
+        #endif
     }
 
     private func resetFields() {
@@ -165,12 +174,20 @@ public struct NewProfileView: View {
         remotePath = ""
     }
 
-    private func createProfile0() throws {
-        let nextProfileID = try ProfileManager.nextID()
+    private nonisolated func createProfileBackground() async throws {
+        let nextProfileID = try await ProfileManager.nextID()
 
         var savePath = ""
         var remoteURL: String? = nil
         var lastUpdated: Date? = nil
+
+        let profileName = await profileName
+        let profileType = await profileType
+        let fileImport = await fileImport
+        let fileURL = await fileURL
+        let remotePath = await remotePath
+        let autoUpdate = await autoUpdate
+        let autoUpdateInterval = await autoUpdateInterval
 
         if profileType == .local {
             let profileConfigDirectory = FilePath.sharedDirectory.appendingPathComponent("configs", isDirectory: true)
@@ -178,12 +195,10 @@ public struct NewProfileView: View {
             let profileConfig = profileConfigDirectory.appendingPathComponent("config_\(nextProfileID).json")
             if fileImport {
                 guard let fileURL else {
-                    alert = Alert(errorMessage: "Missing file")
-                    return
+                    throw NSError(domain: "Missing file", code: 0)
                 }
                 if !fileURL.startAccessingSecurityScopedResource() {
-                    alert = Alert(errorMessage: "Missing access to selected file")
-                    return
+                    throw NSError(domain: "Missing access to selected file", code: 0)
                 }
                 defer {
                     fileURL.stopAccessingSecurityScopedResource()
@@ -223,6 +238,14 @@ public struct NewProfileView: View {
             remoteURL = remotePath
             lastUpdated = .now
         }
-        try ProfileManager.create(Profile(name: profileName, type: profileType, path: savePath, remoteURL: remoteURL, lastUpdated: lastUpdated))
+        try await ProfileManager.create(Profile(
+            name: profileName,
+            type: profileType,
+            path: savePath,
+            remoteURL: remoteURL,
+            autoUpdate: autoUpdate,
+            autoUpdateInterval: autoUpdateInterval,
+            lastUpdated: lastUpdated
+        ))
     }
 }

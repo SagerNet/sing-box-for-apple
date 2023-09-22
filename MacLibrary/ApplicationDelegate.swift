@@ -12,17 +12,17 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate {
         let launchedAsLogInItem =
             event?.eventID == kAEOpenApplication &&
             event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
-        if !launchedAsLogInItem || !SharedPreferences.showMenuBarExtra || !SharedPreferences.menuBarExtraInBackground {
+        if !launchedAsLogInItem || !SharedPreferences.showMenuBarExtra.getBlocking() || !SharedPreferences.menuBarExtraInBackground.getBlocking() {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
         } else {
             NSApp.windows.first?.close()
         }
-        Task.detached {
+        Task {
             do {
-                try ProfileUpdateTask.setup()
+                try await ProfileUpdateTask.configure()
                 if launchedAsLogInItem {
-                    if SharedPreferences.startedByUser {
+                    if await SharedPreferences.startedByUser.get() {
                         if let profile = try await ExtensionProfile.load() {
                             try await profile.start()
                         }
@@ -35,7 +35,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     public func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
-        !SharedPreferences.menuBarExtraInBackground
+        !SharedPreferences.menuBarExtraInBackground.getBlocking()
     }
 
     public func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

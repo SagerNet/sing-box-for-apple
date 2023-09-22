@@ -37,8 +37,8 @@ public class CommandClient: ObservableObject {
         if let connectTask {
             connectTask.cancel()
         }
-        connectTask = Task.detached {
-            await self.connect0()
+        connectTask = Task {
+            await connect0()
         }
     }
 
@@ -53,7 +53,7 @@ public class CommandClient: ObservableObject {
         }
     }
 
-    private func connect0() async {
+    private nonisolated func connect0() async {
         let clientOptions = LibboxCommandClientOptions()
         switch connectionType {
         case .status:
@@ -73,7 +73,9 @@ public class CommandClient: ObservableObject {
                 try Task.checkCancellation()
                 do {
                     try client.connect()
-                    commandClient = client
+                    await MainActor.run {
+                        commandClient = client
+                    }
                     return
                 } catch {}
                 try Task.checkCancellation()
@@ -90,19 +92,19 @@ public class CommandClient: ObservableObject {
             self.commandClient = commandClient
         }
 
-        func connected() {
-            DispatchQueue.main.sync {
+        nonisolated func connected() {
+            Task { @MainActor [self] in
                 self.commandClient.isConnected = true
             }
         }
 
-        func disconnected(_: String?) {
-            DispatchQueue.main.sync {
+        nonisolated func disconnected(_: String?) {
+            Task { @MainActor [self] in
                 self.commandClient.isConnected = false
             }
         }
 
-        func writeLog(_ message: String?) {
+        nonisolated func writeLog(_ message: String?) {
             guard let message else {
                 return
             }
@@ -111,18 +113,18 @@ public class CommandClient: ObservableObject {
                 logList.removeFirst()
             }
             logList.append(message)
-            DispatchQueue.main.sync {
+            Task { @MainActor [self, logList] in
                 self.commandClient.logList = logList
             }
         }
 
-        func writeStatus(_ message: LibboxStatusMessage?) {
-            DispatchQueue.main.sync {
+        nonisolated func writeStatus(_ message: LibboxStatusMessage?) {
+            Task { @MainActor [self] in
                 self.commandClient.status = message
             }
         }
 
-        func writeGroups(_ groups: LibboxOutboundGroupIteratorProtocol?) {
+        nonisolated func writeGroups(_ groups: LibboxOutboundGroupIteratorProtocol?) {
             guard let groups else {
                 return
             }
@@ -130,20 +132,20 @@ public class CommandClient: ObservableObject {
             while groups.hasNext() {
                 newGroups.append(groups.next()!)
             }
-            DispatchQueue.main.sync {
+            Task { @MainActor [self, newGroups] in
                 self.commandClient.groups = newGroups
             }
         }
 
-        func initializeClashMode(_ modeList: LibboxStringIteratorProtocol?, currentMode: String?) {
-            DispatchQueue.main.sync {
+        nonisolated func initializeClashMode(_ modeList: LibboxStringIteratorProtocol?, currentMode: String?) {
+            Task { @MainActor [self] in
                 self.commandClient.clashModeList = modeList!.toArray()
                 self.commandClient.clashMode = currentMode!
             }
         }
 
-        func updateClashMode(_ newMode: String?) {
-            DispatchQueue.main.sync {
+        nonisolated func updateClashMode(_ newMode: String?) {
+            Task { @MainActor [self] in
                 self.commandClient.clashMode = newMode!
             }
         }

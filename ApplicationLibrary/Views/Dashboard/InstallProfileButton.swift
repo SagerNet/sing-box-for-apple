@@ -1,6 +1,7 @@
 import Library
 import SwiftUI
 
+@MainActor
 public struct InstallProfileButton: View {
     @State private var alert: Alert?
 

@@ -11,51 +11,54 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         NSLog("Here I stand")
         LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
-        Task.detached {
-            do {
-                try await UIProfileUpdateTask.setup()
-                NSLog("setup background task success")
-            } catch {
-                NSLog("setup background task error: \(error.localizedDescription)")
-            }
-        }
-        Task.detached {
-            await self.requestNetworkPermission()
-        }
-        if #available(iOS 16.0, *) {
-            Task.detached {
-                await self.setupProfileServer()
-            }
+        Task {
+            await setup()
         }
         return true
     }
 
-    @available(iOS 16.0, *)
-    private func setupProfileServer() {
-        do {
-            let profileServer = try ProfileServer()
-            profileServer.start()
-            self.profileServer = profileServer
-        } catch {
-            NSLog("setup profile server error: \(error.localizedDescription)")
+    private func setup() async {
+        await setupBackground()
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            await requestNetworkPermission()
         }
     }
 
-    private func requestNetworkPermission() {
-        if UIDevice.current.userInterfaceIdiom != .phone {
-            return
+    private nonisolated func setupBackground() async {
+        do {
+            try await UIProfileUpdateTask.configure()
+            NSLog("setup background task success")
+        } catch {
+            NSLog("setup background task error: \(error.localizedDescription)")
         }
-        if SharedPreferences.networkPermissionRequested {
+        if #available(iOS 16.0, *) {
+            do {
+                let profileServer = try ProfileServer()
+                profileServer.start()
+                await MainActor.run {
+                    self.profileServer = profileServer
+                }
+                NSLog("started profile server")
+            } catch {
+                NSLog("setup profile server error: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private nonisolated func requestNetworkPermission() async {
+        if await SharedPreferences.networkPermissionRequested.get() {
             return
         }
         if !DeviceCensorship.isChinaDevice() {
-            SharedPreferences.networkPermissionRequested = true
+            await SharedPreferences.networkPermissionRequested.set(true)
             return
         }
         URLSession.shared.dataTask(with: URL(string: "http://captive.apple.com")!) { _, response, _ in
             if let response = response as? HTTPURLResponse {
                 if response.statusCode == 200 {
-                    SharedPreferences.networkPermissionRequested = true
+                    Task {
+                        await SharedPreferences.networkPermissionRequested.set(true)
+                    }
                 }
             }
         }.resume()

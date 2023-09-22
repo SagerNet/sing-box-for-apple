@@ -7,6 +7,7 @@ import SwiftUI
     import ServiceManagement
 #endif
 
+@MainActor
 public struct SettingView: View {
     #if os(macOS)
         @Environment(\.openWindow) private var openWindow
@@ -38,7 +39,7 @@ public struct SettingView: View {
         viewBuilder {
             if isLoading {
                 ProgressView().onAppear {
-                    Task.detached {
+                    Task {
                         await loadSettings()
                     }
                 }
@@ -48,14 +49,14 @@ public struct SettingView: View {
                         Section("MacOS") {
                             Toggle("Start At Login", isOn: $startAtLogin)
                                 .onChangeCompat(of: startAtLogin) { newValue in
-                                    Task.detached {
+                                    Task {
                                         updateLoginItems(newValue)
                                     }
                                 }
                             Toggle("Show in Menu Bar", isOn: showMenuBarExtra)
                                 .onChange(of: showMenuBarExtra.wrappedValue) { newValue in
-                                    Task.detached {
-                                        SharedPreferences.showMenuBarExtra = newValue
+                                    Task {
+                                        await SharedPreferences.showMenuBarExtra.set(newValue)
                                         if !newValue {
                                             keepMenuBarInBackground = false
                                         }
@@ -64,8 +65,8 @@ public struct SettingView: View {
                             if showMenuBarExtra.wrappedValue {
                                 Toggle("Keep Menu Bar in Background", isOn: $keepMenuBarInBackground)
                                     .onChangeCompat(of: keepMenuBarInBackground) { newValue in
-                                        Task.detached {
-                                            SharedPreferences.menuBarExtraInBackground = newValue
+                                        Task {
+                                            await SharedPreferences.menuBarExtraInBackground.set(newValue)
                                         }
                                     }
                             }
@@ -74,22 +75,22 @@ public struct SettingView: View {
                     Section("Packet Tunnel") {
                         Toggle("Always On", isOn: $alwaysOn)
                             .onChangeCompat(of: alwaysOn) { newValue in
-                                Task.detached {
-                                    SharedPreferences.alwaysOn = newValue
+                                Task {
+                                    await SharedPreferences.alwaysOn.set(newValue)
                                     await updateAlwaysOn(newValue)
                                 }
                             }
                         Toggle("Disable Memory Limit", isOn: $disableMemoryLimit)
                             .onChangeCompat(of: disableMemoryLimit) { newValue in
-                                Task.detached {
-                                    SharedPreferences.disableMemoryLimit = newValue
+                                Task {
+                                    await SharedPreferences.disableMemoryLimit.set(newValue)
                                 }
                             }
                         #if !os(tvOS)
                             Toggle("Include All Networks", isOn: $includeAllNetworks)
                                 .onChangeCompat(of: includeAllNetworks) { newValue in
-                                    Task.detached {
-                                        SharedPreferences.includeAllNetworks = newValue
+                                    Task {
+                                        await SharedPreferences.includeAllNetworks.set(newValue)
                                     }
                                 }
                         #endif
@@ -121,8 +122,8 @@ public struct SettingView: View {
                                 Text("View Service Log")
                             }
                             Button("Clear Working Directory") {
-                                Task.detached {
-                                    clearWorkingDirectory()
+                                Task {
+                                    await clearWorkingDirectory()
                                 }
                             }
                             .foregroundColor(.red)
@@ -135,8 +136,8 @@ public struct SettingView: View {
                                     NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FilePath.workingDirectory.relativePath)
                                 }
                                 Button {
-                                    Task.detached {
-                                        clearWorkingDirectory()
+                                    Task {
+                                        await clearWorkingDirectory()
                                     }
                                 } label: {
                                     Text("Clear Working Directory").foregroundColor(.red)
@@ -174,12 +175,12 @@ public struct SettingView: View {
     private func loadSettings() async {
         #if os(macOS)
             startAtLogin = SMAppService.mainApp.status == .enabled
-            keepMenuBarInBackground = SharedPreferences.menuBarExtraInBackground
+            keepMenuBarInBackground = await SharedPreferences.menuBarExtraInBackground.get()
         #endif
-        alwaysOn = SharedPreferences.alwaysOn
-        disableMemoryLimit = SharedPreferences.disableMemoryLimit
+        alwaysOn = await SharedPreferences.alwaysOn.get()
+        disableMemoryLimit = await SharedPreferences.disableMemoryLimit.get()
         #if !os(tvOS)
-            includeAllNetworks = SharedPreferences.includeAllNetworks
+            includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
         #endif
         if ApplicationLibrary.inPreview {
             version = "<redacted>"
@@ -191,13 +192,22 @@ public struct SettingView: View {
             dataSize = "Loading..."
             taiwanFlagAvailable = !DeviceCensorship.isChinaDevice()
             isLoading = false
-            dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
+            await loadSettingsBackground()
         }
     }
 
-    private func clearWorkingDirectory() {
+    private nonisolated func loadSettingsBackground() async {
+        let dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
+        await MainActor.run {
+            self.dataSize = dataSize
+        }
+    }
+
+    private nonisolated func clearWorkingDirectory() async {
         try? FileManager.default.removeItem(at: FilePath.workingDirectory)
-        isLoading = true
+        await MainActor.run {
+            isLoading = true
+        }
     }
 
     private func updateAlwaysOn(_ newState: Bool) async {

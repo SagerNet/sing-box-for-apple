@@ -1,6 +1,7 @@
 import Library
 import SwiftUI
 
+@MainActor
 public struct EditProfileView: View {
     #if os(macOS)
         @Environment(\.openWindow) private var openWindow
@@ -43,6 +44,13 @@ public struct EditProfileView: View {
                         .multilineTextAlignment(.trailing)
                 }
                 Toggle("Auto Update", isOn: $profile.autoUpdate)
+                FormItem("Auto Update Interval") {
+                    TextField("Auto Update Interval", text: $profile.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
+                        .multilineTextAlignment(.trailing)
+                    #if os(iOS)
+                        .keyboardType(.numberPad)
+                    #endif
+                }
             }
             if profile.type == .remote {
                 Section("Status") {
@@ -77,14 +85,14 @@ public struct EditProfileView: View {
                         }
                         Button("Update") {
                             isLoading = true
-                            Task.detached {
+                            Task {
                                 await updateProfile()
                             }
                         }
                         .disabled(isLoading)
                     }
                     Button("Delete", role: .destructive) {
-                        Task.detached {
+                        Task {
                             await deleteProfile()
                         }
                     }
@@ -104,37 +112,37 @@ public struct EditProfileView: View {
         #if os(macOS)
             .toolbar {
                 ToolbarItemGroup(placement: .navigation) {
-                    Button(action: {
+                    Button {
                         isLoading = true
-                        Task.detached {
+                        Task {
                             await saveProfile()
                         }
-                    }, label: {
+                    } label: {
                         Image("save", bundle: ApplicationLibrary.bundle, label: Text("Save"))
-                    })
+                    }
                     .disabled(isLoading || !isChanged)
                     if profile.type != .remote {
-                        Button(action: {
+                        Button {
                             openWindow(id: EditProfileContentView.windowID, value: EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                        }, label: {
+                        } label: {
                             Label("Edit Content", systemImage: "pencil")
-                        })
+                        }
                         .disabled(isLoading)
                     } else {
-                        Button(action: {
+                        Button {
                             isLoading = true
-                            Task.detached {
+                            Task {
                                 await updateProfile()
                             }
-                        }, label: {
+                        } label: {
                             Label("Update", systemImage: "arrow.clockwise")
-                        })
+                        }
                         .disabled(isLoading)
-                        Button(action: {
+                        Button {
                             openWindow(id: EditProfileContentView.windowID, value: EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                        }, label: {
+                        } label: {
                             Label("View Content", systemImage: "doc.text.fill")
-                        })
+                        }
                         .disabled(isLoading)
                     }
                 }
@@ -144,7 +152,7 @@ public struct EditProfileView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         isLoading = true
-                        Task.detached {
+                        Task {
                             await saveProfile()
                         }
                     }.disabled(!isChanged)
@@ -161,7 +169,12 @@ public struct EditProfileView: View {
         }
         do {
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
-            try profile.updateRemoteProfile()
+            try await profile.updateRemoteProfile()
+            #if os(iOS) || os(tvOS)
+                try await UIProfileUpdateTask.configure()
+            #else
+                try await ProfileUpdateTask.configure()
+            #endif
         } catch {
             alert = Alert(error)
         }
@@ -169,7 +182,7 @@ public struct EditProfileView: View {
 
     private func deleteProfile() async {
         do {
-            try ProfileManager.delete(profile)
+            try await ProfileManager.delete(profile)
         } catch {
             alert = Alert(error)
             return
@@ -180,7 +193,7 @@ public struct EditProfileView: View {
 
     private func saveProfile() async {
         do {
-            _ = try ProfileManager.update(profile)
+            _ = try await ProfileManager.update(profile)
         } catch {
             alert = Alert(error)
             return
@@ -194,9 +207,7 @@ public struct EditProfileView: View {
         if let updateCallback {
             updateCallback()
         } else {
-            await MainActor.run {
-                NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
-            }
+            NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
         }
     }
 }

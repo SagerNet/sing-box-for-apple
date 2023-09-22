@@ -27,6 +27,8 @@ public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> 
     #if os(iOS) || os(tvOS)
         HStack {
             Text(title)
+                .lineLimit(1)
+                .layoutPriority(1)
             Spacer()
             Spacer()
             content()

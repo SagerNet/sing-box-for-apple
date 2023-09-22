@@ -11,6 +11,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?) throws {
+        try runBlocking {
+            try await self.openTun0(options, ret0_)
+        }
+    }
+
+    private func openTun0(_ options: LibboxTunOptionsProtocol?, _ ret0_: UnsafeMutablePointer<Int32>?) async throws {
         guard let options else {
             throw NSError(domain: "nil options", code: 0)
         }
@@ -82,7 +88,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let proxyServer = NEProxyServer(address: options.getHTTPProxyServer(), port: Int(options.getHTTPProxyServerPort()))
             proxySettings.httpServer = proxyServer
             proxySettings.httpsServer = proxyServer
-            if SharedPreferences.systemProxyEnabled {
+            if try await SharedPreferences.systemProxyEnabled.get() {
                 proxySettings.httpEnabled = true
                 proxySettings.httpsEnabled = true
             }
@@ -169,7 +175,9 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func serviceReload() throws {
-        tunnel.reloadService()
+        Task {
+            await tunnel.reloadService()
+        }
     }
 
     public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {

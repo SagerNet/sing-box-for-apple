@@ -2,6 +2,7 @@ import Libbox
 import Library
 import SwiftUI
 
+@MainActor
 public struct GroupView: View {
     @State private var group: OutboundGroup
     @State private var geometryWidth: CGFloat = 300
@@ -25,8 +26,8 @@ public struct GroupView: View {
                 .cornerRadius(4)
             Button {
                 group.isExpand = !group.isExpand
-                Task.detached {
-                    setGroupExpand()
+                Task {
+                    await setGroupExpand()
                 }
             } label: {
                 if group.isExpand {
@@ -39,8 +40,8 @@ public struct GroupView: View {
             .buttonStyle(.plain)
             #endif
             Button {
-                Task.detached {
-                    doURLTest()
+                Task {
+                    await doURLTest()
                 }
             } label: {
                 Image(systemName: "bolt.fill")
@@ -137,19 +138,23 @@ public struct GroupView: View {
         #endif
     }
 
-    private func doURLTest() {
+    private nonisolated func doURLTest() async {
         do {
-            try LibboxNewStandaloneCommandClient()!.urlTest(group.tag)
+            try await LibboxNewStandaloneCommandClient()!.urlTest(group.tag)
         } catch {
-            alert = Alert(error)
+            await MainActor.run {
+                alert = Alert(error)
+            }
         }
     }
 
-    private func setGroupExpand() {
+    private nonisolated func setGroupExpand() async {
         do {
-            try LibboxNewStandaloneCommandClient()!.setGroupExpand(group.tag, isExpand: group.isExpand)
+            try await LibboxNewStandaloneCommandClient()!.setGroupExpand(group.tag, isExpand: group.isExpand)
         } catch {
-            alert = Alert(error)
+            await MainActor.run {
+                alert = Alert(error)
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ import Libbox
 import Library
 import SwiftUI
 
+@MainActor
 public struct ActiveDashboardView: View {
     @Environment(\.scenePhase) var scenePhase
     @Environment(\.selection) private var parentSelection
@@ -19,7 +20,7 @@ public struct ActiveDashboardView: View {
     public var body: some View {
         if isLoading {
             ProgressView().onAppear {
-                Task.detached {
+                Task {
                     await doReload()
                 }
             }
@@ -28,9 +29,14 @@ public struct ActiveDashboardView: View {
                 body1
             } else {
                 body1
+                    .onAppear {
+                        Task {
+                            await doReloadSystemProxy()
+                        }
+                    }
                     .onChangeCompat(of: profile.status) { newStatus in
                         if newStatus == .connected {
-                            Task.detached {
+                            Task {
                                 await doReloadSystemProxy()
                             }
                         }
@@ -70,14 +76,14 @@ public struct ActiveDashboardView: View {
         #if os(iOS) || os(tvOS)
         .onChangeCompat(of: scenePhase) { newValue in
             if newValue == .active {
-                Task.detached {
+                Task {
                     await doReload()
                 }
             }
         }
         .onChangeCompat(of: parentSelection.wrappedValue) { newValue in
             if newValue == .dashboard {
-                Task.detached {
+                Task {
                     await doReload()
                 }
             }
@@ -86,7 +92,7 @@ public struct ActiveDashboardView: View {
         .alertBinding($alert)
     }
 
-    private func doReload() {
+    private func doReload() async {
         defer {
             isLoading = false
         }
@@ -98,35 +104,39 @@ public struct ActiveDashboardView: View {
             systemProxyAvailable = true
             systemProxyEnabled = true
             selectedProfileID = 0
+
         } else {
             do {
-                profileList = try ProfileManager.list()
+                profileList = try await ProfileManager.list()
+                if profileList.isEmpty {
+                    return
+                }
+                selectedProfileID = await SharedPreferences.selectedProfileID.get()
+                if profileList.filter({ profile in
+                    profile.id == selectedProfileID
+                })
+                .isEmpty {
+                    selectedProfileID = profileList[0].id!
+                    await SharedPreferences.selectedProfileID.set(selectedProfileID)
+                }
+
             } catch {
                 alert = Alert(error)
-                return
-            }
-            if profileList.isEmpty {
-                return
-            }
-
-            selectedProfileID = SharedPreferences.selectedProfileID
-            if profileList.filter({ profile in
-                profile.id == selectedProfileID
-            })
-            .isEmpty {
-                selectedProfileID = profileList[0].id!
-                SharedPreferences.selectedProfileID = selectedProfileID
             }
         }
     }
 
-    private func doReloadSystemProxy() {
+    private nonisolated func doReloadSystemProxy() async {
         do {
             let status = try LibboxNewStandaloneCommandClient()!.getSystemProxyStatus()
-            systemProxyAvailable = status.available
-            systemProxyEnabled = status.enabled
+            await MainActor.run {
+                systemProxyAvailable = status.available
+                systemProxyEnabled = status.enabled
+            }
         } catch {
-            alert = Alert(error)
+            await MainActor.run {
+                alert = Alert(error)
+            }
         }
     }
 }

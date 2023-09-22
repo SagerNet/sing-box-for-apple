@@ -113,14 +113,6 @@ public struct ExtensionStatusView: View {
         }
     }
 
-    private func closeConnections() {
-        do {
-            try LibboxNewStandaloneCommandClient()!.closeConnections()
-        } catch {
-            alert = Alert(error)
-        }
-    }
-
     private struct StatusItem<T>: View where T: View {
         private let title: String
         @ViewBuilder private let content: () -> T

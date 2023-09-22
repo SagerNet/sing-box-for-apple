@@ -12,12 +12,12 @@ public class ExtensionEnvironments: ObservableObject {
     }
 
     public func postReload() {
-        Task.detached {
-            await self.reload()
+        Task {
+            await reload()
         }
     }
 
-    public func reload() async {
+    public nonisolated func reload() async {
         if let newProfile = try? await ExtensionProfile.load() {
             if extensionProfile == nil || extensionProfile?.status == .invalid {
                 newProfile.register()

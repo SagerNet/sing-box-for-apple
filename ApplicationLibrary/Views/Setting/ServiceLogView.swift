@@ -3,6 +3,7 @@ import Library
 import SwiftUI
 import UniformTypeIdentifiers
 
+@MainActor
 public struct ServiceLogView: View {
     #if os(macOS)
         public static let windowID = "service-log"
@@ -20,8 +21,8 @@ public struct ServiceLogView: View {
         viewBuilder {
             if isLoading {
                 ProgressView().onAppear {
-                    Task.detached {
-                        loadContent()
+                    Task {
+                        await loadContent()
                     }
                 }
             } else {
@@ -44,8 +45,8 @@ public struct ServiceLogView: View {
                     fileExporterPresented = true
                 }
                 Button("Delete", role: .destructive) {
-                    Task.detached {
-                        deleteContent()
+                    Task {
+                        await deleteContent()
                     }
                 }
             }
@@ -66,7 +67,8 @@ public struct ServiceLogView: View {
         #endif
     }
 
-    private func loadContent() {
+    private nonisolated func loadContent() async {
+        var content = ""
         do {
             content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log"))
         } catch {}
@@ -75,13 +77,16 @@ public struct ServiceLogView: View {
                 content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
             } catch {}
         }
-        isLoading = false
+        await MainActor.run { [content] in
+            self.content = content
+            isLoading = false
+        }
     }
 
-    private func deleteContent() {
+    private nonisolated func deleteContent() async {
         try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log"))
         try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
-        DispatchQueue.main.async {
+        await MainActor.run {
             dismiss()
             isLoading = true
         }

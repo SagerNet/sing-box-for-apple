@@ -59,6 +59,7 @@ public extension NavigationPage {
         }
     }
 
+    @MainActor
     var contentView: some View {
         viewBuilder {
             switch self {

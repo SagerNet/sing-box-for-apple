@@ -76,24 +76,28 @@
         }
 
         public static func isInstalled() async -> Bool {
-            await (try? Task.detached {
-                for _ in 0 ..< 3 {
-                    do {
-                        let propList = try SystemExtension().getProperties()
-                        if propList.isEmpty {
-                            return false
-                        }
-                        for extensionProp in propList {
-                            if !extensionProp.isAwaitingUserApproval, !extensionProp.isUninstalling {
-                                return true
-                            }
-                        }
-                    } catch {
-                        try await Task.sleep(nanoseconds: NSEC_PER_SEC)
-                    }
-                }
-                return false
+            await (try? Task {
+                try await isInstalledBackground()
             }.result.get()) == true
+        }
+
+        public nonisolated static func isInstalledBackground() async throws -> Bool {
+            for _ in 0 ..< 3 {
+                do {
+                    let propList = try SystemExtension().getProperties()
+                    if propList.isEmpty {
+                        return false
+                    }
+                    for extensionProp in propList {
+                        if !extensionProp.isAwaitingUserApproval, !extensionProp.isUninstalling {
+                            return true
+                        }
+                    }
+                } catch {
+                    try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+                }
+            }
+            return false
         }
 
         public static func install(forceUpdate: Bool = false, inBackground _: Bool = false) async throws -> OSSystemExtensionRequest.Result? {

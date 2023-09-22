@@ -3,10 +3,11 @@
     import Library
     import SwiftUI
 
+    @MainActor
     public struct InstallSystemExtensionButton: View {
         @State private var alert: Alert?
-        private let callback: () -> Void
-        public init(_ callback: @escaping () -> Void) {
+        private let callback: () async -> Void
+        public init(_ callback: @escaping () async -> Void) {
             self.callback = callback
         }
 
@@ -26,7 +27,7 @@
                         alert = Alert(errorMessage: "Need Reboot")
                     }
                 }
-                callback()
+                await callback()
             } catch {
                 alert = Alert(error)
             }

@@ -8,14 +8,18 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         NSLog("Here I stand")
         LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, true)
-        Task.detached {
-            do {
-                try await UIProfileUpdateTask.setup()
-                NSLog("setup background task success")
-            } catch {
-                NSLog("setup background task error: \(error.localizedDescription)")
-            }
+        Task {
+            await setupBackground()
         }
         return true
+    }
+
+    private nonisolated func setupBackground() async {
+        do {
+            try await UIProfileUpdateTask.configure()
+            NSLog("setup background task success")
+        } catch {
+            NSLog("setup background task error: \(error.localizedDescription)")
+        }
     }
 }

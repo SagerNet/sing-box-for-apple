@@ -3,6 +3,7 @@ import Libbox
 import Library
 import SwiftUI
 
+@MainActor
 public struct OverviewView: View {
     public static let NotificationUpdateSelectedProfile = Notification.Name("update-selected-profile")
 
@@ -38,7 +39,7 @@ public struct OverviewView: View {
                         if ApplicationLibrary.inPreview || profile.status.isConnectedStrict, systemProxyAvailable {
                             Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
                                 .onChangeCompat(of: systemProxyEnabled) { newValue in
-                                    Task.detached {
+                                    Task {
                                         await setSystemProxyEnabled(newValue)
                                     }
                                 }
@@ -55,7 +56,7 @@ public struct OverviewView: View {
                         if ApplicationLibrary.inPreview || profile.status.isConnectedStrict, systemProxyAvailable {
                             Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
                                 .onChangeCompat(of: systemProxyEnabled) { newValue in
-                                    Task.detached {
+                                    Task {
                                         await setSystemProxyEnabled(newValue)
                                     }
                                 }
@@ -75,7 +76,7 @@ public struct OverviewView: View {
         .alertBinding($alert)
         .onChangeCompat(of: selectedProfileID) {
             reasserting = true
-            Task.detached {
+            Task {
                 await switchProfile(selectedProfileID!)
             }
         }
@@ -96,25 +97,31 @@ public struct OverviewView: View {
         #endif
     }
 
-    private func switchProfile(_ newProfileID: Int64) {
-        SharedPreferences.selectedProfileID = newProfileID
+    private nonisolated func switchProfile(_ newProfileID: Int64) async {
+        await SharedPreferences.selectedProfileID.set(newProfileID)
         NotificationCenter.default.post(name: OverviewView.NotificationUpdateSelectedProfile, object: newProfileID)
-        if profile.status.isConnected {
+        if await profile.status.isConnected {
             do {
                 try LibboxNewStandaloneCommandClient()!.serviceReload()
             } catch {
-                alert = Alert(error)
+                await MainActor.run {
+                    alert = Alert(error)
+                }
             }
         }
-        reasserting = false
+        await MainActor.run {
+            reasserting = false
+        }
     }
 
-    private func setSystemProxyEnabled(_ isEnabled: Bool) {
+    private nonisolated func setSystemProxyEnabled(_ isEnabled: Bool) async {
         do {
             try LibboxNewStandaloneCommandClient()!.setSystemProxyEnabled(isEnabled)
-            SharedPreferences.systemProxyEnabled = isEnabled
+            await SharedPreferences.systemProxyEnabled.set(isEnabled)
         } catch {
-            alert = Alert(error)
+            await MainActor.run {
+                alert = Alert(error)
+            }
         }
     }
 }

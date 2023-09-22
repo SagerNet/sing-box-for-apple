@@ -3,7 +3,7 @@ import GRDB
 import Libbox
 
 public extension Profile {
-    func updateRemoteProfile() throws {
+    nonisolated func updateRemoteProfile() async throws {
         if type != .remote {
             return
         }
@@ -15,6 +15,6 @@ public extension Profile {
         }
         try write(remoteContent)
         lastUpdated = Date()
-        try ProfileManager.update(self)
+        try await ProfileManager.update(self)
     }
 }

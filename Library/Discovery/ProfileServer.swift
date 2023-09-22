@@ -14,7 +14,7 @@ public class ProfileServer {
                 if state == .ready {
                     Task.detached {
                         try await Task.sleep(nanoseconds: NSEC_PER_MSEC * 100)
-                        ProfileConnection(connection).process()
+                        await ProfileConnection(connection).process()
                     }
                 }
             }
@@ -37,9 +37,9 @@ public class ProfileServer {
             self.connection = NWSocket(connection)
         }
 
-        func process() {
+        func process() async {
             do {
-                try writeProfilePreviewList()
+                try await writeProfilePreviewList()
             } catch {
                 NSLog("profile server: write profile list: \(error.localizedDescription)")
                 writeError(error.localizedDescription)
@@ -63,44 +63,51 @@ public class ProfileServer {
             let messageType = Int64(data[0])
             switch messageType {
             case LibboxMessageTypeProfileContentRequest:
-                var error: NSError?
-                let request = LibboxDecodeProfileContentRequest(data, &error)
-                if let error {
-                    throw error
+                Task {
+                    try await processProfileContentRequest(data)
                 }
-
-                let profile = try ProfileManager.get(request!.profileID)
-                guard let profile else {
-                    throw NSError(domain: "profile not found", code: 0)
-                }
-                let content = LibboxProfileContent()
-                content.name = profile.name
-                switch profile.type {
-                case .local:
-                    content.type = LibboxProfileTypeLocal
-                case .icloud:
-                    content.type = LibboxProfileTypeiCloud
-                case .remote:
-                    content.type = LibboxProfileTypeRemote
-                }
-                content.config = try profile.read()
-                if profile.type != .local {
-                    content.remotePath = profile.remoteURL!
-                }
-                if profile.type == .remote {
-                    content.autoUpdate = profile.autoUpdate
-                    if let lastUpdated = profile.lastUpdated {
-                        content.lastUpdated = Int64(lastUpdated.timeIntervalSince1970)
-                    }
-                }
-                try connection.write(content.encode())
             default:
                 throw NSError(domain: "unexpected message type \(messageType)", code: 0)
             }
         }
 
-        private func writeProfilePreviewList() throws {
-            let profiles = try ProfileManager.list()
+        private func processProfileContentRequest(_ data: Data) async throws {
+            var error: NSError?
+            let request = LibboxDecodeProfileContentRequest(data, &error)
+            if let error {
+                throw error
+            }
+
+            let profile = try await ProfileManager.get(request!.profileID)
+            guard let profile else {
+                throw NSError(domain: "profile not found", code: 0)
+            }
+            let content = LibboxProfileContent()
+            content.name = profile.name
+            switch profile.type {
+            case .local:
+                content.type = LibboxProfileTypeLocal
+            case .icloud:
+                content.type = LibboxProfileTypeiCloud
+            case .remote:
+                content.type = LibboxProfileTypeRemote
+            }
+            content.config = try profile.read()
+            if profile.type != .local {
+                content.remotePath = profile.remoteURL!
+            }
+            if profile.type == .remote {
+                content.autoUpdate = profile.autoUpdate
+                content.autoUpdateInterval = profile.autoUpdateInterval
+                if let lastUpdated = profile.lastUpdated {
+                    content.lastUpdated = Int64(lastUpdated.timeIntervalSince1970)
+                }
+            }
+            try connection.write(content.encode())
+        }
+
+        private func writeProfilePreviewList() async throws {
+            let profiles = try await ProfileManager.list()
             let encoder = LibboxProfileEncoder()
             for profile in profiles {
                 let preview = LibboxProfilePreview()

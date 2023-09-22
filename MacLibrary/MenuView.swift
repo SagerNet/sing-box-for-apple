@@ -6,6 +6,7 @@ import MacControlCenterUI
 import MenuBarExtraAccess
 import SwiftUI
 
+@MainActor
 public struct MenuView: View {
     @Environment(\.openWindow) private var openWindow
 
@@ -25,7 +26,7 @@ public struct MenuView: View {
             MenuHeader("sing-box") {
                 if isLoading {
                     Text("Loading...").foregroundColor(.secondary).onAppear {
-                        Task.detached {
+                        Task {
                             await loadProfile()
                         }
                     }
@@ -81,7 +82,7 @@ public struct MenuView: View {
             Toggle(isOn: Binding(get: {
                 profile.status.isConnected
             }, set: { _ in
-                Task.detached {
+                Task {
                     await switchProfile(!profile.status.isConnected)
                 }
             })) {}
@@ -122,7 +123,7 @@ public struct MenuView: View {
             viewBuilder {
                 if isLoading {
                     ProgressView().onAppear {
-                        Task.detached {
+                        Task {
                             await doReload()
                         }
                     }
@@ -139,7 +140,7 @@ public struct MenuView: View {
                         .pickerStyle(.inline)
                         .onChangeCompat(of: selectedProfileID) {
                             reasserting = true
-                            Task.detached {
+                            Task {
                                 await switchProfile(selectedProfileID!)
                             }
                         }
@@ -162,12 +163,12 @@ public struct MenuView: View {
             .alertBinding($alert)
         }
 
-        private func doReload() {
+        private func doReload() async {
             defer {
                 isLoading = false
             }
             do {
-                profileList = try ProfileManager.list()
+                profileList = try await ProfileManager.list()
             } catch {
                 alert = Alert(error)
                 return
@@ -175,28 +176,31 @@ public struct MenuView: View {
             if profileList.isEmpty {
                 return
             }
-
-            selectedProfileID = SharedPreferences.selectedProfileID
+            selectedProfileID = await SharedPreferences.selectedProfileID.get()
             if profileList.filter({ profile in
                 profile.id == selectedProfileID
             })
             .isEmpty {
                 selectedProfileID = profileList[0].id!
-                SharedPreferences.selectedProfileID = selectedProfileID
+                await SharedPreferences.selectedProfileID.set(selectedProfileID)
             }
         }
 
-        private func switchProfile(_ newProfileID: Int64) {
-            SharedPreferences.selectedProfileID = newProfileID
+        private func switchProfile(_ newProfileID: Int64) async {
+            await SharedPreferences.selectedProfileID.set(newProfileID)
             NotificationCenter.default.post(name: OverviewView.NotificationUpdateSelectedProfile, object: newProfileID)
             if profile.status.isConnected {
                 do {
-                    try LibboxNewStandaloneCommandClient()?.serviceReload()
+                    try await serviceReload()
                 } catch {
                     alert = Alert(error)
                 }
             }
             reasserting = false
+        }
+
+        private nonisolated func serviceReload() async throws {
+            try LibboxNewStandaloneCommandClient()?.serviceReload()
         }
     }
 }

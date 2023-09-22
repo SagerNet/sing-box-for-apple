@@ -12,7 +12,7 @@ public struct MacApplication: Scene {
         Window("sing-box", id: "main", content: {
             MainView()
                 .onAppear {
-                    Task.detached {
+                    Task {
                         await initialize()
                     }
                 }
@@ -61,26 +61,19 @@ public struct MacApplication: Scene {
         .menuBarExtraAccess(isPresented: $isMenuPresented)
     }
 
-    private func initialize() {
-        let initialShowMenuBarExtra = SharedPreferences.showMenuBarExtra
-        DispatchQueue.main.async {
-            showMenuBarExtra = initialShowMenuBarExtra
-        }
+    private func initialize() async {
+        showMenuBarExtra = await SharedPreferences.showMenuBarExtra.get()
     }
 
     private func hide(closeApp: Bool) {
-        Task.detached {
-            if SharedPreferences.menuBarExtraInBackground {
-                DispatchQueue.main.async {
-                    hide0(closeApp: closeApp)
-                }
+        Task {
+            if await SharedPreferences.menuBarExtraInBackground.get() {
+                hide0(closeApp: closeApp)
             } else {
-                DispatchQueue.main.async {
-                    if closeApp {
-                        NSApp.terminate(nil)
-                    } else {
-                        NSApp.keyWindow?.close()
-                    }
+                if closeApp {
+                    NSApp.terminate(nil)
+                } else {
+                    NSApp.keyWindow?.close()
                 }
             }
         }

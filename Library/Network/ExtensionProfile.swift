@@ -14,10 +14,6 @@ public class ExtensionProfile: ObservableObject {
         status = manager.connection.status
     }
 
-    deinit {
-        unregister()
-    }
-
     public func register() {
         observer = NotificationCenter.default.addObserver(
             forName: NSNotification.Name.NEVPNStatusDidChange,
@@ -54,13 +50,13 @@ public class ExtensionProfile: ObservableObject {
 
     public func start() async throws {
         manager.isEnabled = true
-        if SharedPreferences.alwaysOn {
+        if try await SharedPreferences.alwaysOn.get() {
             manager.isOnDemandEnabled = true
             setOnDemandRules()
         }
         #if !os(tvOS)
             if let protocolConfiguration = manager.protocolConfiguration {
-                let includeAllNetworks = SharedPreferences.includeAllNetworks
+                let includeAllNetworks = try await SharedPreferences.includeAllNetworks.get()
                 protocolConfiguration.includeAllNetworks = includeAllNetworks
                 if #available(iOS 16.4, macOS 13.3, *) {
                     protocolConfiguration.excludeCellularServices = !includeAllNetworks

@@ -5,6 +5,7 @@
     import Library
     import SwiftUI
 
+    @MainActor
     public struct ImportProfileView: View {
         @Environment(\.dismiss) private var dismiss
 
@@ -13,9 +14,9 @@
         @State private var alert: Alert?
         @State private var connection: NWSocket?
         @State private var profiles: [LibboxProfilePreview]?
-        private let callback: () -> Void
+        private let callback: () async -> Void
 
-        public init(callback: @escaping () -> Void) {
+        public init(callback: @escaping () async -> Void) {
             self.callback = callback
         }
 
@@ -26,7 +27,7 @@
                         .applicationService(name: "sing-box:profile"))
                     { endpoint in
                         selected = true
-                        Task.detached {
+                        Task {
                             await handleEndpoint(endpoint)
                         }
                     } label: {
@@ -42,7 +43,7 @@
                         ForEach(profiles, id: \.profileID) { profile in
                             Button(profile.name) {
                                 isLoading = true
-                                Task.detached {
+                                Task {
                                     selectProfile(profileID: profile.profileID)
                                     isLoading = false
                                 }
@@ -68,14 +69,14 @@
             self.connection = NWSocket(connection)
             connection.start(queue: .global())
             do {
-                try loopMessages()
+                try await loopMessages()
             } catch {
                 alert = Alert(error)
                 reset()
             }
         }
 
-        private func loopMessages() throws {
+        private func loopMessages() async throws {
             guard let connection else {
                 return
             }
@@ -110,7 +111,7 @@
                     if let error {
                         throw error
                     }
-                    try importProfile(content!)
+                    try await importProfile(content!)
                 default:
                     throw NSError(domain: "unknown message type \(message[0])", code: 0)
                 }
@@ -131,7 +132,7 @@
             }
         }
 
-        private func importProfile(_ content: LibboxProfileContent) throws {
+        private nonisolated func importProfile(_ content: LibboxProfileContent) async throws {
             var type: ProfileType = .local
             switch content.type {
             case LibboxProfileTypeLocal:
@@ -143,8 +144,7 @@
             default:
                 break
             }
-
-            let nextProfileID = try ProfileManager.nextID()
+            let nextProfileID = try await ProfileManager.nextID()
             let profileConfigDirectory = FilePath.sharedDirectory.appendingPathComponent("configs", isDirectory: true)
             try FileManager.default.createDirectory(at: profileConfigDirectory, withIntermediateDirectories: true)
             let profileConfig = profileConfigDirectory.appendingPathComponent("config_\(nextProfileID).json")
@@ -153,10 +153,10 @@
             if content.lastUpdated > 0 {
                 lastUpdated = Date(timeIntervalSince1970: Double(content.lastUpdated))
             }
-            try ProfileManager.create(Profile(name: content.name, type: type, path: profileConfig.relativePath, remoteURL: content.remotePath, autoUpdate: content.autoUpdate, lastUpdated: lastUpdated))
-            DispatchQueue.main.async {
+            try await ProfileManager.create(Profile(name: content.name, type: type, path: profileConfig.relativePath, remoteURL: content.remotePath, autoUpdate: content.autoUpdate, lastUpdated: lastUpdated))
+            await callback()
+            await MainActor.run {
                 dismiss()
-                callback()
             }
         }
     }

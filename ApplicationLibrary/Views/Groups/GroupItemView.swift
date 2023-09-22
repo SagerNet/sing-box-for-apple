@@ -2,6 +2,7 @@ import Libbox
 import Library
 import SwiftUI
 
+@MainActor
 public struct GroupItemView: View {
     private let _group: Binding<OutboundGroup>
     private var group: OutboundGroup {
@@ -17,13 +18,13 @@ public struct GroupItemView: View {
     @State private var alert: Alert?
 
     public var body: some View {
-        Button(action: {
+        Button {
             if group.selectable, group.selected != item.tag {
-                Task.detached {
-                    selectOutbound()
+                Task {
+                    await selectOutbound()
                 }
             }
-        }, label: {
+        } label: {
             HStack {
                 VStack {
                     HStack {
@@ -56,7 +57,7 @@ public struct GroupItemView: View {
                     }
                 }
             }
-        })
+        }
         #if !os(tvOS)
         .buttonStyle(.borderless)
         .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
@@ -66,15 +67,18 @@ public struct GroupItemView: View {
         .alertBinding($alert)
     }
 
-    private func selectOutbound() {
+    private nonisolated func selectOutbound() async {
         do {
-            try LibboxNewStandaloneCommandClient()!.selectOutbound(group.tag, outboundTag: item.tag)
-            var newGroup = group
+            try await LibboxNewStandaloneCommandClient()!.selectOutbound(group.tag, outboundTag: item.tag)
+            var newGroup = await group
             newGroup.selected = item.tag
-            _group.wrappedValue = newGroup
+            await MainActor.run { [newGroup] in
+                _group.wrappedValue = newGroup
+            }
         } catch {
-            alert = Alert(error)
-            return
+            await MainActor.run {
+                alert = Alert(error)
+            }
         }
     }
 

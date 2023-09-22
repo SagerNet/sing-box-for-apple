@@ -4,6 +4,7 @@ import Library
 import Network
 import SwiftUI
 
+@MainActor
 public struct ProfileView: View {
     public static let notificationName = Notification.Name("\(FilePath.packageName).update-profile")
 
@@ -36,8 +37,8 @@ public struct ProfileView: View {
         viewBuilder {
             if isLoading {
                 ProgressView().onAppear {
-                    Task.detached {
-                        doReload()
+                    Task {
+                        await doReload()
                     }
                 }
             } else {
@@ -46,9 +47,7 @@ public struct ProfileView: View {
                         if let importRemoteProfileRequest {
                             NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
                                 NewProfileView(importRemoteProfileRequest) {
-                                    Task.detached {
-                                        doReload()
-                                    }
+                                    await doReload()
                                 }
                             }
                         }
@@ -56,9 +55,7 @@ public struct ProfileView: View {
                             #if os(iOS)
                                 NavigationLink {
                                     NewProfileView {
-                                        Task.detached {
-                                            doReload()
-                                        }
+                                        await doReload()
                                     }
                                 } label: {
                                     Text("New Profile").foregroundColor(.accentColor)
@@ -68,9 +65,7 @@ public struct ProfileView: View {
                                 Section {
                                     NavigationLink {
                                         NewProfileView {
-                                            Task.detached {
-                                                doReload()
-                                            }
+                                            await doReload()
                                         }
                                     } label: {
                                         Text("New Profile").foregroundColor(.accentColor)
@@ -78,9 +73,7 @@ public struct ProfileView: View {
                                     if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
                                         NavigationLink {
                                             ImportProfileView {
-                                                Task.detached {
-                                                    doReload()
-                                                }
+                                                await doReload()
                                             }
                                         } label: {
                                             Text("Import Profile").foregroundColor(.accentColor)
@@ -138,8 +131,8 @@ public struct ProfileView: View {
             #if os(macOS)
                 if observer == nil {
                     observer = NotificationCenter.default.addObserver(forName: ProfileView.notificationName, object: nil, queue: .main) { _ in
-                        Task.detached {
-                            doReload()
+                        Task {
+                            await doReload()
                         }
                     }
                 }
@@ -166,11 +159,11 @@ public struct ProfileView: View {
         }
         .toolbar {
             ToolbarItem {
-                Button(action: {
+                Button {
                     openWindow(id: NewProfileView.windowID)
-                }, label: {
+                } label: {
                     Label("New Profile", systemImage: "plus.square.fill")
-                })
+                }
             }
         }
         #elseif os(iOS)
@@ -188,14 +181,14 @@ public struct ProfileView: View {
             title: Text("Import Profile"),
             message: Text("Are you sure to import profile \(profile.name)?"),
             primaryButton: .default(Text("Import")) {
-                do {
-                    try profile.importProfile()
-                } catch {
-                    alert = Alert(error)
-                    return
-                }
-                Task.detached {
-                    doReload()
+                Task {
+                    do {
+                        try await profile.importProfile()
+                    } catch {
+                        alert = Alert(error)
+                        return
+                    }
+                    await doReload()
                 }
             },
             secondaryButton: .cancel()
@@ -218,28 +211,18 @@ public struct ProfileView: View {
         )
     }
 
-    private func deleteSelectedProfiles(_ profileID: [Int64]) {
-        do {
-            if try ProfileManager.delete(by: profileID) > 0 {
-                isLoading = true
-            }
-        } catch {
-            alert = Alert(error)
-        }
-    }
-
-    private func doReload() {
-        defer {
-            isLoading = false
-        }
+    private func doReload() async {
         if ApplicationLibrary.inPreview {
             profileList = [
                 Profile(id: 0, name: "profile local", type: .local, path: ""),
                 Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0)),
             ]
         } else {
+            defer {
+                isLoading = false
+            }
             do {
-                profileList = try ProfileManager.list()
+                profileList = try await ProfileManager.list()
             } catch {
                 alert = Alert(error)
                 return
@@ -247,25 +230,29 @@ public struct ProfileView: View {
         }
     }
 
-    private func updateProfile(_ profile: Profile) {
-        do {
-            _ = try profile.updateRemoteProfile()
-        } catch {
-            alert = Alert(error)
-        }
+    private func updateProfile(_ profile: Profile) async {
+        await updateProfileBackground(profile)
         isUpdating = false
     }
 
-    private func deleteProfile(_ profile: Profile) {
-        Task.detached {
-            do {
-                _ = try ProfileManager.delete(profile)
-            } catch {
+    private nonisolated func updateProfileBackground(_ profile: Profile) async {
+        do {
+            _ = try await profile.updateRemoteProfile()
+        } catch {
+            await MainActor.run {
                 alert = Alert(error)
-                return
             }
-            doReload()
         }
+    }
+
+    private func deleteProfile(_ profile: Profile) async {
+        do {
+            _ = try await ProfileManager.delete(profile)
+        } catch {
+            alert = Alert(error)
+            return
+        }
+        await doReload()
     }
 
     private func moveProfile(from source: IndexSet, to destination: Int) {
@@ -273,11 +260,12 @@ public struct ProfileView: View {
         for (index, profile) in profileList.enumerated() {
             profile.order = UInt32(index)
         }
-        do {
-            try ProfileManager.update(profileList)
-        } catch {
-            alert = Alert(error)
-            return
+        Task {
+            do {
+                try await ProfileManager.update(profileList)
+            } catch {
+                alert = Alert(error)
+            }
         }
     }
 
@@ -286,9 +274,9 @@ public struct ProfileView: View {
             profileList[index]
         }
         profileList.remove(atOffsets: profileIndex)
-        Task.detached {
+        Task {
             do {
-                _ = try ProfileManager.delete(profileToDelete)
+                _ = try await ProfileManager.delete(profileToDelete)
             } catch {
                 alert = Alert(error)
             }
@@ -315,13 +303,14 @@ public struct ProfileView: View {
             #endif
         }
 
+        @MainActor
         private var body0: some View {
             viewBuilder {
                 #if !os(macOS)
                     NavigationLink {
                         EditProfileView {
-                            Task.detached {
-                                parent.doReload()
+                            Task {
+                                await parent.doReload()
                             }
                         }.environmentObject(profile)
                     } label: {
@@ -334,15 +323,17 @@ public struct ProfileView: View {
                         if profile.type == .remote {
                             Button {
                                 parent.isUpdating = true
-                                Task.detached {
-                                    parent.updateProfile(profile)
+                                Task {
+                                    await parent.updateProfile(profile)
                                 }
                             } label: {
                                 Label("Update", systemImage: "arrow.clockwise")
                             }
                         }
                         Button(role: .destructive) {
-                            parent.deleteProfile(profile)
+                            Task {
+                                await parent.deleteProfile(profile)
+                            }
                         } label: {
                             Label("Delete", systemImage: "trash.fill")
                         }
@@ -358,28 +349,30 @@ public struct ProfileView: View {
                         }
                         HStack {
                             if profile.type == .remote {
-                                Button(action: {
+                                Button {
                                     parent.isUpdating = true
-                                    Task.detached {
-                                        parent.updateProfile(profile)
+                                    Task {
+                                        await parent.updateProfile(profile)
                                     }
-                                }, label: {
+                                } label: {
                                     Image(systemName: "arrow.clockwise")
-                                })
+                                }
                             }
                             ProfileShareButton(parent.$alert, profile) {
                                 Image(systemName: "square.and.arrow.up.fill")
                             }
-                            Button(action: {
+                            Button {
                                 parent.openWindow(id: EditProfileWindowView.windowID, value: profile.mustID)
-                            }, label: {
+                            } label: {
                                 Image(systemName: "pencil")
-                            })
-                            Button(action: {
-                                parent.deleteProfile(profile)
-                            }, label: {
+                            }
+                            Button {
+                                Task {
+                                    await parent.deleteProfile(profile)
+                                }
+                            } label: {
                                 Image(systemName: "trash.fill")
-                            })
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .trailing)
                     }

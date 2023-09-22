@@ -2,6 +2,7 @@ import Library
 import NetworkExtension
 import SwiftUI
 
+@MainActor
 public struct StartStopButton: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
 
@@ -15,9 +16,9 @@ public struct StartStopButton: View {
                         Text("Enabled")
                     }
                 #elseif os(macOS)
-                    Button(action: {}, label: {
+                    Button {} label: {
                         Label("Stop", systemImage: "stop.fill")
-                    })
+                    }
                 #endif
 
             } else if let profile = environments.extensionProfile {
@@ -28,10 +29,9 @@ public struct StartStopButton: View {
                         Text("Enabled")
                     }
                 #elseif os(macOS)
-
-                    Button(action: {}, label: {
+                    Button {} label: {
                         Label("Start", systemImage: "play.fill")
-                    })
+                    }
                     .disabled(true)
                 #endif
             }
@@ -49,41 +49,42 @@ public struct StartStopButton: View {
                     Toggle(isOn: Binding(get: {
                         profile.status.isConnected
                     }, set: { newValue, _ in
-                        Task.detached {
+                        Task {
                             await switchProfile(newValue)
                         }
                     })) {
                         Text("Enabled")
                     }
                 #elseif os(macOS)
-                    Button(action: {
-                        Task.detached {
+                    Button {
+                        Task {
                             await switchProfile(!profile.status.isConnected)
                         }
-                    }, label: {
+                    } label: {
                         if !profile.status.isConnected {
                             Label("Start", systemImage: "play.fill")
                         } else {
                             Label("Stop", systemImage: "stop.fill")
                         }
-                    })
+                    }
                 #endif
             }
             .disabled(!profile.status.isEnabled)
             .alertBinding($alert)
         }
 
-        private func switchProfile(_ isEnabled: Bool) async {
+        private nonisolated func switchProfile(_ isEnabled: Bool) async {
             do {
                 if isEnabled {
                     try await profile.start()
-                    environments.logClient.connect()
+                    await environments.logClient.connect()
                 } else {
-                    profile.stop()
+                    await profile.stop()
                 }
             } catch {
-                alert = Alert(error)
-                return
+                await MainActor.run {
+                    alert = Alert(error)
+                }
             }
         }
     }
