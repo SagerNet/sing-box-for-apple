@@ -170,11 +170,6 @@ public struct EditProfileView: View {
         do {
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
             try await profile.updateRemoteProfile()
-            #if os(iOS) || os(tvOS)
-                try await UIProfileUpdateTask.configure()
-            #else
-                try await ProfileUpdateTask.configure()
-            #endif
         } catch {
             alert = Alert(error)
         }
@@ -194,6 +189,11 @@ public struct EditProfileView: View {
     private func saveProfile() async {
         do {
             _ = try await ProfileManager.update(profile)
+#if os(iOS) || os(tvOS)
+    try await UIProfileUpdateTask.configure()
+#else
+    try await ProfileUpdateTask.configure()
+#endif
         } catch {
             alert = Alert(error)
             return

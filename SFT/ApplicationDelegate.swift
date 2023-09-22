@@ -9,12 +9,12 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         NSLog("Here I stand")
         LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, true)
         Task {
-            await setupBackground()
+            await setup()
         }
         return true
     }
 
-    private nonisolated func setupBackground() async {
+    private func setup() async {
         do {
             try await UIProfileUpdateTask.configure()
             NSLog("setup background task success")

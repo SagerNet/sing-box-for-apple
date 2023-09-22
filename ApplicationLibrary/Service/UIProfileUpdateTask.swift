@@ -5,16 +5,21 @@ import Library
 #if os(iOS) || os(tvOS)
     public class UIProfileUpdateTask: BGAppRefreshTask {
         private static let taskSchedulerPermittedIdentifier = "\(FilePath.packageName).update_profiles"
+        
+        private static var registered = false
 
         public static func configure() async throws {
-            let success = BGTaskScheduler.shared.register(forTaskWithIdentifier: taskSchedulerPermittedIdentifier, using: nil) { task in
-                NSLog("profile update task started")
-                Task {
-                    await getAndupdateProfiles(task)
+            if !registered {
+                let success = BGTaskScheduler.shared.register(forTaskWithIdentifier: taskSchedulerPermittedIdentifier, using: nil) { task in
+                    NSLog("profile update task started")
+                    Task {
+                        await getAndupdateProfiles(task)
+                    }
                 }
-            }
-            if !success {
-                throw NSError(domain: "register failed", code: 0)
+                if !success {
+                    throw NSError(domain: "register failed", code: 0)
+                }
+                registered = true
             }
             BGTaskScheduler.shared.cancelAllTaskRequests()
             let profiles = try await ProfileManager.listAutoUpdateEnabled()

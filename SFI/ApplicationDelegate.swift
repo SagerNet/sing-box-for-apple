@@ -18,19 +18,19 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
     }
 
     private func setup() async {
-        await setupBackground()
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            await requestNetworkPermission()
-        }
-    }
-
-    private nonisolated func setupBackground() async {
         do {
             try await UIProfileUpdateTask.configure()
             NSLog("setup background task success")
         } catch {
             NSLog("setup background task error: \(error.localizedDescription)")
         }
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            await requestNetworkPermission()
+        }
+        await setupBackground()
+    }
+
+    private nonisolated func setupBackground() async {
         if #available(iOS 16.0, *) {
             do {
                 let profileServer = try ProfileServer()
