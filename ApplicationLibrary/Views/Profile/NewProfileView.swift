@@ -248,11 +248,11 @@ public struct NewProfileView: View {
             lastUpdated: lastUpdated
         ))
         if profileType == .remote {
-#if os(iOS) || os(tvOS)
-    try await UIProfileUpdateTask.configure()
-#else
-    try await ProfileUpdateTask.configure()
-#endif
+            #if os(iOS) || os(tvOS)
+                try await UIProfileUpdateTask.configure()
+            #else
+                try await ProfileUpdateTask.configure()
+            #endif
         }
     }
 }

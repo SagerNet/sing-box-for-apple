@@ -5,28 +5,34 @@ import Library
 #if os(iOS) || os(tvOS)
     public class UIProfileUpdateTask: BGAppRefreshTask {
         private static let taskSchedulerPermittedIdentifier = "\(FilePath.packageName).update_profiles"
-        
-        private static var registered = false
 
-        public static func configure() async throws {
-            if !registered {
-                let success = BGTaskScheduler.shared.register(forTaskWithIdentifier: taskSchedulerPermittedIdentifier, using: nil) { task in
-                    NSLog("profile update task started")
-                    Task {
-                        await getAndupdateProfiles(task)
+        private actor Register {
+            private var registered = false
+            func configure() async throws {
+                if !registered {
+                    let success = BGTaskScheduler.shared.register(forTaskWithIdentifier: taskSchedulerPermittedIdentifier, using: nil) { task in
+                        NSLog("profile update task started")
+                        Task {
+                            await UIProfileUpdateTask.getAndupdateProfiles(task)
+                        }
                     }
+                    if !success {
+                        throw NSError(domain: "register failed", code: 0)
+                    }
+                    registered = true
                 }
-                if !success {
-                    throw NSError(domain: "register failed", code: 0)
+                BGTaskScheduler.shared.cancelAllTaskRequests()
+                let profiles = try await ProfileManager.listAutoUpdateEnabled()
+                if profiles.isEmpty {
+                    return
                 }
-                registered = true
+                try scheduleUpdate(ProfileUpdateTask.calculateEarliestBeginDate(profiles))
             }
-            BGTaskScheduler.shared.cancelAllTaskRequests()
-            let profiles = try await ProfileManager.listAutoUpdateEnabled()
-            if profiles.isEmpty {
-                return
-            }
-            try scheduleUpdate(ProfileUpdateTask.calculateEarliestBeginDate(profiles))
+        }
+
+        private static let register = Register()
+        public static func configure() async throws {
+            try await register.configure()
         }
 
         private nonisolated static func getAndupdateProfiles(_ task: BGTask) async {

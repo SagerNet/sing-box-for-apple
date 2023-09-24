@@ -34,7 +34,7 @@ public struct ProfileView: View {
     public init() {}
 
     public var body: some View {
-        viewBuilder {
+        VStack {
             if isLoading {
                 ProgressView().onAppear {
                     Task {
@@ -222,6 +222,9 @@ public struct ProfileView: View {
                 isLoading = false
             }
             do {
+                if !profileList.isEmpty {
+                    profileList.removeAll()
+                }
                 profileList = try await ProfileManager.list()
             } catch {
                 alert = Alert(error)
