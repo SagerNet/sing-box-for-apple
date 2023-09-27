@@ -757,11 +757,11 @@
 		3ADF8DF52A4AFA8E00900CC8 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				3AAB5E752A4BFB0B009757F1 /* EditProfileContentView.swift */,
 				3ADF8DF62A4AFB2C00900CC8 /* ProfileView.swift */,
 				3ADF8DF82A4AFCB400900CC8 /* NewProfileView.swift */,
 				3ADF8DFC2A4B096000900CC8 /* EditProfileWindowView.swift */,
 				3ADF8E002A4B0F6300900CC8 /* EditProfileView.swift */,
-				3AAB5E752A4BFB0B009757F1 /* EditProfileContentView.swift */,
 				3AC8CF9A2A736C750002AF3C /* ImportProfileView.swift */,
 			);
 			path = Profile;

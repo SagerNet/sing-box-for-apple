@@ -11,8 +11,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func openTun(_ options: LibboxTunOptionsProtocol?, ret0_: UnsafeMutablePointer<Int32>?) throws {
-        try runBlocking {
-            try await self.openTun0(options, ret0_)
+        try runBlocking { [self] in
+            try await openTun0(options, ret0_)
         }
     }
 
@@ -88,7 +88,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let proxyServer = NEProxyServer(address: options.getHTTPProxyServer(), port: Int(options.getHTTPProxyServerPort()))
             proxySettings.httpServer = proxyServer
             proxySettings.httpsServer = proxyServer
-            if try await SharedPreferences.systemProxyEnabled.get() {
+            if await SharedPreferences.systemProxyEnabled.get() {
                 proxySettings.httpEnabled = true
                 proxySettings.httpsEnabled = true
             }
@@ -96,9 +96,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         }
 
         networkSettings = settings
-        try runBlocking { [self] in
-            try await tunnel.setTunnelNetworkSettings(settings)
-        }
+        try await tunnel.setTunnelNetworkSettings(settings)
 
         if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
             ret0_.pointee = tunFd

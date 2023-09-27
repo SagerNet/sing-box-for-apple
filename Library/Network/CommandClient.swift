@@ -92,19 +92,19 @@ public class CommandClient: ObservableObject {
             self.commandClient = commandClient
         }
 
-        nonisolated func connected() {
-            Task { @MainActor [self] in
-                self.commandClient.isConnected = true
+        func connected() {
+            DispatchQueue.main.sync {
+                commandClient.isConnected = true
             }
         }
 
-        nonisolated func disconnected(_: String?) {
-            Task { @MainActor [self] in
-                self.commandClient.isConnected = false
+        func disconnected(_: String?) {
+            DispatchQueue.main.sync {
+                commandClient.isConnected = false
             }
         }
 
-        nonisolated func writeLog(_ message: String?) {
+        func writeLog(_ message: String?) {
             guard let message else {
                 return
             }
@@ -113,18 +113,18 @@ public class CommandClient: ObservableObject {
                 logList.removeFirst()
             }
             logList.append(message)
-            Task { @MainActor [self, logList] in
-                self.commandClient.logList = logList
+            DispatchQueue.main.sync {
+                commandClient.logList = logList
             }
         }
 
-        nonisolated func writeStatus(_ message: LibboxStatusMessage?) {
-            Task { @MainActor [self] in
-                self.commandClient.status = message
+        func writeStatus(_ message: LibboxStatusMessage?) {
+            DispatchQueue.main.sync {
+                commandClient.status = message
             }
         }
 
-        nonisolated func writeGroups(_ groups: LibboxOutboundGroupIteratorProtocol?) {
+        func writeGroups(_ groups: LibboxOutboundGroupIteratorProtocol?) {
             guard let groups else {
                 return
             }
@@ -132,21 +132,21 @@ public class CommandClient: ObservableObject {
             while groups.hasNext() {
                 newGroups.append(groups.next()!)
             }
-            Task { @MainActor [self, newGroups] in
-                self.commandClient.groups = newGroups
+            DispatchQueue.main.sync {
+                commandClient.groups = newGroups
             }
         }
 
-        nonisolated func initializeClashMode(_ modeList: LibboxStringIteratorProtocol?, currentMode: String?) {
-            Task { @MainActor [self] in
-                self.commandClient.clashModeList = modeList!.toArray()
-                self.commandClient.clashMode = currentMode!
+        func initializeClashMode(_ modeList: LibboxStringIteratorProtocol?, currentMode: String?) {
+            DispatchQueue.main.sync {
+                commandClient.clashModeList = modeList!.toArray()
+                commandClient.clashMode = currentMode!
             }
         }
 
-        nonisolated func updateClashMode(_ newMode: String?) {
-            Task { @MainActor [self] in
-                self.commandClient.clashMode = newMode!
+        func updateClashMode(_ newMode: String?) {
+            DispatchQueue.main.sync {
+                commandClient.clashMode = newMode!
             }
         }
     }
