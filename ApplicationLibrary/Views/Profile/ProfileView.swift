@@ -166,12 +166,30 @@ public struct ProfileView: View {
                 }
             }
         }
-        #elseif os(iOS)
+        #endif
+        #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 EditButton().disabled(profileList.isEmpty)
             }
         }
+        #elseif os(tvOS)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if editMode == .inactive {
+                    Button("Edit") {
+                        editMode = .active
+                    }
+                    .disabled(profileList.isEmpty)
+                } else {
+                    Button("Done") {
+                        editMode = .inactive
+                    }
+                }
+            }
+        }
+        #endif
+        #if os(iOS) || os(tvOS)
         .environment(\.editMode, $editMode)
         #endif
     }

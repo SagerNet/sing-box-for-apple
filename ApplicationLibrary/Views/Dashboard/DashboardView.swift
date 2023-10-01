@@ -73,7 +73,9 @@ public struct DashboardView: View {
                 DashboardView1().environmentObject(profile)
             } else {
                 FormView {
-                    InstallProfileButton()
+                    InstallProfileButton {
+                        await environments.reload()
+                    }
                 }
             }
         }

@@ -14,6 +14,7 @@
         @State private var alert: Alert?
         @State private var connection: NWSocket?
         @State private var profiles: [LibboxProfilePreview]?
+        @State private var isImporting = false
         private let callback: () async -> Void
 
         public init(callback: @escaping () async -> Void) {
@@ -47,7 +48,7 @@
                                     selectProfile(profileID: profile.profileID)
                                     isLoading = false
                                 }
-                            }.disabled(isLoading)
+                            }.disabled(isLoading || isImporting)
                         }
                     }
                 } else {
@@ -76,12 +77,17 @@
             }
         }
 
-        private func loopMessages() async throws {
-            guard let connection else {
+        private nonisolated func loopMessages() async throws {
+            guard let connection = await connection else {
                 return
             }
+            var message: Data
             while true {
-                let message = try connection.read()
+                do {
+                    message = try connection.read()
+                } catch {
+                    throw NSError(domain: "read from connection: \(error.localizedDescription)", code: 0)
+                }
                 var error: NSError?
                 switch Int64(message[0]) {
                 case LibboxMessageTypeError:
@@ -105,7 +111,10 @@
                         }
                         profiles.append(profile)
                     }
-                    self.profiles = profiles
+                    await MainActor.run { [self, profiles] in
+                        self.profiles = profiles
+                        isImporting = false
+                    }
                 case LibboxMessageTypeProfileContent:
                     let content = LibboxDecodeProfileContent(message, &error)
                     if let error {
@@ -126,6 +135,7 @@
             request.profileID = profileID
             do {
                 try connection.write(request.encode())
+                isImporting = true
             } catch {
                 alert = Alert(error)
                 reset()

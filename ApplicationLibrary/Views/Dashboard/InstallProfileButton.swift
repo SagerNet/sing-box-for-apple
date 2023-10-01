@@ -5,7 +5,10 @@ import SwiftUI
 public struct InstallProfileButton: View {
     @State private var alert: Alert?
 
-    public init() {}
+    private let callback: () async -> Void
+    public init(_ callback: @escaping (() async -> Void)) {
+        self.callback = callback
+    }
 
     public var body: some View {
         Button("Install NetworkExtension") {
@@ -19,6 +22,7 @@ public struct InstallProfileButton: View {
     private func installProfile() async {
         do {
             try await ExtensionProfile.install()
+            await callback()
         } catch {
             alert = Alert(error)
         }

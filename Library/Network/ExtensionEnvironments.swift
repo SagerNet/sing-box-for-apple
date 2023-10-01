@@ -17,20 +17,16 @@ public class ExtensionEnvironments: ObservableObject {
         }
     }
 
-    public nonisolated func reload() async {
+    public func reload() async {
         if let newProfile = try? await ExtensionProfile.load() {
             if extensionProfile == nil || extensionProfile?.status == .invalid {
                 newProfile.register()
-                await MainActor.run {
-                    extensionProfile = newProfile
-                    extensionProfileLoading = false
-                }
-            }
-        } else {
-            await MainActor.run {
-                extensionProfile = nil
+                extensionProfile = newProfile
                 extensionProfileLoading = false
             }
+        } else {
+            extensionProfile = nil
+            extensionProfileLoading = false
         }
     }
 
