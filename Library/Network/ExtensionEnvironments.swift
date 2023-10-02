@@ -17,6 +17,7 @@ public class ExtensionEnvironments: ObservableObject {
         }
     }
 
+    @MainActor
     public func reload() async {
         if let newProfile = try? await ExtensionProfile.load() {
             if extensionProfile == nil || extensionProfile?.status == .invalid {

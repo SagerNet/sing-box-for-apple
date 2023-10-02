@@ -50,13 +50,13 @@ public class ExtensionProfile: ObservableObject {
 
     public func start() async throws {
         manager.isEnabled = true
-        if try await SharedPreferences.alwaysOn.get() {
+        if await SharedPreferences.alwaysOn.get() {
             manager.isOnDemandEnabled = true
             setOnDemandRules()
         }
         #if !os(tvOS)
             if let protocolConfiguration = manager.protocolConfiguration {
-                let includeAllNetworks = try await SharedPreferences.includeAllNetworks.get()
+                let includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
                 protocolConfiguration.includeAllNetworks = includeAllNetworks
                 if #available(iOS 16.4, macOS 13.3, *) {
                     protocolConfiguration.excludeCellularServices = !includeAllNetworks
