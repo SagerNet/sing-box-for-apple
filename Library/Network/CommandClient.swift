@@ -93,14 +93,20 @@ public class CommandClient: ObservableObject {
         }
 
         func connected() {
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async { [self] in
                 commandClient.isConnected = true
             }
         }
 
         func disconnected(_: String?) {
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async { [self] in
                 commandClient.isConnected = false
+            }
+        }
+
+        func clearLog() {
+            DispatchQueue.main.async { [self] in
+                commandClient.logList.removeAll()
             }
         }
 
@@ -108,18 +114,16 @@ public class CommandClient: ObservableObject {
             guard let message else {
                 return
             }
-            var logList = commandClient.logList
-            if logList.count > commandClient.logMaxLines {
-                logList.removeFirst()
-            }
-            logList.append(message)
-            DispatchQueue.main.sync {
-                commandClient.logList = logList
+            DispatchQueue.main.async { [self] in
+                if commandClient.logList.count > commandClient.logMaxLines {
+                    commandClient.logList.removeFirst()
+                }
+                commandClient.logList.append(message)
             }
         }
 
         func writeStatus(_ message: LibboxStatusMessage?) {
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async { [self] in
                 commandClient.status = message
             }
         }
@@ -132,20 +136,20 @@ public class CommandClient: ObservableObject {
             while groups.hasNext() {
                 newGroups.append(groups.next()!)
             }
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async { [self] in
                 commandClient.groups = newGroups
             }
         }
 
         func initializeClashMode(_ modeList: LibboxStringIteratorProtocol?, currentMode: String?) {
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async { [self] in
                 commandClient.clashModeList = modeList!.toArray()
                 commandClient.clashMode = currentMode!
             }
         }
 
         func updateClashMode(_ newMode: String?) {
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async { [self] in
                 commandClient.clashMode = newMode!
             }
         }

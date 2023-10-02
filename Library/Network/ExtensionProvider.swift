@@ -131,6 +131,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             boxService = nil
             commandServer.setService(nil)
         }
+        if let platformInterface {
+            platformInterface.reset()
+        }
     }
 
     func reloadService() async {

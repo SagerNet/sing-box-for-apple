@@ -69,6 +69,32 @@ public class Profile: Record, Identifiable, ObservableObject {
     }
 }
 
+public struct ProfilePreview: Identifiable, Hashable {
+    public let id: Int64
+    public let name: String
+    public var order: UInt32
+    public let type: ProfileType
+    public let path: String
+    public let remoteURL: String?
+    public let autoUpdate: Bool
+    public let autoUpdateInterval: Int32
+    public let lastUpdated: Date?
+    public let origin: Profile
+
+    public init(_ profile: Profile) {
+        id = profile.mustID
+        name = profile.name
+        order = profile.order
+        type = profile.type
+        path = profile.path
+        remoteURL = profile.remoteURL
+        autoUpdate = profile.autoUpdate
+        autoUpdateInterval = profile.autoUpdateInterval
+        lastUpdated = profile.lastUpdated
+        origin = profile
+    }
+}
+
 public enum ProfileType: Int {
     case local = 0, icloud, remote
 }

@@ -7,17 +7,15 @@ public struct EditProfileView: View {
         @Environment(\.openWindow) private var openWindow
     #endif
 
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var profile: Profile
 
     @State private var isLoading = false
     @State private var isChanged = false
     @State private var alert: Alert?
-    private let updateCallback: (() -> Void)?
-    public init(_ updateCallback: (() -> Void)? = nil) {
-        self.updateCallback = updateCallback
-    }
 
+    public init() {}
     public var body: some View {
         FormView {
             FormItem("Name") {
@@ -170,7 +168,7 @@ public struct EditProfileView: View {
         do {
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
             try await profile.updateRemoteProfile()
-            await performCallback()
+            environments.profileUpdate.send()
         } catch {
             alert = Alert(error)
         }
@@ -183,7 +181,7 @@ public struct EditProfileView: View {
             alert = Alert(error)
             return
         }
-        await performCallback()
+        environments.profileUpdate.send()
         dismiss()
     }
 
@@ -201,14 +199,6 @@ public struct EditProfileView: View {
         }
         isChanged = false
         isLoading = false
-        await performCallback()
-    }
-
-    private func performCallback() async {
-        if let updateCallback {
-            updateCallback()
-        } else {
-            NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
-        }
+        environments.profileUpdate.send()
     }
 }

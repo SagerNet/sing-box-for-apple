@@ -6,8 +6,7 @@ import SwiftUI
 
 @MainActor
 public struct ProfileView: View {
-    public static let notificationName = Notification.Name("\(FilePath.packageName).update-profile")
-
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.importProfile) private var importProfile
     @Environment(\.importRemoteProfile) private var importRemoteProfile
     @State private var importRemoteProfileRequest: NewProfileView.ImportRequest?
@@ -17,7 +16,7 @@ public struct ProfileView: View {
     @State private var isUpdating = false
 
     @State private var alert: Alert?
-    @State private var profileList: [Profile] = []
+    @State private var profileList: [ProfilePreview] = []
 
     #if os(iOS) || os(tvOS)
         @State private var editMode = EditMode.inactive
@@ -29,10 +28,7 @@ public struct ProfileView: View {
         @Environment(\.devicePickerSupports) private var devicePickerSupports
     #endif
 
-    @State private var observer: Any?
-
     public init() {}
-
     public var body: some View {
         VStack {
             if isLoading {
@@ -46,17 +42,13 @@ public struct ProfileView: View {
                     ZStack {
                         if let importRemoteProfileRequest {
                             NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
-                                NewProfileView(importRemoteProfileRequest) {
-                                    await doReload()
-                                }
+                                NewProfileView(importRemoteProfileRequest)
                             }
                         }
                         FormView {
                             #if os(iOS)
                                 NavigationLink {
-                                    NewProfileView {
-                                        await doReload()
-                                    }
+                                    NewProfileView()
                                 } label: {
                                     Text("New Profile").foregroundColor(.accentColor)
                                 }
@@ -64,9 +56,7 @@ public struct ProfileView: View {
                             #elseif os(tvOS)
                                 Section {
                                     NavigationLink {
-                                        NewProfileView {
-                                            await doReload()
-                                        }
+                                        NewProfileView()
                                     } label: {
                                         Text("New Profile").foregroundColor(.accentColor)
                                     }
@@ -85,7 +75,7 @@ public struct ProfileView: View {
                                 Text("Empty profiles")
                             } else {
                                 List {
-                                    ForEach(profileList, id: \.mustID) { profile in
+                                    ForEach(profileList, id: \.id) { profile in
                                         viewBuilder {
                                             if editMode.isEditing == true {
                                                 Text(profile.name)
@@ -106,7 +96,7 @@ public struct ProfileView: View {
                     } else {
                         FormView {
                             List {
-                                ForEach(profileList, id: \.mustID) { profile in
+                                ForEach(profileList, id: \.id) { profile in
                                     ProfileItem(self, profile)
                                 }
                                 .onMove(perform: moveProfile)
@@ -128,15 +118,6 @@ public struct ProfileView: View {
                 importRemoteProfile.wrappedValue = nil
                 createImportRemoteProfileDialog(remoteProfile)
             }
-            #if os(macOS)
-                if observer == nil {
-                    observer = NotificationCenter.default.addObserver(forName: ProfileView.notificationName, object: nil, queue: .main) { _ in
-                        Task {
-                            await doReload()
-                        }
-                    }
-                }
-            #endif
         }
         .onChangeCompat(of: importProfile.wrappedValue) { newValue in
             if let newValue {
@@ -150,23 +131,14 @@ public struct ProfileView: View {
                 createImportRemoteProfileDialog(newValue)
             }
         }
-        #if os(macOS)
-        .onDisappear {
-            if let observer {
-                NotificationCenter.default.removeObserver(observer)
-            }
-            observer = nil
+        .onReceive(environments.profileUpdate) { _ in
+            profileList = []
+            isLoading = true
+//            not updated, but why?
+//            Task {
+//                await doReload()
+//            }
         }
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    openWindow(id: NewProfileView.windowID)
-                } label: {
-                    Label("New Profile", systemImage: "plus.square.fill")
-                }
-            }
-        }
-        #endif
         #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -232,18 +204,15 @@ public struct ProfileView: View {
     private func doReload() async {
         if ApplicationLibrary.inPreview {
             profileList = [
-                Profile(id: 0, name: "profile local", type: .local, path: ""),
-                Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0)),
+                ProfilePreview(Profile(id: 0, name: "profile local", type: .local, path: "")),
+                ProfilePreview(Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0))),
             ]
         } else {
             defer {
                 isLoading = false
             }
             do {
-                if !profileList.isEmpty {
-                    profileList.removeAll()
-                }
-                profileList = try await ProfileManager.list()
+                profileList = try await ProfileManager.list().map { ProfilePreview($0) }
             } catch {
                 alert = Alert(error)
                 return
@@ -279,11 +248,12 @@ public struct ProfileView: View {
     private func moveProfile(from source: IndexSet, to destination: Int) {
         profileList.move(fromOffsets: source, toOffset: destination)
         for (index, profile) in profileList.enumerated() {
-            profile.order = UInt32(index)
+            profileList[index].order = UInt32(index)
+            profile.origin.order = UInt32(index)
         }
         Task {
             do {
-                try await ProfileManager.update(profileList)
+                try await ProfileManager.update(profileList.map(\.origin))
             } catch {
                 alert = Alert(error)
             }
@@ -292,7 +262,7 @@ public struct ProfileView: View {
 
     private func deleteProfile(where profileIndex: IndexSet) {
         let profileToDelete = profileIndex.map { index in
-            profileList[index]
+            profileList[index].origin
         }
         profileList.remove(atOffsets: profileIndex)
         Task {
@@ -306,16 +276,16 @@ public struct ProfileView: View {
 
     public struct ProfileItem: View {
         private let parent: ProfileView
-        private let profile: Profile
-        public init(_ parent: ProfileView, _ profile: Profile) {
+        @State private var profile: ProfilePreview
+        public init(_ parent: ProfileView, _ profile: ProfilePreview) {
             self.parent = parent
-            self.profile = profile
+            _profile = State(initialValue: profile)
         }
 
         public var body: some View {
             #if os(iOS) || os(macOS)
                 if #available(iOS 16.0, macOS 13.0,*) {
-                    body0.draggable(profile)
+                    body0.draggable(profile.origin)
                 } else {
                     body0
                 }
@@ -329,23 +299,20 @@ public struct ProfileView: View {
             viewBuilder {
                 #if !os(macOS)
                     NavigationLink {
-                        EditProfileView {
-                            Task {
-                                await parent.doReload()
-                            }
-                        }.environmentObject(profile)
+                        EditProfileView().environmentObject(profile.origin)
                     } label: {
                         Text(profile.name)
                     }
                     .contextMenu {
-                        ProfileShareButton(parent.$alert, profile) {
+                        ProfileShareButton(parent.$alert, profile.origin) {
                             Label("Share", systemImage: "square.and.arrow.up.fill")
                         }
                         if profile.type == .remote {
                             Button {
                                 parent.isUpdating = true
                                 Task {
-                                    await parent.updateProfile(profile)
+                                    await parent.updateProfile(profile.origin)
+                                    profile = ProfilePreview(profile.origin)
                                 }
                             } label: {
                                 Label("Update", systemImage: "arrow.clockwise")
@@ -353,7 +320,7 @@ public struct ProfileView: View {
                         }
                         Button(role: .destructive) {
                             Task {
-                                await parent.deleteProfile(profile)
+                                await parent.deleteProfile(profile.origin)
                             }
                         } label: {
                             Label("Delete", systemImage: "trash.fill")
@@ -365,7 +332,7 @@ public struct ProfileView: View {
                             Text(profile.name)
                             if profile.type == .remote {
                                 Spacer(minLength: 4)
-                                Text("Last Updated: \(profile.lastUpdatedString)").font(.caption)
+                                Text("Last Updated: \(profile.origin.lastUpdatedString)").font(.caption)
                             }
                         }
                         HStack {
@@ -373,23 +340,24 @@ public struct ProfileView: View {
                                 Button {
                                     parent.isUpdating = true
                                     Task {
-                                        await parent.updateProfile(profile)
+                                        await parent.updateProfile(profile.origin)
+                                        profile = ProfilePreview(profile.origin)
                                     }
                                 } label: {
                                     Image(systemName: "arrow.clockwise")
                                 }
                             }
-                            ProfileShareButton(parent.$alert, profile) {
+                            ProfileShareButton(parent.$alert, profile.origin) {
                                 Image(systemName: "square.and.arrow.up.fill")
                             }
                             Button {
-                                parent.openWindow(id: EditProfileWindowView.windowID, value: profile.mustID)
+                                parent.openWindow(id: EditProfileWindowView.windowID, value: profile.id)
                             } label: {
                                 Image(systemName: "pencil")
                             }
                             Button {
                                 Task {
-                                    await parent.deleteProfile(profile)
+                                    await parent.deleteProfile(profile.origin)
                                 }
                             } label: {
                                 Image(systemName: "trash.fill")

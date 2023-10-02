@@ -7,10 +7,11 @@ import SwiftUI
 public struct ActiveDashboardView: View {
     @Environment(\.scenePhase) var scenePhase
     @Environment(\.selection) private var parentSelection
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
     @State private var isLoading = true
-    @State private var profileList: [Profile] = []
-    @State private var selectedProfileID: Int64!
+    @State private var profileList: [ProfilePreview] = []
+    @State private var selectedProfileID: Int64 = 0
     @State private var alert: Alert?
     @State private var selection = DashboardPage.overview
     @State private var systemProxyAvailable = false
@@ -73,22 +74,19 @@ public struct ActiveDashboardView: View {
                 OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
             #endif
         }
-        #if os(iOS) || os(tvOS)
-        .onChangeCompat(of: scenePhase) { newValue in
-            if newValue == .active {
-                Task {
-                    await doReload()
+        .onReceive(environments.profileUpdate) { _ in
+            Task {
+                await doReload()
+            }
+        }
+        .onReceive(environments.selectedProfileUpdate) { _ in
+            Task {
+                selectedProfileID = await SharedPreferences.selectedProfileID.get()
+                if profile.status.isConnected {
+                    await doReloadSystemProxy()
                 }
             }
         }
-        .onChangeCompat(of: parentSelection.wrappedValue) { newValue in
-            if newValue == .dashboard {
-                Task {
-                    await doReload()
-                }
-            }
-        }
-        #endif
         .alertBinding($alert)
     }
 
@@ -98,8 +96,8 @@ public struct ActiveDashboardView: View {
         }
         if ApplicationLibrary.inPreview {
             profileList = [
-                Profile(id: 0, name: "profile local", type: .local, path: ""),
-                Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0)),
+                ProfilePreview(Profile(id: 0, name: "profile local", type: .local, path: "")),
+                ProfilePreview(Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0))),
             ]
             systemProxyAvailable = true
             systemProxyEnabled = true
@@ -107,7 +105,7 @@ public struct ActiveDashboardView: View {
 
         } else {
             do {
-                profileList = try await ProfileManager.list()
+                profileList = try await ProfileManager.list().map { ProfilePreview($0) }
                 if profileList.isEmpty {
                     return
                 }
@@ -116,7 +114,7 @@ public struct ActiveDashboardView: View {
                     profile.id == selectedProfileID
                 })
                 .isEmpty {
-                    selectedProfileID = profileList[0].id!
+                    selectedProfileID = profileList[0].id
                     await SharedPreferences.selectedProfileID.set(selectedProfileID)
                 }
 

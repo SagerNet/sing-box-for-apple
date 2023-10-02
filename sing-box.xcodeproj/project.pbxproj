@@ -92,6 +92,7 @@
 		3AC729F02A75D9D000FE8EC1 /* Profile+Transferable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC729EF2A75D9D000FE8EC1 /* Profile+Transferable.swift */; };
 		3AC729F22A76088E00FE8EC1 /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC729F12A76088E00FE8EC1 /* ShareButton.swift */; };
 		3AC8CF9B2A736C750002AF3C /* ImportProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC8CF9A2A736C750002AF3C /* ImportProfileView.swift */; };
+		3ACE6DE32ACADF55009D9A8A /* Binding+Setter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ACE6DE22ACADF55009D9A8A /* Binding+Setter.swift */; };
 		3AD0953D2A70EB310052764E /* Profile+Share.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD0953C2A70EB310052764E /* Profile+Share.swift */; };
 		3ADBB4252A7389640041D44F /* ProfileServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADBB4242A7389640041D44F /* ProfileServer.swift */; };
 		3ADBB42A2A73A7060041D44F /* NWSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADBB4292A73A7060041D44F /* NWSocket.swift */; };
@@ -491,6 +492,7 @@
 		3AC729EF2A75D9D000FE8EC1 /* Profile+Transferable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+Transferable.swift"; sourceTree = "<group>"; };
 		3AC729F12A76088E00FE8EC1 /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
 		3AC8CF9A2A736C750002AF3C /* ImportProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProfileView.swift; sourceTree = "<group>"; };
+		3ACE6DE22ACADF55009D9A8A /* Binding+Setter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Binding+Setter.swift"; sourceTree = "<group>"; };
 		3AD0953C2A70EB310052764E /* Profile+Share.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+Share.swift"; sourceTree = "<group>"; };
 		3ADBB4242A7389640041D44F /* ProfileServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileServer.swift; sourceTree = "<group>"; };
 		3ADBB4292A73A7060041D44F /* NWSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NWSocket.swift; sourceTree = "<group>"; };
@@ -988,6 +990,7 @@
 				3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */,
 				3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */,
 				3AC729F12A76088E00FE8EC1 /* ShareButton.swift */,
+				3ACE6DE22ACADF55009D9A8A /* Binding+Setter.swift */,
 			);
 			path = Abstract;
 			sourceTree = "<group>";
@@ -1463,6 +1466,7 @@
 				3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */,
 				3AC729F22A76088E00FE8EC1 /* ShareButton.swift in Sources */,
 				3A0C6D3C2A79D46500A4DF2B /* OverviewView.swift in Sources */,
+				3ACE6DE32ACADF55009D9A8A /* Binding+Setter.swift in Sources */,
 				3A4EAD262A4FEB65005435B3 /* ExtensionStatusView.swift in Sources */,
 				3A4EAD252A4FEB65005435B3 /* StartStopButton.swift in Sources */,
 				3A4EAD2B2A4FEB6D005435B3 /* ViewBuilder.swift in Sources */,
@@ -1962,7 +1966,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -1996,7 +2000,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2230,7 +2234,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2270,7 +2274,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2293,7 +2297,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 85;
+				CURRENT_PROJECT_VERSION = 88;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2309,7 +2313,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2331,7 +2335,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 85;
+				CURRENT_PROJECT_VERSION = 88;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2347,7 +2351,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.6.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2391,7 +2395,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACH_O_TYPE = mh_dylib;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
@@ -2445,7 +2449,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACH_O_TYPE = mh_dylib;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
@@ -2489,7 +2493,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = "1.6.0-alpha.1";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2525,7 +2529,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = "1.6.0-alpha.1";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2565,7 +2569,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = "1.6.0-alpha.1";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2604,7 +2608,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = "1.6.0-alpha.1";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";

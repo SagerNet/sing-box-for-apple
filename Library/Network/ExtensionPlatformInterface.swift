@@ -173,7 +173,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func serviceReload() throws {
-        Task {
+        runBlocking { [self] in
             await tunnel.reloadService()
         }
     }
@@ -213,5 +213,9 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         try runBlocking {
             try await self.tunnel.setTunnelNetworkSettings(networkSettings)
         }
+    }
+
+    func reset() {
+        networkSettings = nil
     }
 }

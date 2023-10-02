@@ -9,6 +9,7 @@ public struct NewProfileView: View {
         public static let windowID = "new-profile"
     #endif
 
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
 
     @State private var isSaving = false
@@ -27,9 +28,7 @@ public struct NewProfileView: View {
         public let url: String
     }
 
-    private let callback: (() async -> Void)?
-    public init(_ importRequest: ImportRequest? = nil, _ callback: (() async -> Void)? = nil) {
-        self.callback = callback
+    public init(_ importRequest: ImportRequest? = nil) {
         if let importRequest {
             _profileName = .init(initialValue: importRequest.name)
             _profileType = .init(initialValue: .remote)
@@ -156,12 +155,9 @@ public struct NewProfileView: View {
             alert = Alert(error)
             return
         }
-        if let callback {
-            await callback()
-        }
+        environments.profileUpdate.send()
         dismiss()
         #if os(macOS)
-            NotificationCenter.default.post(name: ProfileView.notificationName, object: nil)
             resetFields()
         #endif
     }

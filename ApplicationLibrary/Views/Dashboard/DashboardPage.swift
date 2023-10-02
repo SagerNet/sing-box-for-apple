@@ -31,7 +31,7 @@ public extension DashboardPage {
     }
 
     @MainActor
-    func contentView(_ profileList: Binding<[Profile]>, _ selectedProfileID: Binding<Int64?>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>) -> some View {
+    func contentView(_ profileList: Binding<[ProfilePreview]>, _ selectedProfileID: Binding<Int64>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>) -> some View {
         viewBuilder {
             switch self {
             case .overview:

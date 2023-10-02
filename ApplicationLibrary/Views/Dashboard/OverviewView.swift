@@ -5,19 +5,26 @@ import SwiftUI
 
 @MainActor
 public struct OverviewView: View {
-    public static let NotificationUpdateSelectedProfile = Notification.Name("update-selected-profile")
-
     @Environment(\.selection) private var selection
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
-    @Binding private var profileList: [Profile]
-    @Binding private var selectedProfileID: Int64!
+    @Binding private var profileList: [ProfilePreview]
+    @Binding private var selectedProfileID: Int64
     @Binding private var systemProxyAvailable: Bool
     @Binding private var systemProxyEnabled: Bool
     @State private var alert: Alert?
     @State private var reasserting = false
-    @State private var observer: Any?
 
-    public init(_ profileList: Binding<[Profile]>, _ selectedProfileID: Binding<Int64?>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>) {
+    private var selectedProfileIDLocal: Binding<Int64> {
+        $selectedProfileID.withSetter { newValue in
+            reasserting = true
+            Task { [self] in
+                await switchProfile(newValue)
+            }
+        }
+    }
+
+    public init(_ profileList: Binding<[ProfilePreview]>, _ selectedProfileID: Binding<Int64>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>) {
         _profileList = profileList
         _selectedProfileID = selectedProfileID
         _systemProxyAvailable = systemProxyAvailable
@@ -45,7 +52,7 @@ public struct OverviewView: View {
                                 }
                         }
                         Section("Profile") {
-                            Picker(selection: $selectedProfileID) {
+                            Picker(selection: selectedProfileIDLocal) {
                                 ForEach(profileList, id: \.id) { profile in
                                     Text(profile.name).tag(profile.id)
                                 }
@@ -63,7 +70,7 @@ public struct OverviewView: View {
                         }
                         Section("Profile") {
                             ForEach(profileList, id: \.id) { profile in
-                                Picker(profile.name, selection: $selectedProfileID) {
+                                Picker(profile.name, selection: selectedProfileIDLocal) {
                                     Text("").tag(profile.id)
                                 }
                             }
@@ -74,44 +81,24 @@ public struct OverviewView: View {
             }
         }
         .alertBinding($alert)
-        .onChangeCompat(of: selectedProfileID) {
-            reasserting = true
-            Task {
-                await switchProfile(selectedProfileID!)
-            }
-        }
         .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || reasserting))
-        #if os(macOS)
-            .onAppear {
-                if observer == nil {
-                    observer = NotificationCenter.default.addObserver(forName: OverviewView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { newProfileID in
-                        selectedProfileID = newProfileID.object as! Int64
-                    })
-                }
-            }
-            .onDisappear {
-                if let observer {
-                    NotificationCenter.default.removeObserver(observer)
-                }
-            }
-        #endif
     }
 
-    private nonisolated func switchProfile(_ newProfileID: Int64) async {
+    private func switchProfile(_ newProfileID: Int64) async {
         await SharedPreferences.selectedProfileID.set(newProfileID)
-        NotificationCenter.default.post(name: OverviewView.NotificationUpdateSelectedProfile, object: newProfileID)
-        if await profile.status.isConnected {
+        environments.selectedProfileUpdate.send()
+        if profile.status.isConnected {
             do {
-                try LibboxNewStandaloneCommandClient()!.serviceReload()
+                try await serviceReload()
             } catch {
-                await MainActor.run {
-                    alert = Alert(error)
-                }
+                alert = Alert(error)
             }
         }
-        await MainActor.run {
-            reasserting = false
-        }
+        reasserting = false
+    }
+
+    private nonisolated func serviceReload() async throws {
+        try LibboxNewStandaloneCommandClient()?.serviceReload()
     }
 
     private nonisolated func setSystemProxyEnabled(_ isEnabled: Bool) async {

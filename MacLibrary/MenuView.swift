@@ -106,6 +106,7 @@ public struct MenuView: View {
     }
 
     private struct ProfilePicker: View {
+        @EnvironmentObject private var environments: ExtensionEnvironments
         @ObservedObject private var profile: ExtensionProfile
 
         init(_ profile: ExtensionProfile) {
@@ -113,11 +114,19 @@ public struct MenuView: View {
         }
 
         @State private var isLoading = true
-        @State private var profileList: [Profile] = []
-        @State private var selectedProfileID: Int64!
+        @State private var profileList: [ProfilePreview] = []
+        @State private var selectedProfileID: Int64 = 0
         @State private var reasserting = false
-        @State private var observer: Any?
         @State private var alert: Alert?
+
+        private var selectedProfileIDLocal: Binding<Int64> {
+            $selectedProfileID.withSetter { newValue in
+                reasserting = true
+                Task { [self] in
+                    await switchProfile(newValue)
+                }
+            }
+        }
 
         var body: some View {
             viewBuilder {
@@ -132,32 +141,24 @@ public struct MenuView: View {
                         Text("Empty profiles")
                     } else {
                         MenuSection("Profile")
-                        Picker("", selection: $selectedProfileID) {
+                        Picker("", selection: selectedProfileIDLocal) {
                             ForEach(profileList, id: \.id) { profile in
                                 Text(profile.name)
                             }
                         }
                         .pickerStyle(.inline)
-                        .onChangeCompat(of: selectedProfileID) {
-                            reasserting = true
-                            Task {
-                                await switchProfile(selectedProfileID!)
-                            }
-                        }
                         .disabled(!profile.status.isSwitchable || reasserting)
                     }
                 }
             }
-            .onAppear {
-                if observer == nil {
-                    observer = NotificationCenter.default.addObserver(forName: OverviewView.NotificationUpdateSelectedProfile, object: nil, queue: nil, using: { notification in
-                        selectedProfileID = notification.object as! Int64
-                    })
+            .onReceive(environments.profileUpdate) { _ in
+                Task {
+                    await doReload()
                 }
             }
-            .onDisappear {
-                if let observer {
-                    NotificationCenter.default.removeObserver(observer)
+            .onReceive(environments.selectedProfileUpdate) { _ in
+                Task {
+                    selectedProfileID = await SharedPreferences.selectedProfileID.get()
                 }
             }
             .alertBinding($alert)
@@ -168,7 +169,7 @@ public struct MenuView: View {
                 isLoading = false
             }
             do {
-                profileList = try await ProfileManager.list()
+                profileList = try await ProfileManager.list().map { ProfilePreview($0) }
             } catch {
                 alert = Alert(error)
                 return
@@ -181,14 +182,14 @@ public struct MenuView: View {
                 profile.id == selectedProfileID
             })
             .isEmpty {
-                selectedProfileID = profileList[0].id!
+                selectedProfileID = profileList[0].id
                 await SharedPreferences.selectedProfileID.set(selectedProfileID)
             }
         }
 
         private func switchProfile(_ newProfileID: Int64) async {
             await SharedPreferences.selectedProfileID.set(newProfileID)
-            NotificationCenter.default.post(name: OverviewView.NotificationUpdateSelectedProfile, object: newProfileID)
+            environments.selectedProfileUpdate.send()
             if profile.status.isConnected {
                 do {
                     try await serviceReload()
