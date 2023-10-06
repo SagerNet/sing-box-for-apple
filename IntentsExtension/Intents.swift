@@ -104,7 +104,7 @@ struct ToggleServiceIntent: AppIntent {
         Summary("Toggle sing-box service")
     }
 
-    func perform() async throws -> some IntentResult {
+    func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
         guard let extensionProfile = try await (ExtensionProfile.load()) else {
             return .result(value: false)
         }
@@ -129,7 +129,7 @@ struct GetServiceStatus: AppIntent {
         Summary("Get is sing-box service started")
     }
 
-    func perform() async throws -> some IntentResult {
+    func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
         guard let extensionProfile = try await (ExtensionProfile.load()) else {
             return .result(value: false)
         }
@@ -147,7 +147,7 @@ struct GetCurrentProfile: AppIntent {
         Summary("Get current sing-box profile")
     }
 
-    func perform() async throws -> some IntentResult {
+    func perform() async throws -> some IntentResult & ReturnsValue<String> {
         guard let profile = try await ProfileManager.get(SharedPreferences.selectedProfileID.get()) else {
             throw NSError(domain: "No profile selected", code: 0)
         }
