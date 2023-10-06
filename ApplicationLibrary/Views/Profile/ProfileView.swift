@@ -139,7 +139,17 @@ public struct ProfileView: View {
 //                await doReload()
 //            }
         }
-        #if os(iOS)
+        #if os(macOS)
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    openWindow(id: NewProfileView.windowID)
+                } label: {
+                    Label("New Profile", systemImage: "plus.square.fill")
+                }
+            }
+        }
+        #elseif os(iOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 EditButton().disabled(profileList.isEmpty)
