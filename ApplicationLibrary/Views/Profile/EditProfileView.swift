@@ -76,11 +76,13 @@ public struct EditProfileView: View {
                                 Text("Share")
                             }
                         #endif
-                        ShareButtonCompat($alert) {
-                            Text("Share URL")
-                        } itemURL: {
-                            profile.shareLink
-                        }
+                        #if os(iOS) || os(macOS)
+                            ShareButtonCompat($alert) {
+                                Text("Share URL")
+                            } itemURL: {
+                                profile.shareLink
+                            }
+                        #endif
                         Button("Update") {
                             isLoading = true
                             Task {
