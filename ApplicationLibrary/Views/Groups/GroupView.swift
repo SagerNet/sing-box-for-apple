@@ -132,7 +132,7 @@ public struct GroupView: View {
         #if os(iOS)
             return standardCount < 2 ? 2 : standardCount
         #elseif os(tvOS)
-            return Int(Int(geometryWidth) / 400)
+            return 4
         #else
             return standardCount < 1 ? 1 : standardCount
         #endif

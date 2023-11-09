@@ -13,7 +13,6 @@ struct MainView: View {
             ForEach(NavigationPage.allCases, id: \.self) { page in
                 NavigationStackCompat {
                     page.contentView
-                        .navigationTitle(page.title)
                         .focusSection()
                 }
                 .tag(page)
