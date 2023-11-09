@@ -73,7 +73,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let inet6RouteAddressIterator = options.getInet6RouteAddress()!
             if inet6RouteAddressIterator.hasNext() {
                 while inet6RouteAddressIterator.hasNext() {
-                    let ipv6RoutePrefix = inet4RouteAddressIterator.next()!
+                    let ipv6RoutePrefix = inet6RouteAddressIterator.next()!
                     ipv6Routes.append(NEIPv6Route(destinationAddress: ipv6RoutePrefix.description, networkPrefixLength: NSNumber(value: ipv6RoutePrefix.prefix)))
                 }
             } else {
