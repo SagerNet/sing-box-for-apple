@@ -47,7 +47,7 @@ public enum ProfileUpdateTask {
         }
     }
 
-    static func updateProfiles(_ profiles: [Profile]) async throws -> Bool {
+    static func updateProfiles(_ profiles: [Profile]) async -> Bool {
         var success = true
         for profile in profiles {
             if profile.lastUpdated! > Date(timeIntervalSinceNow: -profile.autoUpdateIntervalOrDefault) {
@@ -55,6 +55,7 @@ public enum ProfileUpdateTask {
             }
             do {
                 try await profile.updateRemoteProfile()
+                NSLog("Updated profile \(profile.name)")
             } catch {
                 NSLog("Update profile \(profile.name) failed: \(error.localizedDescription)")
                 success = false
