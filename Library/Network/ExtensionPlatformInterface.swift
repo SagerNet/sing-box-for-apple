@@ -1,6 +1,9 @@
 import Foundation
 import Libbox
 import NetworkExtension
+#if canImport(CoreWLAN)
+    import CoreWLAN
+#endif
 
 public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol, LibboxCommandServerHandlerProtocol {
     private let tunnel: ExtensionProvider
@@ -170,6 +173,31 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         tunnel.setTunnelNetworkSettings(networkSettings) { _ in
         }
         tunnel.reasserting = false
+    }
+
+    public func readWIFIState() -> LibboxWIFIState? {
+        #if os(iOS)
+            let network = runBlocking {
+                await NEHotspotNetwork.fetchCurrent()
+            }
+            guard let network else {
+                return nil
+            }
+            return LibboxWIFIState(network.ssid, wifiBSSID: network.bssid)!
+        #elseif os(macOS)
+            guard let interface = CWWiFiClient.shared().interface() else {
+                return nil
+            }
+            guard let ssid = interface.ssid() else {
+                return nil
+            }
+            guard let bssid = interface.bssid() else {
+                return nil
+            }
+            return LibboxWIFIState(ssid, wifiBSSID: bssid)!
+        #else
+            return nil
+        #endif
     }
 
     public func serviceReload() throws {
