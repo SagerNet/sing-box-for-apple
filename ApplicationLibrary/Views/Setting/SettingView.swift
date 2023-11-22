@@ -101,14 +101,51 @@ public struct SettingView: View {
                                         Task {
                                             do {
                                                 if let result = try await SystemExtension.install(forceUpdate: true) {
-                                                    if result == .willCompleteAfterReboot {
-                                                        alert = Alert(errorMessage: "Need reboot")
+                                                    switch result {
+                                                    case .completed:
+                                                        alert = Alert(
+                                                            title: Text("Update"),
+                                                            message: Text("System Extension updated."),
+                                                            dismissButton: .default(Text("Ok")) {}
+                                                        )
+                                                    case .willCompleteAfterReboot:
+                                                        alert = Alert(
+                                                            title: Text("Update"),
+                                                            message: Text("Reboot required."),
+                                                            dismissButton: .default(Text("Ok")) {}
+                                                        )
                                                     }
                                                 }
                                             } catch {
                                                 alert = Alert(error)
                                             }
                                         }
+                                    }
+                                    Button {
+                                        Task {
+                                            do {
+                                                if let result = try await SystemExtension.uninstall() {
+                                                    switch result {
+                                                    case .completed:
+                                                        alert = Alert(
+                                                            title: Text("Uninstall"),
+                                                            message: Text("System Extension removed."),
+                                                            dismissButton: .default(Text("Ok")) {}
+                                                        )
+                                                    case .willCompleteAfterReboot:
+                                                        alert = Alert(
+                                                            title: Text("Uninstall"),
+                                                            message: Text("Reboot required."),
+                                                            dismissButton: .default(Text("Ok")) {}
+                                                        )
+                                                    }
+                                                }
+                                            } catch {
+                                                alert = Alert(error)
+                                            }
+                                        }
+                                    } label: {
+                                        Text("Uninstall System Extension").foregroundColor(.red)
                                     }
                                 }.frame(maxWidth: .infinity, alignment: .trailing)
                             }

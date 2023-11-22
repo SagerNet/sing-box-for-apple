@@ -10,7 +10,7 @@
         private var properties: [OSSystemExtensionProperties]?
         private var error: Error?
 
-        private init(forceUpdate: Bool = false, inBackground: Bool = false) {
+        private init(_ forceUpdate: Bool = false, _ inBackground: Bool = false) {
             self.forceUpdate = forceUpdate
             self.inBackground = inBackground
         }
@@ -53,8 +53,19 @@
             semaphore.signal()
         }
 
-        public func submitAndWait() throws -> OSSystemExtensionRequest.Result? {
+        public func activation() throws -> OSSystemExtensionRequest.Result? {
             let request = OSSystemExtensionRequest.activationRequest(forExtensionWithIdentifier: FilePath.packageName + ".system", queue: .main)
+            request.delegate = self
+            OSSystemExtensionManager.shared.submitRequest(request)
+            semaphore.wait()
+            if let error {
+                throw error
+            }
+            return result
+        }
+
+        public func deactivation() throws -> OSSystemExtensionRequest.Result? {
+            let request = OSSystemExtensionRequest.deactivationRequest(forExtensionWithIdentifier: FilePath.packageName + ".system", queue: .main)
             request.delegate = self
             OSSystemExtensionManager.shared.submitRequest(request)
             semaphore.wait()
@@ -100,9 +111,15 @@
             return false
         }
 
-        public static func install(forceUpdate: Bool = false, inBackground _: Bool = false) async throws -> OSSystemExtensionRequest.Result? {
+        public static func install(forceUpdate: Bool = false, inBackground: Bool = false) async throws -> OSSystemExtensionRequest.Result? {
             try await Task.detached {
-                try SystemExtension(forceUpdate: forceUpdate).submitAndWait()
+                try SystemExtension(forceUpdate, inBackground).activation()
+            }.result.get()
+        }
+
+        public static func uninstall() async throws -> OSSystemExtensionRequest.Result? {
+            try await Task.detached {
+                try SystemExtension().deactivation()
             }.result.get()
         }
     }
