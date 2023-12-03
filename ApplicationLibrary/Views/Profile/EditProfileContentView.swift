@@ -47,8 +47,12 @@
                         }
                     }
                     .font(Font.system(.caption2, design: .monospaced))
-                    .autocorrectionDisabled()
+                    .autocorrectionDisabled(true)
+                    // https://stackoverflow.com/questions/66721935/swiftui-how-to-disable-the-smart-quotes-in-texteditor
+                    // https://stackoverflow.com/questions/74034171/textfield-with-autocorrectiondisabled-still-shows-predictive-text-bar
+                    .textContentType(.init(rawValue: ""))
                     #if os(iOS)
+                        .keyboardType(.asciiCapable)
                         .textInputAutocapitalization(.none)
                         .background(Color(UIColor.secondarySystemGroupedBackground))
                     #elseif os(macOS)
