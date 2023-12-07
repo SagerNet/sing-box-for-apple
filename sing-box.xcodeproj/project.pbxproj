@@ -140,6 +140,7 @@
 		3AEECC4E2A6DFF13006A0E0C /* MacControlCenterUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3AEECC4D2A6DFF13006A0E0C /* MacControlCenterUI */; };
 		3AEECC4F2A6DFFE1006A0E0C /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEC210D2A459B1900A63465 /* MainView.swift */; };
 		3AF342A02A4A9916002B34AC /* ExtensionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF3429F2A4A9916002B34AC /* ExtensionProfile.swift */; };
+		3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -549,6 +550,7 @@
 		3AF342CC2A4AA88C002B34AC /* StartStopButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartStopButton.swift; sourceTree = "<group>"; };
 		3AF342D02A4AACC4002B34AC /* ExtensionStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionStatusView.swift; sourceTree = "<group>"; };
 		3AF342D32A4AADB2002B34AC /* Formtem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formtem.swift; sourceTree = "<group>"; };
+		3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.0.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -623,6 +625,7 @@
 				3A017F922A4AB2E4009149FA /* GRDB in Frameworks */,
 				3A76504C2A4F08BA003945C5 /* Libbox.xcframework in Frameworks */,
 				3A7E90382A46778E00D53052 /* BinaryCodable in Frameworks */,
+				3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -834,6 +837,7 @@
 		3AEC21012A459AE300A63465 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */,
 				3A3DEBE62A4FFA6000373BF4 /* AppIntents.framework */,
 				3A3DEBE12A4FFA1A00373BF4 /* ExtensionFoundation.framework */,
 				3AF342B12A4AA520002B34AC /* NetworkExtension.framework */,
@@ -1966,7 +1970,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2000,7 +2004,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2238,7 +2242,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2278,7 +2282,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2301,7 +2305,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 134;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2317,7 +2321,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2339,7 +2343,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 114;
+				CURRENT_PROJECT_VERSION = 134;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2355,7 +2359,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7.0;
+				MARKETING_VERSION = 1.8.0;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2497,7 +2501,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7.0-beta.4;
+				MARKETING_VERSION = "1.8.0-alpha.15";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2533,7 +2537,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7.0-beta.4;
+				MARKETING_VERSION = "1.8.0-alpha.15";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2573,7 +2577,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7.0-beta.4;
+				MARKETING_VERSION = "1.8.0-alpha.15";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2612,7 +2616,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7.0-beta.4;
+				MARKETING_VERSION = "1.8.0-alpha.15";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
