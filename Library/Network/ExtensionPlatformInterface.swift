@@ -43,24 +43,32 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let ipv4AddressIterator = options.getInet4Address()!
             while ipv4AddressIterator.hasNext() {
                 let ipv4Prefix = ipv4AddressIterator.next()!
-                ipv4Address.append(ipv4Prefix.address)
+                ipv4Address.append(ipv4Prefix.address())
                 ipv4Mask.append(ipv4Prefix.mask())
             }
+
             let ipv4Settings = NEIPv4Settings(addresses: ipv4Address, subnetMasks: ipv4Mask)
             var ipv4Routes: [NEIPv4Route] = []
+            var ipv4ExcludeRoutes: [NEIPv4Route] = []
+
             let inet4RouteAddressIterator = options.getInet4RouteAddress()!
             if inet4RouteAddressIterator.hasNext() {
                 while inet4RouteAddressIterator.hasNext() {
                     let ipv4RoutePrefix = inet4RouteAddressIterator.next()!
-                    ipv4Routes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address, subnetMask: ipv4RoutePrefix.mask()))
+                    ipv4Routes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
                 }
             } else {
                 ipv4Routes.append(NEIPv4Route.default())
             }
-            for (index, address) in ipv4Address.enumerated() {
-                ipv4Routes.append(NEIPv4Route(destinationAddress: address, subnetMask: ipv4Mask[index]))
+
+            let inet4RouteExcludeAddressIterator = options.getInet4RouteExcludeAddress()!
+            while inet4RouteExcludeAddressIterator.hasNext() {
+                let ipv4RoutePrefix = inet4RouteExcludeAddressIterator.next()!
+                ipv4ExcludeRoutes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
             }
+
             ipv4Settings.includedRoutes = ipv4Routes
+            ipv4Settings.excludedRoutes = ipv4ExcludeRoutes
             settings.ipv4Settings = ipv4Settings
 
             var ipv6Address: [String] = []
@@ -68,21 +76,31 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let ipv6AddressIterator = options.getInet6Address()!
             while ipv6AddressIterator.hasNext() {
                 let ipv6Prefix = ipv6AddressIterator.next()!
-                ipv6Address.append(ipv6Prefix.address)
-                ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix))
+                ipv6Address.append(ipv6Prefix.address())
+                ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix()))
             }
             let ipv6Settings = NEIPv6Settings(addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
             var ipv6Routes: [NEIPv6Route] = []
+            var ipv6ExcludeRoutes: [NEIPv6Route] = []
+
             let inet6RouteAddressIterator = options.getInet6RouteAddress()!
             if inet6RouteAddressIterator.hasNext() {
                 while inet6RouteAddressIterator.hasNext() {
                     let ipv6RoutePrefix = inet6RouteAddressIterator.next()!
-                    ipv6Routes.append(NEIPv6Route(destinationAddress: ipv6RoutePrefix.description, networkPrefixLength: NSNumber(value: ipv6RoutePrefix.prefix)))
+                    ipv6Routes.append(NEIPv6Route(destinationAddress: ipv6RoutePrefix.address(), networkPrefixLength: NSNumber(value: ipv6RoutePrefix.prefix())))
                 }
             } else {
                 ipv6Routes.append(NEIPv6Route.default())
             }
+
+            let inet6RouteExcludeAddressIterator = options.getInet6RouteExcludeAddress()!
+            while inet6RouteExcludeAddressIterator.hasNext() {
+                let ipv6RoutePrefix = inet6RouteExcludeAddressIterator.next()!
+                ipv6ExcludeRoutes.append(NEIPv6Route(destinationAddress: ipv6RoutePrefix.address(), networkPrefixLength: NSNumber(value: ipv6RoutePrefix.prefix())))
+            }
+
             ipv6Settings.includedRoutes = ipv6Routes
+            ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
             settings.ipv6Settings = ipv6Settings
         }
 
