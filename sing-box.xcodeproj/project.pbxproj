@@ -27,6 +27,7 @@
 		3A3AA7FF2A4EFDB3002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3DEBEB2A4FFE2D00373BF4 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A3DEBE62A4FFA6000373BF4 /* AppIntents.framework */; };
 		3A44BB822A4DC28700E4C9F8 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A44BB812A4DC28700E4C9F8 /* MainView.swift */; };
+		3A4A020D2B53E3DC004EFB87 /* QRCode in Frameworks */ = {isa = PBXBuildFile; productRef = 3A4A020C2B53E3DC004EFB87 /* QRCode */; };
 		3A4EAD1B2A4FEB02005435B3 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A4EAD212A4FEB3C005435B3 /* ApplicationLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4EAD202A4FEB3C005435B3 /* ApplicationLibrary.swift */; };
 		3A4EAD222A4FEB54005435B3 /* NavigationPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEC21742A45B0B800A63465 /* NavigationPage.swift */; };
@@ -569,6 +570,7 @@
 			files = (
 				3A4EAD1B2A4FEB02005435B3 /* Library.framework in Frameworks */,
 				3A6CA5A02A71317A0027933B /* MarkdownUI in Frameworks */,
+				3A4A020D2B53E3DC004EFB87 /* QRCode in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1060,6 +1062,7 @@
 			name = ApplicationLibrary;
 			packageProductDependencies = (
 				3A6CA59F2A71317A0027933B /* MarkdownUI */,
+				3A4A020C2B53E3DC004EFB87 /* QRCode */,
 			);
 			productName = ApplicationLibrary;
 			productReference = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */;
@@ -1327,6 +1330,7 @@
 				3A017F902A4AB2E4009149FA /* XCRemoteSwiftPackageReference "GRDB" */,
 				3A57DF3A2A4D705000690BC5 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */,
 				3ADB2D832A71266E00A6517D /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+				3A4A020B2B53E3DC004EFB87 /* XCRemoteSwiftPackageReference "qrcode" */,
 			);
 			productRefGroup = 3AEC20C72A45991900A63465 /* Products */;
 			projectDirPath = "";
@@ -1970,7 +1974,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.0;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2004,7 +2008,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.0;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2242,7 +2246,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.0;
+				MARKETING_VERSION = 1.8.2;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2282,7 +2286,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.0;
+				MARKETING_VERSION = 1.8.2;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2305,7 +2309,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 136;
+				CURRENT_PROJECT_VERSION = 188;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2321,7 +2325,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.0;
+				MARKETING_VERSION = 1.8.2;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2343,7 +2347,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 136;
+				CURRENT_PROJECT_VERSION = 188;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2359,7 +2363,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.0;
+				MARKETING_VERSION = 1.8.2;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2501,7 +2505,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.0-alpha.17;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2537,7 +2541,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.0-alpha.17;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2577,7 +2581,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.0-alpha.17;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2616,7 +2620,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.0-alpha.17;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2829,6 +2833,14 @@
 				minimumVersion = 6.15.1;
 			};
 		};
+		3A4A020B2B53E3DC004EFB87 /* XCRemoteSwiftPackageReference "qrcode" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/dagronf/qrcode.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 17.0.0;
+			};
+		};
 		3A57DF3A2A4D705000690BC5 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/orchetect/MacControlCenterUI";
@@ -2860,6 +2872,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A017F902A4AB2E4009149FA /* XCRemoteSwiftPackageReference "GRDB" */;
 			productName = GRDB;
+		};
+		3A4A020C2B53E3DC004EFB87 /* QRCode */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A4A020B2B53E3DC004EFB87 /* XCRemoteSwiftPackageReference "qrcode" */;
+			productName = QRCode;
 		};
 		3A6CA59F2A71317A0027933B /* MarkdownUI */ = {
 			isa = XCSwiftPackageProductDependency;

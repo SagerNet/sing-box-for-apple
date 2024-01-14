@@ -2,6 +2,7 @@ import Foundation
 import Libbox
 import Library
 import Network
+import QRCode
 import SwiftUI
 
 @MainActor
@@ -287,6 +288,8 @@ public struct ProfileView: View {
     public struct ProfileItem: View {
         private let parent: ProfileView
         @State private var profile: ProfilePreview
+        @State private var shareLinkPresented = false
+
         public init(_ parent: ProfileView, _ profile: ProfilePreview) {
             self.parent = parent
             _profile = State(initialValue: profile)
@@ -313,11 +316,20 @@ public struct ProfileView: View {
                     } label: {
                         Text(profile.name)
                     }
+                    .sheet(isPresented: $shareLinkPresented) {
+                        shareLinkView.padding()
+                    }
                     .contextMenu {
                         ProfileShareButton(parent.$alert, profile.origin) {
                             Label("Share", systemImage: "square.and.arrow.up.fill")
                         }
+
                         if profile.type == .remote {
+                            Button {
+                                shareLinkPresented = true
+                            } label: {
+                                Label("Share URL as QR Code", systemImage: "qrcode")
+                            }
                             Button {
                                 parent.isUpdating = true
                                 Task {
@@ -356,6 +368,14 @@ public struct ProfileView: View {
                                 } label: {
                                     Image(systemName: "arrow.clockwise")
                                 }
+                                Button {
+                                    shareLinkPresented = true
+                                } label: {
+                                    Image(systemName: "qrcode")
+                                }
+                                .popover(isPresented: $shareLinkPresented, arrowEdge: .bottom) {
+                                    shareLinkView
+                                }
                             }
                             ProfileShareButton(parent.$alert, profile.origin) {
                                 Image(systemName: "square.and.arrow.up.fill")
@@ -379,6 +399,39 @@ public struct ProfileView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 #endif
             }
+        }
+
+        private var shareLinkView: some View {
+            #if os(iOS)
+                viewBuilder {
+                    if #available(iOS 16.0, *) {
+                        shareLinkView0
+                            .presentationDetents([.medium])
+                            .presentationDragIndicator(.visible)
+                    } else {
+                        shareLinkView0
+                    }
+                }
+            #else
+                shareLinkView0
+            #endif
+        }
+
+        private var foregroundColor: CGColor {
+            #if canImport(UIKit)
+                return UIColor.label.cgColor
+            #elseif canImport(AppKit)
+                return NSColor.labelColor.cgColor
+            #endif
+        }
+
+        private var shareLinkView0: some View {
+            QRCodeViewUI(
+                content: LibboxGenerateRemoteProfileImportLink(profile.name, profile.remoteURL!),
+                errorCorrection: .low,
+                foregroundColor: foregroundColor,
+                backgroundColor: CGColor(gray: 1.0, alpha: 0.0)
+            )
         }
     }
 }

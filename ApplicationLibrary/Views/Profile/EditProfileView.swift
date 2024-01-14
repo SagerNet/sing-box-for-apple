@@ -1,3 +1,4 @@
+import Libbox
 import Library
 import SwiftUI
 
@@ -14,6 +15,8 @@ public struct EditProfileView: View {
     @State private var isLoading = false
     @State private var isChanged = false
     @State private var alert: Alert?
+    @State private var shareLinkPresented = false
+    @State private var shareLinkText: String?
 
     public init() {}
     public var body: some View {
@@ -71,16 +74,6 @@ public struct EditProfileView: View {
                                 EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
                             } label: {
                                 Text("View Content").foregroundColor(.accentColor)
-                            }
-                            ProfileShareButton($alert, profile) {
-                                Text("Share")
-                            }
-                        #endif
-                        #if os(iOS) || os(macOS)
-                            ShareButtonCompat($alert) {
-                                Text("Share URL")
-                            } itemURL: {
-                                profile.shareLink
                             }
                         #endif
                         Button("Update") {
