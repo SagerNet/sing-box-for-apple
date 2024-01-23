@@ -3,8 +3,6 @@ import Libbox
 import NetworkExtension
 
 open class ExtensionProvider: NEPacketTunnelProvider {
-    public static let errorFile = FilePath.workingDirectory.appendingPathComponent("network_extension_error")
-
     public var username: String? = nil
     private var commandServer: LibboxCommandServer!
     private var boxService: LibboxBoxService!
@@ -13,14 +11,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private var platformInterface: ExtensionPlatformInterface!
 
     override open func startTunnel(options _: [String: NSObject]?) async throws {
-        try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
-
-        do {
-            try FileManager.default.createDirectory(at: FilePath.workingDirectory, withIntermediateDirectories: true)
-        } catch {
-            writeFatalError("(packet-tunnel) error: create working directory: \(error.localizedDescription)")
-            return
-        }
+        LibboxClearServiceError()
 
         if let username {
             var error: NSError?
@@ -43,7 +34,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             writeError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
         }
 
-        try await LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit.get())
+        await LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit.get())
 
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
@@ -69,7 +60,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     func writeError(_ message: String) {
         writeMessage(message)
-        try? message.write(to: ExtensionProvider.errorFile, atomically: true, encoding: .utf8)
+        var error: NSError?
+        LibboxWriteServiceError(message, &error)
     }
 
     public func writeFatalError(_ message: String) {

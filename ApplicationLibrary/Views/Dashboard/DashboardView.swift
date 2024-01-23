@@ -1,3 +1,4 @@
+import Libbox
 import Library
 import SwiftUI
 
@@ -101,11 +102,13 @@ public struct DashboardView: View {
         }
 
         private nonisolated func checkServiceError() async {
-            if let serviceError = try? String(contentsOf: ExtensionProvider.errorFile) {
-                await MainActor.run {
-                    alert = Alert(title: Text("Service Error"), message: Text(serviceError))
-                }
-                try? FileManager.default.removeItem(at: ExtensionProvider.errorFile)
+            var error: NSError?
+            let message = LibboxReadServiceError(&error)
+            if error != nil {
+                return
+            }
+            await MainActor.run {
+                alert = Alert(title: Text("Service Error"), message: Text(message))
             }
         }
     }
