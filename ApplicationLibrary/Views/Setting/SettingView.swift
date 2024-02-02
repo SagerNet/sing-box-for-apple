@@ -28,6 +28,8 @@ public struct SettingView: View {
         @State private var includeAllNetworks = false
     #endif
 
+    @State private var ignoreDeviceSleep = false
+
     @State private var version = ""
     @State private var dataSize = ""
     @State private var taiwanFlagAvailable = false
@@ -94,6 +96,12 @@ public struct SettingView: View {
                                     }
                                 }
                         #endif
+                        Toggle("Ignore Device Sleep", isOn: $ignoreDeviceSleep)
+                            .onChangeCompat(of: ignoreDeviceSleep) { newValue in
+                                Task {
+                                    await SharedPreferences.ignoreDeviceSleep.set(newValue)
+                                }
+                            }
                         #if os(macOS)
                             if Variant.useSystemExtension {
                                 HStack {
@@ -219,6 +227,7 @@ public struct SettingView: View {
         #if !os(tvOS)
             includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
         #endif
+        ignoreDeviceSleep = await SharedPreferences.ignoreDeviceSleep.get()
         if ApplicationLibrary.inPreview {
             version = "<redacted>"
             dataSize = LibboxFormatBytes(1000 * 1000 * 10)

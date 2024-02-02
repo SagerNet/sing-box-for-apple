@@ -6,6 +6,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     public var username: String? = nil
     private var commandServer: LibboxCommandServer!
     private var boxService: LibboxBoxService!
+    private var ignoreDeviceSleep = false
     private var systemProxyAvailable = false
     private var systemProxyEnabled = false
     private var platformInterface: ExtensionPlatformInterface!
@@ -35,6 +36,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
 
         await LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit.get())
+        ignoreDeviceSleep = await SharedPreferences.ignoreDeviceSleep.get()
 
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
@@ -159,12 +161,18 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     override open func sleep() async {
+        if ignoreDeviceSleep {
+            return
+        }
         if let boxService {
             boxService.sleep()
         }
     }
 
     override open func wake() {
+        if ignoreDeviceSleep {
+            return
+        }
         if let boxService {
             boxService.wake()
         }

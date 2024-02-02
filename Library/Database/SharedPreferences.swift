@@ -17,6 +17,7 @@ public enum SharedPreferences {
 
     public static let maxLogLines = Preference<Int>("max_log_lines", defaultValue: 300)
     public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)
+    public static let ignoreDeviceSleep = Preference<Bool>("ignore_device_sleep", defaultValue: false)
 
     #if os(macOS)
         public static let showMenuBarExtra = Preference<Bool>("show_menu_bar_extra", defaultValue: true)
