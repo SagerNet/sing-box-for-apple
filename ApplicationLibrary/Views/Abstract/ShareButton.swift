@@ -1,9 +1,9 @@
 import Foundation
 import Library
 import SwiftUI
-#if os(iOS)
+#if canImport(UIKit)
     import UIKit
-#elseif os(macOS)
+#elseif canImport(AppKit)
     import AppKit
 #endif
 

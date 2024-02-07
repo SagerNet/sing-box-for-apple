@@ -17,12 +17,15 @@ public enum NavigationPage: Int, CaseIterable, Identifiable {
 }
 
 public extension NavigationPage {
-    static var macosDefaultPages: [NavigationPage] {
-        [.logs, .profiles, .settings]
-    }
+    #if os(macOS)
+        static var macosDefaultPages: [NavigationPage] {
+            [.logs, .profiles, .settings]
+        }
+    #endif
 
     var label: some View {
         Label(title, systemImage: iconImage)
+            .tint(.textColor)
     }
 
     var title: String {

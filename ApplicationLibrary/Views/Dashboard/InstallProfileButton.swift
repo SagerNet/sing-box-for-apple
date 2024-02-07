@@ -11,10 +11,12 @@ public struct InstallProfileButton: View {
     }
 
     public var body: some View {
-        Button("Install NetworkExtension") {
+        FormButton {
             Task {
                 await installProfile()
             }
+        } label: {
+            Label("Install Network Extension", systemImage: "lock.doc.fill")
         }
         .alertBinding($alert)
     }

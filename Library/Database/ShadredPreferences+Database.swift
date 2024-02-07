@@ -27,7 +27,7 @@ extension SharedPreferences {
             }
         }
 
-        public nonisolated func set(_ newValue: T) async {
+        public nonisolated func set(_ newValue: T?) async {
             do {
                 try await SharedPreferences.write(name, newValue)
             } catch {

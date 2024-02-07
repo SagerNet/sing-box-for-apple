@@ -35,27 +35,14 @@ public struct MacApplication: Scene {
                 }
             }
             SidebarCommands()
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings") {
+                    environments.openSettings.send()
+                }
+                .keyboardShortcut(",", modifiers: [.command])
+            }
         }
 
-        WindowGroup("New Profile", id: NewProfileView.windowID, for: NewProfileView.ImportRequest.self) { importRequest in
-            NewProfileView(importRequest.wrappedValue)
-                .environmentObject(environments)
-        }.commandsRemoved()
-
-        WindowGroup("Edit Profile", id: EditProfileWindowView.windowID, for: Int64.self) { profileID in
-            EditProfileWindowView(profileID.wrappedValue)
-                .environmentObject(environments)
-        }.commandsRemoved()
-
-        WindowGroup("Edit Content", id: EditProfileContentView.windowID, for: EditProfileContentView.Context.self) { context in
-            EditProfileContentView(context.wrappedValue)
-                .environmentObject(environments)
-        }.commandsRemoved()
-
-        Window("Service Log", id: ServiceLogView.windowID) {
-            ServiceLogView()
-                .environmentObject(environments)
-        }
         MenuBarExtra(isInserted: $showMenuBarExtra) {
             MenuView(isMenuPresented: $isMenuPresented)
                 .environmentObject(environments)

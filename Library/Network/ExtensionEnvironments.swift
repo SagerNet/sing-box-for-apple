@@ -5,8 +5,10 @@ public class ExtensionEnvironments: ObservableObject {
     @Published public var logClient = CommandClient(.log)
     @Published public var extensionProfileLoading = true
     @Published public var extensionProfile: ExtensionProfile?
+
     public let profileUpdate = ObjectWillChangePublisher()
     public let selectedProfileUpdate = ObjectWillChangePublisher()
+    public let openSettings = ObjectWillChangePublisher()
 
     public init() {}
 

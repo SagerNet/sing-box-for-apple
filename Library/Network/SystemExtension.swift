@@ -111,13 +111,13 @@
             return false
         }
 
-        public static func install(forceUpdate: Bool = false, inBackground: Bool = false) async throws -> OSSystemExtensionRequest.Result? {
+        public nonisolated static func install(forceUpdate: Bool = false, inBackground: Bool = false) async throws -> OSSystemExtensionRequest.Result? {
             try await Task.detached {
                 try SystemExtension(forceUpdate, inBackground).activation()
             }.result.get()
         }
 
-        public static func uninstall() async throws -> OSSystemExtensionRequest.Result? {
+        public nonisolated static func uninstall() async throws -> OSSystemExtensionRequest.Result? {
             try await Task.detached {
                 try SystemExtension().deactivation()
             }.result.get()

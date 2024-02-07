@@ -5,10 +5,6 @@
 
     @MainActor
     public struct EditProfileContentView: View {
-        #if os(macOS)
-            public static let windowID = "edit-profile-content"
-        #endif
-
         public struct Context: Codable, Hashable {
             public let profileID: Int64
             public let readOnly: Bool

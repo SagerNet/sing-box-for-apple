@@ -26,8 +26,10 @@ public struct MainView: View {
         NavigationSplitView {
             SidebarView()
         } detail: {
-            selection.contentView
-                .navigationTitle(selection.title)
+            NavigationStack {
+                selection.contentView
+                    .navigationTitle(selection.title)
+            }
         }
         .onAppear {
             environments.postReload()
@@ -54,6 +56,9 @@ public struct MainView: View {
             if value == .logs {
                 environments.connectLog()
             }
+        }
+        .onReceive(environments.openSettings) {
+            selection = .settings
         }
         .formStyle(.grouped)
         .environment(\.selection, $selection)

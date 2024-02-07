@@ -5,10 +5,6 @@ import SwiftUI
 
 @MainActor
 public struct NewProfileView: View {
-    #if os(macOS)
-        public static let windowID = "new-profile"
-    #endif
-
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
 
@@ -100,11 +96,13 @@ public struct NewProfileView: View {
             }
             Section {
                 if !isSaving {
-                    Button("Create") {
+                    FormButton {
                         isSaving = true
                         Task {
                             await createProfile()
                         }
+                    } label: {
+                        Label("Create", systemImage: "doc.fill.badge.plus")
                     }
                 } else {
                     ProgressView()

@@ -27,6 +27,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             throw NSError(domain: "nil return pointer", code: 0)
         }
 
+        let autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
+
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
         if options.getAutoRoute() {
             settings.mtu = NSNumber(value: options.getMTU())
@@ -57,6 +59,15 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                     let ipv4RoutePrefix = inet4RouteAddressIterator.next()!
                     ipv4Routes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
                 }
+            } else if autoRouteUseSubRangesByDefault {
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "1.0.0.0", subnetMask: "255.0.0.0"))
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "2.0.0.0", subnetMask: "254.0.0.0"))
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "4.0.0.0", subnetMask: "252.0.0.0"))
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "8.0.0.0", subnetMask: "248.0.0.0"))
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "16.0.0.0", subnetMask: "240.0.0.0"))
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "32.0.0.0", subnetMask: "224.0.0.0"))
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "64.0.0.0", subnetMask: "192.0.0.0"))
+                ipv4Routes.append(NEIPv4Route(destinationAddress: "128.0.0.0", subnetMask: "128.0.0.0"))
             } else {
                 ipv4Routes.append(NEIPv4Route.default())
             }
@@ -65,6 +76,13 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             while inet4RouteExcludeAddressIterator.hasNext() {
                 let ipv4RoutePrefix = inet4RouteExcludeAddressIterator.next()!
                 ipv4ExcludeRoutes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
+            }
+            if await SharedPreferences.excludeDefaultRoute.get(), !ipv4Routes.isEmpty {
+                if !ipv4ExcludeRoutes.contains(where: { it in
+                    it.destinationAddress == "0.0.0.0" && it.destinationSubnetMask == "255.255.255.254"
+                }) {
+                    ipv4ExcludeRoutes.append(NEIPv4Route(destinationAddress: "0.0.0.0", subnetMask: "255.255.255.254"))
+                }
             }
 
             ipv4Settings.includedRoutes = ipv4Routes
@@ -89,6 +107,15 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                     let ipv6RoutePrefix = inet6RouteAddressIterator.next()!
                     ipv6Routes.append(NEIPv6Route(destinationAddress: ipv6RoutePrefix.address(), networkPrefixLength: NSNumber(value: ipv6RoutePrefix.prefix())))
                 }
+            } else if autoRouteUseSubRangesByDefault {
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "100::", networkPrefixLength: 8))
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "200::", networkPrefixLength: 7))
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "400::", networkPrefixLength: 6))
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "800::", networkPrefixLength: 5))
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "1000::", networkPrefixLength: 4))
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "2000::", networkPrefixLength: 3))
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "4000::", networkPrefixLength: 2))
+                ipv6Routes.append(NEIPv6Route(destinationAddress: "8000::", networkPrefixLength: 1))
             } else {
                 ipv6Routes.append(NEIPv6Route.default())
             }

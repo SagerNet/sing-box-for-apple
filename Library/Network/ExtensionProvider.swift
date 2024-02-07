@@ -35,7 +35,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             writeError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
         }
 
-        await LibboxSetMemoryLimit(!SharedPreferences.disableMemoryLimit.get())
+        await LibboxSetMemoryLimit(!SharedPreferences.ignoreMemoryLimit.get())
         ignoreDeviceSleep = await SharedPreferences.ignoreDeviceSleep.get()
 
         if platformInterface == nil {

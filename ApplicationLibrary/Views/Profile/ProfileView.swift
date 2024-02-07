@@ -21,8 +21,6 @@ public struct ProfileView: View {
 
     #if os(iOS) || os(tvOS)
         @State private var editMode = EditMode.inactive
-    #elseif os(macOS)
-        @Environment(\.openWindow) private var openWindow
     #endif
 
     #if os(tvOS)
@@ -39,73 +37,67 @@ public struct ProfileView: View {
                     }
                 }
             } else {
-                #if os(iOS) || os(tvOS)
-                    ZStack {
-                        if let importRemoteProfileRequest {
-                            NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
-                                NewProfileView(importRemoteProfileRequest)
-                            }
+                ZStack {
+                    if let importRemoteProfileRequest {
+                        NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
+                            NewProfileView(importRemoteProfileRequest)
                         }
-                        FormView {
-                            #if os(iOS)
+                    }
+                    FormView {
+                        #if os(iOS)
+                            NavigationLink {
+                                NewProfileView()
+                            } label: {
+                                Text("New Profile").foregroundColor(.accentColor)
+                            }
+                            .disabled(editMode.isEditing)
+                        #elseif os(macOS)
+                            NavigationLink {
+                                NewProfileView()
+                            } label: {
+                                Text("New Profile")
+                            }
+                        #elseif os(tvOS)
+                            Section {
                                 NavigationLink {
                                     NewProfileView()
                                 } label: {
                                     Text("New Profile").foregroundColor(.accentColor)
                                 }
-                                .disabled(editMode.isEditing)
-                            #elseif os(tvOS)
-                                Section {
+                                if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
                                     NavigationLink {
-                                        NewProfileView()
-                                    } label: {
-                                        Text("New Profile").foregroundColor(.accentColor)
-                                    }
-                                    if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
-                                        NavigationLink {
-                                            ImportProfileView {
-                                                await doReload()
-                                            }
-                                        } label: {
-                                            Text("Import Profile").foregroundColor(.accentColor)
+                                        ImportProfileView {
+                                            await doReload()
                                         }
+                                    } label: {
+                                        Text("Import Profile").foregroundColor(.accentColor)
                                     }
                                 }
-                            #endif
-                            if profileList.isEmpty {
-                                Text("Empty profiles")
-                            } else {
-                                List {
-                                    ForEach(profileList, id: \.id) { profile in
-                                        viewBuilder {
+                            }
+                        #endif
+                        if profileList.isEmpty {
+                            Text("Empty profiles")
+                        } else {
+                            List {
+                                ForEach(profileList, id: \.id) { profile in
+                                    viewBuilder {
+                                        #if os(iOS) || os(tvOS)
                                             if editMode.isEditing == true {
                                                 Text(profile.name)
                                             } else {
                                                 ProfileItem(self, profile)
                                             }
-                                        }
+                                        #else
+                                            ProfileItem(self, profile)
+                                        #endif
                                     }
-                                    .onMove(perform: moveProfile)
-                                    .onDelete(perform: deleteProfile)
-                                }
-                            }
-                        }
-                    }
-                #elseif os(macOS)
-                    if profileList.isEmpty {
-                        Text("Empty profiles")
-                    } else {
-                        FormView {
-                            List {
-                                ForEach(profileList, id: \.id) { profile in
-                                    ProfileItem(self, profile)
                                 }
                                 .onMove(perform: moveProfile)
                                 .onDelete(perform: deleteProfile)
                             }
                         }
                     }
-                #endif
+                }
             }
         }
         .disabled(isUpdating)
@@ -140,17 +132,7 @@ public struct ProfileView: View {
 //                await doReload()
 //            }
         }
-        #if os(macOS)
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    openWindow(id: NewProfileView.windowID)
-                } label: {
-                    Label("New Profile", systemImage: "plus.square.fill")
-                }
-            }
-        }
-        #elseif os(iOS)
+        #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 EditButton().disabled(profileList.isEmpty)
@@ -202,11 +184,7 @@ public struct ProfileView: View {
             title: Text("Import Remote Profile"),
             message: Text("Are you sure to import remote profile \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
             primaryButton: .default(Text("Import")) {
-                #if os(iOS) || os(tvOS)
-                    importRemoteProfilePresented = true
-                #elseif os(macOS)
-                    openWindow(id: NewProfileView.windowID, value: importRemoteProfileRequest!)
-                #endif
+                importRemoteProfilePresented = true
             },
             secondaryButton: .cancel()
         )
@@ -285,6 +263,7 @@ public struct ProfileView: View {
         }
     }
 
+    @MainActor
     public struct ProfileItem: View {
         private let parent: ProfileView
         @State private var profile: ProfilePreview
@@ -307,7 +286,6 @@ public struct ProfileView: View {
             #endif
         }
 
-        @MainActor
         private var body0: some View {
             viewBuilder {
                 #if !os(macOS)
@@ -346,57 +324,63 @@ public struct ProfileView: View {
                             }
                         } label: {
                             Label("Delete", systemImage: "trash.fill")
+                                .foregroundColor(.red)
                         }
                     }
                 #else
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(profile.name)
-                            if profile.type == .remote {
-                                Spacer(minLength: 4)
-                                Text("Last Updated: \(profile.origin.lastUpdatedString)").font(.caption)
-                            }
-                        }
+                    NavigationLink {
+                        EditProfileView().environmentObject(profile.origin)
+                    } label: {
                         HStack {
-                            if profile.type == .remote {
+                            VStack(alignment: .leading) {
+                                Text(profile.name)
+                                if profile.type == .remote {
+                                    Spacer(minLength: 4)
+                                    Text("Last Updated: \(profile.origin.lastUpdatedString)").font(.caption)
+                                }
+                            }
+                            HStack {
+                                if profile.type == .remote {
+                                    Button {
+                                        parent.isUpdating = true
+                                        Task {
+                                            await parent.updateProfile(profile.origin)
+                                            profile = ProfilePreview(profile.origin)
+                                        }
+                                    } label: {
+                                        Image(systemName: "arrow.clockwise")
+                                    }
+                                    .padding(.leading, 4)
+
+                                    Button {
+                                        shareLinkPresented = true
+                                    } label: {
+                                        Image(systemName: "qrcode")
+                                    }
+                                    .padding(.leading, 4)
+                                    .popover(isPresented: $shareLinkPresented, arrowEdge: .bottom) {
+                                        shareLinkView
+                                    }
+                                }
+                                ProfileShareButton(parent.$alert, profile.origin) {
+                                    Image(systemName: "square.and.arrow.up.fill")
+                                }
+                                .padding(.leading, 4)
                                 Button {
-                                    parent.isUpdating = true
                                     Task {
-                                        await parent.updateProfile(profile.origin)
-                                        profile = ProfilePreview(profile.origin)
+                                        await parent.deleteProfile(profile.origin)
                                     }
                                 } label: {
-                                    Image(systemName: "arrow.clockwise")
+                                    Image(systemName: "trash.fill")
                                 }
-                                Button {
-                                    shareLinkPresented = true
-                                } label: {
-                                    Image(systemName: "qrcode")
-                                }
-                                .popover(isPresented: $shareLinkPresented, arrowEdge: .bottom) {
-                                    shareLinkView
-                                }
+                                .padding([.leading, .trailing], 4)
                             }
-                            ProfileShareButton(parent.$alert, profile.origin) {
-                                Image(systemName: "square.and.arrow.up.fill")
-                            }
-                            Button {
-                                parent.openWindow(id: EditProfileWindowView.windowID, value: profile.id)
-                            } label: {
-                                Image(systemName: "pencil")
-                            }
-                            Button {
-                                Task {
-                                    await parent.deleteProfile(profile.origin)
-                                }
-                            } label: {
-                                Image(systemName: "trash.fill")
-                            }
+                            .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                         }
-                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 #endif
             }
         }
@@ -412,6 +396,9 @@ public struct ProfileView: View {
                         shareLinkView0
                     }
                 }
+            #elseif os(macOS)
+                shareLinkView0
+                    .frame(minWidth: 300, minHeight: 300)
             #else
                 shareLinkView0
             #endif

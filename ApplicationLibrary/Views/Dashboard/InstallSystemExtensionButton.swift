@@ -12,10 +12,12 @@
         }
 
         public var body: some View {
-            Button("Install SystemExtension") {
+            FormButton {
                 Task {
                     await installSystemExtension()
                 }
+            } label: {
+                Label("Install System Extension", systemImage: "lock.doc.fill")
             }
             .alertBinding($alert)
         }

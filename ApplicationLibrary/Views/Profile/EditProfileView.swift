@@ -4,10 +4,6 @@ import SwiftUI
 
 @MainActor
 public struct EditProfileView: View {
-    #if os(macOS)
-        @Environment(\.openWindow) private var openWindow
-    #endif
-
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var profile: Profile
@@ -58,39 +54,45 @@ public struct EditProfileView: View {
                     FormTextItem("Last Updated", profile.lastUpdatedString)
                 }
             }
-            #if os(iOS) || os(tvOS)
-                Section("Action") {
-                    if profile.type != .remote {
-                        #if os(iOS)
-                            NavigationLink {
-                                EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                            } label: {
-                                Text("Edit Content").foregroundColor(.accentColor)
-                            }
-                        #endif
-                    } else {
-                        #if os(iOS)
-                            NavigationLink {
-                                EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                            } label: {
-                                Text("View Content").foregroundColor(.accentColor)
-                            }
-                        #endif
-                        Button("Update") {
-                            isLoading = true
-                            Task {
-                                await updateProfile()
-                            }
+            Section("Action") {
+                if profile.type != .remote {
+                    #if os(iOS) || os(macOS)
+                        NavigationLink {
+                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
+                        } label: {
+                            Label("Edit Content", systemImage: "pencil")
+                                .foregroundColor(.accentColor)
                         }
-                        .disabled(isLoading)
-                    }
-                    Button("Delete", role: .destructive) {
+                    #endif
+                } else {
+                    #if os(iOS) || os(macOS)
+                        NavigationLink {
+                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
+                        } label: {
+                            Label("View Content", systemImage: "doc.fill")
+                                .foregroundColor(.accentColor)
+                        }
+                    #endif
+                    FormButton {
+                        isLoading = true
                         Task {
-                            await deleteProfile()
+                            await updateProfile()
                         }
+                    } label: {
+                        Label("Update", systemImage: "arrow.clockwise")
                     }
+                    .foregroundColor(.accentColor)
+                    .disabled(isLoading)
                 }
-            #endif
+                FormButton(role: .destructive) {
+                    Task {
+                        await deleteProfile()
+                    }
+                } label: {
+                    Label("Delete", systemImage: "trash.fill")
+                }
+                .foregroundColor(.red)
+            }
         }
         .onChangeCompat(of: profile.name) {
             isChanged = true
@@ -114,30 +116,6 @@ public struct EditProfileView: View {
                         Image("save", bundle: ApplicationLibrary.bundle, label: Text("Save"))
                     }
                     .disabled(isLoading || !isChanged)
-                    if profile.type != .remote {
-                        Button {
-                            openWindow(id: EditProfileContentView.windowID, value: EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                        } label: {
-                            Label("Edit Content", systemImage: "pencil")
-                        }
-                        .disabled(isLoading)
-                    } else {
-                        Button {
-                            isLoading = true
-                            Task {
-                                await updateProfile()
-                            }
-                        } label: {
-                            Label("Update", systemImage: "arrow.clockwise")
-                        }
-                        .disabled(isLoading)
-                        Button {
-                            openWindow(id: EditProfileContentView.windowID, value: EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                        } label: {
-                            Label("View Content", systemImage: "doc.text.fill")
-                        }
-                        .disabled(isLoading)
-                    }
                 }
             }
         #elseif os(iOS)

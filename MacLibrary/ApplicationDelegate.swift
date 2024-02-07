@@ -12,7 +12,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate {
         let launchedAsLogInItem =
             event?.eventID == kAEOpenApplication &&
             event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
-        if !launchedAsLogInItem || !SharedPreferences.showMenuBarExtra.getBlocking() || !SharedPreferences.menuBarExtraInBackground.getBlocking() {
+        if SharedPreferences.inDebug || !launchedAsLogInItem || !SharedPreferences.showMenuBarExtra.getBlocking() || !SharedPreferences.menuBarExtraInBackground.getBlocking() {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
         } else {
@@ -35,7 +35,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate {
     }
 
     public func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
-        !SharedPreferences.menuBarExtraInBackground.getBlocking()
+        SharedPreferences.inDebug || !SharedPreferences.menuBarExtraInBackground.getBlocking()
     }
 
     public func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

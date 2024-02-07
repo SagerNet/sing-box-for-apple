@@ -64,6 +64,16 @@ public extension LibboxProfileContent {
     }
 }
 
+public extension String {
+    func generateShareFile(name: String) throws -> URL {
+        let shareDirectory = FilePath.cacheDirectory.appendingPathComponent("share", isDirectory: true)
+        try FileManager.default.createDirectory(at: shareDirectory, withIntermediateDirectories: true)
+        let shareFile = shareDirectory.appendingPathComponent(name)
+        try write(to: shareFile, atomically: true, encoding: .utf8)
+        return shareFile
+    }
+}
+
 @available(iOS 16.0, macOS 13.0, *)
 public struct TypedProfile: Transferable, Codable {
     public let content: LibboxProfileContent

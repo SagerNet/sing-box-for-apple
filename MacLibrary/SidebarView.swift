@@ -25,24 +25,30 @@ public struct SidebarView: View {
 
         var body: some View {
             VStack {
-                if extensionProfile.status.isConnectedStrict {
-                    List(selection: selection) {
-                        Section(NavigationPage.dashboard.title) {
-                            Label("Overview", systemImage: "text.and.command.macwindow").tag(NavigationPage.dashboard)
-                            NavigationPage.groups.label.tag(NavigationPage.groups)
+                viewBuilder {
+                    if extensionProfile.status.isConnectedStrict {
+                        List(selection: selection) {
+                            Section(NavigationPage.dashboard.title) {
+                                Label("Overview", systemImage: "text.and.command.macwindow")
+                                    .tint(.textColor)
+                                    .tag(NavigationPage.dashboard)
+                                NavigationPage.groups.label.tag(NavigationPage.groups)
+                            }
+                            Divider()
+                            ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
+                                it.label
+                            }
                         }
-                        Divider()
-                        ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
+                    } else {
+                        List(NavigationPage.allCases.filter { it in
+                            it.visible(extensionProfile)
+                        }, selection: selection) { it in
                             it.label
                         }
                     }
-                } else {
-                    List(NavigationPage.allCases.filter { it in
-                        it.visible(extensionProfile)
-                    }, selection: selection) { it in
-                        it.label
-                    }
                 }
+                .listStyle(.sidebar)
+                .scrollDisabled(true)
             }
             .onChangeCompat(of: extensionProfile.status) {
                 if !selection.wrappedValue.visible(extensionProfile) {

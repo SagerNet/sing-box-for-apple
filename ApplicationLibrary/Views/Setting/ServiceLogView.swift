@@ -1,18 +1,15 @@
 import Foundation
 import Library
 import SwiftUI
-import UniformTypeIdentifiers
 
 @MainActor
 public struct ServiceLogView: View {
-    #if os(macOS)
-        public static let windowID = "service-log"
-    #endif
-
     @Environment(\.dismiss) private var dismiss
+
     @State private var isLoading = true
     @State private var content = ""
-    @State private var fileExporterPresented = false
+    @State private var alert: Alert?
+
     private let logFont = Font.system(.caption, design: .monospaced)
 
     public init() {}
@@ -41,26 +38,22 @@ public struct ServiceLogView: View {
         #if !os(tvOS)
         .toolbar {
             if !content.isEmpty {
-                Button("Export") {
-                    fileExporterPresented = true
+                ShareButtonCompat($alert) {
+                    Label("Export", systemImage: "square.and.arrow.up.fill")
+                } itemURL: {
+                    try content.generateShareFile(name: "service.log")
                 }
-                Button("Delete", role: .destructive) {
+                Button(role: .destructive) {
                     Task {
                         await deleteContent()
                     }
+                } label: {
+                    Label("Delete", systemImage: "trash.fill")
                 }
             }
         }
         #endif
-        #if !os(tvOS)
-        .fileExporter(
-            isPresented: $fileExporterPresented,
-            document: LogDocument(content),
-            contentType: .text,
-            defaultFilename: "service-log.txt",
-            onCompletion: { _ in }
-        )
-        #endif
+        .alertBinding($alert)
         .navigationTitle("Service Log")
         #if os(tvOS)
             .focusable()
@@ -77,6 +70,27 @@ public struct ServiceLogView: View {
                 content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
             } catch {}
         }
+        #if DEBUG
+            if content.isEmpty {
+                content = "Empty content"
+            }
+        #endif
+        if !content.isEmpty {
+            var systemInfo = utsname()
+            uname(&systemInfo)
+            let machineMirror = Mirror(reflecting: systemInfo.machine)
+            let machineName = machineMirror.children.reduce("") { identifier, element in
+                guard let value = element.value as? Int8, value != 0 else { return identifier }
+                return identifier + String(UnicodeScalar(UInt8(value)))
+            }
+            var deviceInfo = await "Machine: " + machineName + "\n"
+            #if os(iOS)
+                await deviceInfo += "System: " + (UIDevice.current.systemName) + " " + (UIDevice.current.systemVersion) + "\n"
+            #elseif os(macOS)
+                deviceInfo += "System: macOS " + ProcessInfo().operatingSystemVersionString + "\n"
+            #endif
+            content = deviceInfo + "\n" + content
+        }
         await MainActor.run { [content] in
             self.content = content
             isLoading = false
@@ -91,28 +105,4 @@ public struct ServiceLogView: View {
             isLoading = true
         }
     }
-
-    #if !os(tvOS)
-        private struct LogDocument: FileDocument {
-            static var readableContentTypes = [UTType.text]
-
-            let content: String
-
-            init(_ content: String) {
-                self.content = content
-            }
-
-            init(configuration: ReadConfiguration) throws {
-                if let data = configuration.file.regularFileContents {
-                    content = String(decoding: data, as: UTF8.self)
-                } else {
-                    content = ""
-                }
-            }
-
-            func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
-                FileWrapper(regularFileWithContents: Data(content.utf8))
-            }
-        }
-    #endif
 }
