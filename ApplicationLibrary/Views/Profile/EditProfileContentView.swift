@@ -22,7 +22,7 @@
 
         @State private var isLoading = true
         @State private var profile: Profile!
-        @State private var profileContent: String = ""
+        @State private var profileContent = ""
         @State private var isChanged = false
         @State private var alert: Alert?
 
@@ -70,9 +70,15 @@
                                     await saveContent()
                                 }
                             } label: {
-                                Image("save", label: Text("Save"))
+                                Label("Save", image: "save")
                             }
                             .disabled(!isChanged)
+                        } else {
+                            Button {
+                                NSPasteboard.general.setString(profileContent, forType: .fileContents)
+                            } label: {
+                                Label("Copy", systemImage: "clipboard.fill")
+                            }
                         }
                     }
                 }
@@ -85,6 +91,10 @@
                                     await saveContent()
                                 }
                             }.disabled(!isChanged)
+                        } else {
+                            Button("Copy") {
+                                UIPasteboard.general.string = profileContent
+                            }
                         }
                     }
                 }

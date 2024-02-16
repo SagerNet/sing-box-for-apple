@@ -324,7 +324,6 @@ public struct ProfileView: View {
                             }
                         } label: {
                             Label("Delete", systemImage: "trash.fill")
-                                .foregroundColor(.red)
                         }
                     }
                 #else

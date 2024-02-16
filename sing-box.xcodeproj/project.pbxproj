@@ -98,6 +98,7 @@
 		3AC729F02A75D9D000FE8EC1 /* Profile+Transferable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC729EF2A75D9D000FE8EC1 /* Profile+Transferable.swift */; };
 		3AC729F22A76088E00FE8EC1 /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC729F12A76088E00FE8EC1 /* ShareButton.swift */; };
 		3AC8CF9B2A736C750002AF3C /* ImportProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC8CF9A2A736C750002AF3C /* ImportProfileView.swift */; };
+		3ACA8B332B7E037800B7238F /* DeleteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ACA8B322B7E037800B7238F /* DeleteButton.swift */; };
 		3ACE6DE32ACADF55009D9A8A /* Binding+Setter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ACE6DE22ACADF55009D9A8A /* Binding+Setter.swift */; };
 		3AD0953D2A70EB310052764E /* Profile+Share.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AD0953C2A70EB310052764E /* Profile+Share.swift */; };
 		3ADBB4252A7389640041D44F /* ProfileServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ADBB4242A7389640041D44F /* ProfileServer.swift */; };
@@ -510,6 +511,7 @@
 		3AC729EF2A75D9D000FE8EC1 /* Profile+Transferable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+Transferable.swift"; sourceTree = "<group>"; };
 		3AC729F12A76088E00FE8EC1 /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
 		3AC8CF9A2A736C750002AF3C /* ImportProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportProfileView.swift; sourceTree = "<group>"; };
+		3ACA8B322B7E037800B7238F /* DeleteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteButton.swift; sourceTree = "<group>"; };
 		3ACE6DE22ACADF55009D9A8A /* Binding+Setter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Binding+Setter.swift"; sourceTree = "<group>"; };
 		3AD0953C2A70EB310052764E /* Profile+Share.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Profile+Share.swift"; sourceTree = "<group>"; };
 		3ADBB4242A7389640041D44F /* ProfileServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileServer.swift; sourceTree = "<group>"; };
@@ -1029,6 +1031,7 @@
 				3AC729F12A76088E00FE8EC1 /* ShareButton.swift */,
 				3ACE6DE22ACADF55009D9A8A /* Binding+Setter.swift */,
 				3A3AB2A82B70C5F1001815AE /* RequestReviewButton.swift */,
+				3ACA8B322B7E037800B7238F /* DeleteButton.swift */,
 			);
 			path = Abstract;
 			sourceTree = "<group>";
@@ -1510,6 +1513,7 @@
 				3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */,
 				3AC729F22A76088E00FE8EC1 /* ShareButton.swift in Sources */,
 				3A0C6D3C2A79D46500A4DF2B /* OverviewView.swift in Sources */,
+				3ACA8B332B7E037800B7238F /* DeleteButton.swift in Sources */,
 				3ACE6DE32ACADF55009D9A8A /* Binding+Setter.swift in Sources */,
 				3A4EAD262A4FEB65005435B3 /* ExtensionStatusView.swift in Sources */,
 				3A4EAD252A4FEB65005435B3 /* StartStopButton.swift in Sources */,
@@ -2543,7 +2547,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9.0-alpha.1;
+				MARKETING_VERSION = "1.9.0-alpha.8";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2579,7 +2583,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9.0-alpha.1;
+				MARKETING_VERSION = "1.9.0-alpha.8";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2619,7 +2623,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9.0-alpha.1;
+				MARKETING_VERSION = "1.9.0-alpha.8";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2658,7 +2662,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9.0-alpha.1;
+				MARKETING_VERSION = "1.9.0-alpha.8";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";

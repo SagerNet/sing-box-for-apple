@@ -12,7 +12,6 @@ public enum SharedPreferences {
     public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)
 
     public static let ignoreMemoryLimit = Preference<Bool>("ignore_memory_limit", defaultValue: ignoreMemoryLimitByDefault)
-    public static let ignoreDeviceSleep = Preference<Bool>("ignore_device_sleep", defaultValue: false)
 
     #if os(iOS)
         public static let excludeLocalNetworksByDefault = true
@@ -31,7 +30,6 @@ public enum SharedPreferences {
 
     public static func resetPacketTunnel() async {
         await ignoreMemoryLimit.set(nil)
-        await ignoreDeviceSleep.set(nil)
         #if !os(tvOS)
             await includeAllNetworks.set(nil)
             await excludeAPNs.set(nil)

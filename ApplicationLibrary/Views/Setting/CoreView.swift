@@ -31,7 +31,7 @@ public struct CoreView: View {
                                 Label("Open", systemImage: "macwindow.and.cursorarrow")
                             }
                         #endif
-                        FormButton {
+                        FormButton(role: .destructive) {
                             Task {
                                 await destroyWorkingDirectory()
                             }

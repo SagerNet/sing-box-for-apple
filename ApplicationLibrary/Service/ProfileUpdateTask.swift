@@ -20,11 +20,11 @@ public enum ProfileUpdateTask {
         if updateInterval < minUpdateInterval {
             updateInterval = minUpdateInterval
         }
-        timer = Timer(fire: calculateEarliestBeginDate(profiles), interval: updateInterval, repeats: true, block: { _ in
+        timer = Timer(fire: calculateEarliestBeginDate(profiles), interval: updateInterval, repeats: true) { _ in
             Task {
                 await getAndupdateProfiles()
             }
-        })
+        }
     }
 
     static func calculateEarliestBeginDate(_ profiles: [Profile]) -> Date {

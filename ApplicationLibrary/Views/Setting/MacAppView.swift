@@ -64,7 +64,7 @@
                                 } label: {
                                     Label("Update", systemImage: "arrow.down.doc.fill")
                                 }
-                                FormButton {
+                                FormButton(role: .destructive) {
                                     Task {
                                         await uninstallSystemExtension()
                                     }

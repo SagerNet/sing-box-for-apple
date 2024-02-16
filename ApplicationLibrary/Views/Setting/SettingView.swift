@@ -86,7 +86,7 @@ public struct SettingView: View {
         }
     }
 
-    @State private var isLoading = false
+    @State private var isLoading = true
     @State private var taiwanFlagAvailable = false
 
     public init() {}

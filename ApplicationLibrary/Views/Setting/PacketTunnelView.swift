@@ -9,7 +9,6 @@ struct PacketTunnelView: View {
     @State private var isLoading = true
 
     @State private var ignoreMemoryLimit = false
-    @State private var ignoreDeviceSleep = false
 
     @State private var includeAllNetworks = false
     @State private var excludeAPNs = false
@@ -37,17 +36,6 @@ struct PacketTunnelView: View {
                             }
                     } footer: {
                         Text("Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken iOS and tvOS devices.")
-                    }
-
-                    FormSection {
-                        Toggle("Ignore Device Sleep", isOn: $ignoreDeviceSleep)
-                            .onChangeCompat(of: ignoreDeviceSleep) { newValue in
-                                Task {
-                                    await SharedPreferences.ignoreDeviceSleep.set(newValue)
-                                }
-                            }
-                    } footer: {
-                        Text("Ignore system `sleep()` and `wake()` events. May cause increased power usage, only enable if you encounter unexpected `rejected ... while device paused` errors.")
                     }
 
                     #if !os(tvOS)
@@ -152,7 +140,6 @@ struct PacketTunnelView: View {
 
     private func loadSettings() async {
         ignoreMemoryLimit = await SharedPreferences.ignoreMemoryLimit.get()
-        ignoreDeviceSleep = await SharedPreferences.ignoreDeviceSleep.get()
         #if !os(tvOS)
             includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
             excludeAPNs = await SharedPreferences.excludeAPNs.get()
