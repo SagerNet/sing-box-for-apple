@@ -1,5 +1,4 @@
 
-import StoreKit
 import SwiftUI
 
 public struct SettingView: View {
@@ -12,7 +11,7 @@ public struct SettingView: View {
             case app
         #endif
 
-        case core, packetTunnel, profileOverride, sponsor
+        case core, packetTunnel, profileOverride, sponsors
 
         var label: some View {
             Label(title, systemImage: iconImage)
@@ -30,8 +29,8 @@ public struct SettingView: View {
                 return NSLocalizedString("Packet Tunnel", comment: "")
             case .profileOverride:
                 return NSLocalizedString("Profile Override", comment: "")
-            case .sponsor:
-                return NSLocalizedString("Sponsor", comment: "")
+            case .sponsors:
+                return NSLocalizedString("Sponsors", comment: "")
             }
         }
 
@@ -47,7 +46,7 @@ public struct SettingView: View {
                 return "aspectratio.fill"
             case .profileOverride:
                 return "square.dashed.inset.filled"
-            case .sponsor:
+            case .sponsors:
                 return "heart.fill"
             }
         }
@@ -66,8 +65,8 @@ public struct SettingView: View {
                     PacketTunnelView()
                 case .profileOverride:
                     ProfileOverrideView()
-                case .sponsor:
-                    SponsorView()
+                case .sponsors:
+                    SponsorsView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -109,7 +108,7 @@ public struct SettingView: View {
                         Label("Rate on the App Store", systemImage: "text.bubble.fill")
                     }
                 #endif
-                Tabs.sponsor.navigationLink
+                Tabs.sponsors.navigationLink
             }
             Section("Debug") {
                 NavigationLink {
