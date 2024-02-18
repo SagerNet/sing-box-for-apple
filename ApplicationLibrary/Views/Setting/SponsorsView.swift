@@ -10,12 +10,7 @@ public struct SponsorsView: View {
             Section {
                 EmptyView()
             } footer: {
-                Text(
-                    """
-                    **If I’ve defended your modern life, please consider sponsoring me.**
-
-                    _sing-box is completely free and open source, sponsorships to the developer are voluntary and you will not receive any digital content or services._
-                    """)
+                Text("**If I’ve defended your modern life, please consider sponsoring me.**")
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 

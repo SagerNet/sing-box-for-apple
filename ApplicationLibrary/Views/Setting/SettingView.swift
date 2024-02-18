@@ -1,4 +1,5 @@
 
+import Library
 import SwiftUI
 
 public struct SettingView: View {
@@ -108,7 +109,11 @@ public struct SettingView: View {
                         Label("Rate on the App Store", systemImage: "text.bubble.fill")
                     }
                 #endif
-                Tabs.sponsors.navigationLink
+                #if os(macOS)
+                    if Variant.useSystemExtension {
+                        Tabs.sponsors.navigationLink
+                    }
+                #endif
             }
             Section("Debug") {
                 NavigationLink {
