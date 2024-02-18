@@ -148,8 +148,28 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 proxySettings.httpEnabled = true
                 proxySettings.httpsEnabled = true
             }
+            var bypassDomains: [String] = []
+            let bypassDomainIterator = options.getHTTPProxyBypassDomain()!
+            while bypassDomainIterator.hasNext() {
+                bypassDomains.append(bypassDomainIterator.next())
+            }
             if excludeAPNs {
-                proxySettings.exceptionList = ["push.apple.com"]
+                if !bypassDomains.contains(where: { it in
+                    it == "push.apple.com"
+                }) {
+                    bypassDomains.append("push.apple.com")
+                }
+            }
+            if !bypassDomains.isEmpty {
+                proxySettings.exceptionList = bypassDomains
+            }
+            var matchDomains: [String] = []
+            let matchDomainIterator = options.getHTTPProxyMatchDomain()!
+            while matchDomainIterator.hasNext() {
+                matchDomains.append(matchDomainIterator.next())
+            }
+            if !matchDomains.isEmpty {
+                proxySettings.matchDomains = matchDomains
             }
             settings.proxySettings = proxySettings
         }
