@@ -77,11 +77,11 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         do {
             profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get()))
         } catch {
-            writeFatalError("(packet-tunnel) error: missing default profile: \(error.localizedDescription)")
+            writeFatalError("(packet-tunnel) error: read selected profile: \(error.localizedDescription)")
             return
         }
         guard let profile else {
-            writeFatalError("(packet-tunnel) error: missing default profile")
+            writeFatalError("(packet-tunnel) error: missing selected profile")
             return
         }
         let configContent: String

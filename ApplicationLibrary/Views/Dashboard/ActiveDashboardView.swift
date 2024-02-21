@@ -120,8 +120,10 @@ public struct ActiveDashboardView: View {
 
             } catch {
                 alert = Alert(error)
+                return
             }
         }
+        environments.emptyProfiles = profileList.isEmpty
     }
 
     private nonisolated func doReloadSystemProxy() async {

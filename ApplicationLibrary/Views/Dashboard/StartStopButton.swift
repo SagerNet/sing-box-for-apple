@@ -36,6 +36,7 @@ public struct StartStopButton: View {
                 #endif
             }
         }
+        .disabled(environments.emptyProfiles)
     }
 
     private struct Button0: View {

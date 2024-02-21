@@ -207,6 +207,7 @@ public struct ProfileView: View {
                 return
             }
         }
+        environments.emptyProfiles = profileList.isEmpty
     }
 
     private func updateProfile(_ profile: Profile) async {
@@ -254,6 +255,7 @@ public struct ProfileView: View {
             profileList[index].origin
         }
         profileList.remove(atOffsets: profileIndex)
+        environments.emptyProfiles = profileList.isEmpty
         Task {
             do {
                 _ = try await ProfileManager.delete(profileToDelete)
