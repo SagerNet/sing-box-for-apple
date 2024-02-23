@@ -22,25 +22,37 @@
         }
 
         public var body: some View {
-            VStack {
+            VStack(alignment: .center) {
                 if !selected {
-                    DevicePicker(
-                        .applicationService(name: "sing-box:profile"))
-                    { endpoint in
-                        selected = true
-                        Task {
-                            await handleEndpoint(endpoint)
+                    Form {
+                        Section {
+                            EmptyView()
+                        } footer: {
+                            Text("To import configurations from your iPhone or iPad, make sure sing-box is the **same version** on both devices and **VPN is disabled**.")
                         }
-                    } label: {
-                        Text("Select Device")
-                    } fallback: {
-                        EmptyView()
-                    } parameters: {
-                        .applicationService
+
+                        DevicePicker(
+                            .applicationService(name: "sing-box:profile"))
+                        { endpoint in
+                            selected = true
+                            Task {
+                                await handleEndpoint(endpoint)
+                            }
+                        } label: {
+                            Text("Select Device")
+                        } fallback: {
+                            EmptyView()
+                        } parameters: {
+                            .applicationService
+                        }
                     }
                 } else if let profiles {
                     Form {
-                        Text("\(profiles.count) Profiles")
+                        Section {
+                            EmptyView()
+                        } footer: {
+                            Text("\(profiles.count) Profiles")
+                        }
                         ForEach(profiles, id: \.profileID) { profile in
                             Button(profile.name) {
                                 isLoading = true

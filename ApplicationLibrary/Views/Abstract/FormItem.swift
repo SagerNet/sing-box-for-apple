@@ -83,3 +83,18 @@ public func FormButton(role: ButtonRole?, action: @escaping () -> Void, @ViewBui
         .foregroundColor(.accentColor)
     #endif
 }
+
+public func FormNavigationLink(@ViewBuilder destination: () -> some View, @ViewBuilder label: () -> some View) -> some View {
+    #if !os(tvOS)
+        return NavigationLink(destination: destination, label: label)
+    #else
+        return NavigationLink(destination: {
+            destination()
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
+                    }
+                }
+        }, label: label)
+    #endif
+}

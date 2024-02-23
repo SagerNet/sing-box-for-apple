@@ -57,7 +57,7 @@ public struct EditProfileView: View {
             Section("Action") {
                 if profile.type != .remote {
                     #if os(iOS) || os(macOS)
-                        NavigationLink {
+                        FormNavigationLink {
                             EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
                         } label: {
                             Label("Edit Content", systemImage: "pencil")
@@ -66,7 +66,7 @@ public struct EditProfileView: View {
                     #endif
                 } else {
                     #if os(iOS) || os(macOS)
-                        NavigationLink {
+                        FormNavigationLink {
                             EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
                         } label: {
                             Label("View Content", systemImage: "doc.fill")

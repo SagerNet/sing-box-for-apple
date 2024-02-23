@@ -35,24 +35,28 @@ public struct ServiceLogView: View {
                 }
             }
         }
-        #if !os(tvOS)
         .toolbar {
             if !content.isEmpty {
-                ShareButtonCompat($alert) {
-                    Label("Export", systemImage: "square.and.arrow.up.fill")
-                } itemURL: {
-                    try content.generateShareFile(name: "service.log")
-                }
+                #if !os(tvOS)
+                    ShareButtonCompat($alert) {
+                        Label("Export", systemImage: "square.and.arrow.up.fill")
+                    } itemURL: {
+                        try content.generateShareFile(name: "service.log")
+                    }
+                #endif
                 Button(role: .destructive) {
                     Task {
                         await deleteContent()
                     }
                 } label: {
-                    Label("Delete", systemImage: "trash.fill")
+                    #if !os(tvOS)
+                        Label("Delete", systemImage: "trash.fill")
+                    #else
+                        Image(systemName: "trash.fill")
+                    #endif
                 }
             }
         }
-        #endif
         .alertBinding($alert)
         .navigationTitle("Service Log")
         #if os(tvOS)

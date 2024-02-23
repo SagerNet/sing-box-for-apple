@@ -11,6 +11,7 @@
 		3A096F8F2A4ED3DE00D4A2ED /* Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3A096F862A4ED3DE00D4A2ED /* Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3A0C6D3C2A79D46500A4DF2B /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0C6D3B2A79D46500A4DF2B /* OverviewView.swift */; };
 		3A0C6D3E2A79D6A600A4DF2B /* DashboardPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0C6D3D2A79D6A600A4DF2B /* DashboardPage.swift */; };
+		3A172D2B2B88E9DB00D98050 /* BackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A172D2A2B88E9DB00D98050 /* BackButton.swift */; };
 		3A1CF2F02A50E5EE000A8289 /* GroupListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1CF2EF2A50E5EE000A8289 /* GroupListView.swift */; };
 		3A1CF2F22A50E613000A8289 /* OutboundGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1CF2F12A50E613000A8289 /* OutboundGroup.swift */; };
 		3A1CF2F62A50EE9C000A8289 /* GroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A1CF2F52A50EE9C000A8289 /* GroupView.swift */; };
@@ -439,6 +440,7 @@
 		3A096F8C2A4ED3DE00D4A2ED /* Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Extension.entitlements; sourceTree = "<group>"; };
 		3A0C6D3B2A79D46500A4DF2B /* OverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewView.swift; sourceTree = "<group>"; };
 		3A0C6D3D2A79D6A600A4DF2B /* DashboardPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardPage.swift; sourceTree = "<group>"; };
+		3A172D2A2B88E9DB00D98050 /* BackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackButton.swift; sourceTree = "<group>"; };
 		3A1CF2EF2A50E5EE000A8289 /* GroupListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupListView.swift; sourceTree = "<group>"; };
 		3A1CF2F12A50E613000A8289 /* OutboundGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundGroup.swift; sourceTree = "<group>"; };
 		3A1CF2F32A50E937000A8289 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
@@ -1018,6 +1020,7 @@
 				3ACE6DE22ACADF55009D9A8A /* Binding+Setter.swift */,
 				3A3AB2A82B70C5F1001815AE /* RequestReviewButton.swift */,
 				3ACA8B322B7E037800B7238F /* DeleteButton.swift */,
+				3A172D2A2B88E9DB00D98050 /* BackButton.swift */,
 			);
 			path = Abstract;
 			sourceTree = "<group>";
@@ -1477,6 +1480,7 @@
 				3AF5E3E72B6F90640058B9E8 /* ProfileOverrideView.swift in Sources */,
 				3A4EAD302A4FEB77005435B3 /* NewProfileView.swift in Sources */,
 				3A3AB2A72B70C146001815AE /* CoreView.swift in Sources */,
+				3A172D2B2B88E9DB00D98050 /* BackButton.swift in Sources */,
 				3A4EAD242A4FEB65005435B3 /* InstallProfileButton.swift in Sources */,
 				3AE4D0C12A6E4852009FEA9E /* InstallSystemExtensionButton.swift in Sources */,
 				3A4EAD232A4FEB5A005435B3 /* EnvironmentValues.swift in Sources */,

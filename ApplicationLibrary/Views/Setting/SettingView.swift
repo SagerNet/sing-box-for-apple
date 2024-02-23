@@ -78,7 +78,7 @@ public struct SettingView: View {
 
         @MainActor
         var navigationLink: some View {
-            NavigationLink {
+            FormNavigationLink {
                 contentView
             } label: {
                 label
@@ -98,25 +98,25 @@ public struct SettingView: View {
             ForEach([Tabs.core, Tabs.packetTunnel, Tabs.profileOverride]) { it in
                 it.navigationLink
             }
-            Section("About") {
-                Link(destination: URL(string: "https://sing-box.sagernet.org/")!) {
-                    Label("Documentation", systemImage: "doc.on.doc.fill")
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.accentColor)
-                #if !os(tvOS)
+            #if !os(tvOS)
+                Section("About") {
+                    Link(destination: URL(string: "https://sing-box.sagernet.org/")!) {
+                        Label("Documentation", systemImage: "doc.on.doc.fill")
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.accentColor)
                     RequestReviewButton {
                         Label("Rate on the App Store", systemImage: "text.bubble.fill")
                     }
-                #endif
-                #if os(macOS)
-                    if Variant.useSystemExtension {
-                        Tabs.sponsors.navigationLink
-                    }
-                #endif
-            }
+                    #if os(macOS)
+                        if Variant.useSystemExtension {
+                            Tabs.sponsors.navigationLink
+                        }
+                    #endif
+                }
+            #endif
             Section("Debug") {
-                NavigationLink {
+                FormNavigationLink {
                     ServiceLogView()
                 } label: {
                     Label("Service Log", systemImage: "doc.on.clipboard")
@@ -136,6 +136,5 @@ public struct SettingView: View {
                 }
             }
         }
-        .navigationTitle("Settings")
     }
 }

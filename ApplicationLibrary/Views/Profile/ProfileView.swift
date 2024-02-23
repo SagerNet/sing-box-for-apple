@@ -45,27 +45,27 @@ public struct ProfileView: View {
                     }
                     FormView {
                         #if os(iOS)
-                            NavigationLink {
+                            FormNavigationLink {
                                 NewProfileView()
                             } label: {
                                 Text("New Profile").foregroundColor(.accentColor)
                             }
                             .disabled(editMode.isEditing)
                         #elseif os(macOS)
-                            NavigationLink {
+                            FormNavigationLink {
                                 NewProfileView()
                             } label: {
                                 Text("New Profile")
                             }
                         #elseif os(tvOS)
                             Section {
-                                NavigationLink {
+                                FormNavigationLink {
                                     NewProfileView()
                                 } label: {
                                     Text("New Profile").foregroundColor(.accentColor)
                                 }
                                 if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
-                                    NavigationLink {
+                                    FormNavigationLink {
                                         ImportProfileView {
                                             await doReload()
                                         }
@@ -291,7 +291,7 @@ public struct ProfileView: View {
         private var body0: some View {
             viewBuilder {
                 #if !os(macOS)
-                    NavigationLink {
+                    FormNavigationLink {
                         EditProfileView().environmentObject(profile.origin)
                     } label: {
                         Text(profile.name)
@@ -329,7 +329,7 @@ public struct ProfileView: View {
                         }
                     }
                 #else
-                    NavigationLink {
+                    FormNavigationLink {
                         EditProfileView().environmentObject(profile.origin)
                     } label: {
                         HStack {
