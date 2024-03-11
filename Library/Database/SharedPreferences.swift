@@ -62,10 +62,12 @@ public enum SharedPreferences {
 
     public static let excludeDefaultRoute = Preference<Bool>("exclude_default_route", defaultValue: false)
     public static let autoRouteUseSubRangesByDefault = Preference<Bool>("auto_route_use_sub_ranges_by_default", defaultValue: false)
+    public static let excludeAPNsRoute = Preference<Bool>("exclude_apple_push_notification_services", defaultValue: false)
 
     public static func resetProfileOverride() async {
         await excludeDefaultRoute.set(nil)
         await autoRouteUseSubRangesByDefault.set(nil)
+        await excludeAPNsRoute.set(nil)
     }
 
     #if DEBUG

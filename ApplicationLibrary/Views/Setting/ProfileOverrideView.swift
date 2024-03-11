@@ -5,6 +5,7 @@ public struct ProfileOverrideView: View {
     @State private var isLoading = true
     @State private var excludeDefaultRoute = false
     @State private var autoRouteUseSubRangesByDefault = false
+    @State private var excludeAPNsRoute = false
 
     public init() {}
     public var body: some View {
@@ -39,6 +40,17 @@ public struct ProfileOverrideView: View {
                         Text("By default, segment routing is used in `auto_route` instead of global routing. If `*_<route_address/route_exclude_address>` exists in the configuration, this item will not take effect on the corresponding network. (commonly used to resolve HomeKit compatibility issues)")
                     }
 
+                    FormSection {
+                        Toggle("Exclude APNs Route", isOn: $excludeAPNsRoute)
+                            .onChangeCompat(of: excludeAPNsRoute) { newValue in
+                                Task {
+                                    await SharedPreferences.excludeAPNsRoute.set(newValue)
+                                }
+                            }
+                    } footer: {
+                        Text("Append `push.apple.com` to `bypass_domain`, and `17.0.0.0/8` to `inet4_route_exclude_address`.")
+                    }
+
                     FormButton {
                         Task {
                             await SharedPreferences.resetProfileOverride()
@@ -60,6 +72,7 @@ public struct ProfileOverrideView: View {
     private func loadSettings() async {
         excludeDefaultRoute = await SharedPreferences.excludeDefaultRoute.get()
         autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
+        excludeAPNsRoute = await SharedPreferences.excludeAPNsRoute.get()
         isLoading = false
     }
 }

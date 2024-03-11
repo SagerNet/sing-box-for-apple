@@ -28,6 +28,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         }
 
         let autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
+        let excludeAPNs = await SharedPreferences.excludeAPNsRoute.get()
 
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
         if options.getAutoRoute() {
@@ -82,6 +83,13 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                     it.destinationAddress == "0.0.0.0" && it.destinationSubnetMask == "255.255.255.254"
                 }) {
                     ipv4ExcludeRoutes.append(NEIPv4Route(destinationAddress: "0.0.0.0", subnetMask: "255.255.255.254"))
+                }
+            }
+            if excludeAPNs, !ipv4Routes.isEmpty {
+                if !ipv4ExcludeRoutes.contains(where: { it in
+                    it.destinationAddress == "17.0.0.0" && it.destinationSubnetMask == "255.0.0.0"
+                }) {
+                    ipv4ExcludeRoutes.append(NEIPv4Route(destinationAddress: "17.0.0.0", subnetMask: "255.0.0.0"))
                 }
             }
 
@@ -139,6 +147,9 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             if await SharedPreferences.systemProxyEnabled.get() {
                 proxySettings.httpEnabled = true
                 proxySettings.httpsEnabled = true
+            }
+            if excludeAPNs {
+                proxySettings.exceptionList = ["push.apple.com"]
             }
             settings.proxySettings = proxySettings
         }
