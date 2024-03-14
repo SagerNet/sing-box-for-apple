@@ -46,6 +46,7 @@ public struct MacApplication: Scene {
         MenuBarExtra(isInserted: $showMenuBarExtra) {
             MenuView(isMenuPresented: $isMenuPresented)
                 .environmentObject(environments)
+                .environmentObject(environments.logClient)
         } label: {
             Image("MenuIcon")
         }

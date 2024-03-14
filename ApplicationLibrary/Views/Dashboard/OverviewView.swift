@@ -36,6 +36,7 @@ public struct OverviewView: View {
             if ApplicationLibrary.inPreview || profile.status.isConnected {
                 ExtensionStatusView()
                 ClashModeView()
+                    .environmentObject(environments.logClient)
             }
             if profileList.isEmpty {
                 Text("Empty profiles")

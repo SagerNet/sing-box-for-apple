@@ -5,8 +5,7 @@ import SwiftUI
 @MainActor
 public struct ClashModeView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var commandClient = CommandClient(.clashMode)
-    @State private var clashMode = ""
+    @EnvironmentObject private var commandClient: CommandClient
     @State private var alert: Alert?
 
     public init() {}
@@ -14,9 +13,9 @@ public struct ClashModeView: View {
         VStack {
             if commandClient.clashModeList.count > 1 {
                 Picker("", selection: Binding(get: {
-                    clashMode
+                    commandClient.clashMode
                 }, set: { newMode in
-                    clashMode = newMode
+                    commandClient.clashMode = newMode
                     Task {
                         await setClashMode(newMode)
                     }
@@ -28,9 +27,6 @@ public struct ClashModeView: View {
                 .pickerStyle(.segmented)
                 .padding([.top], 8)
             }
-        }
-        .onReceive(commandClient.$clashMode) { newMode in
-            clashMode = newMode
         }
         .padding([.leading, .trailing])
         .onAppear {
