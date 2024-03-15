@@ -31,7 +31,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         var error: NSError?
         LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &error)
         if let error {
-            writeError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
+            writeFatalError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
         }
 
         await LibboxSetMemoryLimit(!SharedPreferences.ignoreMemoryLimit.get())
@@ -39,14 +39,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if platformInterface == nil {
             platformInterface = ExtensionPlatformInterface(self)
         }
-        commandServer = try await LibboxNewCommandServer(platformInterface, Int32(SharedPreferences.maxLogLines.get()))
+        commandServer = await LibboxNewCommandServer(platformInterface, Int32(SharedPreferences.maxLogLines.get()))
         do {
             try commandServer.start()
         } catch {
             writeFatalError("(packet-tunnel): log server start error: \(error.localizedDescription)")
             return
         }
-        writeMessage("(packet-tunnel) log server started")
+        writeMessage("(packet-tunnel): Here I stand")
         await startService()
     }
 
@@ -58,17 +58,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
     }
 
-    func writeError(_ message: String) {
-        writeMessage(message)
-        var error: NSError?
-        LibboxWriteServiceError(message, &error)
-    }
-
     public func writeFatalError(_ message: String) {
         #if DEBUG
             NSLog(message)
         #endif
-        writeError(message)
+        writeMessage(message)
+        var error: NSError?
+        LibboxWriteServiceError(message, &error)
         cancelTunnelWithError(NSError(domain: message, code: 0))
     }
 
@@ -86,7 +82,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         let configContent: String
         do {
-            configContent = try await profile.read()
+            configContent = try profile.read()
         } catch {
             writeFatalError("(packet-tunnel) error: read config file \(profile.path): \(error.localizedDescription)")
             return
@@ -94,7 +90,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         var error: NSError?
         let service = LibboxNewService(configContent, platformInterface, &error)
         if let error {
-            writeError("(packet-tunnel) error: create service: \(error.localizedDescription)")
+            writeFatalError("(packet-tunnel) error: create service: \(error.localizedDescription)")
             return
         }
         guard let service else {
@@ -105,7 +101,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             try service.start()
         } catch {
             commandServer.setService(nil)
-            writeError("(packet-tunnel) error: start service: \(error.localizedDescription)")
+            writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
             return
         }
         boxService = service
@@ -119,7 +115,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             do {
                 try service.close()
             } catch {
-                writeError("(packet-tunnel) error: stop service: \(error.localizedDescription)")
+                writeMessage("(packet-tunnel) error: stop service: \(error.localizedDescription)")
             }
             boxService = nil
             commandServer.setService(nil)
@@ -136,7 +132,12 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             reasserting = false
         }
         stopService()
+        commandServer.resetLog()
         await startService()
+    }
+    
+    func postServiceClose() {
+        boxService = nil
     }
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {

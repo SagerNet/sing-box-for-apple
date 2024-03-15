@@ -262,6 +262,11 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         }
     }
 
+    public func postServiceClose() {
+        reset()
+        tunnel.postServiceClose()
+    }
+
     public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {
         let status = LibboxSystemProxyStatus()
         guard let networkSettings else {

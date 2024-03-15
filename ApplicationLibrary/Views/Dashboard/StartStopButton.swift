@@ -1,3 +1,4 @@
+import Libbox
 import Library
 import NetworkExtension
 import SwiftUI
@@ -80,7 +81,16 @@ public struct StartStopButton: View {
                     try await profile.start()
                     await environments.logClient.connect()
                 } else {
+                    var err: Error?
+                    do {
+                        try LibboxNewStandaloneCommandClient()!.serviceClose()
+                    } catch {
+                        err = error
+                    }
                     await profile.stop()
+                    if let err {
+                        throw err
+                    }
                 }
             } catch {
                 await MainActor.run {

@@ -201,7 +201,7 @@ public struct MenuView: View {
         }
 
         private nonisolated func serviceReload() async throws {
-            try LibboxNewStandaloneCommandClient()?.serviceReload()
+            try LibboxNewStandaloneCommandClient()!.serviceReload()
         }
     }
 }
