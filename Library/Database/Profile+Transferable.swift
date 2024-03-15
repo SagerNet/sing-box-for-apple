@@ -89,7 +89,7 @@ public struct TypedProfile: Transferable, Codable {
 
     public static var transferRepresentation: some TransferRepresentation {
         FileRepresentation(contentType: .profile) { typed in
-            try SentTransferredFile(typed.content.generateShareFile())
+            try SentTransferredFile(typed.content.generateShareFile(), allowAccessingOriginalFile: true)
         } importing: { received in
             try TypedProfile(.from(Data(contentsOf: received.file)))
         }
