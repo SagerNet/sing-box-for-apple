@@ -61,6 +61,7 @@ public struct LogView: View {
                             ForEach(Array(logClient.logList.enumerated()), id: \.offset) { it in
                                 Text(it.element)
                                     .font(logFont)
+                                    .textSelection(.enabled)
                                 #if os(tvOS)
                                     .focusable()
                                 #endif
