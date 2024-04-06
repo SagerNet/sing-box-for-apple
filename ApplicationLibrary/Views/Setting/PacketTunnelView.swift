@@ -2,10 +2,6 @@ import Library
 import SwiftUI
 
 struct PacketTunnelView: View {
-    #if os(macOS)
-        public static let windowID = "packet-tunnel"
-    #endif
-
     @State private var isLoading = true
 
     @State private var ignoreMemoryLimit = false

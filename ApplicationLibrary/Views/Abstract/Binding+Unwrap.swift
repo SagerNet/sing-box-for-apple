@@ -12,7 +12,7 @@ public extension Binding {
 
 public extension Binding where Value == Int32 {
     func stringBinding(defaultValue: Int32) -> Binding<String> {
-        return Binding<String> {
+        Binding<String> {
             var intValue = wrappedValue
             if intValue == 0 {
                 intValue = defaultValue

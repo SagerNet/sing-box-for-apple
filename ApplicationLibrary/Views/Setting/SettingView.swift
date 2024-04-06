@@ -12,7 +12,7 @@ public struct SettingView: View {
             case app
         #endif
 
-        case core, packetTunnel, profileOverride, sponsors
+        case core, packetTunnel, onDemandRules, profileOverride, sponsors
 
         var label: some View {
             Label(title, systemImage: iconImage)
@@ -28,6 +28,8 @@ public struct SettingView: View {
                 return NSLocalizedString("Core", comment: "")
             case .packetTunnel:
                 return NSLocalizedString("Packet Tunnel", comment: "")
+            case .onDemandRules:
+                return NSLocalizedString("On Demand Rules", comment: "")
             case .profileOverride:
                 return NSLocalizedString("Profile Override", comment: "")
             case .sponsors:
@@ -45,6 +47,8 @@ public struct SettingView: View {
                 return "shippingbox.fill"
             case .packetTunnel:
                 return "aspectratio.fill"
+            case .onDemandRules:
+                return "filemenu.and.selection"
             case .profileOverride:
                 return "square.dashed.inset.filled"
             case .sponsors:
@@ -64,6 +68,8 @@ public struct SettingView: View {
                     CoreView()
                 case .packetTunnel:
                     PacketTunnelView()
+                case .onDemandRules:
+                    OnDemandRulesView()
                 case .profileOverride:
                     ProfileOverrideView()
                 case .sponsors:
@@ -95,7 +101,7 @@ public struct SettingView: View {
             #if os(macOS)
                 Tabs.app.navigationLink
             #endif
-            ForEach([Tabs.core, Tabs.packetTunnel, Tabs.profileOverride]) { it in
+            ForEach([Tabs.core, Tabs.packetTunnel, Tabs.onDemandRules, Tabs.profileOverride]) { it in
                 it.navigationLink
             }
             #if !os(tvOS)

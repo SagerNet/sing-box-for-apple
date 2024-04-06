@@ -135,7 +135,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         commandServer.resetLog()
         await startService()
     }
-    
+
     func postServiceClose() {
         boxService = nil
     }

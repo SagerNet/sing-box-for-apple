@@ -9,8 +9,6 @@ public enum SharedPreferences {
         private static let ignoreMemoryLimitByDefault = false
     #endif
 
-    public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)
-
     public static let ignoreMemoryLimit = Preference<Bool>("ignore_memory_limit", defaultValue: ignoreMemoryLimitByDefault)
 
     #if os(iOS)
@@ -68,6 +66,14 @@ public enum SharedPreferences {
         await excludeDefaultRoute.set(nil)
         await autoRouteUseSubRangesByDefault.set(nil)
         await excludeAPNsRoute.set(nil)
+    }
+
+    // On Demand Rules
+
+    public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)
+
+    public static func resetOnDemandRules() async {
+        await alwaysOn.set(nil)
     }
 
     #if DEBUG

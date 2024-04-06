@@ -21,9 +21,9 @@ public struct ProfileShareButton<Label>: View where Label: View {
 
     public var body: some View {
         #if os(iOS)
-        if #available(iOS 17.4, *) {
-            bodyCompat
-        } else if #available(iOS 16.0, *) {
+            if #available(iOS 17.4, *) {
+                bodyCompat
+            } else if #available(iOS 16.0, *) {
                 ShareLink(item: profile, subject: Text(profile.name), preview: SharePreview("Share profile"), label: label)
             } else if UIDevice.current.userInterfaceIdiom != .pad {
                 bodyCompat

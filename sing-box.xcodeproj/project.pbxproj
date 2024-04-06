@@ -69,6 +69,7 @@
 		3A60CC2B2B70AD6700D2D682 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A60CC2A2B70AD6700D2D682 /* SettingView.swift */; };
 		3A648D2D2A4EEAA600D95A12 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A648D2C2A4EEAA600D95A12 /* Library.swift */; };
 		3A648D542A4EF4C700D95A12 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF342B12A4AA520002B34AC /* NetworkExtension.framework */; };
+		3A6CA4542BC19FDE0012B238 /* OnDemandRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6CA4532BC19FDE0012B238 /* OnDemandRulesView.swift */; };
 		3A6CA5A02A71317A0027933B /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6CA59F2A71317A0027933B /* MarkdownUI */; };
 		3A6CA5A32A713A580027933B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AEECC0A2A6DF9CA006A0E0C /* Assets.xcassets */; };
 		3A6CA5A62A713AA10027933B /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 3A6CA5A52A713AA10027933B /* AppIcon.icns */; };
@@ -479,6 +480,7 @@
 		3A60CC282B70A7C400D2D682 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
 		3A60CC2A2B70AD6700D2D682 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
 		3A648D2C2A4EEAA600D95A12 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
+		3A6CA4532BC19FDE0012B238 /* OnDemandRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDemandRulesView.swift; sourceTree = "<group>"; };
 		3A6CA5A52A713AA10027933B /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		3A77016D2A4E6B34008F031F /* IntentsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = IntentsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A77016F2A4E6B34008F031F /* IntentsExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentsExtension.swift; sourceTree = "<group>"; };
@@ -756,6 +758,7 @@
 				3A60CC2A2B70AD6700D2D682 /* SettingView.swift */,
 				3A3AB2A62B70C146001815AE /* CoreView.swift */,
 				3A411CEB2B734959000D9501 /* MacAppView.swift */,
+				3A6CA4532BC19FDE0012B238 /* OnDemandRulesView.swift */,
 			);
 			path = Setting;
 			sourceTree = "<group>";
@@ -1498,6 +1501,7 @@
 				3A1CF2F62A50EE9C000A8289 /* GroupView.swift in Sources */,
 				3A4EAD212A4FEB3C005435B3 /* ApplicationLibrary.swift in Sources */,
 				3A7904502B6E7BAC006C08D5 /* SponsorsView.swift in Sources */,
+				3A6CA4542BC19FDE0012B238 /* OnDemandRulesView.swift in Sources */,
 				3A1CF2F22A50E613000A8289 /* OutboundGroup.swift in Sources */,
 				3A1CF2FA2A50F0BD000A8289 /* OutboundGroupItem.swift in Sources */,
 				3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */,
@@ -2006,7 +2010,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2040,7 +2044,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2278,7 +2282,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2318,7 +2322,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2341,7 +2345,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 210;
+				CURRENT_PROJECT_VERSION = 213;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2357,7 +2361,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2379,7 +2383,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 210;
+				CURRENT_PROJECT_VERSION = 213;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Z56Z6NYZN2;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2395,7 +2399,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2537,7 +2541,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2573,7 +2577,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2613,7 +2617,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2652,7 +2656,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.11;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
