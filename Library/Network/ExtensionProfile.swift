@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 import NetworkExtension
 
 public class ExtensionProfile: ObservableObject {
@@ -75,8 +76,14 @@ public class ExtensionProfile: ObservableObject {
         try manager.connection.startVPNTunnel()
     }
 
-    public func stop() {
-        manager.isOnDemandEnabled = false
+    public func stop() async throws {
+        if manager.isOnDemandEnabled {
+            manager.isOnDemandEnabled = false
+            try await manager.saveToPreferences()
+        }
+        do {
+            try LibboxNewStandaloneCommandClient()!.serviceClose()
+        } catch {}
         manager.connection.stopVPNTunnel()
     }
 

@@ -38,7 +38,7 @@ struct StartServiceIntent: AppIntent {
             }
             try LibboxNewStandaloneCommandClient()!.serviceReload()
         } else if extensionProfile.status.isConnected {
-            extensionProfile.stop()
+            try await extensionProfile.stop()
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
             try await extensionProfile.start()
         } else {
@@ -65,7 +65,7 @@ struct RestartServiceIntent: AppIntent {
         if extensionProfile.status == .connected {
             try LibboxNewStandaloneCommandClient()!.serviceReload()
         } else if extensionProfile.status.isConnected {
-            extensionProfile.stop()
+            try await extensionProfile.stop()
             try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
             try await extensionProfile.start()
         } else {
@@ -89,7 +89,7 @@ struct StopServiceIntent: AppIntent {
         guard let extensionProfile = try await (ExtensionProfile.load()) else {
             return .result()
         }
-        extensionProfile.stop()
+        try await extensionProfile.stop()
         return .result()
     }
 }
@@ -109,7 +109,7 @@ struct ToggleServiceIntent: AppIntent {
             return .result(value: false)
         }
         if extensionProfile.status.isConnected {
-            extensionProfile.stop()
+            try await extensionProfile.stop()
             return .result(value: false)
 
         } else {

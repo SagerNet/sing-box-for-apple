@@ -96,7 +96,7 @@ public struct MenuView: View {
                 if isEnabled {
                     try await profile.start()
                 } else {
-                    profile.stop()
+                    try await profile.stop()
                 }
             } catch {
                 alert = Alert(error)
