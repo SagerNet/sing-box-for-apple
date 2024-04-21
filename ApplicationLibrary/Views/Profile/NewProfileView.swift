@@ -218,18 +218,18 @@ public struct NewProfileView: View {
             }
             savePath = remotePath
         } else if profileType == .remote {
-            let remoteContent = try HTTPClient().getString(remotePath)
+            let remoteContent = try HTTPClient().getConfigWithUpdatedURL(remotePath)
             var error: NSError?
-            LibboxCheckConfig(remoteContent, &error)
+            LibboxCheckConfig(remoteContent.config, &error)
             if let error {
                 throw error
             }
             let profileConfigDirectory = FilePath.sharedDirectory.appendingPathComponent("configs", isDirectory: true)
             try FileManager.default.createDirectory(at: profileConfigDirectory, withIntermediateDirectories: true)
             let profileConfig = profileConfigDirectory.appendingPathComponent("config_\(nextProfileID).json")
-            try remoteContent.write(to: profileConfig, atomically: true, encoding: .utf8)
+            try remoteContent.config.write(to: profileConfig, atomically: true, encoding: .utf8)
             savePath = profileConfig.relativePath
-            remoteURL = remotePath
+            remoteURL = remoteContent.newURL
             lastUpdated = .now
         }
         try await ProfileManager.create(Profile(
