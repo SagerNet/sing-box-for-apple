@@ -77,7 +77,6 @@ public struct StartStopButton: View {
         private nonisolated func switchProfile(_ isEnabled: Bool) async {
             do {
                 if isEnabled {
-                    try await profile.read()
                     try await profile.start()
                     await environments.logClient.connect()
                 } else {

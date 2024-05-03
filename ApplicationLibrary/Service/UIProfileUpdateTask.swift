@@ -54,7 +54,7 @@ import Library
             if profiles.isEmpty {
                 return
             }
-            await ProfileUpdateTask.updateProfiles(profiles)
+            _ = await ProfileUpdateTask.updateProfiles(profiles)
         }
 
         private nonisolated static func getAndUpdateProfiles(_ task: BGTask) async {

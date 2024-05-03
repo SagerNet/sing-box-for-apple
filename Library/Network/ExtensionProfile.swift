@@ -50,6 +50,7 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func start() async throws {
+        await fetchProfile()
         manager.isEnabled = true
         if await SharedPreferences.alwaysOn.get() {
             manager.isOnDemandEnabled = true
@@ -74,6 +75,16 @@ public class ExtensionProfile: ObservableObject {
             }
         #endif
         try manager.connection.startVPNTunnel()
+    }
+
+    public func fetchProfile() async {
+        do {
+            if let profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get())) {
+                if profile.type == .icloud {
+                    _ = try profile.read()
+                }
+            }
+        } catch {}
     }
 
     public func stop() async throws {
