@@ -47,6 +47,8 @@ struct PacketTunnelView: View {
                             Text("""
                             If this property is true, the system routes network traffic through the tunnel except traffic for designated system services necessary for maintaining expected device functionality. You can exclude some types of traffic using the **excludeAPNs**, **excludeLocalNetworks**, and **excludeCellularServices** properties in combination with this property.
 
+                            when enabled, the default TUN stack is changed to `gvisor`, and the `system` and `mixed` stacks are not available.
+
                             [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3131931-includeallnetworks)
                             """)
                             .multilineTextAlignment(.leading)

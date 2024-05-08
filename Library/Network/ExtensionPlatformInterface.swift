@@ -239,6 +239,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         true
     }
 
+    public func includeAllNetworks() -> Bool {
+        #if !os(tvOS)
+            return SharedPreferences.includeAllNetworks.getBlocking()
+        #else
+            return false
+        #endif
+    }
+
     public func clearDNSCache() {
         guard let networkSettings else {
             return
