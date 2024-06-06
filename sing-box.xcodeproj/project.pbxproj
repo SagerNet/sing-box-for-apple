@@ -24,6 +24,7 @@
 		3A27D9002A89BE230031EBCC /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D8FF2A89BE230031EBCC /* CommandClient.swift */; };
 		3A27D9022A89C6870031EBCC /* ExtensionEnvironments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */; };
 		3A2EAEED2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */; };
+		3A334ED02C0F621E00E9C577 /* ConnectionDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A334ECF2C0F621E00E9C577 /* ConnectionDetailsView.swift */; };
 		3A3AA7FC2A4EFDAE002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3AA7FF2A4EFDB3002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3AB2A72B70C146001815AE /* CoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3AB2A62B70C146001815AE /* CoreView.swift */; };
@@ -67,6 +68,9 @@
 		3A60CC272B70880100D2D682 /* PacketTunnelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A60CC262B70880100D2D682 /* PacketTunnelView.swift */; };
 		3A60CC292B70A7C400D2D682 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A60CC282B70A7C400D2D682 /* Color+Extension.swift */; };
 		3A60CC2B2B70AD6700D2D682 /* SettingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A60CC2A2B70AD6700D2D682 /* SettingView.swift */; };
+		3A63269E2C0DE12D0076E274 /* ConnectionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A63269D2C0DE12D0076E274 /* ConnectionListView.swift */; };
+		3A6326A02C0DE15C0076E274 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A63269F2C0DE15C0076E274 /* Connection.swift */; };
+		3A6326A22C0DE64F0076E274 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6326A12C0DE64F0076E274 /* ConnectionView.swift */; };
 		3A648D2D2A4EEAA600D95A12 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A648D2C2A4EEAA600D95A12 /* Library.swift */; };
 		3A648D542A4EF4C700D95A12 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF342B12A4AA520002B34AC /* NetworkExtension.framework */; };
 		3A6CA4542BC19FDE0012B238 /* OnDemandRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6CA4532BC19FDE0012B238 /* OnDemandRulesView.swift */; };
@@ -88,6 +92,7 @@
 		3A99B42A2A7526990010D4B0 /* NavigationStackCompat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99B4292A7526990010D4B0 /* NavigationStackCompat.swift */; };
 		3A99B42C2A75288C0010D4B0 /* ViewCompat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */; };
 		3A99B42E2A752ABB0010D4B0 /* NavigationDestinationCompat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */; };
+		3A9E6EBF2C0F20B0005061F3 /* ConnectionListPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A9E6EBE2C0F20B0005061F3 /* ConnectionListPage.swift */; };
 		3AABFD432A9CC5A7005A24A4 /* Upload.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3AABFD422A9CC5A7005A24A4 /* Upload.plist */; };
 		3AABFD472A9CCC58005A24A4 /* Upload.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3AABFD462A9CCC58005A24A4 /* Upload.plist */; };
 		3AB1220B2A70FD500087CD55 /* Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB1220A2A70FD500087CD55 /* Alert.swift */; };
@@ -454,6 +459,7 @@
 		3A27D8FF2A89BE230031EBCC /* CommandClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandClient.swift; sourceTree = "<group>"; };
 		3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionEnvironments.swift; sourceTree = "<group>"; };
 		3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndependentApplicationDelegate.swift; sourceTree = "<group>"; };
+		3A334ECF2C0F621E00E9C577 /* ConnectionDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDetailsView.swift; sourceTree = "<group>"; };
 		3A3AB2A62B70C146001815AE /* CoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreView.swift; sourceTree = "<group>"; };
 		3A3AB2A82B70C5F1001815AE /* RequestReviewButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestReviewButton.swift; sourceTree = "<group>"; };
 		3A3DEBE12A4FFA1A00373BF4 /* ExtensionFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExtensionFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.0.sdk/System/Library/Frameworks/ExtensionFoundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -478,6 +484,9 @@
 		3A60CC262B70880100D2D682 /* PacketTunnelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelView.swift; sourceTree = "<group>"; };
 		3A60CC282B70A7C400D2D682 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
 		3A60CC2A2B70AD6700D2D682 /* SettingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingView.swift; sourceTree = "<group>"; };
+		3A63269D2C0DE12D0076E274 /* ConnectionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionListView.swift; sourceTree = "<group>"; };
+		3A63269F2C0DE15C0076E274 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
+		3A6326A12C0DE64F0076E274 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		3A648D2C2A4EEAA600D95A12 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
 		3A6CA4532BC19FDE0012B238 /* OnDemandRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDemandRulesView.swift; sourceTree = "<group>"; };
 		3A6CA5A52A713AA10027933B /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
@@ -493,6 +502,7 @@
 		3A99B4292A7526990010D4B0 /* NavigationStackCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStackCompat.swift; sourceTree = "<group>"; };
 		3A99B42B2A75288C0010D4B0 /* ViewCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCompat.swift; sourceTree = "<group>"; };
 		3A99B42D2A752ABB0010D4B0 /* NavigationDestinationCompat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationDestinationCompat.swift; sourceTree = "<group>"; };
+		3A9E6EBE2C0F20B0005061F3 /* ConnectionListPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionListPage.swift; sourceTree = "<group>"; };
 		3AA1ABB92A4C4054000FD4BA /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		3AAB5E732A4BF90B009757F1 /* ServiceLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceLogView.swift; sourceTree = "<group>"; };
 		3AAB5E752A4BFB0B009757F1 /* EditProfileContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileContentView.swift; sourceTree = "<group>"; };
@@ -719,6 +729,18 @@
 			path = Service;
 			sourceTree = "<group>";
 		};
+		3A63269C2C0DE10B0076E274 /* Connections */ = {
+			isa = PBXGroup;
+			children = (
+				3A63269D2C0DE12D0076E274 /* ConnectionListView.swift */,
+				3A63269F2C0DE15C0076E274 /* Connection.swift */,
+				3A6326A12C0DE64F0076E274 /* ConnectionView.swift */,
+				3A9E6EBE2C0F20B0005061F3 /* ConnectionListPage.swift */,
+				3A334ECF2C0F621E00E9C577 /* ConnectionDetailsView.swift */,
+			);
+			path = Connections;
+			sourceTree = "<group>";
+		};
 		3A6CA5A42A713A6C0027933B /* Icons */ = {
 			isa = PBXGroup;
 			children = (
@@ -940,6 +962,7 @@
 		3AEC21732A45B0AC00A63465 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				3A63269C2C0DE10B0076E274 /* Connections */,
 				3AF342D22A4AADA5002B34AC /* Abstract */,
 				3AF342A12A4A9B8D002B34AC /* Dashboard */,
 				3A1CF2EE2A50E5D5000A8289 /* Groups */,
@@ -1473,6 +1496,7 @@
 				3A4EAD352A4FEB9C005435B3 /* UIProfileUpdateTask.swift in Sources */,
 				3A60CC272B70880100D2D682 /* PacketTunnelView.swift in Sources */,
 				3A4EAD222A4FEB54005435B3 /* NavigationPage.swift in Sources */,
+				3A9E6EBF2C0F20B0005061F3 /* ConnectionListPage.swift in Sources */,
 				3A411CEC2B734959000D9501 /* MacAppView.swift in Sources */,
 				3AC8CF9B2A736C750002AF3C /* ImportProfileView.swift in Sources */,
 				3A4EAD292A4FEB6D005435B3 /* FormItem.swift in Sources */,
@@ -1482,6 +1506,7 @@
 				3A172D2B2B88E9DB00D98050 /* BackButton.swift in Sources */,
 				3A4EAD242A4FEB65005435B3 /* InstallProfileButton.swift in Sources */,
 				3AE4D0C12A6E4852009FEA9E /* InstallSystemExtensionButton.swift in Sources */,
+				3A6326A22C0DE64F0076E274 /* ConnectionView.swift in Sources */,
 				3A4EAD232A4FEB5A005435B3 /* EnvironmentValues.swift in Sources */,
 				3A4F68B02A97602C003D66D3 /* ClashModeView.swift in Sources */,
 				3A4EAD282A4FEB65005435B3 /* ActiveDashboardView.swift in Sources */,
@@ -1506,8 +1531,11 @@
 				3ACA8B332B7E037800B7238F /* DeleteButton.swift in Sources */,
 				3ACE6DE32ACADF55009D9A8A /* Binding+Setter.swift in Sources */,
 				3A4EAD262A4FEB65005435B3 /* ExtensionStatusView.swift in Sources */,
+				3A63269E2C0DE12D0076E274 /* ConnectionListView.swift in Sources */,
 				3A4EAD252A4FEB65005435B3 /* StartStopButton.swift in Sources */,
+				3A6326A02C0DE15C0076E274 /* Connection.swift in Sources */,
 				3A4EAD2B2A4FEB6D005435B3 /* ViewBuilder.swift in Sources */,
+				3A334ED02C0F621E00E9C577 /* ConnectionDetailsView.swift in Sources */,
 				3AC5EC082A6417470077AF34 /* DeviceCensorship.swift in Sources */,
 				3A0C6D3E2A79D6A600A4DF2B /* DashboardPage.swift in Sources */,
 				3A3AB2A92B70C5F1001815AE /* RequestReviewButton.swift in Sources */,
@@ -2006,7 +2034,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.4;
+				MARKETING_VERSION = 1.10.4;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2040,7 +2068,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.4;
+				MARKETING_VERSION = 1.10.4;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2278,7 +2306,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.4;
+				MARKETING_VERSION = 1.10.4;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2318,7 +2346,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.4;
+				MARKETING_VERSION = 1.10.4;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2357,7 +2385,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9.4;
+				MARKETING_VERSION = 1.10.4;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2395,7 +2423,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9.4;
+				MARKETING_VERSION = 1.10.4;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfa;
 				PRODUCT_NAME = "sing-box";
@@ -2878,7 +2906,7 @@
 			repositoryURL = "https://github.com/orchetect/MacControlCenterUI";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.1;
+				minimumVersion = 2.0.7;
 			};
 		};
 		3A7E90362A46778E00D53052 /* XCRemoteSwiftPackageReference "BinaryCodable" */ = {

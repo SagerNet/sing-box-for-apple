@@ -7,6 +7,7 @@ public class CommandClient: ObservableObject {
         case groups
         case log
         case clashMode
+        case connections
     }
 
     private let connectionType: ConnectionType
@@ -20,6 +21,11 @@ public class CommandClient: ObservableObject {
     @Published public var logList: [String]
     @Published public var clashModeList: [String]
     @Published public var clashMode: String
+
+    @Published public var connectionStateFilter = ConnectionStateFilter.all
+    @Published public var connectionSort = ConnectionSort.byDate
+    @Published public var connections: [LibboxConnection]?
+    public var rawConnections: LibboxConnections?
 
     public init(_ connectionType: ConnectionType, logMaxLines: Int = 300) {
         self.connectionType = connectionType
@@ -53,7 +59,41 @@ public class CommandClient: ObservableObject {
         }
     }
 
+    public func filterConnectionsNow() {
+        guard let message = rawConnections else {
+            return
+        }
+        connections = filterConnections(message)
+    }
+
+    private func filterConnections(_ message: LibboxConnections) -> [LibboxConnection] {
+        message.filterState(Int32(connectionStateFilter.rawValue))
+        switch connectionSort {
+        case .byDate:
+            message.sortByDate()
+        case .byTraffic:
+            message.sortByTraffic()
+        case .byTrafficTotal:
+            message.sortByTrafficTotal()
+        }
+        let connectionIterator = message.iterator()!
+        var connections: [LibboxConnection] = []
+        while connectionIterator.hasNext() {
+            connections.append(connectionIterator.next()!)
+        }
+        return connections
+    }
+
+    private func initializeConnectionFilterState() async {
+        connectionStateFilter = await .init(rawValue: SharedPreferences.connectionStateFilter.get()) ?? .all
+        connectionSort = await .init(rawValue: SharedPreferences.connectionSort.get()) ?? .byDate
+    }
+
     private nonisolated func connect0() async {
+        if connectionType == .connections {
+            await initializeConnectionFilterState()
+        }
+
         let clientOptions = LibboxCommandClientOptions()
         switch connectionType {
         case .status:
@@ -64,6 +104,8 @@ public class CommandClient: ObservableObject {
             clientOptions.command = LibboxCommandLog
         case .clashMode:
             clientOptions.command = LibboxCommandClashMode
+        case .connections:
+            clientOptions.command = LibboxCommandConnections
         }
         clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
         let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
@@ -101,9 +143,12 @@ public class CommandClient: ObservableObject {
             }
         }
 
-        func disconnected(_: String?) {
+        func disconnected(_ message: String?) {
             DispatchQueue.main.async { [self] in
                 commandClient.isConnected = false
+            }
+            if let message {
+                NSLog("client disconnected: \(message)")
             }
         }
 
@@ -156,8 +201,62 @@ public class CommandClient: ObservableObject {
                 commandClient.clashMode = newMode!
             }
         }
-        
+
         func write(_ message: LibboxConnections?) {
+            guard let message else {
+                return
+            }
+            let connections = commandClient.filterConnections(message)
+            DispatchQueue.main.async { [self] in
+                commandClient.rawConnections = message
+                commandClient.connections = connections
+            }
+        }
+    }
+}
+
+public enum ConnectionStateFilter: Int, CaseIterable, Identifiable {
+    public var id: Self {
+        self
+    }
+
+    case all
+    case active
+    case closed
+}
+
+public extension ConnectionStateFilter {
+    var name: String {
+        switch self {
+        case .all:
+            return NSLocalizedString("All", comment: "")
+        case .active:
+            return NSLocalizedString("Active", comment: "")
+        case .closed:
+            return NSLocalizedString("Closed", comment: "")
+        }
+    }
+}
+
+public enum ConnectionSort: Int, CaseIterable, Identifiable {
+    public var id: Self {
+        self
+    }
+
+    case byDate
+    case byTraffic
+    case byTrafficTotal
+}
+
+public extension ConnectionSort {
+    var name: String {
+        switch self {
+        case .byDate:
+            return NSLocalizedString("Date", comment: "")
+        case .byTraffic:
+            return NSLocalizedString("Traffic", comment: "")
+        case .byTrafficTotal:
+            return NSLocalizedString("Traffic Total", comment: "")
         }
     }
 }

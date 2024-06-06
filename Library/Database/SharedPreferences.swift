@@ -68,6 +68,11 @@ public enum SharedPreferences {
         await excludeAPNsRoute.set(nil)
     }
 
+    // Connections Filter
+
+    public static let connectionStateFilter = Preference<Int>("connection_state_filter", defaultValue: 0)
+    public static let connectionSort = Preference<Int>("connection_sort", defaultValue: 0)
+
     // On Demand Rules
 
     public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)

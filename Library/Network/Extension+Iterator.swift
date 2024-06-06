@@ -1,7 +1,7 @@
 import Foundation
 import Libbox
 
-extension LibboxStringIteratorProtocol {
+public extension LibboxStringIteratorProtocol {
     func toArray() -> [String] {
         var array: [String] = []
         while hasNext() {
