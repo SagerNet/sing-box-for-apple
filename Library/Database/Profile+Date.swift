@@ -1,9 +1,9 @@
 import Foundation
 
-public extension Profile {
-    var lastUpdatedString: String {
+public extension Date {
+    var myFormat: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return dateFormatter.string(from: lastUpdated!)
+        return dateFormatter.string(from: self)
     }
 }

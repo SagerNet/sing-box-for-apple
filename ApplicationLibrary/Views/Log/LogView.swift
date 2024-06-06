@@ -57,7 +57,7 @@ public struct LogView: View {
             } else {
                 ScrollViewReader { reader in
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 0) {
+                        LazyVGrid(columns: [GridItem(.flexible())], alignment: .leading, spacing: 0) {
                             ForEach(Array(logClient.logList.enumerated()), id: \.offset) { it in
                                 Text(it.element)
                                     .font(logFont)

@@ -334,7 +334,7 @@ public struct ProfileView: View {
                                 Text(profile.name)
                                 if profile.type == .remote {
                                     Spacer(minLength: 4)
-                                    Text("Last Updated: \(profile.origin.lastUpdatedString)").font(.caption)
+                                    Text("Last Updated: \(profile.origin.lastUpdated!.myFormat)").font(.caption)
                                 }
                             }
                             HStack {

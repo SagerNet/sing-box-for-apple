@@ -10,6 +10,7 @@ public enum NavigationPage: Int, CaseIterable, Identifiable {
     case dashboard
     #if os(macOS)
         case groups
+        case connections
     #endif
     case logs
     case profiles
@@ -35,6 +36,8 @@ public extension NavigationPage {
         #if os(macOS)
             case .groups:
                 return NSLocalizedString("Groups", comment: "")
+            case .connections:
+                return NSLocalizedString("Connections", comment: "")
         #endif
         case .logs:
             return NSLocalizedString("Logs", comment: "")
@@ -52,6 +55,8 @@ public extension NavigationPage {
         #if os(macOS)
             case .groups:
                 return "rectangle.3.group.fill"
+            case .connections:
+                return "list.bullet.rectangle.portrait.fill"
         #endif
         case .logs:
             return "doc.text.fill"
@@ -71,6 +76,8 @@ public extension NavigationPage {
             #if os(macOS)
                 case .groups:
                     GroupListView()
+                case .connections:
+                    ConnectionListView()
             #endif
             case .logs:
                 LogView()
@@ -89,7 +96,7 @@ public extension NavigationPage {
     #if os(macOS)
         func visible(_ profile: ExtensionProfile?) -> Bool {
             switch self {
-            case .groups:
+            case .groups, .connections:
                 return profile?.status.isConnectedStrict == true
             default:
                 return true

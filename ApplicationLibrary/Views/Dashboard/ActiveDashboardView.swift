@@ -50,23 +50,24 @@ public struct ActiveDashboardView: View {
         VStack {
             #if os(iOS) || os(tvOS)
                 if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
-                    Picker("Page", selection: $selection) {
-                        ForEach(DashboardPage.allCases) { page in
-                            page.label
-                        }
+                    viewBuilder {
+                        #if os(iOS)
+                            if #available(iOS 16.0, *) {
+                                content1
+                            } else {
+                                content0
+                            }
+                        #else
+                            content0
+                        #endif
                     }
-                    .pickerStyle(.segmented)
                     #if os(iOS)
-                        .padding([.leading, .trailing])
-                        .navigationBarTitleDisplayMode(.inline)
+                    .navigationBarTitleDisplayMode(.inline)
                     #endif
-                    TabView(selection: $selection) {
-                        ForEach(DashboardPage.allCases) { page in
-                            page.contentView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
-                                .tag(page)
-                        }
+                    .onAppear {
+                        UIScrollView.appearance().isScrollEnabled = false
                     }
-                    .tabViewStyle(.page(indexDisplayMode: .always))
+                    .tabViewStyle(.page(indexDisplayMode: .never))
                 } else {
                     OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
                 }
@@ -88,6 +89,45 @@ public struct ActiveDashboardView: View {
             }
         }
         .alertBinding($alert)
+    }
+
+    @ViewBuilder
+    private var content0: some View {
+        Picker("Page", selection: $selection) {
+            ForEach(DashboardPage.allCases) { page in
+                page.label
+            }
+        }
+        .pickerStyle(.segmented)
+        #if os(iOS)
+            .padding([.leading, .trailing])
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+        TabView(selection: $selection) {
+            ForEach(DashboardPage.enabledCases) { page in
+                page.contentView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
+                    .tag(page)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var content1: some View {
+        TabView(selection: $selection) {
+            ForEach(DashboardPage.enabledCases) { page in
+                page.contentView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
+                    .tag(page)
+            }
+        }
+        .toolbar {
+            ToolbarTitleMenu {
+                Picker("Page", selection: $selection) {
+                    ForEach(DashboardPage.allCases) { page in
+                        page.label
+                    }
+                }
+            }
+        }
     }
 
     private func doReload() async {

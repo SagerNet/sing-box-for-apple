@@ -51,7 +51,7 @@ public struct EditProfileView: View {
             }
             if profile.type == .remote {
                 Section("Status") {
-                    FormTextItem("Last Updated", profile.lastUpdatedString)
+                    FormTextItem("Last Updated", profile.lastUpdated!.myFormat)
                 }
             }
             Section("Action") {
