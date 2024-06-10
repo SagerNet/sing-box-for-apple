@@ -135,7 +135,7 @@ public struct ProfileView: View {
         #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                EditButton().disabled(profileList.isEmpty)
+                EditButton().disabled(profileList.isEmpty && !editMode.isEditing)
             }
         }
         #elseif os(tvOS)
