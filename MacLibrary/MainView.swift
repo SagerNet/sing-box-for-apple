@@ -78,7 +78,7 @@ public struct MainView: View {
                 await importURLProfile(url)
             }
         } else {
-            alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
+            alert = Alert(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
         }
     }
 
@@ -105,7 +105,7 @@ public struct MainView: View {
         if directoryName != "Applications" {
             alert = Alert(
                 title: Text("Wrong application location"),
-                message: Text("This app needs to be placed under ~/Applications to work."),
+                message: Text("This app needs to be placed under the Applications folder to work."),
                 dismissButton: .default(Text("Ok")) {
                     NSWorkspace.shared.selectFile(Bundle.main.bundlePath, inFileViewerRootedAtPath: "")
                     NSApp.terminate(nil)

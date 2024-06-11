@@ -32,19 +32,19 @@ public extension NavigationPage {
     var title: String {
         switch self {
         case .dashboard:
-            return NSLocalizedString("Dashboard", comment: "")
+            return String(localized: "Dashboard")
         #if os(macOS)
             case .groups:
-                return NSLocalizedString("Groups", comment: "")
+                return String(localized: "Groups")
             case .connections:
                 return NSLocalizedString("Connections", comment: "")
         #endif
         case .logs:
-            return NSLocalizedString("Logs", comment: "")
+            return String(localized: "Logs")
         case .profiles:
-            return NSLocalizedString("Profiles", comment: "")
+            return String(localized: "Profiles")
         case .settings:
-            return NSLocalizedString("Settings", comment: "")
+            return String(localized: "Settings")
         }
     }
 

@@ -183,7 +183,7 @@ public struct DashboardView: View {
                     await MainActor.run {
                         alert = Alert(
                             title: Text("Full Disk Access permission is required"),
-                            message: Text("Please grant the permission for SFMExtension, then we can continue."),
+                            message: Text("Please grant the permission for **SFMExtension**, then we can continue."),
                             primaryButton: .default(Text("Authorize"), action: openFDASettings),
                             secondaryButton: .cancel()
                         )

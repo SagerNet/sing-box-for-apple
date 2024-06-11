@@ -10,6 +10,8 @@ public class HTTPClient {
         userAgent += Bundle.main.versionNumber
         userAgent += "; sing-box "
         userAgent += LibboxVersion()
+        userAgent += "; language "
+        userAgent += Locale.current.identifier
         userAgent += ")"
         return userAgent
     }

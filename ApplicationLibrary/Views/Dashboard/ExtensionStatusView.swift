@@ -27,49 +27,49 @@ public struct ExtensionStatusView: View {
             VStack {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
                     if ApplicationLibrary.inPreview {
-                        StatusItem("Status") {
-                            StatusLine("Memory", "6.4 MB")
-                            StatusLine("Goroutines", "89")
+                        StatusItem(String(localized: "Status")) {
+                            StatusLine(String(localized: "Memory"), "6.4 MB")
+                            StatusLine(String(localized: "Goroutines"), "89")
                         }
-                        StatusItem("Connections") {
-                            StatusLine("Inbound", "34")
-                            StatusLine("Outbound", "28")
+                        StatusItem(String(localized: "Connections")) {
+                            StatusLine(String(localized: "Inbound"), "34")
+                            StatusLine(String(localized: "Outbound"), "28")
                         }
-                        StatusItem("Traffic") {
-                            StatusLine("Uplink", "38 B/s")
-                            StatusLine("Downlink", "249 MB/s")
+                        StatusItem(String(localized: "Traffic")) {
+                            StatusLine(String(localized: "Uplink"), "38 B/s")
+                            StatusLine(String(localized: "Downlink"), "249 MB/s")
                         }
-                        StatusItem("TrafficTotal") {
-                            StatusLine("Uplink", "52 MB")
-                            StatusLine("Downlink", "5.6 GB")
+                        StatusItem(String(localized: "Traffic Total")) {
+                            StatusLine(String(localized: "Uplink"), "52 MB")
+                            StatusLine(String(localized: "Downlink"), "5.6 GB")
                         }
                     } else if let message = commandClient.status {
-                        StatusItem("Status") {
-                            StatusLine("Memory", LibboxFormatMemoryBytes(message.memory))
-                            StatusLine("Goroutines", "\(message.goroutines)")
+                        StatusItem(String(localized: "Status")) {
+                            StatusLine(String(localized: "Memory"), LibboxFormatMemoryBytes(message.memory))
+                            StatusLine(String(localized: "Goroutines"), "\(message.goroutines)")
                         }
-                        StatusItem("Connections") {
-                            StatusLine("Inbound", "\(message.connectionsIn)")
-                            StatusLine("Outbound", "\(message.connectionsOut)")
+                        StatusItem(String(localized: "Connections")) {
+                            StatusLine(String(localized: "Inbound"), "\(message.connectionsIn)")
+                            StatusLine(String(localized: "Outbound"), "\(message.connectionsOut)")
                         }
                         if message.trafficAvailable {
-                            StatusItem("Traffic") {
-                                StatusLine("Uplink", "\(LibboxFormatBytes(message.uplink))/s")
-                                StatusLine("Downlink", "\(LibboxFormatBytes(message.downlink))/s")
+                            StatusItem(String(localized: "Traffic")) {
+                                StatusLine(String(localized: "Uplink"), "\(LibboxFormatBytes(message.uplink))/s")
+                                StatusLine(String(localized: "Downlink"), "\(LibboxFormatBytes(message.downlink))/s")
                             }
-                            StatusItem("Traffic Total") {
-                                StatusLine("Uplink", LibboxFormatBytes(message.uplinkTotal))
-                                StatusLine("Downlink", LibboxFormatBytes(message.downlinkTotal))
+                            StatusItem(String(localized: "Traffic Total")) {
+                                StatusLine(String(localized: "Uplink"), LibboxFormatBytes(message.uplinkTotal))
+                                StatusLine(String(localized: "Downlink"), LibboxFormatBytes(message.downlinkTotal))
                             }
                         }
                     } else {
-                        StatusItem("Status") {
-                            StatusLine("Memory", "...")
-                            StatusLine("Goroutines", "...")
+                        StatusItem(String(localized: "Status")) {
+                            StatusLine(String(localized: "Memory"), "...")
+                            StatusLine(String(localized: "Goroutines"), "...")
                         }
-                        StatusItem("Connections") {
-                            StatusLine("Inbound", "...")
-                            StatusLine("Outbound", "...")
+                        StatusItem(String(localized: "Connections")) {
+                            StatusLine(String(localized: "Inbound"), "...")
+                            StatusLine(String(localized: "Outbound"), "...")
                         }
                     }
                 }.background {

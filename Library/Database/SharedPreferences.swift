@@ -1,6 +1,8 @@
 import Foundation
 
 public enum SharedPreferences {
+    public static let language = Preference<String>("language", defaultValue: "")
+
     public static let selectedProfileID = Preference<Int64>("selected_profile_id", defaultValue: -1)
 
     #if os(macOS)

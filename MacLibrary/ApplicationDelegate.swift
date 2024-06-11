@@ -9,6 +9,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
     public func applicationDidFinishLaunching(_: Notification) {
         NSLog("Here I stand")
         LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
+        LibboxSetLocale(Locale.current.identifier)
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.setNotificationCategories([
             UNNotificationCategory(

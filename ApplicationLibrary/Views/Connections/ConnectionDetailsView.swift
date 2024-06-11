@@ -20,8 +20,8 @@ public struct ConnectionDetailsView: View {
             if let closedAt = connection.closedAt {
                 FormTextItem("Closed At", closedAt.myFormat)
             }
-            FormTextItem("Upload", LibboxFormatBytes(connection.uploadTotal))
-            FormTextItem("Download", LibboxFormatBytes(connection.downloadTotal))
+            FormTextItem("Uplink", LibboxFormatBytes(connection.uploadTotal))
+            FormTextItem("Downlink", LibboxFormatBytes(connection.downloadTotal))
             Section("Metadata") {
                 FormTextItem("Inbound", connection.inbound)
                 FormTextItem("Inbound Type", connection.inboundType)

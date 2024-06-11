@@ -104,9 +104,9 @@
 
         private var navigationTitle: String {
             if readOnly {
-                return "View Content"
+                return String(localized: "View Content")
             } else {
-                return "Edit Content"
+                return String(localized: "Edit Content")
             }
         }
 
