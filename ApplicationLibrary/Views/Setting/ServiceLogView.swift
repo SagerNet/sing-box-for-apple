@@ -87,11 +87,11 @@ public struct ServiceLogView: View {
                 guard let value = element.value as? Int8, value != 0 else { return identifier }
                 return identifier + String(UnicodeScalar(UInt8(value)))
             }
-            var deviceInfo = "Machine: " + machineName + "\n"
+            var deviceInfo = String(localized: "Machine: ") + machineName + "\n"
             #if os(iOS)
-                await deviceInfo += "System: " + (UIDevice.current.systemName) + " " + (UIDevice.current.systemVersion) + "\n"
+                await deviceInfo += String(localized: "System: ") + (UIDevice.current.systemName) + " " + (UIDevice.current.systemVersion) + "\n"
             #elseif os(macOS)
-                deviceInfo += "System: macOS " + ProcessInfo().operatingSystemVersionString + "\n"
+                deviceInfo += String(localized: "System: ") + "macOS " + ProcessInfo().operatingSystemVersionString + "\n"
             #endif
             content = deviceInfo + "\n" + content
         }

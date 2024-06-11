@@ -83,7 +83,7 @@ public struct MainView: View {
                 await importURLProfile(url)
             }
         } else {
-            alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
+            alert = Alert(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
         }
     }
 

@@ -15,9 +15,9 @@ public extension DashboardPage {
     var title: String {
         switch self {
         case .overview:
-            return NSLocalizedString("Overview", comment: "")
+            return String(localized: "Overview")
         case .groups:
-            return NSLocalizedString("Groups", comment: "")
+            return String(localized: "Groups")
         }
     }
 

@@ -151,6 +151,13 @@
 		3AF342A02A4A9916002B34AC /* ExtensionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF3429F2A4A9916002B34AC /* ExtensionProfile.swift */; };
 		3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */; };
 		3AF5E3E72B6F90640058B9E8 /* ProfileOverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF5E3E62B6F90640058B9E8 /* ProfileOverrideView.swift */; };
+		9C37F17D2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
+		9C37F17E2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
+		9C37F17F2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
+		9C37F1812C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
+		9C37F1822C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
+		9C37F1832C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
+		9C37F1842C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -570,6 +577,7 @@
 		3AF342D32A4AADB2002B34AC /* FormItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormItem.swift; sourceTree = "<group>"; };
 		3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.0.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		3AF5E3E62B6F90640058B9E8 /* ProfileOverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileOverrideView.swift; sourceTree = "<group>"; };
+		9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -810,6 +818,7 @@
 		3AEC20BC2A45991900A63465 = {
 			isa = PBXGroup;
 			children = (
+				9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */,
 				3AEC20DB2A4599D000A63465 /* Libbox.xcframework */,
 				3AEC20F42A459AB400A63465 /* SFI */,
 				3AEC210A2A459B1900A63465 /* SFM */,
@@ -1383,6 +1392,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9C37F1832C131100001B9FA8 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1390,6 +1400,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9C37F1812C131100001B9FA8 /* Localizable.xcstrings in Resources */,
 				3AC03B9D2A72BF3500B7946F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1407,6 +1418,7 @@
 			files = (
 				3A6CA5A92A713C420027933B /* AppIcon.icns in Resources */,
 				3AABFD432A9CC5A7005A24A4 /* Upload.plist in Resources */,
+				9C37F17D2C131100001B9FA8 /* Localizable.xcstrings in Resources */,
 				3AEC20FA2A459AB500A63465 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1417,6 +1429,7 @@
 			files = (
 				3A6CA5A72A713ABA0027933B /* AppIcon.icns in Resources */,
 				3A6CA5A32A713A580027933B /* Assets.xcassets in Resources */,
+				9C37F17E2C131100001B9FA8 /* Localizable.xcstrings in Resources */,
 				3A251C122A52D09700651082 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1425,6 +1438,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9C37F1822C131100001B9FA8 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1440,6 +1454,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3AABFD472A9CCC58005A24A4 /* Upload.plist in Resources */,
+				9C37F17F2C131100001B9FA8 /* Localizable.xcstrings in Resources */,
 				3A6CA5A82A713B340027933B /* AppIcon.icns in Resources */,
 				3AEC8A4F2A6E5E18003702E1 /* Assets.xcassets in Resources */,
 				3AEECC0B2A6DF9CA006A0E0C /* Assets.xcassets in Resources */,
@@ -1450,6 +1465,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9C37F1842C131100001B9FA8 /* Localizable.xcstrings in Resources */,
 				3A6CA5A62A713AA10027933B /* AppIcon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

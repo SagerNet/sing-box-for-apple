@@ -52,7 +52,7 @@ public struct MenuView: View {
                     }
                 }
             } label: {
-                Text("Open")
+                Text("Open-MenuBarItem")
             }
             MenuCommand {
                 NSApp.terminate(nil)
@@ -140,7 +140,7 @@ public struct MenuView: View {
                     if profileList.isEmpty {
                         Text("Empty profiles")
                     } else {
-                        MenuSection("Profile")
+                        MenuSection(String(localized: "Profile"))
                         Picker("", selection: selectedProfileIDLocal) {
                             ForEach(profileList, id: \.id) { profile in
                                 Text(profile.name)
