@@ -26,7 +26,7 @@
             do {
                 if let result = try await SystemExtension.install() {
                     if result == .willCompleteAfterReboot {
-                        alert = Alert(errorMessage: "Need Reboot")
+                        alert = Alert(errorMessage: String(localized: "Need Reboot"))
                     }
                 }
                 await callback()

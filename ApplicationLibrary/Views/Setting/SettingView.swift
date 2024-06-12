@@ -22,18 +22,18 @@ public struct SettingView: View {
             switch self {
             #if os(macOS)
                 case .app:
-                    return NSLocalizedString("App", comment: "")
+                    return String(localized: "App")
             #endif
             case .core:
-                return NSLocalizedString("Core", comment: "")
+                return String(localized: "Core")
             case .packetTunnel:
-                return NSLocalizedString("Packet Tunnel", comment: "")
+                return String(localized: "Packet Tunnel")
             case .onDemandRules:
-                return NSLocalizedString("On Demand Rules", comment: "")
+                return String(localized: "On Demand Rules")
             case .profileOverride:
-                return NSLocalizedString("Profile Override", comment: "")
+                return String(localized: "Profile Override")
             case .sponsors:
-                return NSLocalizedString("Sponsors", comment: "")
+                return String(localized: "Sponsors")
             }
         }
 
@@ -106,7 +106,7 @@ public struct SettingView: View {
             }
             #if !os(tvOS)
                 Section("About") {
-                    Link(destination: URL(string: "https://sing-box.sagernet.org/")!) {
+                    Link(destination: URL(string: String(localized: "https://sing-box.sagernet.org/"))!) {
                         Label("Documentation", systemImage: "doc.on.doc.fill")
                     }
                     .buttonStyle(.plain)

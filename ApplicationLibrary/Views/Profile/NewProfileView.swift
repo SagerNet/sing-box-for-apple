@@ -34,7 +34,7 @@ public struct NewProfileView: View {
 
     public var body: some View {
         FormView {
-            FormItem("Name") {
+            FormItem(String(localized: "Name")) {
                 TextField("Name", text: $profileName, prompt: Text("Required"))
                     .multilineTextAlignment(.trailing)
             }
@@ -76,17 +76,17 @@ public struct NewProfileView: View {
                     }
                 }
             } else if profileType == .icloud {
-                FormItem("Path") {
+                FormItem(String(localized: "Path")) {
                     TextField("Path", text: $remotePath, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
                 }
             } else if profileType == .remote {
-                FormItem("URL") {
+                FormItem(String(localized: "URL")) {
                     TextField("URL", text: $remotePath, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
                 }
                 Toggle("Auto Update", isOn: $autoUpdate)
-                FormItem("Auto Update Interval") {
+                FormItem(String(localized: "Auto Update Interval")) {
                     TextField("Auto Update Interval", text: $autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
                         .multilineTextAlignment(.trailing)
                     #if os(iOS)
@@ -135,15 +135,15 @@ public struct NewProfileView: View {
             isSaving = false
         }
         if profileName.isEmpty {
-            alert = Alert(errorMessage: "Missing profile name")
+            alert = Alert(errorMessage: String(localized: "Missing profile name"))
             return
         }
         if remotePath.isEmpty {
             if profileType == .icloud {
-                alert = Alert(errorMessage: "Missing path")
+                alert = Alert(errorMessage: String(localized: "Missing path"))
                 return
             } else if profileType == .remote {
-                alert = Alert(errorMessage: "Missing URL")
+                alert = Alert(errorMessage: String(localized: "Missing URL"))
                 return
             }
         }
