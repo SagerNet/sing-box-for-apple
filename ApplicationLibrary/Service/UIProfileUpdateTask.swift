@@ -9,21 +9,21 @@ import Library
     public class UIProfileUpdateTask: BGAppRefreshTask {
         private static let taskSchedulerPermittedIdentifier = "\(FilePath.packageName).update_profiles"
 
-        private actor Register {
-            private var registered = false
-            func configure() async throws {
-                if !registered {
-                    let success = BGTaskScheduler.shared.register(forTaskWithIdentifier: taskSchedulerPermittedIdentifier, using: nil) { task in
-                        NSLog("profile update task started")
-                        Task {
-                            await UIProfileUpdateTask.getAndUpdateProfiles(task)
-                        }
+        private static var registered = false
+        public static func configure() throws {
+            if !registered {
+                let success = BGTaskScheduler.shared.register(forTaskWithIdentifier: taskSchedulerPermittedIdentifier, using: nil) { task in
+                    NSLog("profile update task started")
+                    Task {
+                        await UIProfileUpdateTask.getAndUpdateProfiles(task)
                     }
-                    if !success {
-                        throw NSError(domain: "register failed", code: 0)
-                    }
-                    registered = true
                 }
+                if !success {
+                    throw NSError(domain: "register task failed", code: 0)
+                }
+                registered = true
+            }
+            Task {
                 BGTaskScheduler.shared.cancelAllTaskRequests()
                 let profiles = try await ProfileManager.listAutoUpdateEnabled()
                 if profiles.isEmpty {
@@ -31,13 +31,8 @@ import Library
                 }
                 try scheduleUpdate(ProfileUpdateTask.calculateEarliestBeginDate(profiles))
             }
-        }
-
-        private static let register = Register()
-        public static func configure() async throws {
-            try await register.configure()
-            if await UIApplication.shared.backgroundRefreshStatus != .available {
-                Task {
+            Task {
+                if await UIApplication.shared.backgroundRefreshStatus != .available {
                     await updateOnce()
                 }
             }
