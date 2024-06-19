@@ -111,6 +111,7 @@ public struct ActiveDashboardView: View {
         }
     }
 
+    @available(iOS 16.0, *)
     @ViewBuilder
     private var content1: some View {
         TabView(selection: $selection) {
