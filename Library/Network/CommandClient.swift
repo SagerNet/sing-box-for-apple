@@ -107,7 +107,12 @@ public class CommandClient: ObservableObject {
         case .connections:
             clientOptions.command = LibboxCommandConnections
         }
-        clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
+        switch connectionType {
+        case .log:
+            clientOptions.statusInterval = Int64(500 * NSEC_PER_MSEC)
+        default:
+            clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
+        }
         let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
         do {
             for i in 0 ..< 10 {
@@ -152,21 +157,23 @@ public class CommandClient: ObservableObject {
             }
         }
 
-        func clearLog() {
+        func clearLogs() {
             DispatchQueue.main.async { [self] in
                 commandClient.logList.removeAll()
             }
         }
 
-        func writeLog(_ message: String?) {
-            guard let message else {
+        func writeLogs(_ messageList: (any LibboxStringIteratorProtocol)?) {
+            guard let messageList else {
                 return
             }
             DispatchQueue.main.async { [self] in
-                if commandClient.logList.count > commandClient.logMaxLines {
-                    commandClient.logList.removeFirst()
+                if commandClient.logList.count >= commandClient.logMaxLines {
+                    commandClient.logList.removeSubrange(0 ..< Int(messageList.len()))
                 }
-                commandClient.logList.append(message)
+                while messageList.hasNext() {
+                    commandClient.logList.append(messageList.next())
+                }
             }
         }
 

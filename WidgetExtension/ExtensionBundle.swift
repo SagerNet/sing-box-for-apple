@@ -2,8 +2,8 @@ import SwiftUI
 import WidgetKit
 
 @main
-struct WidgetExtensionBundle: WidgetBundle {
+struct ExtensionBundle: WidgetBundle {
     var body: some Widget {
-        WidgetExtension()
+        ServiceToggleControl()
     }
 }
