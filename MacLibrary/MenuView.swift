@@ -11,11 +11,14 @@ public struct MenuView: View {
     @Environment(\.openWindow) private var openWindow
 
     private static let sliderWidth: CGFloat = 270
+    public static let MenuDisclosureSectionPaddingFix: CGFloat = -14.0
 
     @Binding private var isMenuPresented: Bool
 
     @State private var isLoading = true
     @State private var profile: ExtensionProfile?
+    
+    @EnvironmentObject private var commandClient: CommandClient
 
     public init(isMenuPresented: Binding<Bool>) {
         _isMenuPresented = isMenuPresented
@@ -40,6 +43,9 @@ public struct MenuView: View {
             .frame(minWidth: MenuView.sliderWidth)
             if let profile {
                 ProfilePicker(profile)
+            }
+            if( commandClient.clashModeList.count > 0) {
+                ClashOutboundPicker()
             }
             Divider()
             MenuCommand {
@@ -118,6 +124,7 @@ public struct MenuView: View {
         @State private var selectedProfileID: Int64 = 0
         @State private var reasserting = false
         @State private var alert: Alert?
+        @State private var isExpanded = false
 
         private var selectedProfileIDLocal: Binding<Int64> {
             $selectedProfileID.withSetter { newValue in
@@ -140,14 +147,22 @@ public struct MenuView: View {
                     if profileList.isEmpty {
                         Text("Empty profiles")
                     } else {
-                        MenuSection("Profile")
-                        Picker("", selection: selectedProfileIDLocal) {
-                            ForEach(profileList, id: \.id) { profile in
-                                Text(profile.name)
+                        Divider()
+                        MenuDisclosureSection(
+                            profileList.firstIndex(where: { $0.id == selectedProfileIDLocal.wrappedValue }).map { "Profile: \(profileList[$0].name)" } ?? "Profile",
+                            divider: false,
+                            isExpanded: $isExpanded
+                        ) {
+                            Picker("", selection: selectedProfileIDLocal) {
+                                ForEach(profileList, id: \.id) { profile in
+                                    Text(profile.name).frame(maxWidth: .infinity, alignment: .leading) 
+                                }
                             }
+                            .pickerStyle(.inline)
+                            .disabled(!profile.status.isSwitchable || reasserting)
                         }
-                        .pickerStyle(.inline)
-                        .disabled(!profile.status.isSwitchable || reasserting)
+                        .padding(.leading, MenuView.MenuDisclosureSectionPaddingFix)
+                        .padding(.trailing, MenuView.MenuDisclosureSectionPaddingFix)
                     }
                 }
             }
@@ -202,6 +217,52 @@ public struct MenuView: View {
 
         private nonisolated func serviceReload() async throws {
             try LibboxNewStandaloneCommandClient()!.serviceReload()
+        }
+    }
+    
+    private struct ClashOutboundPicker: View {
+        @EnvironmentObject private var commandClient: CommandClient
+        @State private var isclashModeExpanded = false
+        @State private var alert: Alert?
+        
+        private var clashLists: [MenuEntry] {
+            commandClient.clashModeList.map { stringValue in
+                MenuEntry(name: stringValue, systemImage: "")
+            }
+        }
+        
+        var body: some View {
+            viewBuilder {
+                Divider()
+                MenuDisclosureSection("Outbound: " + commandClient.clashMode, divider: false, isExpanded: $isclashModeExpanded) {
+                    MenuScrollView(maxHeight: 135) {
+                        ForEach(commandClient.clashModeList, id: \.self) { it in
+                            MenuCommand {
+                                commandClient.clashMode = it;
+                            } label: {
+                                if it == commandClient.clashMode {
+                                    Image(systemName: "play.fill")
+                                }
+                                Text(it)
+                            }
+                            .padding(.leading, MenuView.MenuDisclosureSectionPaddingFix)
+                            .padding(.trailing, MenuView.MenuDisclosureSectionPaddingFix)
+                        }
+                    }
+                }
+                .padding(.leading, MenuView.MenuDisclosureSectionPaddingFix)
+                .padding(.trailing, MenuView.MenuDisclosureSectionPaddingFix)
+            }
+            .alertBinding($alert)
+        }
+        private nonisolated func setClashMode(_ newMode: String) async {
+            do {
+                try LibboxNewStandaloneCommandClient()!.setClashMode(newMode)
+            } catch {
+                await MainActor.run {
+                    alert = Alert(error)
+                }
+            }
         }
     }
 }
