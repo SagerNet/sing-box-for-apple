@@ -61,7 +61,9 @@ public struct ConnectionListView: View {
                 }
             }
         }
+        #if os(macOS)
         .searchable(text: $searchText)
+        #endif
         .alertBinding($alert)
         .onAppear {
             connect()

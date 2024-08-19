@@ -13,7 +13,7 @@ public enum DashboardPage: Int, CaseIterable, Identifiable {
 }
 
 public extension DashboardPage {
-    #if !os(tvOS)
+    #if !tvOS
         static var enabledCases: [DashboardPage] = [
             .overview,
             .groups,
