@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift",
       "state" : {
-        "revision" : "284a4ee1acf9bf6c8b3d045494d0a7e3046ebf92",
-        "version" : "6.15.1"
+        "revision" : "2cf6c756e1e5ef6901ebae16576a7e4e4b834622",
+        "version" : "6.29.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MacControlCenterUI",
       "state" : {
-        "revision" : "e7f7e0834a146b59a9d86b5751b711eb3a57be69",
-        "version" : "2.0.1"
+        "revision" : "2d03811c2b4b499d22e034157ef8c2a6f74f569b",
+        "version" : "2.0.9"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MenuBarExtraAccess",
       "state" : {
-        "revision" : "8757eb7c2cd708320df92e6ad6572efe90e58f16",
-        "version" : "1.0.4"
+        "revision" : "f5896b47e15e114975897354c7e1082c51a2bffd",
+        "version" : "1.0.5"
       }
     },
     {

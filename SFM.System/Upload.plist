@@ -10,10 +10,10 @@
 	<true/>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>io.nekohasekai.sfa.independent</key>
-		<string>XC io nekohasekai sfa independent</string>
-		<key>io.nekohasekai.sfa.system</key>
-		<string>XC io nekohasekai sfa system</string>
+		<key>io.nekohasekai.sfavt.standalone</key>
+		<string>XC io nekohasekai sfavt standalone</string>
+		<key>io.nekohasekai.sfavt.system</key>
+		<string>XC io nekohasekai sfavt system</string>
 	</dict>
 </dict>
 </plist>

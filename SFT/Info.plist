@@ -2,30 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>arm64</string>
-	</array>
-	<key>NSApplicationServices</key>
-	<dict>
-		<key>Browses</key>
-		<array>
-			<dict>
-				<key>NSApplicationServiceIdentifier</key>
-				<string>sing-box:profile</string>
-				<key>NSApplicationServiceUsageDescription</key>
-				<string>Import sing-box profile from other devices</string>
-				<key>NSApplicationServicePlatformSupport</key>
-				<array>
-					<string>iOS</string>
-					<string>iPadOS</string>
-				</array>
-			</dict>
-		</array>
-	</dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>io.nekohasekai.sfa.update_profiles</string>
+		<string>io.nekohasekai.sfavt.update_profiles</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -44,6 +23,23 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSApplicationServices</key>
+	<dict>
+		<key>Browses</key>
+		<array>
+			<dict>
+				<key>NSApplicationServiceIdentifier</key>
+				<string>sing-box:profile</string>
+				<key>NSApplicationServicePlatformSupport</key>
+				<array>
+					<string>iOS</string>
+					<string>iPadOS</string>
+				</array>
+				<key>NSApplicationServiceUsageDescription</key>
+				<string>Import sing-box profile from other devices</string>
+			</dict>
+		</array>
+	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
