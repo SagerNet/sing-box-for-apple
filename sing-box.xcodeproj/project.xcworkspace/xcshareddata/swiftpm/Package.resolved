@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/christophhagen/BinaryCodable",
       "state" : {
-        "revision" : "295ca6399b2b01d1aa4fa84d666416f3bf99ffde",
-        "version" : "2.0.0"
+        "revision" : "33643e2343f591368647935d14a94e35dc2d3bf0",
+        "version" : "2.0.3"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/qrcode.git",
       "state" : {
-        "revision" : "13c605cfa866e257ac9d4ac8a47320a0e11fb6e0",
-        "version" : "17.0.0"
+        "revision" : "6e32d9e56b25ab50af62a902d29d119d407d05e1",
+        "version" : "17.1.0"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/SwiftImageReadWrite",
       "state" : {
-        "revision" : "02c141026a0c5d74635a457d2d0964c4cb8935b3",
-        "version" : "1.4.1"
+        "revision" : "96361ba7f9dce5184d95aba8ea90d9faa4acabb2",
+        "version" : "1.6.1"
       }
     }
   ],
