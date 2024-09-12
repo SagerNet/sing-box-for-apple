@@ -75,11 +75,26 @@
         private func reset() {
             selected = false
             profiles = nil
+            if let connection = connection  {
+                connection.cancel()
+                self.connection = nil
+            
+            }
         }
 
         private func handleEndpoint(_ endpoint: NWEndpoint) async {
             let connection = NWConnection(to: endpoint, using: NWParameters.applicationService)
             self.connection = NWSocket(connection)
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .failed(let error):
+                    DispatchQueue.main.async { [self] in
+                        reset()
+                        alert = Alert(error)
+                    }
+                default: break
+                }
+            }
             connection.start(queue: .global())
             do {
                 try await loopMessages()
@@ -176,6 +191,7 @@
                 lastUpdated = Date(timeIntervalSince1970: Double(content.lastUpdated))
             }
             try await ProfileManager.create(Profile(name: content.name, type: type, path: profileConfig.relativePath, remoteURL: content.remotePath, autoUpdate: content.autoUpdate, lastUpdated: lastUpdated))
+            await reset()
             await callback()
             await MainActor.run {
                 dismiss()
