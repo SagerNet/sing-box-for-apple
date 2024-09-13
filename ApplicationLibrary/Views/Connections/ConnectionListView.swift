@@ -8,7 +8,6 @@ public struct ConnectionListView: View {
     @State private var isLoading = true
     @StateObject private var commandClient = CommandClient(.connections)
     @State private var connections: [Connection] = []
-    @State private var selection: ConnectionListPage = .active
     @State private var searchText = ""
     @State private var alert: Alert?
 

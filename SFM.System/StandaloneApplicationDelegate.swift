@@ -3,9 +3,10 @@ import Foundation
 import Library
 import MacLibrary
 
-class IndependentApplicationDelegate: ApplicationDelegate {
+class StandaloneApplicationDelegate: ApplicationDelegate {
     public func applicationWillFinishLaunching(_: Notification) {
         Variant.useSystemExtension = true
+        Variant.isBeta = false
         Task {
             await setupSystemExtension()
         }

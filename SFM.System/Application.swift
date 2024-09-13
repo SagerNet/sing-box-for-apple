@@ -4,7 +4,7 @@ import SwiftUI
 
 @main
 struct Application: App {
-    @NSApplicationDelegateAdaptor private var appDelegate: IndependentApplicationDelegate
+    @NSApplicationDelegateAdaptor private var appDelegate: StandaloneApplicationDelegate
 
     var body: some Scene {
         MacApplication()

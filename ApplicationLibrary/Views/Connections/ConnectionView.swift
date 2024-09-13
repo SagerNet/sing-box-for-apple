@@ -67,7 +67,7 @@ public struct ConnectionView: View {
                                 Spacer()
                                 VStack(alignment: .trailing) {
                                     Text(connection.inboundType + "/" + connection.inbound)
-                                    Text(connection.chain.reversed().joined(separator: "/"))
+                                    Text(connection.chain[0])
                                 }
                             }
                         }
@@ -111,7 +111,7 @@ public struct ConnectionView: View {
 
     private nonisolated func closeConnection() async {
         do {
-            try LibboxNewStandaloneCommandClient()!.closeConnection(connection.id)
+            try await LibboxNewStandaloneCommandClient()!.closeConnection(connection.id)
         } catch {
             await MainActor.run {
                 alert = Alert(error)

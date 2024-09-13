@@ -13,18 +13,18 @@ public enum DashboardPage: Int, CaseIterable, Identifiable {
 }
 
 public extension DashboardPage {
-    #if !tvOS
-        static var enabledCases: [DashboardPage] = [
-            .overview,
-            .groups,
-            .connections,
-        ]
-    #else
-        static var enabledCases: [DashboardPage] = [
+    static func enabledCases() -> [DashboardPage] {
+        var cases: [DashboardPage] = [
             .overview,
             .groups,
         ]
-    #endif
+        #if !tvOS
+            if Variant.isBeta {
+                cases.append(.connections)
+            }
+        #endif
+        return cases
+    }
 }
 
 public extension DashboardPage {

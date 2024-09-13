@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 
 public enum Variant {
     #if os(macOS)
@@ -14,4 +15,6 @@ public enum Variant {
     #elseif os(tvOS)
         public static let applicationName = "SFT"
     #endif
+
+    public static var isBeta = LibboxVersion().contains("-")
 }

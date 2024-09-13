@@ -23,7 +23,7 @@
 		3A251C122A52D09700651082 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AAB5E7A2A4C1446009757F1 /* Assets.xcassets */; };
 		3A27D9002A89BE230031EBCC /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D8FF2A89BE230031EBCC /* CommandClient.swift */; };
 		3A27D9022A89C6870031EBCC /* ExtensionEnvironments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */; };
-		3A2EAEED2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */; };
+		3A2EAEED2A6F4CBB00D00DE3 /* StandaloneApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2EAEEC2A6F4CBB00D00DE3 /* StandaloneApplicationDelegate.swift */; };
 		3A2F29EB2C998A5D007E024C /* Export.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3A2F29EA2C998A5D007E024C /* Export.plist */; };
 		3A334ED02C0F621E00E9C577 /* ConnectionDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A334ECF2C0F621E00E9C577 /* ConnectionDetailsView.swift */; };
 		3A3AA7FC2A4EFDAE002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
@@ -482,7 +482,7 @@
 		3A2223592A6E212A00C50B23 /* SystemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemExtension.swift; sourceTree = "<group>"; };
 		3A27D8FF2A89BE230031EBCC /* CommandClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandClient.swift; sourceTree = "<group>"; };
 		3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionEnvironments.swift; sourceTree = "<group>"; };
-		3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndependentApplicationDelegate.swift; sourceTree = "<group>"; };
+		3A2EAEEC2A6F4CBB00D00DE3 /* StandaloneApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandaloneApplicationDelegate.swift; sourceTree = "<group>"; };
 		3A334ECF2C0F621E00E9C577 /* ConnectionDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDetailsView.swift; sourceTree = "<group>"; };
 		3A2F29EA2C998A5D007E024C /* Export.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Export.plist; sourceTree = "<group>"; };
 		3A334ECF2C0F621E00E9C577 /* ConnectionDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDetailsView.swift; sourceTree = "<group>"; };
@@ -1055,7 +1055,7 @@
 				3AEECC062A6DF9CA006A0E0C /* Application.swift */,
 				3AEECC502A6E0074006A0E0C /* SFM.entitlements */,
 				3A2223532A6E1B6700C50B23 /* Info.plist */,
-				3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */,
+				3A2EAEEC2A6F4CBB00D00DE3 /* StandaloneApplicationDelegate.swift */,
 				3AABFD462A9CCC58005A24A4 /* Upload.plist */,
 			);
 			path = SFM.System;
@@ -1741,7 +1741,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3AEECC072A6DF9CA006A0E0C /* Application.swift in Sources */,
-				3A2EAEED2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift in Sources */,
+				3A2EAEED2A6F4CBB00D00DE3 /* StandaloneApplicationDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

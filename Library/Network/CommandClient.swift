@@ -22,7 +22,7 @@ public class CommandClient: ObservableObject {
     @Published public var clashModeList: [String]
     @Published public var clashMode: String
 
-    @Published public var connectionStateFilter = ConnectionStateFilter.all
+    @Published public var connectionStateFilter = ConnectionStateFilter.active
     @Published public var connectionSort = ConnectionSort.byDate
     @Published public var connections: [LibboxConnection]?
     public var rawConnections: LibboxConnections?
