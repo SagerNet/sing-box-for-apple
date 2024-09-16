@@ -23,97 +23,55 @@ struct PacketTunnelView: View {
                 }
             } else {
                 FormView {
-                    FormSection {
-                        Toggle("Ignore Memory Limit", isOn: $ignoreMemoryLimit)
-                            .onChangeCompat(of: ignoreMemoryLimit) { newValue in
-                                Task {
-                                    await SharedPreferences.ignoreMemoryLimit.set(newValue)
-                                }
-                            }
-                    } footer: {
-                        Text("Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken iOS and tvOS devices.")
+                    FormToggle("Ignore Memory Limit", """
+                    Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken iOS and tvOS devices.
+                    """, $ignoreMemoryLimit) { newValue in
+                        await SharedPreferences.ignoreMemoryLimit.set(newValue)
                     }
 
                     #if !os(tvOS)
+                        FormToggle("includeAllNetworks", """
+                        If this property is true, the system routes network traffic through the tunnel except traffic for designated system services necessary for maintaining expected device functionality. You can exclude some types of traffic using the **excludeAPNs**, **excludeLocalNetworks**, and **excludeCellularServices** properties in combination with this property.
 
-                        FormSection {
-                            Toggle("includeAllNetworks", isOn: $includeAllNetworks)
-                                .onChangeCompat(of: includeAllNetworks) { newValue in
-                                    Task {
-                                        await SharedPreferences.includeAllNetworks.set(newValue)
-                                    }
-                                }
-                        } footer: {
-                            Text("""
-                            If this property is true, the system routes network traffic through the tunnel except traffic for designated system services necessary for maintaining expected device functionality. You can exclude some types of traffic using the **excludeAPNs**, **excludeLocalNetworks**, and **excludeCellularServices** properties in combination with this property.
+                        when enabled, the default TUN stack is changed to `gvisor`, and the `system` and `mixed` stacks are not available.
 
-                            when enabled, the default TUN stack is changed to `gvisor`, and the `system` and `mixed` stacks are not available.
-
-                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3131931-includeallnetworks)
-                            """)
-                            .multilineTextAlignment(.leading)
+                        [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3131931-includeallnetworks)
+                        """, $includeAllNetworks) { newValue in
+                            await SharedPreferences.includeAllNetworks.set(newValue)
                         }
 
-                        FormSection {
-                            Toggle("excludeAPNs", isOn: $excludeAPNs)
-                                .onChangeCompat(of: excludeAPNs) { newValue in
-                                    Task {
-                                        await SharedPreferences.excludeAPNs.set(newValue)
-                                    }
-                                }
-                        } footer: {
-                            Text("""
-                            If this property is true, the system excludes Apple Push Notification services (APNs) traffic, but only when the **includeAllNetworks** property is also true.
+                        FormToggle("excludeAPNs", """
+                        If this property is true, the system excludes Apple Push Notification services (APNs) traffic, but only when the **includeAllNetworks** property is also true.
 
-                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140516-excludeapns)
-                            """)
+                        [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140516-excludeapns)
+                        """, $excludeAPNs) { newValue in
+                            await SharedPreferences.excludeAPNs.set(newValue)
                         }
 
-                        FormSection {
-                            Toggle("excludeCellularServices", isOn: $excludeCellularServices)
-                                .onChangeCompat(of: excludeCellularServices) { newValue in
-                                    Task {
-                                        await SharedPreferences.excludeCellularServices.set(newValue)
-                                    }
-                                }
-                        } footer: {
-                            Text("""
-                            If this property is true, the system excludes cellular services — such as Wi-Fi Calling, MMS, SMS, and Visual Voicemail — but only when the **includeAllNetworks** property is also true. This property doesn’t impact services that use the cellular network only — such as VoLTE — which the system automatically excludes.
+                        FormToggle("excludeCellularServices", """
+                        If this property is true, the system excludes cellular services — such as Wi-Fi Calling, MMS, SMS, and Visual Voicemail — but only when the **includeAllNetworks** property is also true. This property doesn’t impact services that use the cellular network only — such as VoLTE — which the system automatically excludes.
 
-                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140517-excludecellularservices)
-                            """)
+                        [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140517-excludecellularservices)
+                        """, $excludeCellularServices) { newValue in
+                            await SharedPreferences.excludeCellularServices.set(newValue)
                         }
 
-                        FormSection {
-                            Toggle("excludeLocalNetworks", isOn: $excludeLocalNetworks)
-                                .onChangeCompat(of: excludeLocalNetworks) { newValue in
-                                    Task {
-                                        await SharedPreferences.excludeLocalNetworks.set(newValue)
-                                    }
-                                }
-                        } footer: {
-                            Text("""
-                            If this property is true, the system excludes network connections to hosts on the local network — such as AirPlay, AirDrop, and CarPlay — but only when the **includeAllNetworks** or **enforceRoutes** property is also true.
+                        FormToggle("excludeLocalNetworks", """
+                        If this property is true, the system excludes network connections to hosts on the local network — such as AirPlay, AirDrop, and CarPlay — but only when the **includeAllNetworks** or **enforceRoutes** property is also true.
 
-                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3143658-excludelocalnetworks)
-                            """)
+                        [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3143658-excludelocalnetworks)
+                        """, $excludeLocalNetworks) { newValue in
+                            await SharedPreferences.excludeLocalNetworks.set(newValue)
                         }
 
-                        FormSection {
-                            Toggle("enforceRoutes", isOn: $enforceRoutes)
-                                .onChangeCompat(of: enforceRoutes) { newValue in
-                                    Task {
-                                        await SharedPreferences.enforceRoutes.set(newValue)
-                                    }
-                                }
-                        } footer: {
-                            Text("""
-                            If this property is true when the **includeAllNetworks** property is false, the system scopes the included routes to the VPN and the excluded routes to the current primary network interface. This property supersedes the system routing table and scoping operations by apps.
+                        FormToggle("enforceRoutes", """
+                        If this property is true when the **includeAllNetworks** property is false, the system scopes the included routes to the VPN and the excluded routes to the current primary network interface. This property supersedes the system routing table and scoping operations by apps.
 
-                            If you set both the **enforceRoutes** and **excludeLocalNetworks** properties to true, the system excludes network connections to hosts on the local network.
+                        If you set both the **enforceRoutes** and **excludeLocalNetworks** properties to true, the system excludes network connections to hosts on the local network.
 
-                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3689459-enforceroutes)
-                            """)
+                        [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3689459-enforceroutes)
+                        """, $enforceRoutes) { newValue in
+                            await SharedPreferences.enforceRoutes.set(newValue)
                         }
 
                     #endif

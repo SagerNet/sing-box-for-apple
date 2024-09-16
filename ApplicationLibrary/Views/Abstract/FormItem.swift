@@ -51,13 +51,35 @@ public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> 
     #endif
 }
 
-public func FormSection(@ViewBuilder content: () -> some View, @ViewBuilder footer: () -> some View) -> some View {
-    Section {
-        content()
-    } footer: {
-        footer()
-            .frame(maxWidth: .infinity, alignment: .leading)
-    }
+public func FormToggle(_ titleKey: LocalizedStringKey, _ subtitleKey: LocalizedStringKey, _ isOn: Binding<Bool>, _ action: @escaping (_ newValue: Bool) async -> Void) -> some View {
+    #if os(macOS)
+        Toggle(isOn: isOn) {
+            VStack(alignment: .leading) {
+                Text(titleKey)
+                Spacer()
+                Text(subtitleKey)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .onChangeCompat(of: isOn.wrappedValue) { newValue in
+            Task {
+                await action(newValue)
+            }
+        }
+    #else
+        Section {
+            Toggle(titleKey, isOn: isOn)
+                .onChangeCompat(of: isOn.wrappedValue) { newValue in
+                    Task {
+                        await action(newValue)
+                    }
+                }
+        } footer: {
+            Text(subtitleKey)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    #endif
 }
 
 public func FormButton(action: @escaping () -> Void, @ViewBuilder label: () -> some View) -> some View {

@@ -17,19 +17,12 @@ public struct OnDemandRulesView: View {
                 }
             } else {
                 FormView {
-                    FormSection {
-                        Toggle("Always On", isOn: $alwaysOn)
-                            .onChangeCompat(of: alwaysOn) { newValue in
-                                Task {
-                                    await SharedPreferences.alwaysOn.set(newValue)
-                                }
-                            }
-                    } footer: {
-                        Text("""
-                        Implement always-on via on-demand rules.
+                    FormToggle("Always On", """
+                    Implement always-on via on-demand rules.
 
-                        This should not be an intended use of the API, so you cannot disable VPN in system settings. To stop the service manually, use the in-app interface or simply delete the VPN profile.
-                        """)
+                    This should not be an intended use of the API, so you cannot disable VPN in system settings. To stop the service manually, use the in-app interface or simply delete the VPN profile.
+                    """, $alwaysOn) { newValue in
+                        await SharedPreferences.alwaysOn.set(newValue)
                     }
 
                     FormButton {

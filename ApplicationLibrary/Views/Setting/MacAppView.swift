@@ -25,15 +25,8 @@
                     }
                 } else {
                     FormView {
-                        FormSection {
-                            Toggle("Start At Login", isOn: $startAtLogin)
-                                .onChangeCompat(of: startAtLogin) { newValue in
-                                    Task {
-                                        updateLoginItems(newValue)
-                                    }
-                                }
-                        } footer: {
-                            Text("Launch the application when the system is logged in. If enabled at the same time as `Show in Menu Bar` and `Keep Menu Bar in Background`, the application interface will not be opened automatically.")
+                        FormToggle("Start At Login", "Launch the application when the system is logged in. If enabled at the same time as `Show in Menu Bar` and `Keep Menu Bar in Background`, the application interface will not be opened automatically.", $startAtLogin) { newValue in
+                            updateLoginItems(newValue)
                         }
 
                         Toggle("Show in Menu Bar", isOn: showMenuBarExtra)

@@ -75,10 +75,9 @@
         private func reset() {
             selected = false
             profiles = nil
-            if let connection = connection  {
+            if let connection {
                 connection.cancel()
                 self.connection = nil
-            
             }
         }
 
@@ -87,7 +86,7 @@
             self.connection = NWSocket(connection)
             connection.stateUpdateHandler = { state in
                 switch state {
-                case .failed(let error):
+                case let .failed(error):
                     DispatchQueue.main.async { [self] in
                         reset()
                         alert = Alert(error)
