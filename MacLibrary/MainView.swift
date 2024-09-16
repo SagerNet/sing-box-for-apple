@@ -25,12 +25,15 @@ public struct MainView: View {
     private var body1: some View {
         NavigationSplitView {
             SidebarView()
+                .navigationSplitViewColumnWidth(150)
         } detail: {
             NavigationStack {
                 selection.contentView
                     .navigationTitle(selection.title)
             }
+            .navigationSplitViewColumnWidth(600)
         }
+        .frame(minHeight: 470)
         .onAppear {
             environments.postReload()
             #if !DEBUG
@@ -60,7 +63,6 @@ public struct MainView: View {
         .onReceive(environments.openSettings) {
             selection = .settings
         }
-        .formStyle(.grouped)
         .environment(\.selection, $selection)
         .environment(\.importProfile, $importProfile)
         .environment(\.importRemoteProfile, $importRemoteProfile)

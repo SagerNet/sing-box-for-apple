@@ -19,6 +19,7 @@ public struct MacApplication: Scene {
                 .environment(\.showMenuBarExtra, $showMenuBarExtra)
                 .environmentObject(environments)
         })
+        .windowResizability(.contentSize)
         .commands {
             if showMenuBarExtra {
                 CommandGroup(replacing: .appTermination) {
