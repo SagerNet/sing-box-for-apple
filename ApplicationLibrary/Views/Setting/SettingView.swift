@@ -132,8 +132,16 @@ public struct SettingView: View {
                         Text("Loading...")
                             .onAppear {
                                 Task.detached {
-                                    taiwanFlagAvailable = !DeviceCensorship.isChinaDevice()
-                                    isLoading = false
+                                    let available: Bool
+                                    if ApplicationLibrary.inPreview {
+                                        available = true
+                                    } else {
+                                        available = !DeviceCensorship.isChinaDevice()
+                                    }
+                                    await MainActor.run {
+                                        taiwanFlagAvailable = available
+                                        isLoading = false
+                                    }
                                 }
                             }
                     } else {

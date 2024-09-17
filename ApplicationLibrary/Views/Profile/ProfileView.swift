@@ -66,9 +66,7 @@ public struct ProfileView: View {
                                 }
                                 if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
                                     FormNavigationLink {
-                                        ImportProfileView {
-                                            await doReload()
-                                        }
+                                        ImportProfileView()
                                     } label: {
                                         Text("Import Profile").foregroundColor(.accentColor)
                                     }
@@ -188,15 +186,15 @@ public struct ProfileView: View {
     }
 
     private func doReload() async {
+        defer {
+            isLoading = false
+        }
         if ApplicationLibrary.inPreview {
             profileList = [
                 ProfilePreview(Profile(id: 0, name: "profile local", type: .local, path: "")),
                 ProfilePreview(Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0))),
             ]
         } else {
-            defer {
-                isLoading = false
-            }
             do {
                 profileList = try await ProfileManager.list().map { ProfilePreview($0) }
             } catch {

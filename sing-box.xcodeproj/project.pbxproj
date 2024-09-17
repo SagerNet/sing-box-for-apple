@@ -24,6 +24,7 @@
 		3A27D9002A89BE230031EBCC /* CommandClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D8FF2A89BE230031EBCC /* CommandClient.swift */; };
 		3A27D9022A89C6870031EBCC /* ExtensionEnvironments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */; };
 		3A2EAEED2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */; };
+		3A2F29EB2C998A5D007E024C /* Export.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3A2F29EA2C998A5D007E024C /* Export.plist */; };
 		3A3AA7FC2A4EFDAE002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3AA7FF2A4EFDB3002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3AB2A72B70C146001815AE /* CoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A3AB2A62B70C146001815AE /* CoreView.swift */; };
@@ -454,6 +455,7 @@
 		3A27D8FF2A89BE230031EBCC /* CommandClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandClient.swift; sourceTree = "<group>"; };
 		3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionEnvironments.swift; sourceTree = "<group>"; };
 		3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndependentApplicationDelegate.swift; sourceTree = "<group>"; };
+		3A2F29EA2C998A5D007E024C /* Export.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Export.plist; sourceTree = "<group>"; };
 		3A3AB2A62B70C146001815AE /* CoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreView.swift; sourceTree = "<group>"; };
 		3A3AB2A82B70C5F1001815AE /* RequestReviewButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestReviewButton.swift; sourceTree = "<group>"; };
 		3A3DEBE12A4FFA1A00373BF4 /* ExtensionFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExtensionFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.0.sdk/System/Library/Frameworks/ExtensionFoundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -966,6 +968,7 @@
 		3AEECC052A6DF9CA006A0E0C /* SFM.System */ = {
 			isa = PBXGroup;
 			children = (
+				3A2F29EA2C998A5D007E024C /* Export.plist */,
 				3AEECC062A6DF9CA006A0E0C /* Application.swift */,
 				3AEECC502A6E0074006A0E0C /* SFM.entitlements */,
 				3A2223532A6E1B6700C50B23 /* Info.plist */,
@@ -1438,6 +1441,7 @@
 				3AABFD472A9CCC58005A24A4 /* Upload.plist in Resources */,
 				3A6CA5A82A713B340027933B /* AppIcon.icns in Resources */,
 				3AEC8A4F2A6E5E18003702E1 /* Assets.xcassets in Resources */,
+				3A2F29EB2C998A5D007E024C /* Export.plist in Resources */,
 				3AEECC0B2A6DF9CA006A0E0C /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

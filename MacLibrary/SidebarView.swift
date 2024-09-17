@@ -9,14 +9,16 @@ public struct SidebarView: View {
     public init() {}
     public var body: some View {
         VStack {
-            if environments.extensionProfileLoading {
+            if ApplicationLibrary.inPreview {
+                SidebarViewPreview()
+            } else if environments.extensionProfileLoading {
                 ProgressView()
             } else if let profile = environments.extensionProfile {
                 SidebarView0().environmentObject(profile)
             } else {
                 SidebarView1()
             }
-        }.frame(minWidth: 150)
+        }
     }
 
     struct SidebarView0: View {
@@ -66,6 +68,28 @@ public struct SidebarView: View {
                 it.visible(nil)
             }, selection: selection) { it in
                 it.label
+            }
+        }
+    }
+
+    struct SidebarViewPreview: View {
+        @Environment(\.selection) private var selection
+        var body: some View {
+            VStack {
+                List(selection: selection) {
+                    Section(NavigationPage.dashboard.title) {
+                        Label("Overview", systemImage: "text.and.command.macwindow")
+                            .tint(.textColor)
+                            .tag(NavigationPage.dashboard)
+                        NavigationPage.groups.label.tag(NavigationPage.groups)
+                    }
+                    Divider()
+                    ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
+                        it.label
+                    }
+                }
+                .listStyle(.sidebar)
+                .scrollDisabled(true)
             }
         }
     }

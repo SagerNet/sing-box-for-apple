@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>destination</key>
+	<string>export</string>
+	<key>method</key>
+	<string>developer-id</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>io.nekohasekai.sfavt.standalone</key>
+		<string>XC io nekohasekai sfavt standalone</string>
+		<key>io.nekohasekai.sfavt.system</key>
+		<string>XC io nekohasekai sfavt system</string>
+	</dict>
+</dict>
+</plist>
