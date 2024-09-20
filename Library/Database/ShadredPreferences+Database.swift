@@ -37,7 +37,7 @@ extension SharedPreferences {
     }
 
     private nonisolated static func read<T: Codable>(_ name: String) async throws -> T? {
-        guard let item = try await (Database.sharedWriter().read { db in
+        guard let item = try await (Database.sharedWriter.read { db in
             try Item.fetchOne(db, id: name)
         })
         else {
@@ -48,12 +48,12 @@ extension SharedPreferences {
 
     private nonisolated static func write(_ name: String, _ value: (some Codable)?) async throws {
         if value == nil {
-            _ = try await Database.sharedWriter().write { db in
+            _ = try await Database.sharedWriter.write { db in
                 try Item.deleteOne(db, id: name)
             }
         } else {
             let data = try BinaryEncoder().encode(value)
-            try await Database.sharedWriter().write { db in
+            try await Database.sharedWriter.write { db in
                 try Item(name: name, data: data).insert(db)
             }
         }
