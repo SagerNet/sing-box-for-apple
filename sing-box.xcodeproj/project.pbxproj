@@ -117,6 +117,7 @@
 		3AE4D0BD2A6E2DDC009FEA9E /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3AE4D0BE2A6E2DDC009FEA9E /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3AE4D0C12A6E4852009FEA9E /* InstallSystemExtensionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE4D0C02A6E4852009FEA9E /* InstallSystemExtensionButton.swift */; };
+		3AE5A6C32C9FD96A002AA4FE /* ExtensionErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE5A6C22C9FD967002AA4FE /* ExtensionErrors.swift */; };
 		3AEAEE992A4F16430059612D /* Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3A096F862A4ED3DE00D4A2ED /* Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3AEC20F62A459AB400A63465 /* Application.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEC20F52A459AB400A63465 /* Application.swift */; };
 		3AEC20FA2A459AB500A63465 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AEC20F92A459AB500A63465 /* Assets.xcassets */; };
@@ -456,6 +457,7 @@
 		3A27D9012A89C6870031EBCC /* ExtensionEnvironments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionEnvironments.swift; sourceTree = "<group>"; };
 		3A2EAEEC2A6F4CBB00D00DE3 /* IndependentApplicationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndependentApplicationDelegate.swift; sourceTree = "<group>"; };
 		3A2F29EA2C998A5D007E024C /* Export.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Export.plist; sourceTree = "<group>"; };
+		3A334ECF2C0F621E00E9C577 /* ConnectionDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionDetailsView.swift; sourceTree = "<group>"; };
 		3A3AB2A62B70C146001815AE /* CoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreView.swift; sourceTree = "<group>"; };
 		3A3AB2A82B70C5F1001815AE /* RequestReviewButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestReviewButton.swift; sourceTree = "<group>"; };
 		3A3DEBE12A4FFA1A00373BF4 /* ExtensionFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ExtensionFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.0.sdk/System/Library/Frameworks/ExtensionFoundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -529,6 +531,7 @@
 		3AE1719F2A8128DD00393060 /* TVExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TVExtension.entitlements; sourceTree = "<group>"; };
 		3AE4D0B62A6E2C01009FEA9E /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
 		3AE4D0C02A6E4852009FEA9E /* InstallSystemExtensionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallSystemExtensionButton.swift; sourceTree = "<group>"; };
+		3AE5A6C22C9FD967002AA4FE /* ExtensionErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionErrors.swift; sourceTree = "<group>"; };
 		3AEAEE9C2A4F1A9D0059612D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3AEC20DB2A4599D000A63465 /* Libbox.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Libbox.xcframework; sourceTree = "<group>"; };
 		3AEC20F32A459AB400A63465 /* sing-box.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sing-box.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -914,6 +917,7 @@
 		3AEC21432A45A92B00A63465 /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				3AE5A6C22C9FD967002AA4FE /* ExtensionErrors.swift */,
 				3A096F892A4ED3DE00D4A2ED /* ExtensionProvider.swift */,
 				3AF342AA2A4AA173002B34AC /* Extension+Iterator.swift */,
 				3AF342A82A4AA155002B34AC /* Extension+RunBlocking.swift */,
@@ -1583,6 +1587,7 @@
 				3AEC21452A45A93800A63465 /* HTTPClient.swift in Sources */,
 				3AEC213C2A459FDF00A63465 /* Databse.swift in Sources */,
 				3A60CC292B70A7C400D2D682 /* Color+Extension.swift in Sources */,
+				3AE5A6C32C9FD96A002AA4FE /* ExtensionErrors.swift in Sources */,
 				3A4EAD3C2A4FECCE005435B3 /* NEVPNStatus+isConnected.swift in Sources */,
 				3ADBB4252A7389640041D44F /* ProfileServer.swift in Sources */,
 				3AEC21422A45A8FF00A63465 /* Profile+Update.swift in Sources */,
@@ -1837,7 +1842,6 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -1880,7 +1884,6 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -2439,7 +2442,6 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = NO;
-				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -2487,7 +2489,6 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = NO;
-				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -2532,7 +2533,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SystemExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = SystemExtension;
+				INFOPLIST_KEY_CFBundleDisplayName = SFMExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSSystemExtensionUsageDescription = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2568,7 +2569,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SystemExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = SystemExtension;
+				INFOPLIST_KEY_CFBundleDisplayName = SFMExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSSystemExtensionUsageDescription = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2685,7 +2686,6 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -2725,7 +2725,6 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

@@ -86,6 +86,7 @@ public struct DashboardView: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var profile: ExtensionProfile
         @State private var alert: Alert?
+        @State private var notStarted = false
 
         var body: some View {
             VStack {
@@ -93,9 +94,22 @@ public struct DashboardView: View {
             }
             .alertBinding($alert)
             .onChangeCompat(of: profile.status) { newValue in
+                if newValue == .connected {
+                    notStarted = false
+                }
                 if newValue == .disconnecting || newValue == .connected {
                     Task {
                         await checkServiceError()
+                    }
+                } else if newValue == .connecting {
+                    notStarted = true
+                } else if newValue == .disconnected {
+                    if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
+                        if notStarted {
+                            Task {
+                                await checkLastDisconnectError()
+                            }
+                        }
                     }
                 }
             }
@@ -111,5 +125,48 @@ public struct DashboardView: View {
                 alert = Alert(title: Text("Service Error"), message: Text(message))
             }
         }
+
+        @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
+        private nonisolated func checkLastDisconnectError() async {
+            var myError: NSError
+            do {
+                try await profile.fetchLastDisconnectError()
+                return
+            } catch {
+                myError = error as NSError
+            }
+            #if os(macOS)
+                if myError.domain == "Library.FullDiskAccessPermissionRequired" {
+                    await MainActor.run {
+                        alert = Alert(
+                            title: Text("Full Disk Access permission is required"),
+                            message: Text("Please grant the permission for SFMExtension, then we can continue."),
+                            primaryButton: .default(Text("Authorize"), action: openFDASettings),
+                            secondaryButton: .cancel()
+                        )
+                    }
+                    return
+                }
+            #endif
+            let message = myError.localizedDescription
+            await MainActor.run {
+                alert = Alert(title: Text("Service Error"), message: Text(message))
+            }
+        }
+
+        #if os(macOS)
+
+            private func openFDASettings() {
+                if NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!) {
+                    return
+                }
+                if #available(macOS 13, *) {
+                    NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
+                } else {
+                    NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Preferences.app"))
+                }
+            }
+
+        #endif
     }
 }

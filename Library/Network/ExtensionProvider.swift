@@ -32,6 +32,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &error)
         if let error {
             writeFatalError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
+            return
         }
 
         await LibboxSetMemoryLimit(!SharedPreferences.ignoreMemoryLimit.get())

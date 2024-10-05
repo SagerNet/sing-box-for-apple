@@ -49,6 +49,11 @@ public class ExtensionProfile: ObservableObject {
         try await manager.saveToPreferences()
     }
 
+    @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
+    public func fetchLastDisconnectError() async throws {
+        try await connection.fetchLastDisconnectError()
+    }
+
     public func start() async throws {
         await fetchProfile()
         manager.isEnabled = true
