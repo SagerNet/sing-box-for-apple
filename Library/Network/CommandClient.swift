@@ -85,8 +85,12 @@ public class CommandClient: ObservableObject {
     }
 
     private func initializeConnectionFilterState() async {
-        connectionStateFilter = await .init(rawValue: SharedPreferences.connectionStateFilter.get()) ?? .all
-        connectionSort = await .init(rawValue: SharedPreferences.connectionSort.get()) ?? .byDate
+        let newFilter: ConnectionStateFilter = await .init(rawValue: SharedPreferences.connectionStateFilter.get()) ?? .active
+        let newSort: ConnectionSort = await .init(rawValue: SharedPreferences.connectionSort.get()) ?? .byDate
+        await MainActor.run {
+            connectionStateFilter = newFilter
+            connectionSort = newSort
+        }
     }
 
     private nonisolated func connect0() async {
@@ -111,7 +115,7 @@ public class CommandClient: ObservableObject {
         case .log:
             clientOptions.statusInterval = Int64(500 * NSEC_PER_MSEC)
         default:
-            clientOptions.statusInterval = Int64(2 * NSEC_PER_SEC)
+            clientOptions.statusInterval = Int64(NSEC_PER_SEC)
         }
         let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
         do {

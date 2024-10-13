@@ -71,7 +71,7 @@ public struct GroupItemView: View {
         do {
             try await LibboxNewStandaloneCommandClient()!.selectOutbound(group.tag, outboundTag: item.tag)
             var newGroup = await group
-            newGroup.selected = item.tag
+            newGroup.selected = await item.tag
             await MainActor.run { [newGroup] in
                 _group.wrappedValue = newGroup
             }

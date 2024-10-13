@@ -76,7 +76,7 @@ public struct ShareButtonCompat<Label>: View where Label: View {
     #if os(iOS)
         private nonisolated func shareItem0() async {
             do {
-                let shareItem = try itemURL()
+                let shareItem = try await itemURL()
                 await MainActor.run {
                     shareItem1(shareItem)
                 }
