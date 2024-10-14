@@ -332,6 +332,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         }
     }
 
+    public func perAppProxyList() throws -> any LibboxIntegerIteratorProtocol {
+        throw NSError(domain: "not implemented", code: 0)
+    }
+
+    public func perAppProxyMode() -> Int32 {
+        0
+    }
+
     func reset() {
         networkSettings = nil
     }
