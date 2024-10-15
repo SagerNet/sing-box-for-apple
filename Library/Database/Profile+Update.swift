@@ -7,13 +7,14 @@ public extension Profile {
         if type != .remote {
             return
         }
-        let remoteContent = try HTTPClient().getString(remoteURL)
+        let remoteContent = try HTTPClient().getConfigWithUpdatedURL(remoteURL)
         var error: NSError?
-        LibboxCheckConfig(remoteContent, &error)
+        LibboxCheckConfig(remoteContent.config, &error)
         if let error {
             throw error
         }
-        try write(remoteContent)
+        try write(remoteContent.config)
+        remoteURL = remoteContent.newURL
         lastUpdated = Date()
         try await ProfileManager.update(self)
     }
