@@ -173,7 +173,7 @@ public class CommandClient: ObservableObject {
             }
             DispatchQueue.main.async { [self] in
                 if commandClient.logList.count >= commandClient.logMaxLines {
-                    commandClient.logList.removeSubrange(0 ..< Int(messageList.len()))
+                    commandClient.logList.removeFirst()
                 }
                 while messageList.hasNext() {
                     commandClient.logList.append(messageList.next())

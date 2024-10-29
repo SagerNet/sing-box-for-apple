@@ -52,6 +52,7 @@ public struct GroupView: View {
         }
         .alertBinding($alert)
         .padding([.top, .bottom], 8)
+        .animation(.easeInOut, value: group.isExpand)
     }
 
     public var body: some View {
