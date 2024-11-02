@@ -4,7 +4,9 @@ import SwiftUI
 
 public struct ExtensionStatusView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
     @StateObject private var commandClient = CommandClient(.status)
+
     @State private var columnCount: Int = 4
     @State private var alert: Alert?
 
@@ -89,7 +91,9 @@ public struct ExtensionStatusView: View {
             .padding([.top, .leading, .trailing])
         }
         .onAppear {
-            commandClient.connect()
+            commandClient.connect { urlString in
+                openURL(URL(string: urlString)!)
+            }
         }
         .onDisappear {
             commandClient.disconnect()
