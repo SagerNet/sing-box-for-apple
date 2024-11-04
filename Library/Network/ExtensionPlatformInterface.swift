@@ -39,7 +39,10 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             if let error {
                 throw error
             }
-            settings.dnsSettings = NEDNSSettings(servers: [dnsServer])
+            let dnsSettings = NEDNSSettings(servers: [dnsServer])
+            dnsSettings.matchDomains = [""]
+            dnsSettings.matchDomainsNoSearch = true
+            settings.dnsSettings = dnsSettings
 
             var ipv4Address: [String] = []
             var ipv4Mask: [String] = []
