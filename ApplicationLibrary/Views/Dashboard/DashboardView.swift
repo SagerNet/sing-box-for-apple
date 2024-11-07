@@ -138,16 +138,21 @@ public struct DashboardView: View {
         private func loopShowDeprecateNotes(_ reports: any LibboxDeprecatedNoteIteratorProtocol) {
             if reports.hasNext() {
                 let report = reports.next()!
-                NSLog("show next")
                 alert = Alert(
                     title: Text("Deprecated Warning"),
                     message: Text(report.message()),
-                    primaryButton: .cancel(Text("Ok")) {
-                        loopShowDeprecateNotes(reports)
-                    },
-                    secondaryButton: .default(Text("Documentation")) {
+                    primaryButton: .default(Text("Documentation")) {
                         openURL(URL(string: report.migrationLink)!)
-                        loopShowDeprecateNotes(reports)
+                        Task.detached {
+                            try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                            await loopShowDeprecateNotes(reports)
+                        }
+                    },
+                    secondaryButton: .cancel(Text("Ok")) {
+                        Task.detached {
+                            try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                            await loopShowDeprecateNotes(reports)
+                        }
                     }
                 )
             }

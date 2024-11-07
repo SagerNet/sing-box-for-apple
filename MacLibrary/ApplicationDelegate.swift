@@ -3,11 +3,25 @@ import ApplicationLibrary
 import Foundation
 import Libbox
 import Library
+import UserNotifications
 
-open class ApplicationDelegate: NSObject, NSApplicationDelegate {
+open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     public func applicationDidFinishLaunching(_: Notification) {
         NSLog("Here I stand")
         LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.setNotificationCategories([
+            UNNotificationCategory(
+                identifier: "OPEN_URL",
+                actions: [
+                    UNNotificationAction(identifier: "COPY_URL", title: "Copy URL", options: .foreground, icon: UNNotificationActionIcon(systemImageName: "clipboard.fill")),
+                    UNNotificationAction(identifier: "OPEN_URL", title: "Open", options: .foreground, icon: UNNotificationActionIcon(systemImageName: "safari.fill")),
+                ],
+                intentIdentifiers: []
+            ),
+        ]
+        )
+        notificationCenter.delegate = self
         let event = NSAppleEventManager.shared().currentAppleEvent
         let launchedAsLogInItem =
             event?.eventID == kAEOpenApplication &&
@@ -30,6 +44,23 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate {
                 }
             } catch {
                 NSLog("application setup error: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    public func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification) async -> UNNotificationPresentationOptions {
+        .banner
+    }
+
+    public func userNotificationCenter(_: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        if let url = response.notification.request.content.userInfo["OPEN_URL"] as? String {
+            switch response.actionIdentifier {
+            case "COPY_URL":
+                NSPasteboard.general.setString(url, forType: .URL)
+            case "OPEN_URL":
+                fallthrough
+            default:
+                NSWorkspace.shared.open(URL(string: url)!)
             }
         }
     }

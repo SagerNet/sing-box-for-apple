@@ -14,8 +14,6 @@ public class CommandClient: ObservableObject {
     private let logMaxLines: Int
     private var commandClient: LibboxCommandClient?
     private var connectTask: Task<Void, Error>?
-    private var openURLFunc: ((String) -> Void)?
-
     @Published public var isConnected: Bool
     @Published public var status: LibboxStatusMessage?
     @Published public var groups: [LibboxOutboundGroup]?
@@ -31,15 +29,13 @@ public class CommandClient: ObservableObject {
     public init(_ connectionType: ConnectionType, logMaxLines: Int = 300) {
         self.connectionType = connectionType
         self.logMaxLines = logMaxLines
-        openURLFunc = nil
         logList = []
         clashModeList = []
         clashMode = ""
         isConnected = false
     }
 
-    public func connect(_ openURLFunc: ((String) -> Void)? = nil) {
-        self.openURLFunc = openURLFunc
+    public func connect() {
         if isConnected {
             return
         }
@@ -52,7 +48,6 @@ public class CommandClient: ObservableObject {
     }
 
     public func disconnect() {
-        openURLFunc = nil
         if let connectTask {
             connectTask.cancel()
             self.connectTask = nil
@@ -226,13 +221,6 @@ public class CommandClient: ObservableObject {
                 commandClient.rawConnections = message
                 commandClient.connections = connections
             }
-        }
-
-        func openURL(_ url: String?) {
-            guard let url else {
-                return
-            }
-            commandClient.openURLFunc?(url)
         }
     }
 }
