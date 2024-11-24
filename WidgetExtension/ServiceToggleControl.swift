@@ -38,11 +38,8 @@ extension ServiceToggleControl {
     }
 }
 
-struct ToggleServiceIntent: SetValueIntent, LiveActivityIntent {
+struct ToggleServiceIntent: SetValueIntent {
     static var title: LocalizedStringResource = "Toggle sing-box"
-
-    static var description =
-        IntentDescription("Toggle sing-box service")
 
     @Parameter(title: "Running")
     var value: Bool
