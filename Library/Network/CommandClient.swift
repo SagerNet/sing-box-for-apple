@@ -176,7 +176,7 @@ public class CommandClient: ObservableObject {
                     newLogList.append(messageList.next())
                 }
                 if newLogList.count >= commandClient.logMaxLines {
-                    newLogList.removeSubrange(0...newLogList.count-commandClient.logMaxLines)
+                    newLogList.removeSubrange(0 ... newLogList.count - commandClient.logMaxLines)
                 }
                 commandClient.logList = newLogList
             }
