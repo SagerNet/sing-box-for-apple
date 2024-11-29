@@ -103,14 +103,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         guard let service else {
             return
         }
-        commandServer.setService(service)
         do {
             try service.start()
         } catch {
-            commandServer.setService(nil)
             writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
             return
         }
+        commandServer.setService(service)
         boxService = service
         #if os(macOS)
             await SharedPreferences.startedByUser.set(true)
