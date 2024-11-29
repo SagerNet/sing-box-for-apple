@@ -166,6 +166,7 @@ public struct EditProfileView: View {
             #else
                 try await ProfileUpdateTask.configure()
             #endif
+            try await profile.onProfileUpdated()
         } catch {
             alert = Alert(error)
             return
