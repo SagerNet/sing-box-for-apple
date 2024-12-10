@@ -35,12 +35,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         if options.getAutoRoute() {
             settings.mtu = NSNumber(value: options.getMTU())
 
-            var error: NSError?
-            let dnsServer = options.getDNSServerAddress(&error)
-            if let error {
-                throw error
-            }
-            let dnsSettings = NEDNSSettings(servers: [dnsServer])
+            let dnsServer = try options.getDNSServerAddress()
+            let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
             dnsSettings.matchDomains = [""]
             dnsSettings.matchDomainsNoSearch = true
             settings.dnsSettings = dnsSettings

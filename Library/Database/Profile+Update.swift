@@ -24,7 +24,7 @@ public extension Profile {
         try write(remoteContent)
         try await onProfileUpdated()
     }
-    
+
     nonisolated func onProfileUpdated() async throws {
         if await SharedPreferences.selectedProfileID.get() == id {
             if let profile = try? await ExtensionProfile.load() {
@@ -34,5 +34,4 @@ public extension Profile {
             }
         }
     }
-    
 }

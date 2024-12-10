@@ -165,7 +165,7 @@ public struct DashboardView: View {
                 return
             }
             await MainActor.run {
-                alert = Alert(title: Text("Service Error"), message: Text(message))
+                alert = Alert(title: Text("Service Error"), message: Text(message!.value))
             }
         }
 
