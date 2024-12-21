@@ -281,6 +281,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         return networkInterfaceArray(interfaces)
     }
 
+    public func setUnderlyingNetworks(_: (any LibboxRawNetworkIteratorProtocol)?) throws {}
+
     class networkInterfaceArray: NSObject, LibboxNetworkInterfaceIteratorProtocol {
         private var iterator: IndexingIterator<[LibboxNetworkInterface]>
         init(_ array: [LibboxNetworkInterface]) {
