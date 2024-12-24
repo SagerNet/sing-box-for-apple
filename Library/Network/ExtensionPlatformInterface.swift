@@ -21,11 +21,34 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     private func openTun0(_ options: LibboxTunOptionsProtocol?, _ ret0_: UnsafeMutablePointer<Int32>?) async throws {
-        guard let options else {
-            throw NSError(domain: "nil options", code: 0)
-        }
         guard let ret0_ else {
             throw NSError(domain: "nil return pointer", code: 0)
+        }
+
+        try await updateRouteOptions0(options)
+
+        if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
+            ret0_.pointee = tunFd
+            return
+        }
+
+        let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
+        if tunFdFromLoop != -1 {
+            ret0_.pointee = tunFdFromLoop
+        } else {
+            throw NSError(domain: "missing file descriptor", code: 0)
+        }
+    }
+
+    public func updateRouteOptions(_ options: (any LibboxTunOptionsProtocol)?) throws {
+        try runBlocking { [self] in
+            try await updateRouteOptions0(options)
+        }
+    }
+
+    private func updateRouteOptions0(_ options: (any LibboxTunOptionsProtocol)?) async throws {
+        guard let options else {
+            throw NSError(domain: "nil options", code: 0)
         }
 
         let autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
@@ -176,18 +199,6 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
         networkSettings = settings
         try await tunnel.setTunnelNetworkSettings(settings)
-
-        if let tunFd = tunnel.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 {
-            ret0_.pointee = tunFd
-            return
-        }
-
-        let tunFdFromLoop = LibboxGetTunnelFileDescriptor()
-        if tunFdFromLoop != -1 {
-            ret0_.pointee = tunFdFromLoop
-        } else {
-            throw NSError(domain: "missing file descriptor", code: 0)
-        }
     }
 
     public func usePlatformAutoDetectControl() -> Bool {
