@@ -11,7 +11,12 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         NSLog("Here I stand")
-        LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
+        let options = LibboxSetupOptions()
+        options.basePath = FilePath.sharedDirectory.relativePath
+        options.workingPath = FilePath.workingDirectory.relativePath
+        options.tempPath = FilePath.cacheDirectory.relativePath
+        var error: NSError?
+        LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.setNotificationCategories([

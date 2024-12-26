@@ -7,7 +7,13 @@ import UIKit
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         NSLog("Here I stand")
-        LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, true)
+        let options = LibboxSetupOptions()
+        options.basePath = FilePath.sharedDirectory.relativePath
+        options.workingPath = FilePath.workingDirectory.relativePath
+        options.tempPath = FilePath.cacheDirectory.relativePath
+        options.isTVOS = true
+        var error: NSError?
+        LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)
         setup()
         return true

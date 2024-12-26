@@ -8,7 +8,12 @@ import UserNotifications
 open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     public func applicationDidFinishLaunching(_: Notification) {
         NSLog("Here I stand")
-        LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
+        let options = LibboxSetupOptions()
+        options.basePath = FilePath.sharedDirectory.relativePath
+        options.workingPath = FilePath.workingDirectory.relativePath
+        options.tempPath = FilePath.cacheDirectory.relativePath
+        var error: NSError?
+        LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.setNotificationCategories([
