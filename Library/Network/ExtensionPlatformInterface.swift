@@ -423,4 +423,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             }
         #endif
     }
+    
+    public func localDNSTransport() -> (any LibboxLocalDNSTransportProtocol)? {
+        return nil
+    }
+    
+    public func systemCertificates() -> (any LibboxStringIteratorProtocol)? {
+        return nil
+    }
 }
