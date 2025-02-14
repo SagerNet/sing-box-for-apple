@@ -120,6 +120,9 @@ public struct DashboardView: View {
         }
 
         private nonisolated func checkDeprecatedNotes() async {
+            if await SharedPreferences.disableDeprecatedWarnings.get() {
+                return
+            }
             do {
                 let reports = try LibboxNewStandaloneCommandClient()!.getDeprecatedNotes()
                 if reports.hasNext() {

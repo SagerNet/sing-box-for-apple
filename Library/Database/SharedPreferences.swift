@@ -83,6 +83,10 @@ public enum SharedPreferences {
         await alwaysOn.set(nil)
     }
 
+    // Core
+
+    public static let disableDeprecatedWarnings = Preference<Bool>("disable_deprecated_warnings", defaultValue: false)
+
     #if DEBUG
         public static let inDebug = true
     #else
