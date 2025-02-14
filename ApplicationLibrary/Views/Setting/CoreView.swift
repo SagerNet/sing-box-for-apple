@@ -7,6 +7,8 @@ import SwiftUI
 public struct CoreView: View {
     @State private var isLoading = true
 
+    @State private var disableDeprecatedWarnings = false
+
     @State private var version = ""
     @State private var dataSize = ""
 
@@ -23,6 +25,13 @@ public struct CoreView: View {
                 FormView {
                     FormTextItem("Version", version)
                     FormTextItem("Data Size", dataSize)
+
+                    if Variant.isBeta {
+                        Section {}
+                        FormToggle("Disable Deprecated Warnings", "Do not show warnings about usages of deprecated features.", $disableDeprecatedWarnings) { newValue in
+                            await SharedPreferences.disableDeprecatedWarnings.set(newValue)
+                        }
+                    }
 
                     Section("Working Directory") {
                         #if os(macOS)
@@ -68,8 +77,10 @@ public struct CoreView: View {
     }
 
     private nonisolated func loadSettingsBackground() async {
+        let disableDeprecatedWarnings = await SharedPreferences.disableDeprecatedWarnings.get()
         let dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
         await MainActor.run {
+            self.disableDeprecatedWarnings = disableDeprecatedWarnings
             self.dataSize = dataSize
         }
     }

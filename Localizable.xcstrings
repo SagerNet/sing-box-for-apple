@@ -416,12 +416,32 @@
         }
       }
     },
+    "Disable Deprecated Warnings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "禁用弃用警告"
+          }
+        }
+      }
+    },
     "Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken iOS and tvOS devices." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "不要对 sing-box 强制执行内存限制。这将导致未越狱的 iOS 和 tvOS 设备出现 OOM。"
+          }
+        }
+      }
+    },
+    "Do not show warnings about usages of deprecated features." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不要显示关于废弃功能使用的警告。"
           }
         }
       }
