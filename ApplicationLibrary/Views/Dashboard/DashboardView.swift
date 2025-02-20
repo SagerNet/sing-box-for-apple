@@ -141,23 +141,36 @@ public struct DashboardView: View {
         private func loopShowDeprecateNotes(_ reports: any LibboxDeprecatedNoteIteratorProtocol) {
             if reports.hasNext() {
                 let report = reports.next()!
-                alert = Alert(
-                    title: Text("Deprecated Warning"),
-                    message: Text(report.message()),
-                    primaryButton: .default(Text("Documentation")) {
-                        openURL(URL(string: report.migrationLink)!)
-                        Task.detached {
-                            try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
-                            await loopShowDeprecateNotes(reports)
+                if report.migrationLink.isEmpty {
+                    alert = Alert(
+                        title: Text("Deprecated Warning"),
+                        message: Text(report.message()),
+                        dismissButton: .cancel(Text("Ok")) {
+                            Task.detached {
+                                try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                                await loopShowDeprecateNotes(reports)
+                            }
                         }
-                    },
-                    secondaryButton: .cancel(Text("Ok")) {
-                        Task.detached {
-                            try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
-                            await loopShowDeprecateNotes(reports)
+                    )
+                } else {
+                    alert = Alert(
+                        title: Text("Deprecated Warning"),
+                        message: Text(report.message()),
+                        primaryButton: .default(Text("Documentation")) {
+                            openURL(URL(string: report.migrationLink)!)
+                            Task.detached {
+                                try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                                await loopShowDeprecateNotes(reports)
+                            }
+                        },
+                        secondaryButton: .cancel(Text("Ok")) {
+                            Task.detached {
+                                try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                                await loopShowDeprecateNotes(reports)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
 
