@@ -2,7 +2,7 @@ import Foundation
 import Libbox
 import NetworkExtension
 import UserNotifications
-#if canImport(CoreWLAN)
+#if os(macOS)
     import CoreWLAN
 #endif
 

@@ -4,6 +4,9 @@ import NetworkExtension
 #if os(iOS)
     import WidgetKit
 #endif
+#if os(macOS)
+    import CoreLocation
+#endif
 
 open class ExtensionProvider: NEPacketTunnelProvider {
     public var username: String? = nil
@@ -73,7 +76,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         writeMessage(message)
         var error: NSError?
         LibboxWriteServiceError(message, &error)
-        cancelTunnelWithError(NSError(domain: message, code: 0))
+        cancelTunnelWithError(nil)
     }
 
     private func startService() async {
@@ -114,8 +117,40 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         boxService = service
         #if os(macOS)
             await SharedPreferences.startedByUser.set(true)
+            if service.needWIFIState() {
+                if !Variant.useSystemExtension {
+                    locationManager = CLLocationManager()
+                    locationDelegate = stubLocationDelegate(boxService)
+                    locationManager?.delegate = locationDelegate
+                    locationManager?.requestLocation()
+                } else {
+                    commandServer.writeMessage("(packet-tunnel) WIFI SSID and BSSID information is not currently available in the standalone version of SFM. We are working on resolving this issue.")
+                }
+            }
         #endif
     }
+
+    #if os(macOS)
+
+        private var locationManager: CLLocationManager?
+        private var locationDelegate: stubLocationDelegate?
+
+        class stubLocationDelegate: NSObject, CLLocationManagerDelegate {
+            private unowned let boxService: LibboxBoxService
+            init(_ boxService: LibboxBoxService) {
+                self.boxService = boxService
+            }
+
+            func locationManagerDidChangeAuthorization(_: CLLocationManager) {
+                boxService.updateWIFIState()
+            }
+
+            func locationManager(_: CLLocationManager, didUpdateLocations _: [CLLocation]) {}
+
+            func locationManager(_: CLLocationManager, didFailWithError _: Error) {}
+        }
+
+    #endif
 
     private func stopService() {
         if let service = boxService {
