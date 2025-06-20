@@ -3,8 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>destination</key>
-	<string>upload</string>
+	<string>export</string>
 	<key>method</key>
-	<string>app-store</string>
+	<string>debugging</string>
 </dict>
 </plist>
