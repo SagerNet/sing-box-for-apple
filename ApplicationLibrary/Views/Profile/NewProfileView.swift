@@ -206,7 +206,10 @@ public struct NewProfileView: View {
             if !FileManager.default.fileExists(atPath: FilePath.iCloudDirectory.path) {
                 try FileManager.default.createDirectory(at: FilePath.iCloudDirectory, withIntermediateDirectories: true)
             }
-            let saveURL = FilePath.iCloudDirectory.appendingPathComponent(remotePath, isDirectory: false)
+
+            // Clean up the remote path
+            let cleanPath = remotePath.replacingOccurrences(of: "../", with: "")
+            let saveURL = FilePath.iCloudDirectory.appendingPathComponent(cleanPath, isDirectory: false)
             _ = saveURL.startAccessingSecurityScopedResource()
             defer {
                 saveURL.stopAccessingSecurityScopedResource()
