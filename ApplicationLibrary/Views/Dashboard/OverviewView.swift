@@ -103,8 +103,22 @@ public struct OverviewView: View {
 
     private nonisolated func setSystemProxyEnabled(_ isEnabled: Bool) async {
         do {
-            try LibboxNewStandaloneCommandClient()!.setSystemProxyEnabled(isEnabled)
             await SharedPreferences.systemProxyEnabled.set(isEnabled)
+            if isEnabled {
+                try LibboxNewStandaloneCommandClient()!.setSystemProxyEnabled(isEnabled)
+            } else {
+                // Apple BUG: HTTP Proxy cannot be disabled via setTunnelNetworkSettings, so we can only restart the Network Extension
+                try await profile.stop()
+                var waitSeconds = 0
+                while await profile.status != .disconnected {
+                    try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+                    waitSeconds += 1
+                    if waitSeconds >= 5 {
+                        throw NSError(domain: "Restart service timeout", code: 0)
+                    }
+                }
+                try await profile.start()
+            }
         } catch {
             await MainActor.run {
                 alert = Alert(error)
