@@ -12,8 +12,8 @@ struct PacketTunnelView: View {
     @State private var excludeLocalNetworks = false
     @State private var enforceRoutes = false
 
-    public init() {}
-    public var body: some View {
+    init() {}
+    var body: some View {
         viewBuilder {
             if isLoading {
                 ProgressView().onAppear {

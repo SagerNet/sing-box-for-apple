@@ -219,7 +219,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         tunnel.writeMessage(message)
     }
 
-    private var nwMonitor: NWPathMonitor? = nil
+    private var nwMonitor: NWPathMonitor?
 
     public func startDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?) throws {
         guard let listener else {
@@ -287,7 +287,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             iterator = array.makeIterator()
         }
 
-        private var nextValue: LibboxNetworkInterface? = nil
+        private var nextValue: LibboxNetworkInterface?
 
         func hasNext() -> Bool {
             nextValue = iterator.next()

@@ -4,7 +4,7 @@ import Libbox
 import Library
 
 struct StartServiceIntent: AppIntent {
-    public static var title: LocalizedStringResource = "Start sing-box"
+    static var title: LocalizedStringResource = "Start sing-box"
 
     static var description =
         IntentDescription("Start or reload sing-box servie with specified profile")

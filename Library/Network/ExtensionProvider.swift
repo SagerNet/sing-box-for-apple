@@ -9,7 +9,7 @@ import NetworkExtension
 #endif
 
 open class ExtensionProvider: NEPacketTunnelProvider {
-    public var username: String? = nil
+    public var username: String?
     private var commandServer: LibboxCommandServer!
     private var boxService: LibboxBoxService!
     private var systemProxyAvailable = false

@@ -4,7 +4,7 @@ import Library
 import MacLibrary
 
 class StandaloneApplicationDelegate: ApplicationDelegate {
-    public func applicationWillFinishLaunching(_: Notification) {
+    func applicationWillFinishLaunching(_: Notification) {
         Variant.useSystemExtension = true
         Variant.isBeta = false
         Task {
