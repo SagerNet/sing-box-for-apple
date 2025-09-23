@@ -33,6 +33,7 @@ public struct ConnectionListView: View {
                 }
             }
         }
+        #if !os(tvOS)
         .toolbar {
             ToolbarItem {
                 Menu {
@@ -60,6 +61,7 @@ public struct ConnectionListView: View {
                 }
             }
         }
+        #endif
         #if os(macOS)
         .searchable(text: $searchText)
         #endif

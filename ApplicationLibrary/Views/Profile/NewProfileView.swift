@@ -10,7 +10,11 @@ public struct NewProfileView: View {
 
     @State private var isSaving = false
     @State private var profileName = ""
-    @State private var profileType = ProfileType.local
+    #if !os(tvOS)
+        @State private var profileType = ProfileType.local
+    #else
+        @State private var profileType = ProfileType.remote
+    #endif
     @State private var fileImport = false
     @State private var fileURL: URL!
     @State private var remotePath = ""
@@ -79,17 +83,23 @@ public struct NewProfileView: View {
                 FormItem(String(localized: "Path")) {
                     TextField("Path", text: $remotePath, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
+                    #if !os(macOS)
+                        .keyboardType(.asciiCapableNumberPad)
+                    #endif
                 }
             } else if profileType == .remote {
                 FormItem(String(localized: "URL")) {
                     TextField("URL", text: $remotePath, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
+                    #if !os(macOS)
+                        .keyboardType(.URL)
+                    #endif
                 }
                 Toggle("Auto Update", isOn: $autoUpdate)
                 FormItem(String(localized: "Auto Update Interval")) {
                     TextField("Auto Update Interval", text: $autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
                         .multilineTextAlignment(.trailing)
-                    #if os(iOS)
+                    #if !os(macOS)
                         .keyboardType(.numberPad)
                     #endif
                 }

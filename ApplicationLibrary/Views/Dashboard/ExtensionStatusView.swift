@@ -1,6 +1,9 @@
 import Libbox
 import Library
 import SwiftUI
+#if canImport(UIKit)
+    import UIKit
+#endif
 
 public struct ExtensionStatusView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -115,6 +118,8 @@ public struct ExtensionStatusView: View {
     }
 
     private struct StatusItem<T>: View where T: View {
+        @Environment(\.colorScheme) private var colorScheme
+
         private let title: String
         @ViewBuilder private let content: () -> T
 
@@ -148,7 +153,14 @@ public struct ExtensionStatusView: View {
             #elseif os(macOS)
                 return Color(nsColor: .textBackgroundColor)
             #elseif os(tvOS)
-                return Color(uiColor: .black)
+                switch colorScheme {
+                case .dark:
+                    return Color(uiColor: .black)
+                default:
+                    return Color(uiColor: .white)
+                }
+            #else
+                return Color.clear
             #endif
         }
     }

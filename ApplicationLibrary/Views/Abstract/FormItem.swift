@@ -37,7 +37,7 @@ public func FormTextItem(_ name: LocalizedStringKey, _ systemImage: String, @Vie
 }
 
 public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-    #if os(iOS) || os(tvOS)
+    #if os(iOS)
         HStack {
             Text(title)
                 .lineLimit(1)
@@ -45,6 +45,19 @@ public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> 
             Spacer()
             Spacer()
             content()
+        }
+    #elseif os(tvOS)
+        HStack {
+            Text(title)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(1)
+                .layoutPriority(1)
+            Spacer()
+            Spacer()
+            content()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .lineLimit(1)
+                .layoutPriority(1)
         }
     #elseif os(macOS)
         content()
@@ -115,6 +128,7 @@ public func FormNavigationLink(@ViewBuilder destination: () -> some View, @ViewB
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         BackButton()
+                            .tint(.accentColor)
                     }
                 }
         }, label: label)

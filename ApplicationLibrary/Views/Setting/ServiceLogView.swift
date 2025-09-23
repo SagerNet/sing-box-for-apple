@@ -53,6 +53,7 @@ public struct ServiceLogView: View {
                         Label("Delete", systemImage: "trash.fill")
                     #else
                         Image(systemName: "trash.fill")
+                            .tint(.red)
                     #endif
                 }
             }

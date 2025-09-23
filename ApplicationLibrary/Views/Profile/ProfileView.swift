@@ -137,14 +137,20 @@ public struct ProfileView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 if editMode == .inactive {
-                    Button("Edit") {
+                    Button(action: {
                         editMode = .active
+                    }) {
+                        Image(systemName: "square.and.pencil")
                     }
+                    .tint(.accentColor)
                     .disabled(profileList.isEmpty)
                 } else {
-                    Button("Done") {
+                    Button(action: {
                         editMode = .inactive
+                    }) {
+                        Image(systemName: "checkmark.square.fill")
                     }
+                    .tint(.accentColor)
                 }
             }
         }

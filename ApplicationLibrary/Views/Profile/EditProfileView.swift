@@ -34,17 +34,23 @@ public struct EditProfileView: View {
                 FormItem(String(localized: "Path")) {
                     TextField("Path", text: $profile.path, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
+                    #if !os(macOS)
+                        .keyboardType(.asciiCapableNumberPad)
+                    #endif
                 }
             } else if profile.type == .remote {
                 FormItem(String(localized: "URL")) {
                     TextField("URL", text: $profile.remoteURL.unwrapped(""), prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
+                    #if !os(macOS)
+                        .keyboardType(.URL)
+                    #endif
                 }
                 Toggle("Auto Update", isOn: $profile.autoUpdate)
                 FormItem(String(localized: "Auto Update Interval")) {
                     TextField("Auto Update Interval", text: $profile.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
                         .multilineTextAlignment(.trailing)
-                    #if os(iOS)
+                    #if !os(macOS)
                         .keyboardType(.numberPad)
                     #endif
                 }

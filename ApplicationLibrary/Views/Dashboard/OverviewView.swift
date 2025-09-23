@@ -108,6 +108,9 @@ public struct OverviewView: View {
                 try LibboxNewStandaloneCommandClient()!.setSystemProxyEnabled(isEnabled)
             } else {
                 // Apple BUG: HTTP Proxy cannot be disabled via setTunnelNetworkSettings, so we can only restart the Network Extension
+                await MainActor.run {
+                    reasserting = true
+                }
                 try await profile.stop()
                 var waitSeconds = 0
                 while await profile.status != .disconnected {
@@ -118,6 +121,9 @@ public struct OverviewView: View {
                     }
                 }
                 try await profile.start()
+                await MainActor.run {
+                    reasserting = false
+                }
             }
         } catch {
             await MainActor.run {
