@@ -147,7 +147,7 @@ public struct DashboardView: View {
                         message: Text(report.message()),
                         dismissButton: .cancel(Text("Ok")) {
                             Task.detached {
-                                try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                                try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
                                 await loopShowDeprecateNotes(reports)
                             }
                         }
@@ -159,13 +159,13 @@ public struct DashboardView: View {
                         primaryButton: .default(Text("Documentation")) {
                             openURL(URL(string: report.migrationLink)!)
                             Task.detached {
-                                try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                                try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
                                 await loopShowDeprecateNotes(reports)
                             }
                         },
                         secondaryButton: .cancel(Text("Ok")) {
                             Task.detached {
-                                try await Task.sleep(nanoseconds: 300 * MSEC_PER_SEC)
+                                try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
                                 await loopShowDeprecateNotes(reports)
                             }
                         }
