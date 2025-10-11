@@ -4,7 +4,7 @@ import SwiftUI
 
 public struct SettingView: View {
     private enum Tabs: Int, CaseIterable, Identifiable {
-        public var id: Self {
+        var id: Self {
             self
         }
 

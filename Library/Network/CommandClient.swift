@@ -18,6 +18,7 @@ public class CommandClient: ObservableObject {
     @Published public var status: LibboxStatusMessage?
     @Published public var groups: [LibboxOutboundGroup]?
     @Published public var logList: [String]
+    @Published public var defaultLogLevel: Int32 = 0
     @Published public var clashModeList: [String]
     @Published public var clashMode: String
 
@@ -160,20 +161,29 @@ public class CommandClient: ObservableObject {
             }
         }
 
+        func setDefaultLogLevel(_ level: Int32) {
+            DispatchQueue.main.async { [self] in
+                commandClient.defaultLogLevel = level
+            }
+        }
+
         func clearLogs() {
             DispatchQueue.main.async { [self] in
                 commandClient.logList.removeAll()
             }
         }
 
-        func writeLogs(_ messageList: (any LibboxStringIteratorProtocol)?) {
+        func writeLogs(_ messageList: (any LibboxLogIteratorProtocol)?) {
             guard let messageList else {
                 return
             }
             DispatchQueue.main.async { [self] in
                 var newLogList = commandClient.logList
                 while messageList.hasNext() {
-                    newLogList.append(messageList.next())
+                    let logEntry = messageList.next()!
+                    if logEntry.level <= commandClient.defaultLogLevel {
+                        newLogList.append(logEntry.message)
+                    }
                 }
                 if newLogList.count >= commandClient.logMaxLines {
                     newLogList.removeSubrange(0 ... newLogList.count - commandClient.logMaxLines)

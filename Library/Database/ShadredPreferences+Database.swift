@@ -61,12 +61,12 @@ extension SharedPreferences {
 }
 
 private class Item: Record, Identifiable {
-    public var id: String {
+    var id: String {
         name
     }
 
-    public var name: String
-    public var data: Data
+    var name: String
+    var data: Data
 
     init(name: String, data: Data) {
         self.name = name
@@ -74,7 +74,7 @@ private class Item: Record, Identifiable {
         super.init()
     }
 
-    override public class var databaseTableName: String {
+    override class var databaseTableName: String {
         "preferences"
     }
 
@@ -88,7 +88,7 @@ private class Item: Record, Identifiable {
         try super.init(row: row)
     }
 
-    override public func encode(to container: inout PersistenceContainer) throws {
+    override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.name] = name
         container[Columns.data] = data
     }

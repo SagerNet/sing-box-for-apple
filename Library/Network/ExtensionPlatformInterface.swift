@@ -356,18 +356,17 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
+    public func serviceStop() throws {
+        reset()
+    }
+
     public func serviceReload() throws {
         runBlocking { [self] in
             await tunnel.reloadService()
         }
     }
 
-    public func postServiceClose() {
-        reset()
-        tunnel.postServiceClose()
-    }
-
-    public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {
+    public func getSystemProxyStatus() throws -> LibboxSystemProxyStatus {
         let status = LibboxSystemProxyStatus()
         guard let networkSettings else {
             return status
@@ -402,6 +401,13 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         try runBlocking {
             try await self.tunnel.setTunnelNetworkSettings(networkSettings)
         }
+    }
+
+    public func writeDebugMessage(_ message: String?) {
+        guard let message else {
+            return
+        }
+        tunnel.writeMessage(message)
     }
 
     func reset() {

@@ -11,7 +11,6 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
-        options.isTVOS = true
         var error: NSError?
         LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)
