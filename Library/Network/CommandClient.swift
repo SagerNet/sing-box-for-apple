@@ -117,11 +117,7 @@ public class CommandClient: ObservableObject {
                 clientOptions.addCommand(LibboxCommandConnections)
             }
         }
-        if connectionTypes.contains(.log) {
-            clientOptions.statusInterval = Int64(500 * NSEC_PER_MSEC)
-        } else {
-            clientOptions.statusInterval = Int64(NSEC_PER_SEC)
-        }
+        clientOptions.statusInterval = Int64(NSEC_PER_SEC)
         let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
         do {
             for i in 0 ..< 10 {

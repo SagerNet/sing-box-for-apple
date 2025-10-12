@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 public class ExtensionEnvironments: ObservableObject {
-    @Published public var logClient = CommandClient(.log)
+    @Published public var commandClient = CommandClient([.log, .status, .groups, .clashMode, .connections])
     @Published public var extensionProfileLoading = true
     @Published public var extensionProfile: ExtensionProfile?
     @Published public var emptyProfiles = false
@@ -14,7 +14,7 @@ public class ExtensionEnvironments: ObservableObject {
     public init() {}
 
     deinit {
-        logClient.disconnect()
+        commandClient.disconnect()
     }
 
     public func postReload() {
@@ -37,12 +37,12 @@ public class ExtensionEnvironments: ObservableObject {
         }
     }
 
-    public func connectLog() {
+    public func connect() {
         guard let profile = extensionProfile else {
             return
         }
-        if profile.status.isConnected, !logClient.isConnected {
-            logClient.connect()
+        if profile.status.isConnected, !commandClient.isConnected {
+            commandClient.connect()
         }
     }
 }

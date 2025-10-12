@@ -30,7 +30,7 @@ public class MainViewModel: ObservableObject {
 
     public func onSelectionChange(_ newValue: NavigationPage, environments: ExtensionEnvironments) {
         if newValue == .logs {
-            environments.connectLog()
+            environments.connect()
         }
     }
 

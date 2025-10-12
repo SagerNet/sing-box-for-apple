@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 public struct ClashModeView: View {
-    @EnvironmentObject private var commandClient: CommandClient
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var viewModel = ClashModeViewModel()
 
     public init() {}
@@ -29,7 +29,7 @@ public struct ClashModeView: View {
         }
         .padding([.leading, .trailing])
         .onAppear {
-            viewModel.setCommandClient(commandClient)
+            viewModel.setCommandClient(environments.commandClient)
         }
         .alertBinding($viewModel.alert)
     }

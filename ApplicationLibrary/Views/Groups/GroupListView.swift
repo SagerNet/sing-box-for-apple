@@ -2,7 +2,7 @@ import Library
 import SwiftUI
 
 public struct GroupListView: View {
-    @EnvironmentObject private var commandClient: CommandClient
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var viewModel = GroupListViewModel()
 
     public init() {}
@@ -23,7 +23,7 @@ public struct GroupListView: View {
             }
         }
         .onAppear {
-            viewModel.setCommandClient(commandClient)
+            viewModel.setCommandClient(environments.commandClient)
             viewModel.connect()
         }
     }

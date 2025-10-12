@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 public struct ConnectionListView: View {
-    @EnvironmentObject private var commandClient: CommandClient
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var viewModel = ConnectionListViewModel()
 
     public init() {}
@@ -56,11 +56,8 @@ public struct ConnectionListView: View {
         #endif
         .alertBinding($viewModel.alert)
         .onAppear {
-            viewModel.setCommandClient(commandClient)
+            viewModel.setCommandClient(environments.commandClient)
             viewModel.connect()
-        }
-        .onDisappear {
-            viewModel.disconnect()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         #if os(iOS)

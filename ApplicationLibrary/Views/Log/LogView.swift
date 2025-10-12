@@ -8,12 +8,12 @@ public struct LogView: View {
     public init() {}
 
     public var body: some View {
-        LogView0().environmentObject(environments.logClient)
+        LogView0().environmentObject(environments.commandClient)
     }
 
     private struct LogView0: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
-        @EnvironmentObject private var logClient: CommandClient
+        @EnvironmentObject private var commandClient: CommandClient
         private let logFont = Font.system(.caption2, design: .monospaced)
 
         var body: some View {
@@ -44,13 +44,13 @@ public struct LogView: View {
                 .focusEffectDisabled()
                 .focusSection()
                 #endif
-            } else if logClient.logList.isEmpty {
+            } else if commandClient.logList.isEmpty {
                 VStack {
-                    if logClient.isConnected {
+                    if commandClient.isConnected {
                         Text("Empty logs")
                     } else {
                         Text("Service not started").onAppear {
-                            environments.connectLog()
+                            environments.connect()
                         }
                     }
                 }
@@ -58,7 +58,7 @@ public struct LogView: View {
                 ScrollViewReader { reader in
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.flexible())], alignment: .leading, spacing: 0) {
-                            ForEach(Array(logClient.logList.enumerated()), id: \.offset) { it in
+                            ForEach(Array(commandClient.logList.enumerated()), id: \.offset) { it in
                                 Text(ANSIColors.parseAnsiString(it.element))
                                     .font(logFont)
                                 #if os(tvOS)
@@ -67,7 +67,7 @@ public struct LogView: View {
                                 Spacer(minLength: 8)
                             }
 
-                            .onChangeCompat(of: logClient.logList.count) { newCount in
+                            .onChangeCompat(of: commandClient.logList.count) { newCount in
                                 withAnimation {
                                     reader.scrollTo(newCount - 1)
                                 }
@@ -81,7 +81,7 @@ public struct LogView: View {
                     .focusSection()
                     #endif
                     .onAppear {
-                        reader.scrollTo(logClient.logList.count - 1)
+                        reader.scrollTo(commandClient.logList.count - 1)
                     }
                 }
             }

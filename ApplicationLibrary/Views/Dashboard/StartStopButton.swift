@@ -78,7 +78,7 @@ public struct StartStopButton: View {
             do {
                 if isEnabled {
                     try await profile.start()
-                    await environments.logClient.connect()
+                    await environments.commandClient.connect()
                 } else {
                     try await profile.stop()
                 }

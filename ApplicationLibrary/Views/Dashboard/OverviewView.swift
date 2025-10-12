@@ -34,6 +34,7 @@ public struct OverviewView: View {
         VStack {
             if ApplicationLibrary.inPreview || profile.status.isConnected {
                 ExtensionStatusView()
+                    .environmentObject(environments.commandClient)
                 ClashModeView()
             }
             if profileList.isEmpty {

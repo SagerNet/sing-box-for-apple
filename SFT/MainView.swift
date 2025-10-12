@@ -29,7 +29,7 @@ struct MainView: View {
         }
         .onChangeCompat(of: selection) { newValue in
             if newValue == .logs {
-                environments.connectLog()
+                environments.connect()
             }
         }
         .environment(\.selection, $selection)

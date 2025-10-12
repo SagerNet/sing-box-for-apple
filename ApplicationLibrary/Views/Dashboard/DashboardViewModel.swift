@@ -32,13 +32,8 @@ class DashboardViewModel: ObservableObject {
     func handleStatusChange(_ status: NEVPNStatus, profile: ExtensionProfile) {
         if status == .connected {
             notStarted = false
-        }
-        if status == .disconnecting || status == .connected {
             Task {
-                await checkServiceError()
-                if status == .connected {
-                    await checkDeprecatedNotes()
-                }
+                await checkDeprecatedNotes()
             }
         } else if status == .connecting {
             notStarted = true
@@ -104,17 +99,6 @@ class DashboardViewModel: ObservableObject {
                     }
                 )
             }
-        }
-    }
-
-    nonisolated func checkServiceError() async {
-        var error: NSError?
-        let message = LibboxReadServiceError(&error)
-        if error != nil {
-            return
-        }
-        await MainActor.run {
-            alert = Alert(title: Text("Service Error"), message: Text(message!.value))
         }
     }
 
