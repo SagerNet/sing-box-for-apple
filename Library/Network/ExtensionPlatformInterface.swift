@@ -357,12 +357,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func serviceStop() throws {
-        reset()
+        tunnel.stopService()
     }
 
     public func serviceReload() throws {
-        runBlocking { [self] in
-            await tunnel.reloadService()
+        try runBlocking { [self] in
+            try await tunnel.reloadService()
         }
     }
 

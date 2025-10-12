@@ -23,15 +23,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         var setupError: NSError?
         LibboxSetup(options, &setupError)
         if let setupError {
-            writeFatalError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
         }
 
         var stderrError: NSError?
         LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &stderrError)
         if let stderrError {
-            writeFatalError("(packet-tunnel) redirect stderr error: \(stderrError.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel) redirect stderr error: \(stderrError.localizedDescription)")
         }
 
         await LibboxSetMemoryLimit(!SharedPreferences.ignoreMemoryLimit.get())
@@ -42,17 +40,15 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         var error: NSError?
         commandServer = LibboxNewCommandServer(platformInterface, platformInterface, &error)
         if let error {
-            writeFatalError("(packet-tunnel): create command server error: \(error.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel): create command server error: \(error.localizedDescription)")
         }
         do {
             try commandServer.start()
         } catch {
-            writeFatalError("(packet-tunnel): start command server error: \(error.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel): start command server error: \(error.localizedDescription)")
         }
         writeMessage("(packet-tunnel): Here I stand")
-        await startService()
+        try await startService()
         #if os(iOS)
             if #available(iOS 18.0, *) {
                 ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
@@ -76,31 +72,27 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         cancelTunnelWithError(nil)
     }
 
-    private func startService() async {
+    private func startService() async throws {
         let profile: Profile?
         do {
             profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get()))
         } catch {
-            writeFatalError("(packet-tunnel) error: read selected profile: \(error.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel) error: read selected profile: \(error.localizedDescription)")
         }
         guard let profile else {
-            writeFatalError("(packet-tunnel) error: missing selected profile")
-            return
+            throw ExtensionStartupError("(packet-tunnel) error: missing selected profile")
         }
         let configContent: String
         do {
             configContent = try profile.read()
         } catch {
-            writeFatalError("(packet-tunnel) error: read config file \(profile.path): \(error.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel) error: read config file \(profile.path): \(error.localizedDescription)")
         }
         let options = LibboxOverrideOptions()
         do {
             try commandServer.startOrReloadService(configContent, options: options)
         } catch {
-            writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel) error: start service: \(error.localizedDescription)")
         }
         #if os(macOS)
             await SharedPreferences.startedByUser.set(true)
@@ -132,7 +124,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     #endif
 
-    private func stopService() {
+    func stopService() {
         do {
             try commandServer.closeService()
         } catch {
@@ -143,13 +135,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
     }
 
-    func reloadService() async {
+    func reloadService() async throws {
         writeMessage("(packet-tunnel) reloading service")
         reasserting = true
         defer {
             reasserting = false
         }
-        await startService()
+        try await startService()
     }
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {

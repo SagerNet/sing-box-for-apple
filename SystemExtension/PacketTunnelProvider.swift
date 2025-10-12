@@ -6,8 +6,7 @@ import System
 class PacketTunnelProvider: ExtensionProvider {
     override func startTunnel(options: [String: NSObject]?) async throws {
         guard let usernameObject = options?["username"] else {
-            writeFatalError("missing start options")
-            return
+            throw ExtensionStartupError("missing start options")
         }
         let username = usernameObject as! NSString
         FilePath.sharedDirectory = URL(filePath: "/Users/\(username)/Library/Group Containers/\(FilePath.groupName)")
