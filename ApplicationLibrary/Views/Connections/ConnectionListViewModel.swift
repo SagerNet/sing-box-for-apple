@@ -11,8 +11,8 @@ public class ConnectionListViewModel: ObservableObject {
     @Published public var alert: Alert?
     @Published public var connectionStateFilter: ConnectionStateFilter {
         didSet {
-            commandClient.connectionStateFilter = connectionStateFilter
-            commandClient.filterConnectionsNow()
+            commandClient?.connectionStateFilter = connectionStateFilter
+            commandClient?.filterConnectionsNow()
             saveStateFilterTask?.cancel()
             saveStateFilterTask = Task {
                 await SharedPreferences.connectionStateFilter.set(connectionStateFilter.rawValue)
@@ -22,8 +22,8 @@ public class ConnectionListViewModel: ObservableObject {
 
     @Published public var connectionSort: ConnectionSort {
         didSet {
-            commandClient.connectionSort = connectionSort
-            commandClient.filterConnectionsNow()
+            commandClient?.connectionSort = connectionSort
+            commandClient?.filterConnectionsNow()
             saveSortTask?.cancel()
             saveSortTask = Task {
                 await SharedPreferences.connectionSort.set(connectionSort.rawValue)
@@ -31,7 +31,7 @@ public class ConnectionListViewModel: ObservableObject {
         }
     }
 
-    private let commandClient = CommandClient(.connections)
+    private var commandClient: CommandClient?
     private var cancellables = Set<AnyCancellable>()
     private var connectTask: Task<Void, Never>?
     private var saveStateFilterTask: Task<Void, Never>?
@@ -40,8 +40,11 @@ public class ConnectionListViewModel: ObservableObject {
     public init() {
         connectionStateFilter = .active
         connectionSort = .byDate
+    }
 
-        commandClient.$connections
+    public func setCommandClient(_ client: CommandClient) {
+        commandClient = client
+        client.$connections
             .compactMap { $0 }
             .sink { [weak self] goConnections in
                 self?.setConnections(goConnections)
@@ -60,7 +63,6 @@ public class ConnectionListViewModel: ObservableObject {
             guard let self else { return }
             await self.loadPreferences()
             if Task.isCancelled { return }
-            self.commandClient.connect()
             self.connectTask = nil
         }
     }
@@ -79,7 +81,6 @@ public class ConnectionListViewModel: ObservableObject {
         saveStateFilterTask = nil
         saveSortTask?.cancel()
         saveSortTask = nil
-        commandClient.disconnect()
     }
 
     public func closeAllConnections() {

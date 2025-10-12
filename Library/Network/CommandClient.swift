@@ -10,7 +10,7 @@ public class CommandClient: ObservableObject {
         case connections
     }
 
-    private let connectionType: ConnectionType
+    private let connectionTypes: [ConnectionType]
     private let logMaxLines: Int
     private var commandClient: LibboxCommandClient?
     private var connectTask: Task<Void, Error>?
@@ -27,13 +27,17 @@ public class CommandClient: ObservableObject {
     @Published public var connections: [LibboxConnection]?
     public var rawConnections: LibboxConnections?
 
-    public init(_ connectionType: ConnectionType, logMaxLines: Int = 300) {
-        self.connectionType = connectionType
+    public init(_ connectionTypes: [ConnectionType], logMaxLines: Int = 3000) {
+        self.connectionTypes = connectionTypes
         self.logMaxLines = logMaxLines
         logList = []
         clashModeList = []
         clashMode = ""
         isConnected = false
+    }
+
+    public convenience init(_ connectionType: ConnectionType, logMaxLines: Int = 300) {
+        self.init([connectionType], logMaxLines: logMaxLines)
     }
 
     public func connect() {
@@ -94,27 +98,28 @@ public class CommandClient: ObservableObject {
     }
 
     private nonisolated func connect0() async {
-        if connectionType == .connections {
+        if connectionTypes.contains(.connections) {
             await initializeConnectionFilterState()
         }
 
         let clientOptions = LibboxCommandClientOptions()
-        switch connectionType {
-        case .status:
-            clientOptions.command = LibboxCommandStatus
-        case .groups:
-            clientOptions.command = LibboxCommandGroup
-        case .log:
-            clientOptions.command = LibboxCommandLog
-        case .clashMode:
-            clientOptions.command = LibboxCommandClashMode
-        case .connections:
-            clientOptions.command = LibboxCommandConnections
+        for connectionType in connectionTypes {
+            switch connectionType {
+            case .status:
+                clientOptions.addCommand(LibboxCommandStatus)
+            case .groups:
+                clientOptions.addCommand(LibboxCommandGroup)
+            case .log:
+                clientOptions.addCommand(LibboxCommandLog)
+            case .clashMode:
+                clientOptions.addCommand(LibboxCommandClashMode)
+            case .connections:
+                clientOptions.addCommand(LibboxCommandConnections)
+            }
         }
-        switch connectionType {
-        case .log:
+        if connectionTypes.contains(.log) {
             clientOptions.statusInterval = Int64(500 * NSEC_PER_MSEC)
-        default:
+        } else {
             clientOptions.statusInterval = Int64(NSEC_PER_SEC)
         }
         let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
@@ -145,7 +150,7 @@ public class CommandClient: ObservableObject {
 
         func connected() {
             DispatchQueue.main.async { [self] in
-                if commandClient.connectionType == .log {
+                if commandClient.connectionTypes.contains(.log) {
                     commandClient.logList = []
                 }
                 commandClient.isConnected = true

@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 public struct ConnectionListView: View {
-    @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var commandClient: CommandClient
     @StateObject private var viewModel = ConnectionListViewModel()
 
     public init() {}
@@ -56,17 +56,11 @@ public struct ConnectionListView: View {
         #endif
         .alertBinding($viewModel.alert)
         .onAppear {
+            viewModel.setCommandClient(commandClient)
             viewModel.connect()
         }
         .onDisappear {
             viewModel.disconnect()
-        }
-        .onChangeCompat(of: scenePhase) { newValue in
-            if newValue == .active {
-                viewModel.connect()
-            } else {
-                viewModel.disconnect()
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         #if os(iOS)

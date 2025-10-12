@@ -8,11 +8,14 @@ public class GroupListViewModel: ObservableObject {
     @Published public var isLoading = true
     @Published public var groups: [OutboundGroup] = []
 
-    private let commandClient = CommandClient(.groups)
+    private var commandClient: CommandClient?
     private var cancellables = Set<AnyCancellable>()
 
-    public init() {
-        commandClient.$groups
+    public init() {}
+
+    public func setCommandClient(_ client: CommandClient) {
+        commandClient = client
+        client.$groups
             .compactMap { $0 }
             .sink { [weak self] goGroups in
                 self?.setGroups(goGroups)
@@ -34,13 +37,7 @@ public class GroupListViewModel: ObservableObject {
                     }),
             ]
             isLoading = false
-        } else {
-            commandClient.connect()
         }
-    }
-
-    public func disconnect() {
-        commandClient.disconnect()
     }
 
     private func setGroups(_ goGroups: [LibboxOutboundGroup]) {

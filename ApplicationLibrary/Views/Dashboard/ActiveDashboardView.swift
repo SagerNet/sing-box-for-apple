@@ -74,6 +74,31 @@ public struct ActiveDashboardView: View {
                 OverviewView($viewModel.profileList, $viewModel.selectedProfileID, $viewModel.systemProxyAvailable, $viewModel.systemProxyEnabled)
             #endif
         }
+        .environmentObject(viewModel.dashboardClient)
+        .onAppear {
+            if ApplicationLibrary.inPreview || profile.status.isConnected {
+                viewModel.dashboardClient.connect()
+            }
+        }
+        .onDisappear {
+            viewModel.dashboardClient.disconnect()
+        }
+        .onChangeCompat(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                if profile.status.isConnected {
+                    viewModel.dashboardClient.connect()
+                }
+            } else {
+                viewModel.dashboardClient.disconnect()
+            }
+        }
+        .onChangeCompat(of: profile.status) { newStatus in
+            if newStatus.isConnected {
+                viewModel.dashboardClient.connect()
+            } else {
+                viewModel.dashboardClient.disconnect()
+            }
+        }
         .onReceive(environments.profileUpdate) { _ in
             Task {
                 await viewModel.reload()

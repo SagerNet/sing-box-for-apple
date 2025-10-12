@@ -2,7 +2,7 @@ import Library
 import SwiftUI
 
 public struct GroupListView: View {
-    @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var commandClient: CommandClient
     @StateObject private var viewModel = GroupListViewModel()
 
     public init() {}
@@ -23,17 +23,8 @@ public struct GroupListView: View {
             }
         }
         .onAppear {
+            viewModel.setCommandClient(commandClient)
             viewModel.connect()
-        }
-        .onDisappear {
-            viewModel.disconnect()
-        }
-        .onChangeCompat(of: scenePhase) { newValue in
-            if newValue == .active {
-                viewModel.connect()
-            } else {
-                viewModel.disconnect()
-            }
         }
     }
 }

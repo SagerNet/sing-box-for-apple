@@ -12,6 +12,7 @@ final class ActiveDashboardViewModel: ObservableObject {
     @Published var selection = DashboardPage.overview
     @Published var systemProxyAvailable = false
     @Published var systemProxyEnabled = false
+    @Published var dashboardClient = CommandClient([.status, .groups, .clashMode, .connections])
 
     var onEmptyProfilesChange: ((Bool) -> Void)?
 

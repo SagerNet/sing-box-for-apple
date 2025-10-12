@@ -20,6 +20,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
+        options.logMaxLines = 3000
         var setupError: NSError?
         LibboxSetup(options, &setupError)
         if let setupError {

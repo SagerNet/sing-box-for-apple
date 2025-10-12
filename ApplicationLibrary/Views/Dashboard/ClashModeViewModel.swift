@@ -7,35 +7,20 @@ final class ClashModeViewModel: ObservableObject {
     @Published var clashMode = ""
     @Published var alert: Alert?
 
-    private let commandClient = CommandClient(.clashMode)
+    var commandClient: CommandClient?
 
     var clashModeList: [String] {
-        commandClient.clashModeList
+        commandClient?.clashModeList ?? []
     }
 
     var shouldShowPicker: Bool {
-        commandClient.clashModeList.count > 1
+        (commandClient?.clashModeList.count ?? 0) > 1
     }
 
-    init() {
-        commandClient.$clashMode
+    func setCommandClient(_ client: CommandClient) {
+        commandClient = client
+        client.$clashMode
             .assign(to: &$clashMode)
-    }
-
-    func connect() {
-        commandClient.connect()
-    }
-
-    func disconnect() {
-        commandClient.disconnect()
-    }
-
-    func handleScenePhase(_ phase: ScenePhase) {
-        if phase == .active {
-            connect()
-        } else {
-            disconnect()
-        }
     }
 
     nonisolated func setClashMode(_ newMode: String) async {
