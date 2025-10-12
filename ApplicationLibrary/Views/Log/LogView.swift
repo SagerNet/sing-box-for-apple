@@ -29,7 +29,7 @@ public struct LogView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(Array(logList.enumerated()), id: \.offset) { it in
-                            Text(it.element)
+                            Text(ANSIColors.parseAnsiString(it.element))
                                 .font(logFont)
                             #if os(tvOS)
                                 .focusable()
@@ -59,7 +59,7 @@ public struct LogView: View {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.flexible())], alignment: .leading, spacing: 0) {
                             ForEach(Array(logClient.logList.enumerated()), id: \.offset) { it in
-                                Text(it.element)
+                                Text(ANSIColors.parseAnsiString(it.element))
                                     .font(logFont)
                                 #if os(tvOS)
                                     .focusable()
