@@ -7,12 +7,7 @@ public struct EditProfileView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var profile: Profile
-
-    @State private var isLoading = false
-    @State private var isChanged = false
-    @State private var alert: Alert?
-    @State private var shareLinkPresented = false
-    @State private var shareLinkText: String?
+    @StateObject private var viewModel = EditProfileViewModel()
 
     public init() {}
     public var body: some View {
@@ -80,19 +75,19 @@ public struct EditProfileView: View {
                         }
                     #endif
                     FormButton {
-                        isLoading = true
+                        viewModel.isLoading = true
                         Task {
-                            await updateProfile()
+                            await viewModel.updateProfile(profile, environments: environments)
                         }
                     } label: {
                         Label("Update", systemImage: "arrow.clockwise")
                     }
                     .foregroundColor(.accentColor)
-                    .disabled(isLoading)
+                    .disabled(viewModel.isLoading)
                 }
                 FormButton(role: .destructive) {
                     Task {
-                        await deleteProfile()
+                        await viewModel.deleteProfile(profile, environments: environments, dismiss: dismiss)
                     }
                 } label: {
                     Label("Delete", systemImage: "trash.fill")
@@ -101,84 +96,42 @@ public struct EditProfileView: View {
             }
         }
         .onChangeCompat(of: profile.name) {
-            isChanged = true
+            viewModel.markAsChanged()
         }
         .onChangeCompat(of: profile.remoteURL) {
-            isChanged = true
+            viewModel.markAsChanged()
         }
         .onChangeCompat(of: profile.autoUpdate) {
-            isChanged = true
+            viewModel.markAsChanged()
         }
-        .disabled(isLoading)
+        .disabled(viewModel.isLoading)
         #if os(macOS)
             .toolbar {
                 ToolbarItemGroup(placement: .navigation) {
                     Button {
-                        isLoading = true
+                        viewModel.isLoading = true
                         Task {
-                            await saveProfile()
+                            await viewModel.saveProfile(profile, environments: environments)
                         }
                     } label: {
                         Image("save", bundle: ApplicationLibrary.bundle, label: Text("Save"))
                     }
-                    .disabled(isLoading || !isChanged)
+                    .disabled(viewModel.isLoading || !viewModel.isChanged)
                 }
             }
         #elseif os(iOS)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        isLoading = true
+                        viewModel.isLoading = true
                         Task {
-                            await saveProfile()
+                            await viewModel.saveProfile(profile, environments: environments)
                         }
-                    }.disabled(!isChanged)
+                    }.disabled(!viewModel.isChanged)
                 }
             }
         #endif
-            .alertBinding($alert)
+            .alertBinding($viewModel.alert)
             .navigationTitle("Edit Profile")
-    }
-
-    private func updateProfile() async {
-        defer {
-            isLoading = false
-        }
-        do {
-            try await Task.sleep(nanoseconds: UInt64(100 * Double(NSEC_PER_MSEC)))
-            try await profile.updateRemoteProfile()
-            environments.profileUpdate.send()
-        } catch {
-            alert = Alert(error)
-        }
-    }
-
-    private func deleteProfile() async {
-        do {
-            try await ProfileManager.delete(profile)
-        } catch {
-            alert = Alert(error)
-            return
-        }
-        environments.profileUpdate.send()
-        dismiss()
-    }
-
-    private func saveProfile() async {
-        do {
-            _ = try await ProfileManager.update(profile)
-            #if os(iOS) || os(tvOS)
-                try UIProfileUpdateTask.configure()
-            #else
-                try await ProfileUpdateTask.configure()
-            #endif
-            try await profile.onProfileUpdated()
-        } catch {
-            alert = Alert(error)
-            return
-        }
-        isChanged = false
-        isLoading = false
-        environments.profileUpdate.send()
     }
 }

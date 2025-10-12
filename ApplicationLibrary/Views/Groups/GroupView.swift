@@ -1,36 +1,31 @@
-import Libbox
 import Library
 import SwiftUI
 
 @MainActor
 public struct GroupView: View {
-    @State private var group: OutboundGroup
+    @StateObject private var viewModel: GroupViewModel
     @State private var geometryWidth: CGFloat = 300
-    @State private var alert: Alert?
 
     public init(_ group: OutboundGroup) {
-        _group = State(initialValue: group)
+        _viewModel = StateObject(wrappedValue: GroupViewModel(group: group))
     }
 
     private var title: some View {
         HStack {
-            Text(group.tag)
+            Text(viewModel.group.tag)
                 .font(.headline)
-            Text(group.displayType)
+            Text(viewModel.group.displayType)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-            Text("\(group.items.count)")
+            Text("\(viewModel.group.items.count)")
                 .font(.subheadline)
                 .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
                 .background(Color.gray.opacity(0.5))
                 .cornerRadius(4)
             Button {
-                group.isExpand = !group.isExpand
-                Task {
-                    await setGroupExpand()
-                }
+                viewModel.toggleExpand()
             } label: {
-                if group.isExpand {
+                if viewModel.group.isExpand {
                     Image(systemName: "arrow.down.to.line")
                 } else {
                     Image(systemName: "arrow.up.to.line")
@@ -40,9 +35,7 @@ public struct GroupView: View {
             .buttonStyle(.plain)
             #endif
             Button {
-                Task {
-                    await doURLTest()
-                }
+                viewModel.performURLTest()
             } label: {
                 Image(systemName: "bolt.fill")
             }
@@ -50,19 +43,19 @@ public struct GroupView: View {
             .buttonStyle(.plain)
             #endif
         }
-        .alertBinding($alert)
+        .alertBinding($viewModel.alert)
         .padding([.top, .bottom], 8)
-        .animation(.easeInOut, value: group.isExpand)
+        .animation(.easeInOut, value: viewModel.group.isExpand)
     }
 
     public var body: some View {
         Section {
-            if group.isExpand {
+            if viewModel.group.isExpand {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
                                          count: explandColumnCount()))
                 {
-                    ForEach(group.items, id: \.tag) { it in
-                        GroupItemView($group, it)
+                    ForEach(viewModel.group.items, id: \.tag) { it in
+                        GroupItemView($viewModel.group, it)
                     }
                 }
             } else {
@@ -73,7 +66,7 @@ public struct GroupView: View {
                                 ZStack {
                                     Rectangle()
                                         .fill(it.delayColor)
-                                    if it.tag == group.selected {
+                                    if it.tag == viewModel.group.selected {
                                         Rectangle()
                                             .fill(Color.white)
                                         #if !os(tvOS)
@@ -120,9 +113,9 @@ public struct GroupView: View {
             count = Int(Int(geometryWidth) / 20)
         #endif
         if count == 0 {
-            return [group.items]
+            return [viewModel.group.items]
         } else {
-            return group.items.chunked(
+            return viewModel.group.items.chunked(
                 into: count
             )
         }
@@ -137,26 +130,6 @@ public struct GroupView: View {
         #else
             return standardCount < 1 ? 1 : standardCount
         #endif
-    }
-
-    private nonisolated func doURLTest() async {
-        do {
-            try await LibboxNewStandaloneCommandClient()!.urlTest(group.tag)
-        } catch {
-            await MainActor.run {
-                alert = Alert(error)
-            }
-        }
-    }
-
-    private nonisolated func setGroupExpand() async {
-        do {
-            try await LibboxNewStandaloneCommandClient()!.setGroupExpand(group.tag, isExpand: group.isExpand)
-        } catch {
-            await MainActor.run {
-                alert = Alert(error)
-            }
-        }
     }
 }
 

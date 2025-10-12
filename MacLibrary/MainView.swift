@@ -1,5 +1,4 @@
 import ApplicationLibrary
-import Libbox
 import Library
 import SwiftUI
 
@@ -7,11 +6,7 @@ import SwiftUI
 public struct MainView: View {
     @Environment(\.controlActiveState) private var controlActiveState
     @EnvironmentObject private var environments: ExtensionEnvironments
-
-    @State private var selection = NavigationPage.dashboard
-    @State private var importProfile: LibboxProfileContent?
-    @State private var importRemoteProfile: LibboxImportRemoteProfile?
-    @State private var alert: Alert?
+    @StateObject private var viewModel = MainViewModel()
 
     public init() {}
 
@@ -21,96 +16,34 @@ public struct MainView: View {
                 .navigationSplitViewColumnWidth(150)
         } detail: {
             NavigationStack {
-                selection.contentView
-                    .navigationTitle(selection.title)
+                viewModel.selection.contentView
+                    .navigationTitle(viewModel.selection.title)
             }
             .navigationSplitViewColumnWidth(650)
         }
         .frame(minHeight: 500)
         .onAppear {
-            environments.postReload()
-            #if !DEBUG
-                if Variant.useSystemExtension {
-                    Task {
-                        checkApplicationPath()
-                    }
-                }
-            #endif
+            viewModel.onAppear(environments: environments)
         }
-        .alertBinding($alert)
+        .alertBinding($viewModel.alert)
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 StartStopButton()
             }
         }
         .onChangeCompat(of: controlActiveState) { newValue in
-            if newValue != .inactive {
-                environments.postReload()
-            }
+            viewModel.onControlActiveStateChange(newValue, environments: environments)
         }
-        .onChangeCompat(of: selection) { value in
-            if value == .logs {
-                environments.connectLog()
-            }
+        .onChangeCompat(of: viewModel.selection) { value in
+            viewModel.onSelectionChange(value, environments: environments)
         }
         .onReceive(environments.openSettings) {
-            selection = .settings
+            viewModel.openSettings()
         }
-        .environment(\.selection, $selection)
-        .environment(\.importProfile, $importProfile)
-        .environment(\.importRemoteProfile, $importRemoteProfile)
+        .environment(\.selection, $viewModel.selection)
+        .environment(\.importProfile, $viewModel.importProfile)
+        .environment(\.importRemoteProfile, $viewModel.importRemoteProfile)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
-        .onOpenURL(perform: openURL)
-    }
-
-    private func openURL(url: URL) {
-        if url.host == "import-remote-profile" {
-            var error: NSError?
-            importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
-            if error != nil {
-                return
-            }
-            if selection != .profiles {
-                selection = .profiles
-            }
-        } else if url.pathExtension == "bpf" {
-            Task {
-                await importURLProfile(url)
-            }
-        } else {
-            alert = Alert(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
-        }
-    }
-
-    private func importURLProfile(_ url: URL) async {
-        do {
-            _ = url.startAccessingSecurityScopedResource()
-            importProfile = try await .from(readURL(url))
-            url.stopAccessingSecurityScopedResource()
-        } catch {
-            alert = Alert(error)
-            return
-        }
-        if selection != .profiles {
-            selection = .profiles
-        }
-    }
-
-    private nonisolated func readURL(_ url: URL) async throws -> Data {
-        try Data(contentsOf: url)
-    }
-
-    private func checkApplicationPath() {
-        let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.last
-        if directoryName != "Applications" {
-            alert = Alert(
-                title: Text("Wrong application location"),
-                message: Text("This app needs to be placed under the Applications folder to work."),
-                dismissButton: .default(Text("Ok")) {
-                    NSWorkspace.shared.selectFile(Bundle.main.bundlePath, inFileViewerRootedAtPath: "")
-                    NSApp.terminate(nil)
-                }
-            )
-        }
+        .onOpenURL(perform: viewModel.openURL)
     }
 }

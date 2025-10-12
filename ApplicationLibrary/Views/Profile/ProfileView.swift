@@ -10,18 +10,7 @@ public struct ProfileView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.importProfile) private var importProfile
     @Environment(\.importRemoteProfile) private var importRemoteProfile
-    @State private var importRemoteProfileRequest: NewProfileView.ImportRequest?
-    @State private var importRemoteProfilePresented = false
-
-    @State private var isLoading = true
-    @State private var isUpdating = false
-
-    @State private var alert: Alert?
-    @State private var profileList: [ProfilePreview] = []
-
-    #if os(iOS) || os(tvOS)
-        @State private var editMode = EditMode.inactive
-    #endif
+    @StateObject private var viewModel = ProfileViewModel()
 
     #if os(tvOS)
         @Environment(\.devicePickerSupports) private var devicePickerSupports
@@ -30,16 +19,17 @@ public struct ProfileView: View {
     public init() {}
     public var body: some View {
         VStack {
-            if isLoading {
+            if viewModel.isLoading {
                 ProgressView().onAppear {
+                    viewModel.setEnvironments(environments)
                     Task {
-                        await doReload()
+                        await viewModel.doReload()
                     }
                 }
             } else {
                 ZStack {
-                    if let importRemoteProfileRequest {
-                        NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
+                    if let importRemoteProfileRequest = viewModel.importRemoteProfileRequest {
+                        NavigationDestinationCompat(isPresented: $viewModel.importRemoteProfilePresented) {
                             NewProfileView(importRemoteProfileRequest)
                         }
                     }
@@ -50,7 +40,7 @@ public struct ProfileView: View {
                             } label: {
                                 Text("New Profile").foregroundColor(.accentColor)
                             }
-                            .disabled(editMode.isEditing)
+                            .disabled(viewModel.editMode.isEditing)
                         #elseif os(macOS)
                             FormNavigationLink {
                                 NewProfileView()
@@ -73,20 +63,20 @@ public struct ProfileView: View {
                                 }
                             }
                         #endif
-                        if profileList.isEmpty {
+                        if viewModel.profileList.isEmpty {
                             Text("Empty profiles")
                         } else {
                             List {
-                                ForEach(profileList, id: \.id) { profile in
+                                ForEach(viewModel.profileList, id: \.id) { profile in
                                     viewBuilder {
                                         #if os(iOS) || os(tvOS)
-                                            if editMode.isEditing == true {
+                                            if viewModel.editMode.isEditing == true {
                                                 Text(profile.name)
                                             } else {
-                                                ProfileItem(self, profile)
+                                                ProfileItem(viewModel, profile)
                                             }
                                         #else
-                                            ProfileItem(self, profile)
+                                            ProfileItem(viewModel, profile)
                                         #endif
                                     }
                                 }
@@ -98,55 +88,55 @@ public struct ProfileView: View {
                 }
             }
         }
-        .disabled(isUpdating)
-        .alertBinding($alert, $isLoading)
+        .disabled(viewModel.isUpdating)
+        .alertBinding($viewModel.alert, $viewModel.isLoading)
         .onAppear {
             if let profile = importProfile.wrappedValue {
                 importProfile.wrappedValue = nil
-                createImportProfileDialog(profile)
+                viewModel.createImportProfileDialog(profile)
             }
             if let remoteProfile = importRemoteProfile.wrappedValue {
                 importRemoteProfile.wrappedValue = nil
-                createImportRemoteProfileDialog(remoteProfile)
+                viewModel.createImportRemoteProfileDialog(remoteProfile)
             }
         }
         .onChangeCompat(of: importProfile.wrappedValue) { newValue in
             if let newValue {
                 importProfile.wrappedValue = nil
-                createImportProfileDialog(newValue)
+                viewModel.createImportProfileDialog(newValue)
             }
         }
         .onChangeCompat(of: importRemoteProfile.wrappedValue) { newValue in
             if let newValue {
                 importRemoteProfile.wrappedValue = nil
-                createImportRemoteProfileDialog(newValue)
+                viewModel.createImportRemoteProfileDialog(newValue)
             }
         }
         .onReceive(environments.profileUpdate) { _ in
             Task {
-                await doReload()
+                await viewModel.doReload()
             }
         }
         #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                EditButton().disabled(profileList.isEmpty && !editMode.isEditing)
+                EditButton().disabled(viewModel.profileList.isEmpty && !viewModel.editMode.isEditing)
             }
         }
         #elseif os(tvOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                if editMode == .inactive {
+                if viewModel.editMode == .inactive {
                     Button(action: {
-                        editMode = .active
+                        viewModel.editMode = .active
                     }) {
                         Image(systemName: "square.and.pencil")
                     }
                     .tint(.accentColor)
-                    .disabled(profileList.isEmpty)
+                    .disabled(viewModel.profileList.isEmpty)
                 } else {
                     Button(action: {
-                        editMode = .inactive
+                        viewModel.editMode = .inactive
                     }) {
                         Image(systemName: "checkmark.square.fill")
                     }
@@ -156,126 +146,27 @@ public struct ProfileView: View {
         }
         #endif
         #if os(iOS) || os(tvOS)
-        .environment(\.editMode, $editMode)
+        .environment(\.editMode, $viewModel.editMode)
         #endif
     }
 
-    private func createImportProfileDialog(_ profile: LibboxProfileContent) {
-        alert = Alert(
-            title: Text("Import Profile"),
-            message: Text("Are you sure to import profile \(profile.name)?"),
-            primaryButton: .default(Text("Import")) {
-                Task {
-                    do {
-                        try await profile.importProfile()
-                    } catch {
-                        alert = Alert(error)
-                        return
-                    }
-                    await doReload()
-                }
-            },
-            secondaryButton: .cancel()
-        )
-    }
-
-    private func createImportRemoteProfileDialog(_ newValue: LibboxImportRemoteProfile) {
-        importRemoteProfileRequest = .init(name: newValue.name, url: newValue.url)
-        alert = Alert(
-            title: Text("Import Remote Profile"),
-            message: Text("Are you sure to import remote profile \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
-            primaryButton: .default(Text("Import")) {
-                importRemoteProfilePresented = true
-            },
-            secondaryButton: .cancel()
-        )
-    }
-
-    private func doReload() async {
-        defer {
-            isLoading = false
-        }
-        if ApplicationLibrary.inPreview {
-            profileList = [
-                ProfilePreview(Profile(id: 0, name: "profile local", type: .local, path: "")),
-                ProfilePreview(Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0))),
-            ]
-        } else {
-            do {
-                profileList = try await ProfileManager.list().map { ProfilePreview($0) }
-            } catch {
-                alert = Alert(error)
-                return
-            }
-        }
-        environments.emptyProfiles = profileList.isEmpty
-    }
-
-    private func updateProfile(_ profile: Profile) async {
-        await updateProfileBackground(profile)
-        isUpdating = false
-    }
-
-    private nonisolated func updateProfileBackground(_ profile: Profile) async {
-        do {
-            _ = try await profile.updateRemoteProfile()
-        } catch {
-            await MainActor.run {
-                alert = Alert(error)
-            }
-        }
-    }
-
-    private func deleteProfile(_ profile: Profile) async {
-        do {
-            _ = try await ProfileManager.delete(profile)
-        } catch {
-            alert = Alert(error)
-            return
-        }
-        environments.profileUpdate.send()
-    }
-
     private func moveProfile(from source: IndexSet, to destination: Int) {
-        profileList.move(fromOffsets: source, toOffset: destination)
-        for (index, profile) in profileList.enumerated() {
-            profileList[index].order = UInt32(index)
-            profile.origin.order = UInt32(index)
-        }
-        Task {
-            do {
-                try await ProfileManager.update(profileList.map(\.origin))
-            } catch {
-                alert = Alert(error)
-            }
-            environments.profileUpdate.send()
-        }
+        viewModel.moveProfile(from: source, to: destination)
     }
 
     private func deleteProfile(where profileIndex: IndexSet) {
-        let profileToDelete = profileIndex.map { index in
-            profileList[index].origin
-        }
-        profileList.remove(atOffsets: profileIndex)
-        environments.emptyProfiles = profileList.isEmpty
-        Task {
-            do {
-                _ = try await ProfileManager.delete(profileToDelete)
-            } catch {
-                alert = Alert(error)
-            }
-            environments.profileUpdate.send()
-        }
+        viewModel.deleteProfile(where: profileIndex)
     }
 
     @MainActor
     public struct ProfileItem: View {
-        private let parent: ProfileView
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @ObservedObject private var viewModel: ProfileViewModel
         @State private var profile: ProfilePreview
         @State private var shareLinkPresented = false
 
-        public init(_ parent: ProfileView, _ profile: ProfilePreview) {
-            self.parent = parent
+        public init(_ viewModel: ProfileViewModel, _ profile: ProfilePreview) {
+            self.viewModel = viewModel
             _profile = State(initialValue: profile)
         }
 
@@ -303,7 +194,7 @@ public struct ProfileView: View {
                         shareLinkView.padding()
                     }
                     .contextMenu {
-                        ProfileShareButton(parent.$alert, profile.origin) {
+                        ProfileShareButton($viewModel.alert, profile.origin) {
                             Label("Share", systemImage: "square.and.arrow.up.fill")
                         }
 
@@ -314,9 +205,9 @@ public struct ProfileView: View {
                                 Label("Share URL as QR Code", systemImage: "qrcode")
                             }
                             Button {
-                                parent.isUpdating = true
+                                viewModel.isUpdating = true
                                 Task {
-                                    await parent.updateProfile(profile.origin)
+                                    await viewModel.updateProfile(profile.origin)
                                     profile = ProfilePreview(profile.origin)
                                 }
                             } label: {
@@ -325,7 +216,7 @@ public struct ProfileView: View {
                         }
                         Button(role: .destructive) {
                             Task {
-                                await parent.deleteProfile(profile.origin)
+                                await viewModel.deleteProfile(profile.origin)
                             }
                         } label: {
                             Label("Delete", systemImage: "trash.fill")
@@ -346,9 +237,9 @@ public struct ProfileView: View {
                             HStack {
                                 if profile.type == .remote {
                                     Button {
-                                        parent.isUpdating = true
+                                        viewModel.isUpdating = true
                                         Task {
-                                            await parent.updateProfile(profile.origin)
+                                            await viewModel.updateProfile(profile.origin)
                                             profile = ProfilePreview(profile.origin)
                                         }
                                     } label: {
@@ -366,13 +257,13 @@ public struct ProfileView: View {
                                         shareLinkView
                                     }
                                 }
-                                ProfileShareButton(parent.$alert, profile.origin) {
+                                ProfileShareButton($viewModel.alert, profile.origin) {
                                     Image(systemName: "square.and.arrow.up.fill")
                                 }
                                 .padding(.leading, 4)
                                 Button {
                                     Task {
-                                        await parent.deleteProfile(profile.origin)
+                                        await viewModel.deleteProfile(profile.origin)
                                     }
                                 } label: {
                                     Image(systemName: "trash.fill")

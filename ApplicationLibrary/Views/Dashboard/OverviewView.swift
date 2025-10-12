@@ -12,14 +12,13 @@ public struct OverviewView: View {
     @Binding private var selectedProfileID: Int64
     @Binding private var systemProxyAvailable: Bool
     @Binding private var systemProxyEnabled: Bool
-    @State private var alert: Alert?
-    @State private var reasserting = false
+    @StateObject private var viewModel = OverviewViewModel()
 
     private var selectedProfileIDLocal: Binding<Int64> {
         $selectedProfileID.withSetter { newValue in
-            reasserting = true
+            viewModel.reasserting = true
             Task { [self] in
-                await switchProfile(newValue)
+                await viewModel.switchProfile(newValue, profile: profile, environments: environments)
             }
         }
     }
@@ -47,7 +46,7 @@ public struct OverviewView: View {
                             Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
                                 .onChangeCompat(of: systemProxyEnabled) { newValue in
                                     Task {
-                                        await setSystemProxyEnabled(newValue)
+                                        await viewModel.setSystemProxyEnabled(newValue, profile: profile)
                                     }
                                 }
                         }
@@ -64,7 +63,7 @@ public struct OverviewView: View {
                             Toggle("HTTP Proxy", isOn: $systemProxyEnabled)
                                 .onChangeCompat(of: systemProxyEnabled) { newValue in
                                     Task {
-                                        await setSystemProxyEnabled(newValue)
+                                        await viewModel.setSystemProxyEnabled(newValue, profile: profile)
                                     }
                                 }
                         }
@@ -80,55 +79,7 @@ public struct OverviewView: View {
                 }
             }
         }
-        .alertBinding($alert)
-        .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || reasserting))
-    }
-
-    private func switchProfile(_ newProfileID: Int64) async {
-        await SharedPreferences.selectedProfileID.set(newProfileID)
-        environments.selectedProfileUpdate.send()
-        if profile.status.isConnected {
-            do {
-                try await serviceReload()
-            } catch {
-                alert = Alert(error)
-            }
-        }
-        reasserting = false
-    }
-
-    private nonisolated func serviceReload() async throws {
-        try LibboxNewStandaloneCommandClient()!.serviceReload()
-    }
-
-    private nonisolated func setSystemProxyEnabled(_ isEnabled: Bool) async {
-        do {
-            await SharedPreferences.systemProxyEnabled.set(isEnabled)
-            if isEnabled {
-                try LibboxNewStandaloneCommandClient()!.setSystemProxyEnabled(isEnabled)
-            } else {
-                // Apple BUG: HTTP Proxy cannot be disabled via setTunnelNetworkSettings, so we can only restart the Network Extension
-                await MainActor.run {
-                    reasserting = true
-                }
-                try await profile.stop()
-                var waitSeconds = 0
-                while await profile.status != .disconnected {
-                    try await Task.sleep(nanoseconds: NSEC_PER_SEC)
-                    waitSeconds += 1
-                    if waitSeconds >= 5 {
-                        throw NSError(domain: "Restart service timeout", code: 0)
-                    }
-                }
-                try await profile.start()
-                await MainActor.run {
-                    reasserting = false
-                }
-            }
-        } catch {
-            await MainActor.run {
-                alert = Alert(error)
-            }
-        }
+        .alertBinding($viewModel.alert)
+        .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || viewModel.reasserting))
     }
 }

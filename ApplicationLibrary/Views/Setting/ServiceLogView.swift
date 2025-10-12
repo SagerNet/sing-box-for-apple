@@ -5,10 +5,7 @@ import SwiftUI
 @MainActor
 public struct ServiceLogView: View {
     @Environment(\.dismiss) private var dismiss
-
-    @State private var isLoading = true
-    @State private var content = ""
-    @State private var alert: Alert?
+    @StateObject private var viewModel = ServiceLogViewModel()
 
     private let logFont = Font.system(.caption, design: .monospaced)
 
@@ -16,18 +13,18 @@ public struct ServiceLogView: View {
 
     public var body: some View {
         viewBuilder {
-            if isLoading {
+            if viewModel.isLoading {
                 ProgressView().onAppear {
                     Task {
-                        await loadContent()
+                        await viewModel.loadContent()
                     }
                 }
             } else {
-                if content.isEmpty {
+                if viewModel.isEmpty {
                     Text("Empty content")
                 } else {
                     ScrollView {
-                        Text(content)
+                        Text(viewModel.content)
                             .font(logFont)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
                     }
@@ -36,17 +33,17 @@ public struct ServiceLogView: View {
             }
         }
         .toolbar {
-            if !content.isEmpty {
+            if !viewModel.isEmpty {
                 #if !os(tvOS)
-                    ShareButtonCompat($alert) {
+                    ShareButtonCompat($viewModel.alert) {
                         Label("Export", systemImage: "square.and.arrow.up.fill")
                     } itemURL: {
-                        try content.generateShareFile(name: "service.log")
+                        try viewModel.generateShareFile()
                     }
                 #endif
                 Button(role: .destructive) {
                     Task {
-                        await deleteContent()
+                        await viewModel.deleteContent(dismiss: dismiss)
                     }
                 } label: {
                     #if !os(tvOS)
@@ -58,56 +55,10 @@ public struct ServiceLogView: View {
                 }
             }
         }
-        .alertBinding($alert)
+        .alertBinding($viewModel.alert)
         .navigationTitle("Service Log")
         #if os(tvOS)
             .focusable()
         #endif
-    }
-
-    private nonisolated func loadContent() async {
-        var content = ""
-        do {
-            content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log"))
-        } catch {}
-        if content.isEmpty {
-            do {
-                content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
-            } catch {}
-        }
-        #if DEBUG
-            if content.isEmpty {
-                content = "Empty content"
-            }
-        #endif
-        if !content.isEmpty {
-            var systemInfo = utsname()
-            uname(&systemInfo)
-            let machineMirror = Mirror(reflecting: systemInfo.machine)
-            let machineName = machineMirror.children.reduce("") { identifier, element in
-                guard let value = element.value as? Int8, value != 0 else { return identifier }
-                return identifier + String(UnicodeScalar(UInt8(value)))
-            }
-            var deviceInfo = String("Machine: ") + machineName + "\n"
-            #if os(iOS)
-                await deviceInfo += String("System: ") + (UIDevice.current.systemName) + " " + (UIDevice.current.systemVersion) + "\n"
-            #elseif os(macOS)
-                deviceInfo += String("System: ") + "macOS " + ProcessInfo().operatingSystemVersionString + "\n"
-            #endif
-            content = deviceInfo + "\n" + content
-        }
-        await MainActor.run { [content] in
-            self.content = content
-            isLoading = false
-        }
-    }
-
-    private nonisolated func deleteContent() async {
-        try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log"))
-        try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
-        await MainActor.run {
-            dismiss()
-            isLoading = true
-        }
     }
 }
