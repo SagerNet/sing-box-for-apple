@@ -19,6 +19,12 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
         options.logMaxLines = 3000
+
+        #if os(tvOS)
+            options.commandServerListenPort = await SharedPreferences.commandServerPort.get()
+            options.commandServerSecret = await SharedPreferences.commandServerSecret.get()
+        #endif
+
         var setupError: NSError?
         LibboxSetup(options, &setupError)
         if let setupError {
@@ -59,16 +65,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let commandServer {
             commandServer.writeMessage(2, message: message)
         }
-    }
-
-    public func writeFatalError(_ message: String) {
-        #if DEBUG
-            NSLog(message)
-        #endif
-        if let commandServer {
-            commandServer.setError(message)
-        }
-        cancelTunnelWithError(nil)
     }
 
     private func startService() async throws {

@@ -58,6 +58,11 @@ public enum SharedPreferences {
 
     public static let systemProxyEnabled = Preference<Bool>("system_proxy_enabled", defaultValue: true)
 
+    #if os(tvOS)
+        public static let commandServerPort = Preference<Int32>("tv_command_server_port", defaultValue: 0)
+        public static let commandServerSecret = Preference<String>("tv_command_server_secret", defaultValue: "")
+    #endif
+
     // Profile Override
 
     public static let excludeDefaultRoute = Preference<Bool>("exclude_default_route", defaultValue: false)
