@@ -120,5 +120,7 @@
 			</dict>
 		</dict>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>As a universal proxy platform, sing-box configures routing according to your configuration.</string>
 </dict>
 </plist>

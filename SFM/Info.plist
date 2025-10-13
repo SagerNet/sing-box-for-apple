@@ -113,5 +113,7 @@
 	<string>sing-box uses the Location permission to provide users with routing based on WIFI SSID and BSSID rules, without reading your location.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>sing-box uses the Location permission to provide users with routing based on WIFI SSID and BSSID rules, without reading your location.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>As a universal proxy platform, sing-box configures routing according to your configuration.</string>
 </dict>
 </plist>
