@@ -1,5 +1,5 @@
-import Library
 import SwiftUI
+import Library
 
 public struct LogView: View {
     @Environment(\.selection) private var selection
@@ -27,14 +27,13 @@ public struct LogView: View {
                     "sing-box started (1.666s)",
                 ]
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(logList.enumerated()), id: \.offset) { it in
-                            Text(ANSIColors.parseAnsiString(it.element))
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        ForEach(logList.indices, id: \.self) { index in
+                            Text(ANSIColors.parseAnsiString(logList[index]))
                                 .font(logFont)
                             #if os(tvOS)
                                 .focusable()
                             #endif
-                            Spacer(minLength: 8)
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -57,20 +56,13 @@ public struct LogView: View {
             } else {
                 ScrollViewReader { reader in
                     ScrollView {
-                        LazyVGrid(columns: [GridItem(.flexible())], alignment: .leading, spacing: 0) {
-                            ForEach(Array(commandClient.logList.enumerated()), id: \.offset) { it in
-                                Text(ANSIColors.parseAnsiString(it.element))
+                        LazyVStack(alignment: .leading, spacing: 8) {
+                            ForEach(commandClient.logList.indices, id: \.self) { index in
+                                Text(ANSIColors.parseAnsiString(commandClient.logList[index]))
                                     .font(logFont)
                                 #if os(tvOS)
                                     .focusable()
                                 #endif
-                                Spacer(minLength: 8)
-                            }
-
-                            .onChangeCompat(of: commandClient.logList.count) { newCount in
-                                withAnimation {
-                                    reader.scrollTo(newCount - 1)
-                                }
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -81,7 +73,17 @@ public struct LogView: View {
                     .focusSection()
                     #endif
                     .onAppear {
-                        reader.scrollTo(commandClient.logList.count - 1)
+                        if let lastIndex = commandClient.logList.indices.last {
+                            reader.scrollTo(lastIndex, anchor: .bottom)
+                        }
+                    }
+                    .onChangeCompat(of: commandClient.logList.count) { _ in
+                        guard let lastIndex = commandClient.logList.indices.last else {
+                            return
+                        }
+                        withAnimation {
+                            reader.scrollTo(lastIndex, anchor: .bottom)
+                        }
                     }
                 }
             }

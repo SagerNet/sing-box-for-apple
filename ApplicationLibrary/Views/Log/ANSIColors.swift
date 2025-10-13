@@ -3,6 +3,11 @@ import SwiftUI
 
 public enum ANSIColors {
     private static let ansiRegex = try! NSRegularExpression(pattern: "\u{001B}\\[[;\\d]*m")
+    private static let cache: NSCache<NSString, CachedAttributedString> = {
+        let cache = NSCache<NSString, CachedAttributedString>()
+        cache.countLimit = 3000
+        return cache
+    }()
 
     private static let logRed = Color(red: 1.0, green: 0.13, blue: 0.35)
     private static let logGreen = Color(red: 0.18, green: 0.8, blue: 0.44)
@@ -11,13 +16,22 @@ public enum ANSIColors {
     private static let logPurple = Color(red: 0.61, green: 0.35, blue: 0.71)
     private static let logBlueLight = Color(red: 0.36, green: 0.68, blue: 0.89)
     private static let logWhite = Color(red: 0.93, green: 0.94, blue: 0.95)
+    
+    public static func clearCache() {
+        cache.removeAllObjects()
+    }
 
     public static func parseAnsiString(_ text: String) -> AttributedString {
         let nsString = text as NSString
+        if let cached = cache.object(forKey: nsString) {
+            return cached.value
+        }
         let matches = ansiRegex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
 
         if matches.isEmpty {
-            return AttributedString(text)
+            let plain = AttributedString(text)
+            cache.setObject(CachedAttributedString(plain), forKey: nsString)
+            return plain
         }
 
         var cleanText = text
@@ -60,6 +74,7 @@ public enum ANSIColors {
             attributedString[startIndex...].mergeAttributes(existingStyle)
         }
 
+        cache.setObject(CachedAttributedString(attributedString), forKey: nsString)
         return attributedString
     }
 
@@ -123,5 +138,13 @@ public enum ANSIColors {
         }
 
         return hasAttribute ? container : nil
+    }
+}
+
+private final class CachedAttributedString: NSObject {
+    let value: AttributedString
+
+    init(_ value: AttributedString) {
+        self.value = value
     }
 }
