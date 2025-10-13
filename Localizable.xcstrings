@@ -28,6 +28,16 @@
     "%lld" : {
       "shouldTranslate" : false
     },
+    "%lld Profiles" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个配置"
+          }
+        }
+      }
+    },
     "↑ %@" : {
       "shouldTranslate" : false
     },
@@ -266,6 +276,16 @@
         }
       }
     },
+    "Connecting..." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接中..."
+          }
+        }
+      }
+    },
     "Connection" : {
       "localizations" : {
         "zh-Hans" : {
@@ -377,7 +397,15 @@
       }
     },
     "Default" : {
-
+      "comment" : "Log level filter default option",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认"
+          }
+        }
+      }
     },
     "Delete" : {
       "localizations" : {
@@ -404,7 +432,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mub"
+            "value" : "目标地址"
           }
         }
       }
@@ -936,7 +964,14 @@
       }
     },
     "Log Level" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日志级别"
+          }
+        }
+      }
     },
     "Logs" : {
       "localizations" : {
@@ -1298,6 +1333,16 @@
         }
       }
     },
+    "Select Device" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择设备"
+          }
+        }
+      }
+    },
     "Service Error" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1520,6 +1565,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此应用程序需要放置在 Applications 文件夹下才能运行。"
+          }
+        }
+      }
+    },
+    "To import configurations from your iPhone or iPad, make sure sing-box is the **same version** on both devices and **VPN is disabled**." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要从您的 iPhone 或 iPad 导入配置，请确保两台设备上的 sing-box 是**相同版本**且 **VPN 已禁用**。"
           }
         }
       }
