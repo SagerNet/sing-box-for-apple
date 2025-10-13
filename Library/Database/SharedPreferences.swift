@@ -1,8 +1,6 @@
 import Foundation
 
 public enum SharedPreferences {
-    public static let language = Preference<String>("language", defaultValue: "")
-
     public static let selectedProfileID = Preference<Int64>("selected_profile_id", defaultValue: -1)
 
     #if os(macOS)
@@ -23,20 +21,25 @@ public enum SharedPreferences {
         public static let includeAllNetworks = Preference<Bool>("include_all_networks", defaultValue: false)
         public static let excludeAPNs = Preference<Bool>("exclude_apns", defaultValue: true)
         public static let excludeLocalNetworks = Preference<Bool>("exclude_local_networks", defaultValue: excludeLocalNetworksByDefault)
-        public static let excludeCellularServices = Preference<Bool>("exclude_celluar_services", defaultValue: true)
+        public static let excludeCellularServices = Preference<Bool>("exclude_cellular_services", defaultValue: true)
         public static let enforceRoutes = Preference<Bool>("enforce_routes", defaultValue: false)
 
     #endif
 
     public static func resetPacketTunnel() async {
-        await ignoreMemoryLimit.set(nil)
         #if !os(tvOS)
-            await includeAllNetworks.set(nil)
-            await excludeAPNs.set(nil)
-            await excludeLocalNetworks.set(nil)
-            await excludeCellularServices.set(nil)
-            await enforceRoutes.set(nil)
+            let names = [
+                ignoreMemoryLimit.name,
+                includeAllNetworks.name,
+                excludeAPNs.name,
+                excludeLocalNetworks.name,
+                excludeCellularServices.name,
+                enforceRoutes.name,
+            ]
+        #else
+            let names = [ignoreMemoryLimit.name]
         #endif
+        try? await batchDelete(names)
     }
 
     public static let maxLogLines = Preference<Int>("max_log_lines", defaultValue: 300)
@@ -47,8 +50,7 @@ public enum SharedPreferences {
         public static let startedByUser = Preference<Bool>("started_by_user", defaultValue: false)
 
         public static func resetMacOS() async {
-            await showMenuBarExtra.set(nil)
-            await menuBarExtraInBackground.set(nil)
+            try? await batchDelete([showMenuBarExtra.name, menuBarExtraInBackground.name])
         }
     #endif
 
@@ -59,8 +61,8 @@ public enum SharedPreferences {
     public static let systemProxyEnabled = Preference<Bool>("system_proxy_enabled", defaultValue: true)
 
     #if os(tvOS)
-        public static let commandServerPort = Preference<Int32>("tv_command_server_port", defaultValue: 0)
-        public static let commandServerSecret = Preference<String>("tv_command_server_secret", defaultValue: "")
+        public static let commandServerPort = Preference<Int32>("command_server_port", defaultValue: 0)
+        public static let commandServerSecret = Preference<String>("command_server_secret", defaultValue: "")
     #endif
 
     // Profile Override
@@ -70,9 +72,7 @@ public enum SharedPreferences {
     public static let excludeAPNsRoute = Preference<Bool>("exclude_apple_push_notification_services", defaultValue: false)
 
     public static func resetProfileOverride() async {
-        await excludeDefaultRoute.set(nil)
-        await autoRouteUseSubRangesByDefault.set(nil)
-        await excludeAPNsRoute.set(nil)
+        try? await batchDelete([excludeDefaultRoute.name, autoRouteUseSubRangesByDefault.name, excludeAPNsRoute.name])
     }
 
     // Connections Filter
@@ -85,7 +85,7 @@ public enum SharedPreferences {
     public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)
 
     public static func resetOnDemandRules() async {
-        await alwaysOn.set(nil)
+        try? await batchDelete([alwaysOn.name])
     }
 
     // Core

@@ -30,6 +30,9 @@ enum Database {
                     t.add(column: "autoUpdateInterval", .integer).notNull().defaults(to: 0)
                 }
             }
+            migrator.registerMigration("fix_cellular_typo") { db in
+                try db.execute(sql: "UPDATE preferences SET name = 'exclude_cellular_services' WHERE name = 'exclude_celluar_services'")
+            }
             try migrator.migrate(database)
             return database
         } catch {

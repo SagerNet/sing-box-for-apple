@@ -4,7 +4,7 @@ import GRDB
 
 extension SharedPreferences {
     public class Preference<T: Codable> {
-        private let name: String
+        let name: String
         private let defaultValue: T
 
         init(_ name: String, defaultValue: T) {
@@ -43,7 +43,11 @@ extension SharedPreferences {
         else {
             return nil
         }
-        return try BinaryDecoder().decode(from: item.data)
+        if T.self == String.self {
+            return String(data: item.data, encoding: .utf8) as? T
+        } else {
+            return try BinaryDecoder().decode(from: item.data)
+        }
     }
 
     private nonisolated static func write(_ name: String, _ value: (some Codable)?) async throws {
@@ -52,9 +56,22 @@ extension SharedPreferences {
                 try Item.deleteOne(db, id: name)
             }
         } else {
-            let data = try BinaryEncoder().encode(value)
+            let data: Data
+            if let stringValue = value as? String {
+                data = stringValue.data(using: .utf8)!
+            } else {
+                data = try BinaryEncoder().encode(value)
+            }
             try await Database.sharedWriter.write { db in
-                try Item(name: name, data: data).insert(db)
+                try Item(name: name, data: data).save(db)
+            }
+        }
+    }
+
+    nonisolated static func batchDelete(_ names: [String]) async throws {
+        try await Database.sharedWriter.write { db in
+            for name in names {
+                try Item.deleteOne(db, id: name)
             }
         }
     }
