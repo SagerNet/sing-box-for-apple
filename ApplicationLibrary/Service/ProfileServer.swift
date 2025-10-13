@@ -1,6 +1,10 @@
 import Foundation
 import Libbox
+import Library
 import Network
+#if canImport(UIKit)
+    import UIKit
+#endif
 
 public class ProfileServer {
     private var listener: NWListener
@@ -32,12 +36,21 @@ public class ProfileServer {
 
     class ProfileConnection {
         private let connection: NWSocket
+        #if os(iOS)
+            private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+        #endif
 
         init(_ connection: NWConnection) {
             self.connection = NWSocket(connection)
         }
 
         func process() async {
+            #if os(iOS)
+                beginBackgroundTask()
+                defer {
+                    endBackgroundTask()
+                }
+            #endif
             do {
                 try await writeProfilePreviewList()
             } catch {
@@ -55,6 +68,26 @@ public class ProfileServer {
                 writeError(error.localizedDescription)
             }
         }
+
+        #if os(iOS)
+            private func beginBackgroundTask() {
+                backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+                    NSLog("profile server: background task expiring, cleaning up connection")
+                    self?.connection.cancel()
+                    self?.endBackgroundTask()
+                }
+                if backgroundTaskID != .invalid {
+                    NSLog("profile server: background task started")
+                }
+            }
+
+            private func endBackgroundTask() {
+                guard backgroundTaskID != .invalid else { return }
+                NSLog("profile server: background task ended")
+                UIApplication.shared.endBackgroundTask(backgroundTaskID)
+                backgroundTaskID = .invalid
+            }
+        #endif
 
         private func processMessage(_ data: Data) throws {
             if data.count == 0 {
