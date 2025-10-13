@@ -226,6 +226,17 @@
         }
       }
     },
+    "Clear Logs" : {
+      "comment" : "Clear all logs",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除日志"
+          }
+        }
+      }
+    },
     "Close" : {
       "localizations" : {
         "zh-Hans" : {
@@ -964,6 +975,7 @@
       }
     },
     "Log Level" : {
+      "comment" : "Log level filter",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1200,6 +1212,9 @@
         }
       }
     },
+    "Pause" : {
+      "comment" : "Pause log auto-scroll"
+    },
     "Please grant the permission for **SFMExtension**, then we can continue." : {
       "localizations" : {
         "zh-Hans" : {
@@ -1322,6 +1337,9 @@
           }
         }
       }
+    },
+    "Resume" : {
+      "comment" : "Resume log auto-scroll"
     },
     "Save" : {
       "localizations" : {
