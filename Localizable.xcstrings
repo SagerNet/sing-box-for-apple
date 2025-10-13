@@ -376,6 +376,9 @@
         }
       }
     },
+    "Default" : {
+
+    },
     "Delete" : {
       "localizations" : {
         "zh-Hans" : {
@@ -931,6 +934,9 @@
           }
         }
       }
+    },
+    "Log Level" : {
+
     },
     "Logs" : {
       "localizations" : {

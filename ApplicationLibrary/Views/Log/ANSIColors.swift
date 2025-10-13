@@ -16,7 +16,7 @@ public enum ANSIColors {
     private static let logPurple = Color(red: 0.61, green: 0.35, blue: 0.71)
     private static let logBlueLight = Color(red: 0.36, green: 0.68, blue: 0.89)
     private static let logWhite = Color(red: 0.93, green: 0.94, blue: 0.95)
-    
+
     public static func clearCache() {
         cache.removeAllObjects()
     }

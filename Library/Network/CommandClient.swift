@@ -1,6 +1,39 @@
 import Foundation
 import Libbox
 
+public struct LogEntry: Identifiable {
+    public let id = UUID()
+    public let level: Int
+    public let message: String
+}
+
+public enum LogLevel: Int, CaseIterable, Identifiable {
+    public var id: Self {
+        self
+    }
+
+    case error = 2
+    case warn = 3
+    case info = 4
+    case debug = 5
+    case trace = 6
+
+    public var name: String {
+        switch self {
+        case .error:
+            return "Error"
+        case .warn:
+            return "Warn"
+        case .info:
+            return "Info"
+        case .debug:
+            return "Debug"
+        case .trace:
+            return "Trace"
+        }
+    }
+}
+
 public class CommandClient: ObservableObject {
     public enum ConnectionType {
         case status
@@ -17,8 +50,9 @@ public class CommandClient: ObservableObject {
     @Published public var isConnected: Bool
     @Published public var status: LibboxStatusMessage?
     @Published public var groups: [LibboxOutboundGroup]?
-    @Published public var logList: [String]
-    @Published public var defaultLogLevel: Int32 = 0
+    @Published public var logList: [LogEntry]
+    @Published public var defaultLogLevel = 0
+    @Published public var selectedLogLevel: Int?
     @Published public var clashModeList: [String]
     @Published public var clashMode: String
 
@@ -164,7 +198,7 @@ public class CommandClient: ObservableObject {
 
         func setDefaultLogLevel(_ level: Int32) {
             DispatchQueue.main.async { [self] in
-                commandClient.defaultLogLevel = level
+                commandClient.defaultLogLevel = Int(level)
             }
         }
 
@@ -179,17 +213,13 @@ public class CommandClient: ObservableObject {
                 return
             }
             DispatchQueue.main.async { [self] in
-                var newLogList = commandClient.logList
                 while messageList.hasNext() {
                     let logEntry = messageList.next()!
-                    if logEntry.level <= commandClient.defaultLogLevel {
-                        newLogList.append(logEntry.message)
-                    }
+                    commandClient.logList.append(LogEntry(level: Int(logEntry.level), message: logEntry.message))
                 }
-                if newLogList.count >= commandClient.logMaxLines {
-                    newLogList.removeSubrange(0 ... newLogList.count - commandClient.logMaxLines)
+                if commandClient.logList.count >= commandClient.logMaxLines {
+                    commandClient.logList.removeSubrange(0 ... commandClient.logList.count - commandClient.logMaxLines)
                 }
-                commandClient.logList = newLogList
             }
         }
 
