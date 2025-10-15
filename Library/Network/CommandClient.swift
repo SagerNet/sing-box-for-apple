@@ -5,6 +5,11 @@ public struct LogEntry: Identifiable {
     public let id = UUID()
     public let level: Int
     public let message: String
+
+    public init(level: Int, message: String) {
+        self.level = level
+        self.message = message
+    }
 }
 
 public enum LogLevel: Int, CaseIterable, Identifiable {

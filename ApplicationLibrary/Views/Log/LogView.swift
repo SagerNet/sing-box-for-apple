@@ -25,14 +25,15 @@ private struct LogViewContent: View {
             if ApplicationLibrary.inPreview {
                 previewContent
             } else if viewModel.isEmpty {
-                emptyStateContent
+                emptyContent
             } else if viewModel.filteredLogs.isEmpty {
-                emptyLogsContent
+                emptyContent
             } else {
                 logScrollView
             }
         }
         #if !os(tvOS)
+        .applySearchable(text: $viewModel.searchText, isSearching: $viewModel.isSearching, shouldShow: viewModel.isSearching)
         .toolbar {
             ToolbarItemGroup {
                 if !viewModel.isEmpty {
@@ -52,80 +53,116 @@ private struct LogViewContent: View {
             "inbound/tun[0]: started at utun3",
             "sing-box started (1.666s)",
         ]
-        return ScrollView {
-            LazyVStack(alignment: .leading, spacing: 8) {
-                ForEach(logList.indices, id: \.self) { index in
-                    Text(ANSIColors.parseAnsiString(logList[index]))
-                        .font(logFont)
-                    #if os(tvOS)
-                        .focusable()
-                    #endif
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding()
-        }
         #if os(tvOS)
-        .focusEffectDisabled()
-        .focusSection()
-        #endif
-    }
-
-    private var emptyStateContent: some View {
-        VStack {
-            if viewModel.isConnected {
-                Text("Empty logs")
-            } else {
-                Text("Service not started").onAppear {
-                    environments.connect()
-                }
-            }
-        }
-    }
-
-    private var emptyLogsContent: some View {
-        Text("Empty logs")
-    }
-
-    private var logScrollView: some View {
-        ScrollViewReader { reader in
-            ScrollView {
+            return ScrollView {
                 LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(viewModel.filteredLogs) { logEntry in
-                        Text(ANSIColors.parseAnsiString(logEntry.message))
+                    ForEach(logList.indices, id: \.self) { index in
+                        Text(ANSIColors.parseAnsiString(logList[index]))
                             .font(logFont)
-                        #if os(tvOS)
                             .focusable()
-                        #endif
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding()
             }
-            #if os(tvOS)
             .focusEffectDisabled()
             .focusSection()
-            #endif
-            .onAppear {
-                scrollToLastEntry(reader: reader)
+        #else
+            let previewLogs = logList.enumerated().map { _, message in
+                LogEntry(level: 4, message: message)
             }
-            .onChangeCompat(of: viewModel.filteredLogs.count) { _ in
-                if !viewModel.isPaused {
-                    scrollToLastEntry(reader: reader)
-                }
-            }
-        }
-    }
-
-    private func scrollToLastEntry(reader: ScrollViewProxy) {
-        guard let lastEntry = viewModel.filteredLogs.last else { return }
-        withAnimation {
-            reader.scrollTo(lastEntry.id, anchor: .bottom)
-        }
+            return LogTextView(
+                logs: previewLogs,
+                font: logFont,
+                shouldAutoScroll: false,
+                searchText: ""
+            )
+        #endif
     }
 
     @ViewBuilder
+    private var emptyContent: some View {
+        if viewModel.isConnected {
+            Text("Empty logs")
+        } else {
+            Text("Service not started").onAppear {
+                environments.connect()
+            }
+        }
+    }
+
+    private var logScrollView: some View {
+        #if os(tvOS)
+            ScrollViewReader { reader in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        ForEach(viewModel.filteredLogs) { logEntry in
+                            Text(highlightedText(for: logEntry.message))
+                                .font(logFont)
+                                .focusable()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding()
+                }
+                .focusEffectDisabled()
+                .focusSection()
+                .onAppear {
+                    scrollToLastEntry(reader)
+                }
+                .onChangeCompat(of: viewModel.filteredLogs.count) { _ in
+                    if !viewModel.isPaused {
+                        scrollToLastEntry(reader)
+                    }
+                }
+            }
+        #else
+            LogTextView(
+                logs: viewModel.filteredLogs,
+                font: logFont,
+                shouldAutoScroll: !viewModel.isPaused,
+                searchText: viewModel.searchText
+            )
+        #endif
+    }
+
+    #if os(tvOS)
+        private func highlightedText(for message: String) -> AttributedString {
+            var attributedString = ANSIColors.parseAnsiString(message)
+
+            if !viewModel.searchText.isEmpty {
+                let searchText = viewModel.searchText
+                let messageString = String(attributedString.characters)
+                var searchRange = messageString.startIndex ..< messageString.endIndex
+
+                while let range = messageString.range(of: searchText, range: searchRange) {
+                    if let attributedRange = Range<AttributedString.Index>(range, in: attributedString) {
+                        attributedString[attributedRange].backgroundColor = .yellow
+                    }
+                    searchRange = range.upperBound ..< messageString.endIndex
+                }
+            }
+
+            return attributedString
+        }
+    #endif
+
+    #if os(tvOS)
+        private func scrollToLastEntry(_ reader: ScrollViewProxy) {
+            guard let lastEntry = viewModel.filteredLogs.last else { return }
+            withAnimation {
+                reader.scrollTo(lastEntry.id, anchor: .bottom)
+            }
+        }
+    #endif
+
+    @ViewBuilder
     private var toolbarButtons: some View {
+        if #available(iOS 17.0, macOS 14.0, *) {
+            Button(action: viewModel.toggleSearch) {
+                Label("Search", systemImage: "magnifyingglass")
+            }
+        }
         Button(action: viewModel.togglePause) {
             Label(
                 viewModel.isPaused ? NSLocalizedString("Resume", comment: "Resume log auto-scroll") : NSLocalizedString("Pause", comment: "Pause log auto-scroll"),
@@ -152,3 +189,19 @@ private struct LogViewContent: View {
         }
     }
 }
+
+#if !os(tvOS)
+    private extension View {
+        func applySearchable(text: Binding<String>, isSearching: Binding<Bool>, shouldShow: Bool) -> some View {
+            if #available(iOS 17.0, macOS 14.0, *) {
+                if shouldShow {
+                    return AnyView(searchable(text: text, isPresented: isSearching))
+                } else {
+                    return AnyView(self)
+                }
+            } else {
+                return AnyView(searchable(text: text))
+            }
+        }
+    }
+#endif

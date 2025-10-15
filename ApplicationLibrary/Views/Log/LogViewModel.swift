@@ -6,6 +6,8 @@ import Library
 public class LogViewModel: ObservableObject {
     @Published public var selectedLogLevel: Int?
     @Published public var isPaused = false
+    @Published public var searchText = ""
+    @Published public var isSearching = false
     @Published public var filteredLogs: [LogEntry] = []
 
     private let commandClient: CommandClient
@@ -16,14 +18,21 @@ public class LogViewModel: ObservableObject {
     public init(commandClient: CommandClient) {
         self.commandClient = commandClient
 
-        Publishers.CombineLatest3(
+        let debouncedSearchText = $searchText
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+
+        Publishers.CombineLatest4(
             commandClient.$logList,
             commandClient.$defaultLogLevel,
-            $selectedLogLevel
+            $selectedLogLevel,
+            debouncedSearchText
         )
-        .map { logList, defaultLogLevel, selectedLogLevel in
+        .map { logList, defaultLogLevel, selectedLogLevel, searchText in
             let effectiveLevel = selectedLogLevel ?? defaultLogLevel
-            return logList.filter { $0.level <= effectiveLevel }
+            return logList.filter { log in
+                log.level <= effectiveLevel &&
+                    (searchText.isEmpty || log.message.contains(searchText))
+            }
         }
         .receive(on: DispatchQueue.main)
         .assign(to: &$filteredLogs)
@@ -31,6 +40,13 @@ public class LogViewModel: ObservableObject {
 
     public func togglePause() {
         isPaused.toggle()
+    }
+
+    public func toggleSearch() {
+        isSearching.toggle()
+        if !isSearching {
+            searchText = ""
+        }
     }
 
     public func clearLogs() {

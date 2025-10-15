@@ -1351,6 +1351,9 @@
         }
       }
     },
+    "Search" : {
+
+    },
     "Select Device" : {
       "localizations" : {
         "zh-Hans" : {
