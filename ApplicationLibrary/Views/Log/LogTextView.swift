@@ -103,7 +103,8 @@ class LogCoordinator {
                 ScrollView {
                     LogUITextView(logs: logs, searchText: searchText)
                         .font(font)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        // Explicit height ensures navigation bar large title collapse animation works correctly with UITextView
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .padding()
                         .id("logContent")
                 }
@@ -145,6 +146,8 @@ class LogCoordinator {
             textView.font = Self.monoFont
             textView.textColor = Self.defaultColor
             textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            // Low hugging priority allows expansion to fill available space for proper ScrollView integration
+            textView.setContentHuggingPriority(.defaultLow, for: .vertical)
             return textView
         }
 
