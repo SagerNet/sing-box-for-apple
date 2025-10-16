@@ -1590,6 +1590,26 @@
         }
       }
     },
+    "To Clipboard" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "到剪贴板"
+          }
+        }
+      }
+    },
+    "To File" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "到文件"
+          }
+        }
+      }
+    },
     "To import configurations from your iPhone or iPad, make sure sing-box is the **same version** on both devices and **VPN is disabled**." : {
       "localizations" : {
         "zh-Hans" : {

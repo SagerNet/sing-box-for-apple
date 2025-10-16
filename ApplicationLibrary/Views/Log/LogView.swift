@@ -1,5 +1,13 @@
 import Library
 import SwiftUI
+#if !os(tvOS)
+    import UniformTypeIdentifiers
+    #if canImport(UIKit)
+        import UIKit
+    #elseif canImport(AppKit)
+        import AppKit
+    #endif
+#endif
 
 public struct LogView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
@@ -41,6 +49,14 @@ private struct LogViewContent: View {
                 }
             }
         }
+        .alertBinding($viewModel.alert)
+        .background(
+            LogExportView(
+                showFileExporter: $viewModel.showFileExporter,
+                logFileURL: $viewModel.logFileURL,
+                alert: $viewModel.alert
+            )
+        )
         #endif
     }
 
@@ -180,6 +196,24 @@ private struct LogViewContent: View {
             } label: {
                 Label("Log Level", systemImage: "slider.horizontal.3")
             }
+            #if !os(tvOS)
+                Menu {
+                    Button(action: viewModel.copyToClipboard) {
+                        Label("To Clipboard", systemImage: "doc.on.clipboard")
+                    }
+                    Button(action: {
+                        viewModel.prepareLogFile()
+                        viewModel.showFileExporter = true
+                    }) {
+                        Label("To File", systemImage: "arrow.down.doc")
+                    }
+                    Button(action: viewModel.prepareLogFile) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                } label: {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                }
+            #endif
             Divider()
             Button(role: .destructive, action: viewModel.clearLogs) {
                 Label(NSLocalizedString("Clear Logs", comment: "Clear all logs"), systemImage: "trash")
@@ -204,4 +238,97 @@ private struct LogViewContent: View {
             }
         }
     }
+
+    private struct LogExportView: View {
+        @Binding var showFileExporter: Bool
+        @Binding var logFileURL: URL?
+        @Binding var alert: Alert?
+        @State private var showShareSheet = false
+
+        var body: some View {
+            Color.clear
+                .fileExporter(
+                    isPresented: $showFileExporter,
+                    document: logFileURL.map { LogTextDocument(url: $0) },
+                    contentType: .plainText,
+                    defaultFilename: "logs.txt"
+                ) { result in
+                    if case let .failure(error) = result {
+                        alert = Alert(error)
+                    }
+                }
+                .sheet(isPresented: $showShareSheet) {
+                    if let url = logFileURL {
+                        #if os(iOS)
+                            ShareViewController(activityItems: [url])
+                        #elseif os(macOS)
+                            ShareView(items: [url], alert: $alert)
+                        #endif
+                    }
+                }
+                .onChange(of: logFileURL) { newValue in
+                    if newValue != nil, !showFileExporter {
+                        showShareSheet = true
+                    }
+                }
+                .onChange(of: showShareSheet) { newValue in
+                    if !newValue {
+                        logFileURL = nil
+                    }
+                }
+        }
+    }
+
+    private struct LogTextDocument: FileDocument {
+        static var readableContentTypes: [UTType] { [.plainText] }
+
+        private let url: URL
+
+        init(url: URL) {
+            self.url = url
+        }
+
+        init(configuration: ReadConfiguration) throws {
+            guard let data = configuration.file.regularFileContents else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try data.write(to: tempURL)
+            url = tempURL
+        }
+
+        func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
+            try FileWrapper(url: url)
+        }
+    }
+
+    #if os(iOS)
+        private struct ShareViewController: UIViewControllerRepresentable {
+            let activityItems: [Any]
+
+            func makeUIViewController(context _: Context) -> UIActivityViewController {
+                UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+            }
+
+            func updateUIViewController(_: UIActivityViewController, context _: Context) {}
+        }
+
+    #elseif os(macOS)
+        private struct ShareView: NSViewRepresentable {
+            let items: [Any]
+            @Binding var alert: Alert?
+
+            func makeNSView(context _: Context) -> NSView {
+                let view = NSView()
+                return view
+            }
+
+            func updateNSView(_ nsView: NSView, context _: Context) {
+                let picker = NSSharingServicePicker(items: items)
+                DispatchQueue.main.async {
+                    picker.show(relativeTo: .zero, of: nsView, preferredEdge: .minY)
+                }
+            }
+        }
+    #endif
 #endif
