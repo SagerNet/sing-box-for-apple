@@ -226,6 +226,9 @@
         }
       }
     },
+    "Clash Mode" : {
+
+    },
     "Clear Logs" : {
       "comment" : "Clear all logs",
       "localizations" : {
@@ -376,6 +379,9 @@
           }
         }
       }
+    },
+    "Dashboard Items" : {
+
     },
     "Data Size" : {
       "localizations" : {
@@ -589,6 +595,7 @@
       }
     },
     "Enabled" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1051,6 +1058,9 @@
         }
       }
     },
+    "Mode" : {
+
+    },
     "Name" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1338,6 +1348,9 @@
         }
       }
     },
+    "Reset to Default" : {
+
+    },
     "Resume" : {
       "comment" : "Resume log auto-scroll"
     },
@@ -1566,6 +1579,9 @@
           }
         }
       }
+    },
+    "System HTTP Proxy" : {
+
     },
     "System: " : {
       "shouldTranslate" : false

@@ -92,6 +92,11 @@ public enum SharedPreferences {
 
     public static let disableDeprecatedWarnings = Preference<Bool>("disable_deprecated_warnings", defaultValue: false)
 
+    // Dashboard
+
+    public static let enabledDashboardCards = Preference<[String]>("enabled_dashboard_cards", defaultValue: [])
+    public static let dashboardCardOrder = Preference<[String]>("dashboard_card_order", defaultValue: [])
+
     #if DEBUG
         public static let inDebug = true
     #else

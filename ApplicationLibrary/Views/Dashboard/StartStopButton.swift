@@ -11,29 +11,18 @@ public struct StartStopButton: View {
     public var body: some View {
         viewBuilder {
             if ApplicationLibrary.inPreview {
-                #if os(iOS) || os(tvOS)
-                    Toggle(isOn: .constant(true)) {
-                        Text("Enabled")
-                    }
-                #elseif os(macOS)
-                    Button {} label: {
-                        Label("Stop", systemImage: "stop.fill")
-                    }
-                #endif
-
+                Button {} label: {
+                    Label("Stop", systemImage: "stop.fill")
+                }
+                .labelStyle(.iconOnly)
             } else if let profile = environments.extensionProfile {
                 Button0().environmentObject(profile)
             } else {
-                #if os(iOS) || os(tvOS)
-                    Toggle(isOn: .constant(false)) {
-                        Text("Enabled")
-                    }
-                #elseif os(macOS)
-                    Button {} label: {
-                        Label("Start", systemImage: "play.fill")
-                    }
-                    .disabled(true)
-                #endif
+                Button {} label: {
+                    Label("Start", systemImage: "play.fill")
+                }
+                .labelStyle(.iconOnly)
+                .disabled(true)
             }
         }
         .disabled(environments.emptyProfiles)
@@ -45,31 +34,18 @@ public struct StartStopButton: View {
         @State private var alert: Alert?
 
         var body: some View {
-            viewBuilder {
-                #if os(iOS) || os(tvOS)
-                    Toggle(isOn: Binding(get: {
-                        profile.status.isConnected
-                    }, set: { newValue, _ in
-                        Task {
-                            await switchProfile(newValue)
-                        }
-                    })) {
-                        Text("Enabled")
-                    }
-                #elseif os(macOS)
-                    Button {
-                        Task {
-                            await switchProfile(!profile.status.isConnected)
-                        }
-                    } label: {
-                        if !profile.status.isConnected {
-                            Label("Start", systemImage: "play.fill")
-                        } else {
-                            Label("Stop", systemImage: "stop.fill")
-                        }
-                    }
-                #endif
+            Button {
+                Task {
+                    await switchProfile(!profile.status.isConnected)
+                }
+            } label: {
+                if !profile.status.isConnected {
+                    Label("Start", systemImage: "play.fill")
+                } else {
+                    Label("Stop", systemImage: "stop.fill")
+                }
             }
+            .labelStyle(.iconOnly)
             .disabled(!profile.status.isEnabled)
             .alertBinding($alert)
         }

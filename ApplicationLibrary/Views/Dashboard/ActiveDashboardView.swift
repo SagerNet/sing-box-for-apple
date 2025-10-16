@@ -74,6 +74,14 @@ public struct ActiveDashboardView: View {
                 OverviewView($viewModel.profileList, $viewModel.selectedProfileID, $viewModel.systemProxyAvailable, $viewModel.systemProxyEnabled)
             #endif
         }
+        #if os(iOS) || os(tvOS)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                StartStopButton()
+            }
+        }
+        .modifier(DashboardMenuToolbarModifier(selection: viewModel.selection))
+        #endif
         .onAppear {
             if ApplicationLibrary.inPreview {
                 environments.commandClient.connect()
@@ -107,3 +115,23 @@ public struct ActiveDashboardView: View {
         .alertBinding($viewModel.alert)
     }
 }
+
+#if os(iOS) || os(tvOS)
+    private struct DashboardMenuToolbarModifier: ViewModifier {
+        let selection: DashboardPage
+
+        func body(content: Content) -> some View {
+            if #available(iOS 16.0, tvOS 17.0, *) {
+                content.toolbar {
+                    if selection == .overview {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            DashboardMenu()
+                        }
+                    }
+                }
+            } else {
+                content
+            }
+        }
+    }
+#endif

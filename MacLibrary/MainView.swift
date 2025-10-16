@@ -30,6 +30,11 @@ public struct MainView: View {
             ToolbarItem(placement: .navigation) {
                 StartStopButton()
             }
+            if viewModel.selection == .dashboard {
+                ToolbarItem(placement: .automatic) {
+                    DashboardMenu()
+                }
+            }
         }
         .onChangeCompat(of: controlActiveState) { newValue in
             viewModel.onControlActiveStateChange(newValue, environments: environments)
