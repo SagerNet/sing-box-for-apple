@@ -222,8 +222,9 @@ public class CommandClient: ObservableObject {
                     let logEntry = messageList.next()!
                     commandClient.logList.append(LogEntry(level: Int(logEntry.level), message: logEntry.message))
                 }
-                if commandClient.logList.count >= commandClient.logMaxLines {
-                    commandClient.logList.removeSubrange(0 ... commandClient.logList.count - commandClient.logMaxLines)
+                if commandClient.logList.count > commandClient.logMaxLines {
+                    let removeCount = commandClient.logList.count - commandClient.logMaxLines
+                    commandClient.logList.removeFirst(removeCount)
                 }
             }
         }

@@ -26,28 +26,71 @@ struct LogTextView: View {
 class LogCoordinator {
     var lastLogsCount: Int = 0
     var lastLog: LogEntry?
+    var lastSearchText: String = ""
+    var cachedAttributedString: NSAttributedString?
 
-    func shouldUpdate(logs: [LogEntry]) -> Bool {
+    func shouldUpdate(logs: [LogEntry], searchText: String) -> UpdateStrategy {
         let currentCount = logs.count
-        if currentCount == lastLogsCount, currentCount > 0 {
+        let searchChanged = searchText != lastSearchText
+
+        // Check if nothing changed
+        if currentCount == lastLogsCount, currentCount > 0, !searchChanged {
             if let lastLog = logs.last, let previousLastLog = self.lastLog {
                 if lastLog.id == previousLastLog.id {
-                    return false
+                    return .noUpdate
                 }
             }
         }
+
+        // Determine update strategy
+        let strategy: UpdateStrategy
+        if currentCount == 0 || searchChanged || lastLogsCount > currentCount {
+            // Full rebuild needed
+            strategy = .fullRebuild
+            cachedAttributedString = nil
+        } else if currentCount > lastLogsCount {
+            // Incremental update possible
+            strategy = .incremental(from: lastLogsCount)
+        } else {
+            // Same count but different last log (shouldn't happen normally)
+            strategy = .fullRebuild
+            cachedAttributedString = nil
+        }
+
         lastLogsCount = currentCount
         lastLog = logs.last
-        return true
+        lastSearchText = searchText
+        return strategy
+    }
+
+    enum UpdateStrategy {
+        case noUpdate
+        case fullRebuild
+        case incremental(from: Int)
     }
 }
 
 #if os(iOS) || os(macOS)
-    private func buildAttributedString(logs: [LogEntry], monoFont: PlatformFont, defaultColor: PlatformColor, searchText: String) -> NSAttributedString {
-        let result = NSMutableAttributedString()
+    private func buildAttributedString(logs: [LogEntry], monoFont: PlatformFont, defaultColor: PlatformColor, searchText: String, baseAttributedString: NSAttributedString? = nil, startIndex: Int = 0) -> NSAttributedString {
+        let result: NSMutableAttributedString
         let highlightColor: PlatformColor = .systemYellow
 
-        for (index, log) in logs.enumerated() {
+        if let base = baseAttributedString {
+            result = NSMutableAttributedString(attributedString: base)
+            // Add newline separator if appending to existing content
+            if result.length > 0 {
+                result.append(NSAttributedString(string: "\n", attributes: [
+                    .foregroundColor: defaultColor,
+                    .font: monoFont,
+                ]))
+            }
+        } else {
+            result = NSMutableAttributedString()
+        }
+
+        let logsToProcess = logs[startIndex...]
+
+        for (offset, log) in logsToProcess.enumerated() {
             let attributedString = ANSIColors.parseAnsiString(log.message)
             let nsAttributedString = NSMutableAttributedString(string: String(attributedString.characters))
 
@@ -72,7 +115,8 @@ class LogCoordinator {
 
             result.append(nsAttributedString)
 
-            if index < logs.count - 1 {
+            let isLastLog = (startIndex + offset) == (logs.count - 1)
+            if !isLastLog {
                 result.append(NSAttributedString(string: "\n", attributes: [
                     .foregroundColor: defaultColor,
                     .font: monoFont,
@@ -152,8 +196,20 @@ class LogCoordinator {
         }
 
         func updateUIView(_ textView: UITextView, context: Context) {
-            guard context.coordinator.shouldUpdate(logs: logs) else { return }
-            textView.attributedText = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText)
+            let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText)
+
+            switch updateStrategy {
+            case .noUpdate:
+                return
+            case .fullRebuild:
+                let attributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText)
+                context.coordinator.cachedAttributedString = attributedString
+                textView.attributedText = attributedString
+            case let .incremental(from: startIndex):
+                let attributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: context.coordinator.cachedAttributedString, startIndex: startIndex)
+                context.coordinator.cachedAttributedString = attributedString
+                textView.attributedText = attributedString
+            }
         }
 
         func makeCoordinator() -> LogCoordinator {
@@ -200,13 +256,22 @@ class LogCoordinator {
             guard let textView = scrollView.documentView as? NSTextView else { return }
 
             let lastCount = context.coordinator.lastLogsCount
-            guard context.coordinator.shouldUpdate(logs: logs) else { return }
+            let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText)
 
-            let attributedText = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText)
+            switch updateStrategy {
+            case .noUpdate:
+                return
+            case .fullRebuild:
+                let attributedText = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText)
+                context.coordinator.cachedAttributedString = attributedText
+                textView.textStorage?.setAttributedString(attributedText)
+            case let .incremental(from: startIndex):
+                let attributedText = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: context.coordinator.cachedAttributedString, startIndex: startIndex)
+                context.coordinator.cachedAttributedString = attributedText
+                textView.textStorage?.setAttributedString(attributedText)
+            }
+
             let shouldScroll = shouldAutoScroll && logs.count != lastCount
-
-            textView.textStorage?.setAttributedString(attributedText)
-
             if shouldScroll {
                 DispatchQueue.main.async {
                     textView.scrollToEndOfDocument(nil)

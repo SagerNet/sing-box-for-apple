@@ -54,7 +54,8 @@ private struct LogViewContent: View {
             LogExportView(
                 showFileExporter: $viewModel.showFileExporter,
                 logFileURL: $viewModel.logFileURL,
-                alert: $viewModel.alert
+                alert: $viewModel.alert,
+                cleanup: viewModel.cleanupLogFile
             )
         )
         #endif
@@ -214,7 +215,6 @@ private struct LogViewContent: View {
                     Label("Save", systemImage: "square.and.arrow.down")
                 }
             #endif
-            Divider()
             Button(role: .destructive, action: viewModel.clearLogs) {
                 Label(NSLocalizedString("Clear Logs", comment: "Clear all logs"), systemImage: "trash")
             }
@@ -244,6 +244,7 @@ private struct LogViewContent: View {
         @Binding var logFileURL: URL?
         @Binding var alert: Alert?
         @State private var showShareSheet = false
+        let cleanup: () -> Void
 
         var body: some View {
             Color.clear
@@ -253,6 +254,8 @@ private struct LogViewContent: View {
                     contentType: .plainText,
                     defaultFilename: "logs.txt"
                 ) { result in
+                    cleanup()
+                    logFileURL = nil
                     if case let .failure(error) = result {
                         alert = Alert(error)
                     }
@@ -273,6 +276,7 @@ private struct LogViewContent: View {
                 }
                 .onChange(of: showShareSheet) { newValue in
                     if !newValue {
+                        cleanup()
                         logFileURL = nil
                     }
                 }
