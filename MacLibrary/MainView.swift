@@ -101,7 +101,7 @@ public struct MainView: View {
     }
 
     private func checkApplicationPath() {
-        let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.last
+        let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.first
         if directoryName != "Applications" {
             alert = Alert(
                 title: Text("Wrong application location"),
