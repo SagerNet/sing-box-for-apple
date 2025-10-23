@@ -11,37 +11,16 @@ public struct StatusCard: View {
         DashboardCardView(title: "Status", isHalfWidth: true) {
             VStack(alignment: .leading, spacing: 8) {
                 if ApplicationLibrary.inPreview {
-                    CardLine(String(localized: "Memory"), "6.4 MB")
-                    CardLine(String(localized: "Goroutines"), "89")
+                    DashboardCardLine(String(localized: "Memory"), "6.4 MB")
+                    DashboardCardLine(String(localized: "Goroutines"), "89")
                 } else if let message = commandClient.status {
-                    CardLine(String(localized: "Memory"), LibboxFormatMemoryBytes(message.memory))
-                    CardLine(String(localized: "Goroutines"), "\(message.goroutines)")
+                    DashboardCardLine(String(localized: "Memory"), LibboxFormatMemoryBytes(message.memory))
+                    DashboardCardLine(String(localized: "Goroutines"), "\(message.goroutines)")
                 } else {
-                    CardLine(String(localized: "Memory"), "...")
-                    CardLine(String(localized: "Goroutines"), "...")
+                    DashboardCardLine(String(localized: "Memory"), "...")
+                    DashboardCardLine(String(localized: "Goroutines"), "...")
                 }
             }
-        }
-    }
-}
-
-private struct CardLine: View {
-    private let name: String
-    private let value: String
-
-    init(_ name: String, _ value: String) {
-        self.name = name
-        self.value = value
-    }
-
-    var body: some View {
-        HStack {
-            Text(name)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            Spacer()
-            Text(value)
-                .font(.subheadline)
         }
     }
 }

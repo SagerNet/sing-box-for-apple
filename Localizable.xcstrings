@@ -227,7 +227,14 @@
       }
     },
     "Clash Mode" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clash 模式"
+          }
+        }
+      }
     },
     "Clear Logs" : {
       "comment" : "Clear all logs",
@@ -381,7 +388,14 @@
       }
     },
     "Dashboard Items" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仪表项"
+          }
+        }
+      }
     },
     "Data Size" : {
       "localizations" : {
@@ -1059,7 +1073,14 @@
       }
     },
     "Mode" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模式"
+          }
+        }
+      }
     },
     "Name" : {
       "localizations" : {
@@ -1161,6 +1182,16 @@
         }
       }
     },
+    "Others" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他"
+          }
+        }
+      }
+    },
     "Outbound" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1223,7 +1254,15 @@
       }
     },
     "Pause" : {
-      "comment" : "Pause log auto-scroll"
+      "comment" : "Pause log auto-scroll",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停"
+          }
+        }
+      }
     },
     "Please grant the permission for **SFMExtension**, then we can continue." : {
       "localizations" : {
@@ -1348,11 +1387,16 @@
         }
       }
     },
-    "Reset to Default" : {
-
-    },
     "Resume" : {
-      "comment" : "Resume log auto-scroll"
+      "comment" : "Resume log auto-scroll",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复"
+          }
+        }
+      }
     },
     "Save" : {
       "localizations" : {
@@ -1365,7 +1409,14 @@
       }
     },
     "Search" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索"
+          }
+        }
+      }
     },
     "Select Device" : {
       "localizations" : {
@@ -1581,7 +1632,14 @@
       }
     },
     "System HTTP Proxy" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统 HTTP 代理"
+          }
+        }
+      }
     },
     "System: " : {
       "shouldTranslate" : false

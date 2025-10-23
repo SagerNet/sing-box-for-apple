@@ -4,91 +4,68 @@ import SwiftUI
 
 @MainActor
 public struct DashboardView: View {
+    @Environment(\.openURL) private var openURL
+    @Environment(\.cardConfigurationVersion) private var cardConfigurationVersion
+    @EnvironmentObject private var environments: ExtensionEnvironments
+    @StateObject private var coordinator = DashboardCoordinator()
+
     #if os(macOS)
         @Environment(\.controlActiveState) private var controlActiveState
-        @StateObject private var viewModel = DashboardViewModel()
     #endif
 
     public init() {}
+
     public var body: some View {
-        viewBuilder {
-            #if os(macOS)
-                if Variant.useSystemExtension {
-                    viewBuilder {
-                        if !viewModel.systemExtensionInstalled {
-                            FormView {
-                                InstallSystemExtensionButton {
-                                    await viewModel.reload()
-                                }
-                            }
-                        } else {
-                            DashboardView0()
-                        }
-                    }.onAppear {
-                        Task {
-                            await viewModel.reload()
-                        }
-                    }
-                } else {
-                    DashboardView0()
-                }
-            #else
-                DashboardView0()
-            #endif
-        }
-        #if os(macOS)
-        .onChangeCompat(of: controlActiveState) { newValue in
-            if newValue != .inactive {
-                if Variant.useSystemExtension {
-                    if !viewModel.isLoading {
-                        Task {
-                            await viewModel.reload()
-                        }
-                    }
-                }
+        content
+            .onAppear {
+                coordinator.setOpenURL { openURL($0) }
+                #if os(macOS)
+                    Task { await coordinator.reload() }
+                #endif
             }
-        }
+        #if os(macOS)
+            .onChangeCompat(of: controlActiveState) { state in
+                guard state != .inactive, Variant.useSystemExtension, !coordinator.isLoading else { return }
+                Task { await coordinator.reload() }
+            }
         #endif
     }
 
-    struct DashboardView0: View {
-        @EnvironmentObject private var environments: ExtensionEnvironments
-
-        var body: some View {
-            if ApplicationLibrary.inPreview {
-                ActiveDashboardView()
-            } else if environments.extensionProfileLoading {
-                ProgressView()
-            } else if let profile = environments.extensionProfile {
-                DashboardView1().environmentObject(profile)
-            } else {
+    @ViewBuilder
+    private var content: some View {
+        #if os(macOS)
+            if Variant.useSystemExtension, !coordinator.systemExtensionInstalled {
                 FormView {
-                    InstallProfileButton {
-                        await environments.reload()
+                    InstallSystemExtensionButton {
+                        await coordinator.reload()
                     }
                 }
+            } else {
+                mainContent
             }
-        }
+        #else
+            mainContent
+        #endif
     }
 
-    struct DashboardView1: View {
-        @Environment(\.openURL) var openURL
-        @EnvironmentObject private var environments: ExtensionEnvironments
-        @EnvironmentObject private var profile: ExtensionProfile
-        @StateObject private var viewModel = DashboardViewModel()
-
-        var body: some View {
-            VStack {
-                ActiveDashboardView()
-            }
-            .alertBinding($viewModel.alert)
-            .onAppear {
-                viewModel.setOpenURL { url in
-                    openURL(url)
+    @ViewBuilder
+    private var mainContent: some View {
+        if ApplicationLibrary.inPreview {
+            ActiveDashboardView(externalCardConfigurationVersion: cardConfigurationVersion)
+        } else if environments.extensionProfileLoading {
+            ProgressView()
+        } else if let profile = environments.extensionProfile {
+            ActiveDashboardView(externalCardConfigurationVersion: cardConfigurationVersion)
+                .environmentObject(profile)
+                .alertBinding($coordinator.alert)
+                .onChangeCompat(of: profile.status) { status in
+                    coordinator.handleStatusChange(status, profile: profile)
                 }
-            }
-            .onChangeCompat(of: profile.status) { newValue in
-                viewModel.handleStatusChange(newValue, profile: profile)
+        } else {
+            FormView {
+                InstallProfileButton {
+                    await environments.reload()
+                }
             }
         }
     }

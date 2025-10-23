@@ -5,82 +5,57 @@ import SwiftUI
 
 @MainActor
 public struct ActiveDashboardView: View {
-    @Environment(\.scenePhase) var scenePhase
-    @Environment(\.selection) private var parentSelection
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
-    @StateObject private var viewModel = ActiveDashboardViewModel()
+    @StateObject private var coordinator = DashboardCoordinator()
+    @State private var cardConfigurationVersion = 0
+    #if os(iOS) || os(tvOS)
+        @State private var showCardManagement = false
+    #endif
 
-    public init() {}
+    private let externalCardConfigurationVersion: Int?
+
+    public init(externalCardConfigurationVersion: Int? = nil) {
+        self.externalCardConfigurationVersion = externalCardConfigurationVersion
+    }
+
     public var body: some View {
-        if viewModel.isLoading {
-            ProgressView().onAppear {
-                viewModel.onEmptyProfilesChange = { isEmpty in
-                    environments.emptyProfiles = isEmpty
+        if coordinator.isLoading {
+            ProgressView()
+                .onAppear {
+                    coordinator.onEmptyProfilesChange = { environments.emptyProfiles = $0 }
+                    Task { await coordinator.reload() }
                 }
-                Task {
-                    await viewModel.reload()
-                }
-            }
         } else {
-            if ApplicationLibrary.inPreview {
-                body1
-            } else {
-                body1
-                    .onAppear {
-                        Task {
-                            await viewModel.reloadSystemProxy()
-                        }
-                    }
-                    .onChangeCompat(of: profile.status) { newStatus in
-                        if newStatus == .connected {
-                            Task {
-                                await viewModel.reloadSystemProxy()
-                            }
-                        }
-                    }
-            }
+            content
+                .onAppear {
+                    guard !ApplicationLibrary.inPreview else { return }
+                    Task { await coordinator.reloadSystemProxy() }
+                }
+                .onChangeCompat(of: profile.status) { status in
+                    guard !ApplicationLibrary.inPreview, status == .connected else { return }
+                    Task { await coordinator.reloadSystemProxy() }
+                }
         }
     }
 
-    private var body1: some View {
+    @ViewBuilder
+    private var content: some View {
         VStack {
             #if os(iOS) || os(tvOS)
                 if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
-                    Picker("Page", selection: $viewModel.selection) {
-                        ForEach(DashboardPage.enabledCases()) { page in
-                            page.label
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    #if os(iOS)
-                        .padding([.leading, .trailing])
-                        .navigationBarTitleDisplayMode(.inline)
-                    #endif
-                    TabView(selection: $viewModel.selection) {
-                        ForEach(DashboardPage.enabledCases()) { page in
-                            page.contentView($viewModel.profileList, $viewModel.selectedProfileID, $viewModel.systemProxyAvailable, $viewModel.systemProxyEnabled)
-                                .tag(page)
-                        }
-                    }
-                    #if os(iOS)
-                    .navigationBarTitleDisplayMode(.inline)
-                    #endif
-                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    pageSelector
+                    pageContent
                 } else {
-                    OverviewView($viewModel.profileList, $viewModel.selectedProfileID, $viewModel.systemProxyAvailable, $viewModel.systemProxyEnabled)
+                    overviewPage
                 }
-            #elseif os(macOS)
-                OverviewView($viewModel.profileList, $viewModel.selectedProfileID, $viewModel.systemProxyAvailable, $viewModel.systemProxyEnabled)
+            #else
+                overviewPage
             #endif
         }
         #if os(iOS) || os(tvOS)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                StartStopButton()
-            }
-        }
-        .modifier(DashboardMenuToolbarModifier(selection: viewModel.selection))
+        .toolbar { toolbar }
         #endif
         .onAppear {
             if ApplicationLibrary.inPreview {
@@ -89,49 +64,108 @@ public struct ActiveDashboardView: View {
                 environments.connect()
             }
         }
-        .onChangeCompat(of: scenePhase) { newPhase in
-            if newPhase == .active {
-                environments.connect()
-            }
+        .onChangeCompat(of: scenePhase) { phase in
+            guard phase == .active else { return }
+            environments.connect()
         }
-        .onChangeCompat(of: profile.status) { newStatus in
-            if newStatus.isConnected {
-                environments.connect()
-            }
+        .onChangeCompat(of: profile.status) { status in
+            guard status.isConnected else { return }
+            environments.connect()
         }
         .onReceive(environments.profileUpdate) { _ in
-            Task {
-                await viewModel.reload()
-            }
+            Task { await coordinator.reload() }
         }
         .onReceive(environments.selectedProfileUpdate) { _ in
             Task {
-                await viewModel.updateSelectedProfile()
+                await coordinator.updateSelectedProfile()
                 if profile.status.isConnected {
-                    await viewModel.reloadSystemProxy()
+                    await coordinator.reloadSystemProxy()
                 }
             }
         }
-        .alertBinding($viewModel.alert)
+        .alertBinding($coordinator.alert)
     }
-}
 
-#if os(iOS) || os(tvOS)
-    private struct DashboardMenuToolbarModifier: ViewModifier {
-        let selection: DashboardPage
+    #if os(iOS) || os(tvOS)
+        @ViewBuilder
+        private var pageSelector: some View {
+            Picker("Page", selection: $coordinator.selection) {
+                ForEach(DashboardPage.enabledCases()) { page in
+                    page.label
+                }
+            }
+            .pickerStyle(.segmented)
+            #if os(iOS)
+                .padding([.leading, .trailing])
+                .navigationBarTitleDisplayMode(.inline)
+            #endif
+        }
 
-        func body(content: Content) -> some View {
-            if #available(iOS 16.0, tvOS 17.0, *) {
-                content.toolbar {
-                    if selection == .overview {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            DashboardMenu()
-                        }
+        @ViewBuilder
+        private var pageContent: some View {
+            TabView(selection: $coordinator.selection) {
+                ForEach(DashboardPage.enabledCases()) { page in
+                    page.contentView(
+                        $coordinator.profileList,
+                        $coordinator.selectedProfileID,
+                        $coordinator.systemProxyAvailable,
+                        $coordinator.systemProxyEnabled,
+                        externalCardConfigurationVersion ?? cardConfigurationVersion
+                    )
+                    .tag(page)
+                }
+            }
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .tabViewStyle(.page(indexDisplayMode: .never))
+        }
+    #endif
+
+    @ViewBuilder
+    private var overviewPage: some View {
+        OverviewView(
+            $coordinator.profileList,
+            $coordinator.selectedProfileID,
+            $coordinator.systemProxyAvailable,
+            $coordinator.systemProxyEnabled,
+            cardConfigurationVersion: externalCardConfigurationVersion ?? cardConfigurationVersion
+        )
+    }
+
+    #if os(iOS) || os(tvOS)
+        @ToolbarContentBuilder
+        private var toolbar: some ToolbarContent {
+            ToolbarItem(placement: .topBarTrailing) {
+                if coordinator.selection == .overview {
+                    if #available(iOS 16.0, tvOS 17.0, *) {
+                        cardManagementButton
                     }
                 }
-            } else {
-                content
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                StartStopButton()
             }
         }
-    }
-#endif
+    #endif
+
+    #if os(iOS) || os(tvOS)
+        @available(iOS 16.0, tvOS 17.0, *)
+        @ViewBuilder
+        private var cardManagementButton: some View {
+            Menu {
+                Button {
+                    showCardManagement = true
+                } label: {
+                    Label("Dashboard Items", systemImage: "square.grid.2x2")
+                }
+            } label: {
+                Label("Others", systemImage: "ellipsis.circle")
+            }
+            .sheet(isPresented: $showCardManagement) {
+                CardManagementSheet(configurationVersion: $cardConfigurationVersion)
+                    .presentationDetents([.medium, .large])
+            }
+        }
+    #endif
+}

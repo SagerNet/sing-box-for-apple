@@ -16,7 +16,7 @@ public struct StartStopButton: View {
                 }
                 .labelStyle(.iconOnly)
             } else if let profile = environments.extensionProfile {
-                Button0().environmentObject(profile)
+                ToggleConnectionButton().environmentObject(profile)
             } else {
                 Button {} label: {
                     Label("Start", systemImage: "play.fill")
@@ -28,7 +28,7 @@ public struct StartStopButton: View {
         .disabled(environments.emptyProfiles)
     }
 
-    private struct Button0: View {
+    private struct ToggleConnectionButton: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var profile: ExtensionProfile
         @State private var alert: Alert?

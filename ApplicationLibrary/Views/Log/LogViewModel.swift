@@ -42,7 +42,7 @@ public class LogViewModel: ObservableObject {
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] logList, defaultLogLevel, selectedLogLevel, searchText in
-            guard let self = self else { return }
+            guard let self else { return }
             let effectiveLevel = selectedLogLevel ?? defaultLogLevel
 
             // Check if we can do incremental filtering

@@ -55,4 +55,17 @@ public extension EnvironmentValues {
             self[importProfileKey.self] = newValue
         }
     }
+
+    private struct cardConfigurationVersionKey: EnvironmentKey {
+        static var defaultValue: Int = 0
+    }
+
+    var cardConfigurationVersion: Int {
+        get {
+            self[cardConfigurationVersionKey.self]
+        }
+        set {
+            self[cardConfigurationVersionKey.self] = newValue
+        }
+    }
 }

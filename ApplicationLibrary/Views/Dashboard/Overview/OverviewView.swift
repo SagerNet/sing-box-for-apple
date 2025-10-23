@@ -5,32 +5,29 @@ import SwiftUI
 
 @MainActor
 public struct OverviewView: View {
-    @Environment(\.selection) private var selection
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
+    @StateObject private var coordinator = OverviewCoordinator()
+    @StateObject private var configuration = DashboardCardConfiguration()
+
     @Binding private var profileList: [ProfilePreview]
     @Binding private var selectedProfileID: Int64
     @Binding private var systemProxyAvailable: Bool
     @Binding private var systemProxyEnabled: Bool
-    @StateObject private var viewModel = OverviewViewModel()
+    private let cardConfigurationVersion: Int
 
-    @State private var enabledCards: [DashboardCard] = []
-    @State private var cardOrder: [DashboardCard] = []
-
-    private var selectedProfileIDLocal: Binding<Int64> {
-        $selectedProfileID.withSetter { newValue in
-            viewModel.reasserting = true
-            Task { [self] in
-                await viewModel.switchProfile(newValue, profile: profile, environments: environments)
-            }
-        }
-    }
-
-    public init(_ profileList: Binding<[ProfilePreview]>, _ selectedProfileID: Binding<Int64>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>) {
+    public init(
+        _ profileList: Binding<[ProfilePreview]>,
+        _ selectedProfileID: Binding<Int64>,
+        _ systemProxyAvailable: Binding<Bool>,
+        _ systemProxyEnabled: Binding<Bool>,
+        cardConfigurationVersion: Int
+    ) {
         _profileList = profileList
         _selectedProfileID = selectedProfileID
         _systemProxyAvailable = systemProxyAvailable
         _systemProxyEnabled = systemProxyEnabled
+        self.cardConfigurationVersion = cardConfigurationVersion
     }
 
     public var body: some View {
@@ -49,20 +46,16 @@ public struct OverviewView: View {
                 }
             }
         }
-        .onAppear {
-            Task {
-                enabledCards = await viewModel.loadEnabledCards()
-                cardOrder = await viewModel.loadCardOrder()
-            }
+        .onChangeCompat(of: cardConfigurationVersion) { _ in
+            Task { await configuration.reload() }
         }
-        .alertBinding($viewModel.alert)
-        .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || viewModel.reasserting))
+        .alertBinding($coordinator.alert)
+        .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || coordinator.reasserting))
     }
 
     @ViewBuilder
     private var cardGrid: some View {
-        let orderedCards = viewModel.getOrderedEnabledCards(enabledCards: enabledCards, order: cardOrder)
-        let visibleCards = orderedCards.filter { shouldShowCard($0) }
+        let visibleCards = configuration.orderedEnabledCards.filter(shouldShowCard)
         let groupedCards = groupCards(visibleCards)
 
         VStack(spacing: 16) {
@@ -87,7 +80,6 @@ public struct OverviewView: View {
 
         while index < cards.count {
             let card = cards[index]
-
             if card.isHalfWidth, index + 1 < cards.count, cards[index + 1].isHalfWidth {
                 result.append([card, cards[index + 1]])
                 index += 2
@@ -96,18 +88,15 @@ public struct OverviewView: View {
                 index += 1
             }
         }
-
         return result
     }
 
     private func shouldShowCard(_ card: DashboardCard) -> Bool {
         switch card {
-        case .status, .connections, .traffic, .trafficTotal:
+        case .status, .connections, .traffic, .trafficTotal, .clashMode:
             return ApplicationLibrary.inPreview || profile.status.isConnected
         case .httpProxy:
             return (ApplicationLibrary.inPreview || profile.status.isConnectedStrict) && systemProxyAvailable
-        case .clashMode:
-            return ApplicationLibrary.inPreview || profile.status.isConnected
         case .profile:
             return true
         }
@@ -132,8 +121,8 @@ public struct OverviewView: View {
             HTTPProxyCard(
                 systemProxyAvailable: $systemProxyAvailable,
                 systemProxyEnabled: $systemProxyEnabled
-            ) { newValue in
-                await viewModel.setSystemProxyEnabled(newValue, profile: profile)
+            ) { enabled in
+                await coordinator.setSystemProxyEnabled(enabled, profile: profile)
             }
         case .clashMode:
             ClashModeCard()
@@ -141,7 +130,15 @@ public struct OverviewView: View {
         case .profile:
             ProfileCard(
                 profileList: $profileList,
-                selectedProfileID: selectedProfileIDLocal
+                selectedProfileID: Binding(
+                    get: { selectedProfileID },
+                    set: { newID in
+                        coordinator.reasserting = true
+                        Task {
+                            await coordinator.switchProfile(newID, profile: profile, environments: environments)
+                        }
+                    }
+                )
             )
         }
     }
