@@ -1,7 +1,7 @@
 /.idea/
 /Libbox.xcframework/
 xcuserdata/
-.DS_Store/
+.DS_Store
 /build/
 /sing-box.xcodeproj/project.pbxproj.back
 CLAUDE.md

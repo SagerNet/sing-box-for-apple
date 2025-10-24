@@ -18,7 +18,7 @@ public struct ProfileOverrideView: View {
                 }
             } else {
                 FormView {
-                    FormToggle("Hide VPN Icon", "Append `0.0.0.0/31` to `inet4_route_exclude_address` if not exists.", $excludeDefaultRoute) { newValue in
+                    FormToggle("Hide VPN Icon", "Append `0.0.0.0/31` and `::/127` to `route_exclude_address` if not exists.", $excludeDefaultRoute) { newValue in
                         await SharedPreferences.excludeDefaultRoute.set(newValue)
                     }
 
@@ -29,7 +29,7 @@ public struct ProfileOverrideView: View {
                         await SharedPreferences.autoRouteUseSubRangesByDefault.set(newValue)
                     }
 
-                    FormToggle("Exclude APNs Route", "Append `push.apple.com` to `bypass_domain`, and `17.0.0.0/8` to `inet4_route_exclude_address`.", $excludeAPNsRoute) { newValue in
+                    FormToggle("Exclude APNs Route", "Append `push.apple.com` to `bypass_domain`, and `17.0.0.0/8` to `route_exclude_address`.", $excludeAPNsRoute) { newValue in
                         await SharedPreferences.excludeAPNsRoute.set(newValue)
                     }
 

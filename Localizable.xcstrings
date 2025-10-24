@@ -100,22 +100,22 @@
         }
       }
     },
-    "Append `0.0.0.0/31` to `inet4_route_exclude_address` if not exists." : {
+    "Append `0.0.0.0/31` and `::/127` to `route_exclude_address` if not exists." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将会附加 `0.0.0.0/31` 到 `inet4_route_exclude_address`。"
+            "value" : "将会附加 `0.0.0.0/31` 和 `::/127` 到 `route_exclude_address`。"
           }
         }
       }
     },
-    "Append `push.apple.com` to `bypass_domain`, and `17.0.0.0/8` to `inet4_route_exclude_address`." : {
+    "Append `push.apple.com` to `bypass_domain`, and `17.0.0.0/8` to `route_exclude_address`." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将会附加 `push.apple.com` 到 `bypass_domain`， 附加 `17.0.0.0/8` 到 `inet4_route_exclude_address`。"
+            "value" : "将会附加 `push.apple.com` 到 `bypass_domain`， 附加 `17.0.0.0/8` 到 `route_exclude_address`。"
           }
         }
       }
