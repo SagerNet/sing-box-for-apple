@@ -206,9 +206,25 @@ class LogCoordinator {
                 context.coordinator.cachedAttributedString = attributedString
                 textView.attributedText = attributedString
             case let .incremental(from: startIndex):
-                let attributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: context.coordinator.cachedAttributedString, startIndex: startIndex)
-                context.coordinator.cachedAttributedString = attributedString
-                textView.attributedText = attributedString
+                // Build only the new logs, not the entire attributed string
+                let newLogsAttributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: nil, startIndex: startIndex)
+
+                // Append to existing text storage instead of replacing
+                let textStorage = textView.textStorage
+
+                // Add newline separator before appending if there's existing content
+                if textStorage.length > 0 {
+                    let newline = NSAttributedString(string: "\n", attributes: [
+                        .foregroundColor: Self.defaultColor,
+                        .font: Self.monoFont,
+                    ])
+                    textStorage.append(newline)
+                }
+
+                textStorage.append(newLogsAttributedString)
+
+                // Update cache to full content
+                context.coordinator.cachedAttributedString = NSAttributedString(attributedString: textStorage)
             }
         }
 
@@ -254,6 +270,7 @@ class LogCoordinator {
 
         func updateNSView(_ scrollView: NSScrollView, context: Context) {
             guard let textView = scrollView.documentView as? NSTextView else { return }
+            guard let textStorage = textView.textStorage else { return }
 
             let lastCount = context.coordinator.lastLogsCount
             let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText)
@@ -264,11 +281,25 @@ class LogCoordinator {
             case .fullRebuild:
                 let attributedText = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText)
                 context.coordinator.cachedAttributedString = attributedText
-                textView.textStorage?.setAttributedString(attributedText)
+                textStorage.setAttributedString(attributedText)
             case let .incremental(from: startIndex):
-                let attributedText = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: context.coordinator.cachedAttributedString, startIndex: startIndex)
-                context.coordinator.cachedAttributedString = attributedText
-                textView.textStorage?.setAttributedString(attributedText)
+                // Build only the new logs, not the entire attributed string
+                let newLogsAttributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: nil, startIndex: startIndex)
+
+                // Add newline separator before appending if there's existing content
+                if textStorage.length > 0 {
+                    let newline = NSAttributedString(string: "\n", attributes: [
+                        .foregroundColor: Self.defaultColor,
+                        .font: Self.monoFont,
+                    ])
+                    textStorage.append(newline)
+                }
+
+                // Append to existing text storage instead of replacing
+                textStorage.append(newLogsAttributedString)
+
+                // Update cache to full content
+                context.coordinator.cachedAttributedString = NSAttributedString(attributedString: textStorage)
             }
 
             let shouldScroll = shouldAutoScroll && logs.count != lastCount

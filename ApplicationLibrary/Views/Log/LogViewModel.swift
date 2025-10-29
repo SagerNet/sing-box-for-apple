@@ -25,8 +25,20 @@ public class LogViewModel: ObservableObject {
     private var lastEffectiveLevel: Int?
     private var lastSearchText = ""
 
+    // Performance optimization: limit visible logs to prevent UI lag
+    private static let maxVisibleLogs = 1000
+
     public var isEmpty: Bool { commandClient.logList.isEmpty }
     public var isConnected: Bool { commandClient.isConnected }
+
+    // Only show last N logs for performance, but keep all in filteredLogs for export
+    public var visibleLogs: [LogEntry] {
+        if filteredLogs.count <= Self.maxVisibleLogs {
+            return filteredLogs
+        } else {
+            return Array(filteredLogs.suffix(Self.maxVisibleLogs))
+        }
+    }
 
     public init(commandClient: CommandClient) {
         self.commandClient = commandClient

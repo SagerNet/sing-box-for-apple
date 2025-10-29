@@ -34,7 +34,7 @@ private struct LogViewContent: View {
                 previewContent
             } else if viewModel.isEmpty {
                 emptyContent
-            } else if viewModel.filteredLogs.isEmpty {
+            } else if viewModel.visibleLogs.isEmpty {
                 emptyContent
             } else {
                 logScrollView
@@ -113,7 +113,7 @@ private struct LogViewContent: View {
             ScrollViewReader { reader in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 8) {
-                        ForEach(viewModel.filteredLogs) { logEntry in
+                        ForEach(viewModel.visibleLogs) { logEntry in
                             Text(highlightedText(for: logEntry.message))
                                 .font(logFont)
                                 .focusable()
@@ -127,7 +127,7 @@ private struct LogViewContent: View {
                 .onAppear {
                     scrollToLastEntry(reader)
                 }
-                .onChangeCompat(of: viewModel.filteredLogs.count) { _ in
+                .onChangeCompat(of: viewModel.visibleLogs.count) { _ in
                     if !viewModel.isPaused {
                         scrollToLastEntry(reader)
                     }
@@ -135,7 +135,7 @@ private struct LogViewContent: View {
             }
         #else
             LogTextView(
-                logs: viewModel.filteredLogs,
+                logs: viewModel.visibleLogs,
                 font: logFont,
                 shouldAutoScroll: !viewModel.isPaused,
                 searchText: viewModel.searchText
@@ -166,7 +166,7 @@ private struct LogViewContent: View {
 
     #if os(tvOS)
         private func scrollToLastEntry(_ reader: ScrollViewProxy) {
-            guard let lastEntry = viewModel.filteredLogs.last else { return }
+            guard let lastEntry = viewModel.visibleLogs.last else { return }
             withAnimation {
                 reader.scrollTo(lastEntry.id, anchor: .bottom)
             }

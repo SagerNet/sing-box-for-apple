@@ -66,6 +66,11 @@ public class CommandClient: ObservableObject {
     @Published public var connections: [LibboxConnection]?
     public var rawConnections: LibboxConnections?
 
+    // Batch processing for logs
+    private var pendingLogs: [LogEntry] = []
+    private var logBatchTimer: DispatchWorkItem?
+    private let logBatchInterval: TimeInterval = 0.1 // 100ms batch window
+
     public init(_ connectionTypes: [ConnectionType], logMaxLines: Int = 3000) {
         self.connectionTypes = connectionTypes
         self.logMaxLines = logMaxLines
@@ -99,6 +104,20 @@ public class CommandClient: ObservableObject {
         if let commandClient {
             try? commandClient.disconnect()
             self.commandClient = nil
+        }
+    }
+
+    private func flushPendingLogs() {
+        guard !pendingLogs.isEmpty else { return }
+
+        // Batch append all pending logs
+        logList.append(contentsOf: pendingLogs)
+        pendingLogs.removeAll()
+
+        // Trim to max lines if needed
+        if logList.count > logMaxLines {
+            let removeCount = logList.count - logMaxLines
+            logList.removeFirst(removeCount)
         }
     }
 
@@ -217,15 +236,30 @@ public class CommandClient: ObservableObject {
             guard let messageList else {
                 return
             }
+
+            // Collect new logs
+            var newLogs: [LogEntry] = []
+            while messageList.hasNext() {
+                let logEntry = messageList.next()!
+                newLogs.append(LogEntry(level: Int(logEntry.level), message: logEntry.message))
+            }
+
+            guard !newLogs.isEmpty else { return }
+
             DispatchQueue.main.async { [self] in
-                while messageList.hasNext() {
-                    let logEntry = messageList.next()!
-                    commandClient.logList.append(LogEntry(level: Int(logEntry.level), message: logEntry.message))
+                // Add to pending batch
+                commandClient.pendingLogs.append(contentsOf: newLogs)
+
+                // Cancel existing timer
+                commandClient.logBatchTimer?.cancel()
+
+                // Schedule batch flush
+                let workItem = DispatchWorkItem { [weak commandClient] in
+                    guard let commandClient else { return }
+                    commandClient.flushPendingLogs()
                 }
-                if commandClient.logList.count > commandClient.logMaxLines {
-                    let removeCount = commandClient.logList.count - commandClient.logMaxLines
-                    commandClient.logList.removeFirst(removeCount)
-                }
+                commandClient.logBatchTimer = workItem
+                DispatchQueue.main.asyncAfter(deadline: .now() + commandClient.logBatchInterval, execute: workItem)
             }
         }
 
