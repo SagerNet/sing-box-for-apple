@@ -176,12 +176,12 @@
         }
       }
     },
-    "By default, segment routing is used in `auto_route` instead of global routing.\nIf `*_<route_address/route_exclude_address>` exists in the configuration, this item will not take effect on the corresponding network (commonly used to resolve HomeKit compatibility issues)." : {
+    "By default, segment routing is used in `auto_route` instead of global routing.\nIf `<route_address/route_exclude_address>` exists in the configuration, this item will not take effect on the corresponding network (commonly used to resolve HomeKit compatibility issues)." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在默认情况下，`auto_route` 中使用分段路由，而非全局路由。\n若配置中存在 `*_<route_address/route_exclude_address>`，则此项不会在对应网络上生效（常用于解决 HomeKit 兼容性问题）。"
+            "value" : "在默认情况下，`auto_route` 中使用分段路由，而非全局路由。\n若配置中存在 `<route_address/route_exclude_address>`，则此项不会在对应网络上生效（常用于解决 HomeKit 兼容性问题）。"
           }
         }
       }
