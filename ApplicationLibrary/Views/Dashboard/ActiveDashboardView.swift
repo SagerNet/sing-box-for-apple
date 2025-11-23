@@ -144,7 +144,11 @@ public struct ActiveDashboardView: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                StartStopButton()
+                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                    EmptyView()
+                } else {
+                    StartStopButton()
+                }
             }
         }
     #endif

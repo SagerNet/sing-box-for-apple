@@ -32,7 +32,9 @@ public struct OverviewView: View {
 
     public var body: some View {
         Group {
-            if profileList.isEmpty {
+            if configuration.isLoading {
+                ProgressView()
+            } else if profileList.isEmpty {
                 VStack {
                     Spacer()
                     Text("Empty profiles")

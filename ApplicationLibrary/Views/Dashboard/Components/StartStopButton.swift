@@ -32,6 +32,9 @@ public struct StartStopButton: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var profile: ExtensionProfile
         @State private var alert: Alert?
+        @State private var currentTime = Date()
+
+        private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
         var body: some View {
             Button {
@@ -39,15 +42,49 @@ public struct StartStopButton: View {
                     await switchProfile(!profile.status.isConnected)
                 }
             } label: {
-                if !profile.status.isConnected {
-                    Label("Start", systemImage: "play.fill")
-                } else {
-                    Label("Stop", systemImage: "stop.fill")
+                HStack(spacing: 8) {
+                    if profile.status.isConnectedStrict, let duration = runtimeDuration {
+                        Text(duration)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .trailing).combined(with: .opacity)
+                            ))
+                    }
+
+                    if !profile.status.isConnected {
+                        Label("Start", systemImage: "play.fill")
+                    } else {
+                        Label("Stop", systemImage: "stop.fill")
+                    }
                 }
+                .animation(.spring(response: 0.35, dampingFraction: 0.75), value: profile.status.isConnectedStrict)
             }
             .labelStyle(.iconOnly)
+            .tint(.primary)
             .disabled(!profile.status.isEnabled)
             .alertBinding($alert)
+            .onReceive(timer) { _ in
+                currentTime = Date()
+            }
+        }
+
+        private var runtimeDuration: String? {
+            guard let connectedDate = profile.connectedDate else { return nil }
+            let interval = currentTime.timeIntervalSince(connectedDate)
+            guard interval >= 0 else { return nil }
+
+            let hours = Int(interval) / 3600
+            let minutes = Int(interval) / 60 % 60
+            let seconds = Int(interval) % 60
+
+            if hours > 0 {
+                return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+            } else {
+                return String(format: "%d:%02d", minutes, seconds)
+            }
         }
 
         private nonisolated func switchProfile(_ isEnabled: Bool) async {

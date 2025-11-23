@@ -35,10 +35,14 @@ public struct MainView: View {
             }
             if viewModel.selection == .dashboard {
                 ToolbarItem(placement: .automatic) {
-                    Button {
-                        showCardManagement = true
+                    Menu {
+                        Button {
+                            showCardManagement = true
+                        } label: {
+                            Label("Dashboard Items", systemImage: "square.grid.2x2")
+                        }
                     } label: {
-                        Label("Dashboard Items", systemImage: "square.grid.2x2")
+                        Label("Others", systemImage: "ellipsis.circle")
                     }
                 }
             }
@@ -59,7 +63,7 @@ public struct MainView: View {
         .onOpenURL(perform: viewModel.openURL)
         .sheet(isPresented: $showCardManagement) {
             CardManagementSheet(configurationVersion: $cardConfigurationVersion)
-                .presentationDetents([.medium, .large])
+                .frame(minWidth: 400, minHeight: 400)
         }
     }
 }

@@ -10,11 +10,13 @@ public class ExtensionProfile: ObservableObject {
     private var observer: Any?
 
     @Published public var status: NEVPNStatus
+    @Published public var connectedDate: Date?
 
     public init(_ manager: NEVPNManager) {
         self.manager = manager
         connection = manager.connection
         status = manager.connection.status
+        connectedDate = manager.connection.connectedDate
     }
 
     public func register() {
@@ -28,6 +30,7 @@ public class ExtensionProfile: ObservableObject {
             }
             self.connection = notification.object as! NEVPNConnection
             self.status = self.connection.status
+            self.connectedDate = self.connection.connectedDate
         }
     }
 

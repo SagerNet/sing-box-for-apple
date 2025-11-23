@@ -2,6 +2,7 @@ import Library
 import SwiftUI
 
 @MainActor public struct CardManagementSheet: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var configuration = DashboardCardConfiguration()
     @Binding private var configurationVersion: Int
 
@@ -33,12 +34,17 @@ import SwiftUI
                             }
                         }
                     #else
-                        ToolbarItem(placement: .automatic) {
+                        ToolbarItem(placement: .cancellationAction) {
                             Button("Reset", role: .destructive) {
                                 Task {
                                     await configuration.resetToDefault()
                                     configurationVersion += 1
                                 }
+                            }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") {
+                                dismiss()
                             }
                         }
                     #endif
@@ -78,18 +84,11 @@ private struct CardRow: View {
                 .foregroundColor(.secondary)
                 .imageScale(.small)
 
-            if isProfileCard {
+            Toggle(isOn: isToggleEnabled) {
                 Label(card.title, systemImage: card.systemImage)
-                Spacer()
-                Text("Required")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-            } else {
-                Toggle(isOn: isToggleEnabled) {
-                    Label(card.title, systemImage: card.systemImage)
-                }
-                .opacity(isEnabled ? 1.0 : 0.5)
             }
+            .disabled(isProfileCard)
+            .opacity(isEnabled ? 1.0 : 0.5)
         }
     }
 

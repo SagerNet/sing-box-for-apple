@@ -528,6 +528,9 @@
         }
       }
     },
+    "Done" : {
+
+    },
     "Downlink" : {
       "localizations" : {
         "zh-Hans" : {

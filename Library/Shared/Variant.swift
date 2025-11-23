@@ -17,4 +17,9 @@ public enum Variant {
     #endif
 
     public static var isBeta = LibboxVersion().contains("-")
+
+    #if os(iOS)
+        public static var debugNoIOS26 = false
+        public static var debugNoIOS18 = false
+    #endif
 }
