@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Runestone",
+        "repositoryURL": "https://github.com/simonbs/Runestone",
+        "state": {
+          "branch": null,
+          "revision": "1fad339aab99cf2136ce6bf8c32da3265b2e85e5",
+          "version": "0.5.1"
+        }
+      },
+      {
+        "package": "TreeSitter",
+        "repositoryURL": "https://github.com/tree-sitter/tree-sitter",
+        "state": {
+          "branch": null,
+          "revision": "98be227227af10cc7a269cb3ffb23686c0610b17",
+          "version": "0.20.9"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

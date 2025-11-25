@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		3A017F922A4AB2E4009149FA /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 3A017F912A4AB2E4009149FA /* GRDB */; };
 		3A096F8F2A4ED3DE00D4A2ED /* Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3A096F862A4ED3DE00D4A2ED /* Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3A2E87F22ED5A91100644195 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 3A2E87F12ED5A91100644195 /* Runestone */; };
+		3A2E87FB2ED5ABDA00644195 /* TreeSitterJSON5Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 3A2E87FA2ED5ABDA00644195 /* TreeSitterJSON5Runestone */; };
 		3A3AA7FC2A4EFDAE002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3AA7FF2A4EFDB3002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3DEBEB2A4FFE2D00373BF4 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A3DEBE62A4FFA6000373BF4 /* AppIntents.framework */; };
@@ -534,6 +536,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3A4EAD1B2A4FEB02005435B3 /* Library.framework in Frameworks */,
+				3A2E87FB2ED5ABDA00644195 /* TreeSitterJSON5Runestone in Frameworks */,
+				3A2E87F22ED5A91100644195 /* Runestone in Frameworks */,
 				3A4A020D2B53E3DC004EFB87 /* QRCode in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -754,6 +758,8 @@
 			name = ApplicationLibrary;
 			packageProductDependencies = (
 				3A4A020C2B53E3DC004EFB87 /* QRCode */,
+				3A2E87F12ED5A91100644195 /* Runestone */,
+				3A2E87FA2ED5ABDA00644195 /* TreeSitterJSON5Runestone */,
 			);
 			productName = ApplicationLibrary;
 			productReference = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */;
@@ -1058,6 +1064,8 @@
 				3A017F902A4AB2E4009149FA /* XCRemoteSwiftPackageReference "GRDB" */,
 				3A57DF3A2A4D705000690BC5 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */,
 				3A4A020B2B53E3DC004EFB87 /* XCRemoteSwiftPackageReference "qrcode" */,
+				3A2E87F02ED5A91100644195 /* XCRemoteSwiftPackageReference "Runestone" */,
+				3A2E87F92ED5ABCF00644195 /* XCLocalSwiftPackageReference "Frameworks/TreeSitterJSON5" */,
 			);
 			productRefGroup = 3AEC20C72A45991900A63465 /* Products */;
 			projectDirPath = "";
@@ -2553,6 +2561,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		3A2E87F92ED5ABCF00644195 /* XCLocalSwiftPackageReference "Frameworks/TreeSitterJSON5" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Frameworks/TreeSitterJSON5;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		3A017F902A4AB2E4009149FA /* XCRemoteSwiftPackageReference "GRDB" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -2560,6 +2575,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 6.15.1;
+			};
+		};
+		3A2E87F02ED5A91100644195 /* XCRemoteSwiftPackageReference "Runestone" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simonbs/Runestone";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.1;
 			};
 		};
 		3A4A020B2B53E3DC004EFB87 /* XCRemoteSwiftPackageReference "qrcode" */ = {
@@ -2593,6 +2616,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A017F902A4AB2E4009149FA /* XCRemoteSwiftPackageReference "GRDB" */;
 			productName = GRDB;
+		};
+		3A2E87F12ED5A91100644195 /* Runestone */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A2E87F02ED5A91100644195 /* XCRemoteSwiftPackageReference "Runestone" */;
+			productName = Runestone;
+		};
+		3A2E87FA2ED5ABDA00644195 /* TreeSitterJSON5Runestone */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A2E87F92ED5ABCF00644195 /* XCLocalSwiftPackageReference "Frameworks/TreeSitterJSON5" */;
+			productName = TreeSitterJSON5Runestone;
 		};
 		3A4A020C2B53E3DC004EFB87 /* QRCode */ = {
 			isa = XCSwiftPackageProductDependency;

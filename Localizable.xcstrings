@@ -1232,6 +1232,7 @@
       }
     },
     "Page" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1486,6 +1487,9 @@
           }
         }
       }
+    },
+    "Share QR Code" : {
+
     },
     "Share URL as QR Code" : {
       "localizations" : {
@@ -1752,6 +1756,9 @@
           }
         }
       }
+    },
+    "Update Failed" : {
+
     },
     "Uplink" : {
       "localizations" : {

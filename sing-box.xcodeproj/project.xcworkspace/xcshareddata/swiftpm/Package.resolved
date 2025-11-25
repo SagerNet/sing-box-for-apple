@@ -1,5 +1,5 @@
 {
-  "originHash" : "82fb479ec8c73c3348b93e33a9102fc692bb5a0a0d6f14beb4c5f31445c36e81",
+  "originHash" : "48cbd083120736a1a1ce4b717dcbfdb7900aa5e2aa21991865021fb98adc2093",
   "pins" : [
     {
       "identity" : "binarycodable",
@@ -47,6 +47,15 @@
       }
     },
     {
+      "identity" : "runestone",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/simonbs/Runestone",
+      "state" : {
+        "revision" : "1fad339aab99cf2136ce6bf8c32da3265b2e85e5",
+        "version" : "0.5.1"
+      }
+    },
+    {
       "identity" : "swift-qrcode-generator",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/swift-qrcode-generator",
@@ -62,6 +71,15 @@
       "state" : {
         "revision" : "96361ba7f9dce5184d95aba8ea90d9faa4acabb2",
         "version" : "1.6.1"
+      }
+    },
+    {
+      "identity" : "tree-sitter",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tree-sitter/tree-sitter",
+      "state" : {
+        "revision" : "98be227227af10cc7a269cb3ffb23686c0610b17",
+        "version" : "0.20.9"
       }
     }
   ],

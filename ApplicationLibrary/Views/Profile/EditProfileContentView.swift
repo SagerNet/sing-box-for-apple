@@ -29,26 +29,30 @@
                         }
                     }
                 } else {
-                    viewBuilder {
-                        if readOnly {
-                            TextEditor(text: .constant(viewModel.profileContent))
-                        } else {
-                            TextEditor(text: $viewModel.profileContent)
-                        }
-                    }
-                    .font(Font.system(.caption2, design: .monospaced))
-                    .autocorrectionDisabled(true)
-                    .textContentType(.init(rawValue: ""))
                     #if os(iOS)
-                        .keyboardType(.asciiCapable)
-                        .textInputAutocapitalization(.none)
-                        .background(Color(UIColor.secondarySystemGroupedBackground))
-                    #elseif os(macOS)
-                        .padding()
-                    #endif
+                        RunestoneTextView(
+                            text: readOnly ? .constant(viewModel.profileContent) : $viewModel.profileContent,
+                            isEditable: !readOnly
+                        )
                         .onChangeCompat(of: viewModel.profileContent) {
                             viewModel.markAsChanged()
                         }
+                    #elseif os(macOS)
+                        viewBuilder {
+                            if readOnly {
+                                TextEditor(text: .constant(viewModel.profileContent))
+                            } else {
+                                TextEditor(text: $viewModel.profileContent)
+                            }
+                        }
+                        .font(Font.system(.caption2, design: .monospaced))
+                        .autocorrectionDisabled(true)
+                        .textContentType(.init(rawValue: ""))
+                        .padding()
+                        .onChangeCompat(of: viewModel.profileContent) {
+                            viewModel.markAsChanged()
+                        }
+                    #endif
                 }
             }
             .alertBinding($viewModel.alert)
