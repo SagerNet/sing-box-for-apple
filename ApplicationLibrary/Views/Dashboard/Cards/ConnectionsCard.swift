@@ -8,7 +8,7 @@ public struct ConnectionsCard: View {
     public init() {}
 
     public var body: some View {
-        DashboardCardView(title: "Connections", isHalfWidth: true) {
+        DashboardCardView(title: String(localized: "Connections"), isHalfWidth: true) {
             VStack(alignment: .leading, spacing: 8) {
                 if ApplicationLibrary.inPreview {
                     DashboardCardLine(String(localized: "Inbound"), "34")

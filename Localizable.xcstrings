@@ -529,7 +529,14 @@
       }
     },
     "Done" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
+          }
+        }
+      }
     },
     "Downlink" : {
       "localizations" : {
@@ -607,17 +614,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无配置"
-          }
-        }
-      }
-    },
-    "Enabled" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用"
           }
         }
       }

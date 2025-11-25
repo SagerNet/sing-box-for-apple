@@ -36,37 +36,52 @@ public final class NewProfileViewModel: ObservableObject {
         remotePath = ""
     }
 
-    public func createProfile(environments: ExtensionEnvironments, dismiss: DismissAction) async {
-        defer {
-            isSaving = false
-        }
-        if profileName.isEmpty {
+    public func createProfile(
+        environments: ExtensionEnvironments,
+        dismiss: DismissAction? = nil,
+        onSuccess: ((Profile) async -> Void)? = nil,
+        sendUpdateNotification: Bool = true
+    ) async {
+        defer { isSaving = false }
+
+        guard !profileName.isEmpty else {
             alert = Alert(errorMessage: String(localized: "Missing profile name"))
             return
         }
-        if remotePath.isEmpty {
-            if profileType == .icloud {
-                alert = Alert(errorMessage: String(localized: "Missing path"))
-                return
-            } else if profileType == .remote {
-                alert = Alert(errorMessage: String(localized: "Missing URL"))
-                return
-            }
+
+        if profileType == .icloud, remotePath.isEmpty {
+            alert = Alert(errorMessage: String(localized: "Missing path"))
+            return
         }
+
+        if profileType == .remote, remotePath.isEmpty {
+            alert = Alert(errorMessage: String(localized: "Missing URL"))
+            return
+        }
+
+        let createdProfile: Profile
         do {
-            try await createProfileBackground()
+            createdProfile = try await createProfileBackground()
         } catch {
             alert = Alert(error)
             return
         }
-        environments.profileUpdate.send()
-        dismiss()
+
+        if let onSuccess {
+            await onSuccess(createdProfile)
+        } else {
+            if sendUpdateNotification {
+                environments.profileUpdate.send()
+            }
+            dismiss?()
+        }
+
         #if os(macOS)
             resetFields()
         #endif
     }
 
-    private nonisolated func createProfileBackground() async throws {
+    private nonisolated func createProfileBackground() async throws -> Profile {
         let nextProfileID = try await ProfileManager.nextID()
 
         var savePath = ""
@@ -130,7 +145,9 @@ public final class NewProfileViewModel: ObservableObject {
             remoteURL = remotePath
             lastUpdated = .now
         }
-        try await ProfileManager.create(Profile(
+
+        // Create Profile object - GRDB will set its ID after insertion
+        let profile = Profile(
             name: profileName,
             type: profileType,
             path: savePath,
@@ -138,7 +155,9 @@ public final class NewProfileViewModel: ObservableObject {
             autoUpdate: autoUpdate,
             autoUpdateInterval: autoUpdateInterval,
             lastUpdated: lastUpdated
-        ))
+        )
+        try await ProfileManager.create(profile)
+
         if profileType == .remote {
             #if os(iOS) || os(tvOS)
                 try UIProfileUpdateTask.configure()
@@ -146,5 +165,8 @@ public final class NewProfileViewModel: ObservableObject {
                 try await ProfileUpdateTask.configure()
             #endif
         }
+
+        // Return the profile object which now has its ID set by GRDB
+        return profile
     }
 }

@@ -12,6 +12,9 @@ public struct ActiveDashboardView: View {
     @State private var cardConfigurationVersion = 0
     #if os(iOS) || os(tvOS)
         @State private var showCardManagement = false
+        @State private var showGroups = false
+        @State private var showConnections = false
+        @State private var buttonState = ButtonVisibilityState()
     #endif
 
     private let externalCardConfigurationVersion: Int?
@@ -42,20 +45,15 @@ public struct ActiveDashboardView: View {
 
     @ViewBuilder
     private var content: some View {
-        VStack {
-            #if os(iOS) || os(tvOS)
-                if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
-                    pageSelector
-                    pageContent
-                } else {
-                    overviewPage
-                }
-            #else
-                overviewPage
-            #endif
-        }
+        overviewPage
         #if os(iOS) || os(tvOS)
         .toolbar { toolbar }
+        .sheet(isPresented: $showGroups) {
+            groupsSheetContent
+        }
+        .sheet(isPresented: $showConnections) {
+            connectionsSheetContent
+        }
         #endif
         .onAppear {
             if ApplicationLibrary.inPreview {
@@ -83,44 +81,22 @@ public struct ActiveDashboardView: View {
                 }
             }
         }
+        #if os(iOS) || os(tvOS)
+        .onReceive(environments.commandClient.$groups) { _ in
+            updateButtonVisibility()
+        }
+        .onReceive(environments.commandClient.$connections) { _ in
+            updateButtonVisibility()
+        }
+        .onReceive(profile.$status) { _ in
+            updateButtonVisibility()
+        }
+        .onAppear {
+            updateButtonVisibility()
+        }
+        #endif
         .alertBinding($coordinator.alert)
     }
-
-    #if os(iOS) || os(tvOS)
-        @ViewBuilder
-        private var pageSelector: some View {
-            Picker("Page", selection: $coordinator.selection) {
-                ForEach(DashboardPage.enabledCases()) { page in
-                    page.label
-                }
-            }
-            .pickerStyle(.segmented)
-            #if os(iOS)
-                .padding([.leading, .trailing])
-                .navigationBarTitleDisplayMode(.inline)
-            #endif
-        }
-
-        @ViewBuilder
-        private var pageContent: some View {
-            TabView(selection: $coordinator.selection) {
-                ForEach(DashboardPage.enabledCases()) { page in
-                    page.contentView(
-                        $coordinator.profileList,
-                        $coordinator.selectedProfileID,
-                        $coordinator.systemProxyAvailable,
-                        $coordinator.systemProxyEnabled,
-                        externalCardConfigurationVersion ?? cardConfigurationVersion
-                    )
-                    .tag(page)
-                }
-            }
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .tabViewStyle(.page(indexDisplayMode: .never))
-        }
-    #endif
 
     @ViewBuilder
     private var overviewPage: some View {
@@ -134,26 +110,68 @@ public struct ActiveDashboardView: View {
     }
 
     #if os(iOS) || os(tvOS)
+        private func updateButtonVisibility() {
+            buttonState.update(profile: profile, commandClient: environments.commandClient)
+        }
+
         @ToolbarContentBuilder
         private var toolbar: some ToolbarContent {
-            ToolbarItem(placement: .topBarTrailing) {
-                if coordinator.selection == .overview {
-                    if #available(iOS 16.0, tvOS 17.0, *) {
-                        cardManagementButton
+            ToolbarItem(placement: .topBarLeading) {
+                #if os(iOS)
+                    if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                        EmptyView()
+                    } else {
+                        navigationButtons
                     }
+                #else
+                    navigationButtons
+                #endif
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                if #available(iOS 16.0, tvOS 17.0, *) {
+                    cardManagementButton
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                    EmptyView()
-                } else {
-                    StartStopButton()
-                }
+                #if os(iOS)
+                    if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                        EmptyView()
+                    } else {
+                        HStack(spacing: 12) {
+                            Divider()
+                            StartStopButton()
+                        }
+                    }
+                #else
+                    HStack(spacing: 12) {
+                        Divider()
+                        StartStopButton()
+                    }
+                #endif
             }
+        }
+
+        private var navigationButtons: some View {
+            NavigationButtonsView(
+                showGroupsButton: buttonState.showGroupsButton,
+                showConnectionsButton: buttonState.showConnectionsButton,
+                groupsCount: buttonState.groupsCount,
+                connectionsCount: buttonState.connectionsCount,
+                onGroupsTap: { showGroups = true },
+                onConnectionsTap: { showConnections = true }
+            )
         }
     #endif
 
     #if os(iOS) || os(tvOS)
+        private var groupsSheetContent: some View {
+            GroupsSheetContent()
+        }
+
+        private var connectionsSheetContent: some View {
+            ConnectionsSheetContent()
+        }
+
         @available(iOS 16.0, tvOS 17.0, *)
         @ViewBuilder
         private var cardManagementButton: some View {
@@ -168,7 +186,8 @@ public struct ActiveDashboardView: View {
             }
             .sheet(isPresented: $showCardManagement) {
                 CardManagementSheet(configurationVersion: $cardConfigurationVersion)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
         }
     #endif

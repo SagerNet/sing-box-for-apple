@@ -11,7 +11,7 @@ public struct ClashModeCard: View {
 
     public var body: some View {
         if shouldShowPicker {
-            DashboardCardView(title: "Mode", isHalfWidth: false) {
+            DashboardCardView(title: String(localized: "Mode"), isHalfWidth: false) {
                 Picker("", selection: Binding(get: {
                     clashMode
                 }, set: { newMode in

@@ -2,7 +2,6 @@ import Foundation
 import Libbox
 import Library
 import Network
-import QRCode
 import SwiftUI
 
 @MainActor
@@ -172,17 +171,17 @@ public struct ProfileView: View {
 
         public var body: some View {
             #if os(iOS) || os(macOS)
-                if #available(iOS 16.0, macOS 13.0,*) {
-                    body0.draggable(profile.origin)
+                if #available(iOS 16.0, macOS 13.0, *) {
+                    draggableBody.draggable(profile.origin)
                 } else {
-                    body0
+                    draggableBody
                 }
             #else
-                body0
+                draggableBody
             #endif
         }
 
-        private var body0: some View {
+        private var draggableBody: some View {
             viewBuilder {
                 #if !os(macOS)
                     FormNavigationLink {
@@ -191,7 +190,7 @@ public struct ProfileView: View {
                         Text(profile.name)
                     }
                     .sheet(isPresented: $shareLinkPresented) {
-                        shareLinkView.padding()
+                        QRCodeSheet(profileName: profile.name, remoteURL: profile.remoteURL!)
                     }
                     .contextMenu {
                         ProfileShareButton($viewModel.alert, profile.origin) {
@@ -254,7 +253,7 @@ public struct ProfileView: View {
                                     }
                                     .padding(.leading, 4)
                                     .popover(isPresented: $shareLinkPresented, arrowEdge: .bottom) {
-                                        shareLinkView
+                                        QRCodeContentView(profileName: profile.name, remoteURL: profile.remoteURL!)
                                     }
                                 }
                                 ProfileShareButton($viewModel.alert, profile.origin) {
@@ -278,42 +277,6 @@ public struct ProfileView: View {
                     }
                 #endif
             }
-        }
-
-        private var shareLinkView: some View {
-            #if os(iOS)
-                viewBuilder {
-                    if #available(iOS 16.0, *) {
-                        shareLinkView0
-                            .presentationDetents([.medium])
-                            .presentationDragIndicator(.visible)
-                    } else {
-                        shareLinkView0
-                    }
-                }
-            #elseif os(macOS)
-                shareLinkView0
-                    .frame(minWidth: 300, minHeight: 300)
-            #else
-                shareLinkView0
-            #endif
-        }
-
-        private var foregroundColor: CGColor {
-            #if canImport(UIKit)
-                return UIColor.label.cgColor
-            #elseif canImport(AppKit)
-                return NSColor.labelColor.cgColor
-            #endif
-        }
-
-        private var shareLinkView0: some View {
-            QRCodeViewUI(
-                content: LibboxGenerateRemoteProfileImportLink(profile.name, profile.remoteURL!),
-                errorCorrection: .low,
-                foregroundColor: foregroundColor,
-                backgroundColor: CGColor(gray: 1.0, alpha: 0.0)
-            )
         }
     }
 }

@@ -45,8 +45,8 @@ public class MainViewModel: ObservableObject {
             if error != nil {
                 return
             }
-            if selection != .profiles {
-                selection = .profiles
+            if selection != .dashboard {
+                selection = .dashboard
             }
         } else if url.pathExtension == "bpf" {
             Task {
@@ -66,8 +66,8 @@ public class MainViewModel: ObservableObject {
             alert = Alert(error)
             return
         }
-        if selection != .profiles {
-            selection = .profiles
+        if selection != .dashboard {
+            selection = .dashboard
         }
     }
 

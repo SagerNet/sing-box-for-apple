@@ -8,14 +8,20 @@ public struct NewProfileView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: NewProfileViewModel
+    private var onSuccess: ((Profile) async -> Void)?
 
-    public struct ImportRequest: Codable, Hashable {
+    public struct ImportRequest: Codable, Hashable, Identifiable {
+        public var id: String { url }
         public let name: String
         public let url: String
     }
 
-    public init(_ importRequest: ImportRequest? = nil) {
+    public init(
+        _ importRequest: ImportRequest? = nil,
+        onSuccess: ((Profile) async -> Void)? = nil
+    ) {
         _viewModel = StateObject(wrappedValue: NewProfileViewModel(importRequest: importRequest))
+        self.onSuccess = onSuccess
     }
 
     public var body: some View {
@@ -86,23 +92,55 @@ public struct NewProfileView: View {
                     #endif
                 }
             }
-            Section {
-                if !viewModel.isSaving {
-                    FormButton {
-                        viewModel.isSaving = true
-                        Task {
-                            await viewModel.createProfile(environments: environments, dismiss: dismiss)
+            #if os(iOS) || os(tvOS)
+                Section {
+                    if !viewModel.isSaving {
+                        FormButton {
+                            viewModel.isSaving = true
+                            Task {
+                                await viewModel.createProfile(
+                                    environments: environments,
+                                    dismiss: onSuccess == nil ? dismiss : nil,
+                                    onSuccess: onSuccess
+                                )
+                            }
+                        } label: {
+                            Label("Create", systemImage: "doc.fill.badge.plus")
                         }
-                    } label: {
-                        Label("Create", systemImage: "doc.fill.badge.plus")
+                    } else {
+                        ProgressView()
                     }
-                } else {
-                    ProgressView()
                 }
-            }
+            #endif
         }
         .navigationTitle("New Profile")
-        .alertBinding($viewModel.alert)
+        #if os(macOS)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    if viewModel.isSaving {
+                        ProgressView()
+                    } else {
+                        Button("Create") {
+                            viewModel.isSaving = true
+                            Task {
+                                await viewModel.createProfile(
+                                    environments: environments,
+                                    dismiss: onSuccess == nil ? dismiss : nil,
+                                    onSuccess: onSuccess
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        #endif
+            .disabled(viewModel.isSaving)
+            .alertBinding($viewModel.alert)
         #if os(iOS) || os(macOS)
             .fileImporter(
                 isPresented: $viewModel.pickerPresented,

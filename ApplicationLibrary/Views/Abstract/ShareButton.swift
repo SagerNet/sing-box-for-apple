@@ -58,6 +58,7 @@ public struct ShareButtonCompat<Label>: View where Label: View {
 
     public var body: some View {
         Button(action: shareItem, label: label)
+            .buttonStyle(.plain)
         #if os(macOS)
             .background(SharingServicePicker($sharePresented, $alert, itemURL))
         #endif
@@ -66,7 +67,7 @@ public struct ShareButtonCompat<Label>: View where Label: View {
     private func shareItem() {
         #if os(iOS)
             Task {
-                await shareItem0()
+                await shareItemAsync()
             }
         #elseif os(macOS)
             sharePresented = true
@@ -74,11 +75,11 @@ public struct ShareButtonCompat<Label>: View where Label: View {
     }
 
     #if os(iOS)
-        private nonisolated func shareItem0() async {
+        private nonisolated func shareItemAsync() async {
             do {
                 let shareItem = try await itemURL()
                 await MainActor.run {
-                    shareItem1(shareItem)
+                    presentShareController(shareItem)
                 }
             } catch {
                 await MainActor.run {
@@ -87,10 +88,20 @@ public struct ShareButtonCompat<Label>: View where Label: View {
             }
         }
 
-        private func shareItem1(_ item: URL) {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                windowScene.keyWindow?.rootViewController?.present(UIActivityViewController(activityItems: [item], applicationActivities: nil), animated: true, completion: nil)
+        private func presentShareController(_ item: URL) {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let rootViewController = windowScene.keyWindow?.rootViewController
+            else {
+                return
             }
+            var topViewController = rootViewController
+            while let presented = topViewController.presentedViewController {
+                topViewController = presented
+            }
+            topViewController.present(
+                UIActivityViewController(activityItems: [item], applicationActivities: nil),
+                animated: true
+            )
         }
     #endif
 }

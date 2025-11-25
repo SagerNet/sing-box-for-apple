@@ -8,7 +8,7 @@ public struct TrafficCard: View {
     public init() {}
 
     public var body: some View {
-        DashboardCardView(title: "Traffic", isHalfWidth: true) {
+        DashboardCardView(title: String(localized: "Traffic"), isHalfWidth: true) {
             VStack(alignment: .leading, spacing: 8) {
                 if ApplicationLibrary.inPreview {
                     DashboardCardLine(String(localized: "Uplink"), "38 B/s")

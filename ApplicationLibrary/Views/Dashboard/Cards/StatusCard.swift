@@ -8,7 +8,7 @@ public struct StatusCard: View {
     public init() {}
 
     public var body: some View {
-        DashboardCardView(title: "Status", isHalfWidth: true) {
+        DashboardCardView(title: String(localized: "Status"), isHalfWidth: true) {
             VStack(alignment: .leading, spacing: 8) {
                 if ApplicationLibrary.inPreview {
                     DashboardCardLine(String(localized: "Memory"), "6.4 MB")

@@ -55,46 +55,16 @@ public struct EditProfileView: View {
                     FormTextItem("Last Updated", profile.lastUpdated!.myFormat)
                 }
             }
-            Section("Action") {
-                if profile.type != .remote {
-                    #if os(iOS) || os(macOS)
-                        FormNavigationLink {
-                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                        } label: {
-                            Label("Edit Content", systemImage: "pencil")
-                                .foregroundColor(.accentColor)
-                        }
-                    #endif
-                } else {
-                    #if os(iOS) || os(macOS)
-                        FormNavigationLink {
-                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                        } label: {
-                            Label("View Content", systemImage: "doc.fill")
-                                .foregroundColor(.accentColor)
-                        }
-                    #endif
-                    FormButton {
-                        viewModel.isLoading = true
-                        Task {
-                            await viewModel.updateProfile(profile, environments: environments)
-                        }
-                    } label: {
-                        Label("Update", systemImage: "arrow.clockwise")
-                    }
-                    .foregroundColor(.accentColor)
-                    .disabled(viewModel.isLoading)
-                }
-                FormButton(role: .destructive) {
-                    Task {
-                        await viewModel.deleteProfile(profile, environments: environments, dismiss: dismiss)
-                    }
-                } label: {
-                    Label("Delete", systemImage: "trash.fill")
-                }
-                .foregroundColor(.red)
-            }
+
+            #if os(iOS) || os(tvOS)
+                ProfileActionToolbar(profile: profile, viewModel: viewModel)
+            #endif
         }
+        #if os(macOS)
+        .safeAreaInset(edge: .bottom) {
+            ProfileActionToolbar(profile: profile, viewModel: viewModel)
+        }
+        #endif
         .onChangeCompat(of: profile.name) {
             viewModel.markAsChanged()
         }

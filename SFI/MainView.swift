@@ -12,57 +12,126 @@ struct MainView: View {
     @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
     @State private var alert: Alert?
+    @State private var showGroups = false
+    @State private var showConnections = false
+    @State private var buttonState = ButtonVisibilityState()
 
-    var body: some View {
-        if ApplicationLibrary.inPreview {
-            body1.preferredColorScheme(.dark)
+    private var shouldShowBottomAccessory: Bool {
+        guard !environments.extensionProfileLoading else {
+            return false
+        }
+        guard !environments.emptyProfiles else {
+            return false
+        }
+        guard environments.extensionProfile != nil else {
+            return false
+        }
+        return true
+    }
+
+    @available(iOS 26.0, *)
+    @ViewBuilder
+    private var tabViewContent: some View {
+        if shouldShowBottomAccessory {
+            TabView(selection: $selection) {
+                ForEach(NavigationPage.allCases, id: \.self) { page in
+                    NavigationStackCompat {
+                        page.contentView
+                            .navigationTitle(page.title)
+                    }
+                    .tag(page)
+                    .tabItem { page.label }
+                }
+            }
+            .tabViewBottomAccessory {
+                HStack(spacing: 12) {
+                    if let profile = environments.extensionProfile {
+                        StatusText(profile: profile)
+                    }
+                    Spacer()
+                    NavigationButtonsView(
+                        showGroupsButton: buttonState.showGroupsButton,
+                        showConnectionsButton: buttonState.showConnectionsButton,
+                        groupsCount: buttonState.groupsCount,
+                        connectionsCount: buttonState.connectionsCount,
+                        onGroupsTap: { showGroups = true },
+                        onConnectionsTap: { showConnections = true }
+                    )
+                    Divider()
+                    StartStopButton()
+                }
+                .padding(.horizontal)
+            }
         } else {
-            body1
+            TabView(selection: $selection) {
+                ForEach(NavigationPage.allCases, id: \.self) { page in
+                    NavigationStackCompat {
+                        page.contentView
+                            .navigationTitle(page.title)
+                    }
+                    .tag(page)
+                    .tabItem { page.label }
+                }
+            }
         }
     }
 
-    var body1: some View {
+    var body: some View {
+        if ApplicationLibrary.inPreview {
+            mainBody.preferredColorScheme(.dark)
+        } else {
+            mainBody
+        }
+    }
+
+    private var mainBody: some View {
         viewBuilder {
             if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                TabView(selection: $selection) {
-                    ForEach(NavigationPage.allCases, id: \.self) { page in
-                        NavigationStackCompat {
-                            page.contentView
-                                .navigationTitle(page.title)
-                        }
-                        .tag(page)
-                        .tabItem { page.label }
-                    }
-                }
-                .tabViewBottomAccessory {
-                    HStack(spacing: 12) {
-                        if let profile = environments.extensionProfile {
-                            StatusText(profile: profile)
-                        }
-                        Spacer()
-                        StartStopButton()
-                    }
-                    .padding(.horizontal)
-                }
-                .onAppear {
-                    environments.postReload()
-                }
-                .alertBinding($alert)
-                .onChangeCompat(of: scenePhase) { newValue in
-                    if newValue == .active {
+                tabViewContent
+                    .onAppear {
                         environments.postReload()
+                        updateButtonVisibility()
                     }
-                }
-                .onChangeCompat(of: selection) { newValue in
-                    if newValue == .logs {
-                        environments.connect()
+                    .alertBinding($alert)
+                    .onChangeCompat(of: scenePhase) { newValue in
+                        if newValue == .active {
+                            environments.postReload()
+                        }
                     }
-                }
-                .environment(\.selection, $selection)
-                .environment(\.importProfile, $importProfile)
-                .environment(\.importRemoteProfile, $importRemoteProfile)
-                .handlesExternalEvents(preferring: [], allowing: ["*"])
-                .onOpenURL(perform: openURL)
+                    .onChangeCompat(of: selection) { newValue in
+                        if newValue == .logs {
+                            environments.connect()
+                        }
+                    }
+                    .onReceive(environments.commandClient.$groups) { _ in
+                        updateButtonVisibility()
+                    }
+                    .onReceive(environments.commandClient.$connections) { _ in
+                        updateButtonVisibility()
+                    }
+                    .onReceive(environments.commandClient.$hasAnyConnection) { _ in
+                        updateButtonVisibility()
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)) { _ in
+                        updateButtonVisibility()
+                    }
+                    .onReceive(environments.$extensionProfile) { _ in
+                        updateButtonVisibility()
+                    }
+                    .onReceive(environments.$emptyProfiles) { _ in
+                        updateButtonVisibility()
+                    }
+                    .environment(\.selection, $selection)
+                    .environment(\.importProfile, $importProfile)
+                    .environment(\.importRemoteProfile, $importRemoteProfile)
+                    .handlesExternalEvents(preferring: [], allowing: ["*"])
+                    .onOpenURL(perform: openURL)
+                    .sheet(isPresented: $showGroups) {
+                        GroupsSheetContent()
+                    }
+                    .sheet(isPresented: $showConnections) {
+                        ConnectionsSheetContent()
+                    }
             } else {
                 TabView(selection: $selection) {
                     ForEach(NavigationPage.allCases, id: \.self) { page in
@@ -97,6 +166,14 @@ struct MainView: View {
         }
     }
 
+    private func updateButtonVisibility() {
+        buttonState.update(
+            profile: environments.extensionProfile,
+            commandClient: environments.commandClient,
+            requireAnyConnection: true
+        )
+    }
+
     private struct StatusText: View {
         @ObservedObject var profile: ExtensionProfile
 
@@ -109,19 +186,19 @@ struct MainView: View {
         private var statusText: String {
             switch profile.status {
             case .invalid:
-                return "Invalid"
+                return String(localized: "Invalid")
             case .disconnected:
-                return "Stopped"
+                return String(localized: "Stopped")
             case .connecting:
-                return "Starting"
+                return String(localized: "Starting")
             case .connected:
-                return "Started"
+                return String(localized: "Started")
             case .reasserting:
-                return "Reasserting"
+                return String(localized: "Reasserting")
             case .disconnecting:
-                return "Stopping"
+                return String(localized: "Stopping")
             @unknown default:
-                return "Unknown"
+                return String(localized: "Unknown")
             }
         }
     }
@@ -134,8 +211,8 @@ struct MainView: View {
                 alert = Alert(error)
                 return
             }
-            if selection != .profiles {
-                selection = .profiles
+            if selection != .dashboard {
+                selection = .dashboard
             }
         } else if url.pathExtension == "bpf" {
             do {
@@ -146,8 +223,8 @@ struct MainView: View {
                 alert = Alert(error)
                 return
             }
-            if selection != .profiles {
-                selection = .profiles
+            if selection != .dashboard {
+                selection = .dashboard
             }
         } else {
             alert = Alert(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))

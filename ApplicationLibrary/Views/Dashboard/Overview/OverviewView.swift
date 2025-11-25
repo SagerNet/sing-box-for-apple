@@ -34,13 +34,6 @@ public struct OverviewView: View {
         Group {
             if configuration.isLoading {
                 ProgressView()
-            } else if profileList.isEmpty {
-                VStack {
-                    Spacer()
-                    Text("Empty profiles")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                }
             } else {
                 ScrollView {
                     cardGrid

@@ -64,6 +64,7 @@ public class CommandClient: ObservableObject {
     @Published public var connectionStateFilter = ConnectionStateFilter.active
     @Published public var connectionSort = ConnectionSort.byDate
     @Published public var connections: [LibboxConnection]?
+    @Published public var hasAnyConnection: Bool = false
     public var rawConnections: LibboxConnections?
 
     // Batch processing for logs
@@ -92,7 +93,7 @@ public class CommandClient: ObservableObject {
             connectTask.cancel()
         }
         connectTask = Task {
-            await connect0()
+            await performConnection()
         }
     }
 
@@ -125,10 +126,13 @@ public class CommandClient: ObservableObject {
         guard let message = rawConnections else {
             return
         }
-        connections = filterConnections(message)
+        let result = filterConnections(message)
+        connections = result.connections
+        hasAnyConnection = result.hasAny
     }
 
-    private func filterConnections(_ message: LibboxConnections) -> [LibboxConnection] {
+    private func filterConnections(_ message: LibboxConnections) -> (connections: [LibboxConnection], hasAny: Bool) {
+        let hasAny = message.iterator()?.hasNext() ?? false
         message.filterState(Int32(connectionStateFilter.rawValue))
         switch connectionSort {
         case .byDate:
@@ -143,7 +147,7 @@ public class CommandClient: ObservableObject {
         while connectionIterator.hasNext() {
             connections.append(connectionIterator.next()!)
         }
-        return connections
+        return (connections: connections, hasAny: hasAny)
     }
 
     private func initializeConnectionFilterState() async {
@@ -155,7 +159,7 @@ public class CommandClient: ObservableObject {
         }
     }
 
-    private nonisolated func connect0() async {
+    private nonisolated func performConnection() async {
         if connectionTypes.contains(.connections) {
             await initializeConnectionFilterState()
         }
@@ -299,10 +303,11 @@ public class CommandClient: ObservableObject {
             guard let message else {
                 return
             }
-            let connections = commandClient.filterConnections(message)
+            let result = commandClient.filterConnections(message)
             DispatchQueue.main.async { [self] in
                 commandClient.rawConnections = message
-                commandClient.connections = connections
+                commandClient.connections = result.connections
+                commandClient.hasAnyConnection = result.hasAny
             }
         }
     }
