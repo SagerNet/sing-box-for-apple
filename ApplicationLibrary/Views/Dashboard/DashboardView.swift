@@ -85,10 +85,10 @@ public struct DashboardView: View {
     private func importRemoteProfileSheet(for request: NewProfileView.ImportRequest) -> some View {
         NavigationSheet(title: "Import Profile", onDismiss: {
             environments.profileUpdate.send()
-        }) {
+        }, content: {
             NewProfileView(request)
                 .environmentObject(environments)
-        }
+        })
     }
 
     @ViewBuilder
@@ -111,11 +111,11 @@ public struct DashboardView: View {
     @ViewBuilder
     private var mainContent: some View {
         if ApplicationLibrary.inPreview {
-            ActiveDashboardView(externalCardConfigurationVersion: cardConfigurationVersion)
+            activeDashboardView
         } else if environments.extensionProfileLoading {
             ProgressView()
         } else if let profile = environments.extensionProfile {
-            ActiveDashboardView(externalCardConfigurationVersion: cardConfigurationVersion)
+            activeDashboardView
                 .environmentObject(profile)
                 .alertBinding($coordinator.alert)
                 .onChangeCompat(of: profile.status) { status in
@@ -128,5 +128,14 @@ public struct DashboardView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private var activeDashboardView: some View {
+        #if os(macOS)
+            ActiveDashboardView(externalCardConfigurationVersion: cardConfigurationVersion)
+        #else
+            ActiveDashboardView()
+        #endif
     }
 }

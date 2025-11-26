@@ -42,34 +42,71 @@ public struct StartStopButton: View {
                     await switchProfile(!profile.status.isConnected)
                 }
             } label: {
-                HStack(spacing: 8) {
-                    if profile.status.isConnectedStrict, let duration = runtimeDuration {
-                        Text(duration)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .trailing).combined(with: .opacity),
-                                removal: .move(edge: .trailing).combined(with: .opacity)
-                            ))
-                    }
+                #if os(iOS)
+                    HStack(spacing: 8) {
+                        if showRuntimeDuration, profile.status.isConnectedStrict, let duration = runtimeDuration {
+                            Text(duration)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                                .fixedSize()
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                                    removal: .move(edge: .trailing).combined(with: .opacity)
+                                ))
+                        }
 
-                    if !profile.status.isConnected {
-                        Label("Start", systemImage: "play.fill")
-                    } else {
-                        Label("Stop", systemImage: "stop.fill")
+                        if !profile.status.isConnected {
+                            Label("Start", systemImage: "play.fill")
+                        } else {
+                            Label("Stop", systemImage: "stop.fill")
+                        }
                     }
-                }
-                .animation(.spring(response: 0.35, dampingFraction: 0.75), value: profile.status.isConnectedStrict)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.75), value: profile.status.isConnectedStrict)
+                #else
+                    HStack(spacing: 8) {
+                        if profile.status.isConnectedStrict, let duration = runtimeDuration {
+                            Text(duration)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                                .fixedSize()
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                                    removal: .move(edge: .trailing).combined(with: .opacity)
+                                ))
+                        }
+
+                        if !profile.status.isConnected {
+                            Label("Start", systemImage: "play.fill")
+                        } else {
+                            Label("Stop", systemImage: "stop.fill")
+                        }
+                    }
+                    .animation(.spring(response: 0.35, dampingFraction: 0.75), value: profile.status.isConnectedStrict)
+                #endif
             }
             .labelStyle(.iconOnly)
-            .tint(.primary)
-            .disabled(!profile.status.isEnabled)
-            .alertBinding($alert)
-            .onReceive(timer) { _ in
-                currentTime = Date()
-            }
+            #if os(iOS)
+                .modifier(PrimaryTintModifier())
+            #else
+                .tint(.primary)
+            #endif
+                .disabled(!profile.status.isEnabled)
+                .alertBinding($alert)
+                .onReceive(timer) { _ in
+                    currentTime = Date()
+                }
         }
+
+        #if os(iOS)
+            private var showRuntimeDuration: Bool {
+                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                    return true
+                }
+                return false
+            }
+        #endif
 
         private var runtimeDuration: String? {
             guard let connectedDate = profile.connectedDate else { return nil }
@@ -103,3 +140,15 @@ public struct StartStopButton: View {
         }
     }
 }
+
+#if os(iOS)
+    private struct PrimaryTintModifier: ViewModifier {
+        func body(content: Content) -> some View {
+            if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                content.tint(.primary)
+            } else {
+                content
+            }
+        }
+    }
+#endif

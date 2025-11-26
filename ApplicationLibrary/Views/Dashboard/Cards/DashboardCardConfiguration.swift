@@ -40,13 +40,9 @@ public final class DashboardCardConfiguration: ObservableObject {
         }
     }
 
-    public func moveCard(from source: IndexSet, to destination: Int) {
+    public func moveCard(from source: IndexSet, to destination: Int) async {
         cardOrder.move(fromOffsets: source, toOffset: destination)
-
-        // Save asynchronously in background
-        Task {
-            await saveCardOrder()
-        }
+        await saveCardOrder()
     }
 
     public func resetToDefault() async {

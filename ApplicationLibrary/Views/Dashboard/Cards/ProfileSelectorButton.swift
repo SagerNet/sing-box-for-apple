@@ -83,10 +83,8 @@ struct ProfileSelectorButton: View {
 
         private func updateButtonContent(_ button: MenuAttachmentButton) {
             // Remove existing subviews
-            for subview in button.subviews {
-                if subview is UIStackView {
-                    subview.removeFromSuperview()
-                }
+            for subview in button.subviews where subview is UIStackView {
+                subview.removeFromSuperview()
             }
 
             // Create content stack

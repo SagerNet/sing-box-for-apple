@@ -23,8 +23,10 @@ public struct GroupListView: View {
             }
         }
         .onAppear {
-            viewModel.setCommandClient(environments.commandClient)
             viewModel.connect()
+        }
+        .onReceive(environments.commandClient.$groups) { groups in
+            viewModel.setGroups(groups)
         }
     }
 }

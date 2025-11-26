@@ -1,0 +1,21 @@
+excluded:
+  - Frameworks
+  - Libbox.xcframework
+  - build
+
+disabled_rules:
+  - identifier_name
+  - type_body_length
+  - file_length
+  - function_body_length
+  - cyclomatic_complexity
+  - large_tuple
+  - nesting
+  - line_length
+  - todo
+  - trailing_comma
+  - function_parameter_count
+  - type_name
+  - force_cast
+  - force_try
+  - opening_brace

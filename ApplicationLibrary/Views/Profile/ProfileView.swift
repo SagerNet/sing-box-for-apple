@@ -128,17 +128,17 @@ public struct ProfileView: View {
                 if viewModel.editMode == .inactive {
                     Button(action: {
                         viewModel.editMode = .active
-                    }) {
+                    }, label: {
                         Image(systemName: "square.and.pencil")
-                    }
+                    })
                     .tint(.accentColor)
                     .disabled(viewModel.profileList.isEmpty)
                 } else {
                     Button(action: {
                         viewModel.editMode = .inactive
-                    }) {
+                    }, label: {
                         Image(systemName: "checkmark.square.fill")
-                    }
+                    })
                     .tint(.accentColor)
                 }
             }

@@ -4,11 +4,8 @@ import SwiftUI
 @MainActor public struct CardManagementSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var configuration = DashboardCardConfiguration()
-    @Binding private var configurationVersion: Int
 
-    public init(configurationVersion: Binding<Int>) {
-        _configurationVersion = configurationVersion
-    }
+    public init() {}
 
     public var body: some View {
         #if os(macOS)
@@ -41,7 +38,6 @@ import SwiftUI
                     Button("Reset", role: .destructive) {
                         Task {
                             await configuration.resetToDefault()
-                            configurationVersion += 1
                         }
                     }
                 }
@@ -49,10 +45,8 @@ import SwiftUI
                     Button("Done") {
                         dismiss()
                     }
+                    .keyboardShortcut(.escape, modifiers: [])
                 }
-            }
-            .onExitCommand {
-                dismiss()
             }
         }
     #else
@@ -74,7 +68,6 @@ import SwiftUI
                             Button("Reset", role: .destructive) {
                                 Task {
                                     await configuration.resetToDefault()
-                                    configurationVersion += 1
                                 }
                             }
                         }
@@ -91,13 +84,13 @@ import SwiftUI
                     isEnabled: configuration.isEnabled(card),
                     onToggle: {
                         configuration.toggleCard(card)
-                        configurationVersion += 1
                     }
                 )
             }
             .onMove { source, destination in
-                configuration.moveCard(from: source, to: destination)
-                configurationVersion += 1
+                Task {
+                    await configuration.moveCard(from: source, to: destination)
+                }
             }
         }
         .applyContentMargins()

@@ -111,22 +111,25 @@ public struct ActiveDashboardView: View {
 
     #if os(iOS) || os(tvOS)
         private func updateButtonVisibility() {
-            buttonState.update(profile: profile, commandClient: environments.commandClient)
+            buttonState.update(profile: profile, commandClient: environments.commandClient, requireAnyConnection: true)
         }
+
+        #if os(iOS)
+            private var isTabViewBottomAccessoryAvailable: Bool {
+                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                    return true
+                }
+                return false
+            }
+        #endif
 
         @ToolbarContentBuilder
         private var toolbar: some ToolbarContent {
-            ToolbarItem(placement: .topBarLeading) {
-                #if os(iOS)
-                    if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                        EmptyView()
-                    } else {
-                        navigationButtons
-                    }
-                #else
+            #if os(tvOS)
+                ToolbarItem(placement: .topBarLeading) {
                     navigationButtons
-                #endif
-            }
+                }
+            #endif
             ToolbarItem(placement: .topBarTrailing) {
                 if #available(iOS 16.0, tvOS 17.0, *) {
                     cardManagementButton
@@ -137,10 +140,7 @@ public struct ActiveDashboardView: View {
                     if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
                         EmptyView()
                     } else {
-                        HStack(spacing: 12) {
-                            Divider()
-                            StartStopButton()
-                        }
+                        StartStopButton()
                     }
                 #else
                     HStack(spacing: 12) {
@@ -151,16 +151,18 @@ public struct ActiveDashboardView: View {
             }
         }
 
-        private var navigationButtons: some View {
-            NavigationButtonsView(
-                showGroupsButton: buttonState.showGroupsButton,
-                showConnectionsButton: buttonState.showConnectionsButton,
-                groupsCount: buttonState.groupsCount,
-                connectionsCount: buttonState.connectionsCount,
-                onGroupsTap: { showGroups = true },
-                onConnectionsTap: { showConnections = true }
-            )
-        }
+        #if os(tvOS)
+            private var navigationButtons: some View {
+                NavigationButtonsView(
+                    showGroupsButton: buttonState.showGroupsButton,
+                    showConnectionsButton: buttonState.showConnectionsButton,
+                    groupsCount: buttonState.groupsCount,
+                    connectionsCount: buttonState.connectionsCount,
+                    onGroupsTap: { showGroups = true },
+                    onConnectionsTap: { showConnections = true }
+                )
+            }
+        #endif
     #endif
 
     #if os(iOS) || os(tvOS)
@@ -176,19 +178,42 @@ public struct ActiveDashboardView: View {
         @ViewBuilder
         private var cardManagementButton: some View {
             Menu {
+                #if os(iOS)
+                    if !isTabViewBottomAccessoryAvailable {
+                        if buttonState.showGroupsButton {
+                            Button {
+                                showGroups = true
+                            } label: {
+                                Label("Groups (\(buttonState.groupsCount))", systemImage: "rectangle.3.group.fill")
+                            }
+                        }
+                        if buttonState.showConnectionsButton {
+                            Button {
+                                showConnections = true
+                            } label: {
+                                Label("Connections (\(buttonState.connectionsCount))", systemImage: "list.bullet.rectangle.portrait.fill")
+                            }
+                        }
+                        if buttonState.showGroupsButton || buttonState.showConnectionsButton {
+                            Divider()
+                        }
+                    }
+                #endif
                 Button {
                     showCardManagement = true
                 } label: {
                     Label("Dashboard Items", systemImage: "square.grid.2x2")
                 }
             } label: {
-                Label("Others", systemImage: "ellipsis.circle")
+                Label("Others", systemImage: "line.3.horizontal.circle")
             }
-            .sheet(isPresented: $showCardManagement) {
-                CardManagementSheet(configurationVersion: $cardConfigurationVersion)
+            .sheet(isPresented: $showCardManagement, onDismiss: {
+                cardConfigurationVersion += 1
+            }, content: {
+                CardManagementSheet()
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-            }
+            })
         }
     #endif
 }

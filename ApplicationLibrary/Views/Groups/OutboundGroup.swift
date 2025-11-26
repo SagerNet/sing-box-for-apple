@@ -2,7 +2,7 @@ import Foundation
 import Libbox
 import SwiftUI
 
-public struct OutboundGroup: Codable {
+public struct OutboundGroup: Codable, Hashable {
     let tag: String
     let type: String
     var selected: String
@@ -10,13 +10,16 @@ public struct OutboundGroup: Codable {
     var isExpand: Bool
     let items: [OutboundGroupItem]
 
-    var hashValue: Int {
-        var value = tag.hashValue
-        (value, _) = value.addingReportingOverflow(selected.hashValue)
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(tag)
+        hasher.combine(selected)
         for item in items {
-            (value, _) = value.addingReportingOverflow(item.urlTestTime.hashValue)
+            hasher.combine(item.urlTestTime)
         }
-        return value
+    }
+
+    public static func == (lhs: OutboundGroup, rhs: OutboundGroup) -> Bool {
+        lhs.hashValue == rhs.hashValue
     }
 }
 

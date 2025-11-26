@@ -1,4 +1,3 @@
-import Combine
 import Libbox
 import Library
 import SwiftUI
@@ -8,20 +7,7 @@ public class GroupListViewModel: ObservableObject {
     @Published public var isLoading = true
     @Published public var groups: [OutboundGroup] = []
 
-    private var commandClient: CommandClient?
-    private var cancellables = Set<AnyCancellable>()
-
     public init() {}
-
-    public func setCommandClient(_ client: CommandClient) {
-        commandClient = client
-        client.$groups
-            .compactMap { $0 }
-            .sink { [weak self] goGroups in
-                self?.setGroups(goGroups)
-            }
-            .store(in: &cancellables)
-    }
 
     public func connect() {
         if ApplicationLibrary.inPreview {
@@ -40,7 +26,8 @@ public class GroupListViewModel: ObservableObject {
         }
     }
 
-    private func setGroups(_ goGroups: [LibboxOutboundGroup]) {
+    public func setGroups(_ goGroups: [LibboxOutboundGroup]?) {
+        guard let goGroups else { return }
         var groups = [OutboundGroup]()
         for goGroup in goGroups {
             var items = [OutboundGroupItem]()

@@ -34,10 +34,10 @@ public struct ProfileCard: View {
         .disabled(viewModel.isUpdating)
         .sheet(isPresented: $viewModel.showNewProfile, onDismiss: {
             environments.profileUpdate.send()
-        }) {
+        }, content: {
             NewProfileNavigationView()
                 .environmentObject(environments)
-        }
+        })
         .sheet(isPresented: $viewModel.showManageProfiles) {
             manageProfilesSheet
         }
@@ -218,11 +218,12 @@ public struct ProfileCard: View {
         NavigationSheet(
             title: String(localized: "Manage profiles"),
             showDoneButton: true,
-            onDismiss: { viewModel.showManageProfiles = false }
-        ) {
-            ManageProfilesView()
-                .environmentObject(environments)
-        }
+            onDismiss: { viewModel.showManageProfiles = false },
+            content: {
+                ManageProfilesView()
+                    .environmentObject(environments)
+            }
+        )
     }
 
     @ViewBuilder
@@ -390,6 +391,7 @@ extension ProfileCard {
         @ObservedObject private var viewModel: ProfileViewModel
         @State private var profile: ProfilePreview
         @State private var shareLinkPresented = false
+        @State private var isUpdating = false
 
         init(_ viewModel: ProfileViewModel, _ profile: ProfilePreview) {
             self.viewModel = viewModel
@@ -416,25 +418,26 @@ extension ProfileCard {
                 HStack(spacing: 8) {
                     if profile.type == .remote {
                         Button {
-                            viewModel.isUpdating = true
+                            isUpdating = true
                             Task {
                                 await viewModel.updateProfile(profile.origin)
                                 profile = ProfilePreview(profile.origin)
+                                isUpdating = false
                             }
                         } label: {
                             Image(systemName: "arrow.clockwise")
                                 .font(.system(size: 16))
-                                .rotationEffect(.degrees(viewModel.isUpdating ? 360 : 0))
+                                .rotationEffect(.degrees(isUpdating ? 360 : 0))
                                 .animation(
-                                    viewModel.isUpdating
+                                    isUpdating
                                         ? .linear(duration: 1).repeatForever(autoreverses: false)
                                         : .default,
-                                    value: viewModel.isUpdating
+                                    value: isUpdating
                                 )
                         }
                         .buttonStyle(.plain)
                         .actionButtonStyle()
-                        .disabled(viewModel.isUpdating)
+                        .disabled(isUpdating)
 
                         Button {
                             shareLinkPresented = true

@@ -44,8 +44,6 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
             switch response.actionIdentifier {
             case "COPY_URL":
                 UIPasteboard.general.string = url
-            case "OPEN_URL":
-                fallthrough
             default:
                 await UIApplication.shared.open(URL(string: url)!)
             }

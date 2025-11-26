@@ -57,20 +57,12 @@ public struct QRCodeSheet: View {
             if #available(iOS 16.0, tvOS 17.0, *) {
                 NavigationStackCompat {
                     QRCodeContentView(profileName: profileName, remoteURL: remoteURL)
-                        .navigationTitle("Share QR Code")
-                    #if os(iOS)
-                        .navigationBarTitleDisplayMode(.inline)
-                    #endif
                 }
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
             } else {
                 NavigationStackCompat {
                     QRCodeContentView(profileName: profileName, remoteURL: remoteURL)
-                        .navigationTitle("Share QR Code")
-                    #if os(iOS)
-                        .navigationBarTitleDisplayMode(.inline)
-                    #endif
                 }
             }
         #endif

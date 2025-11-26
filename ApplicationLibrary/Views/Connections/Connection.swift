@@ -24,13 +24,12 @@ public struct Connection: Codable {
     public let outboundType: String
     public let chain: [String]
 
-    var hashValue: Int {
-        var value = id.hashValue
-        (value, _) = value.addingReportingOverflow(upload.hashValue)
-        (value, _) = value.addingReportingOverflow(download.hashValue)
-        (value, _) = value.addingReportingOverflow(uploadTotal.hashValue)
-        (value, _) = value.addingReportingOverflow(downloadTotal.hashValue)
-        return value
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(upload)
+        hasher.combine(download)
+        hasher.combine(uploadTotal)
+        hasher.combine(downloadTotal)
     }
 
     func performSearch(_ content: String) -> Bool {

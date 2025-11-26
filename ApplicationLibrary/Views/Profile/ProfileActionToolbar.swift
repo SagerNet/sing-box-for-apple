@@ -18,14 +18,16 @@ public struct ProfileActionToolbar: View {
     }
 
     public var body: some View {
-        #if os(iOS) || os(tvOS)
+        #if os(iOS)
             iosBody
+        #elseif os(tvOS)
+            tvOSBody
         #elseif os(macOS)
             macOSBody
         #endif
     }
 
-    #if os(iOS) || os(tvOS)
+    #if os(iOS)
         private var iosBody: some View {
             Section("Action") {
                 if profile.type != .remote {
@@ -42,6 +44,33 @@ public struct ProfileActionToolbar: View {
                         Label("View Content", systemImage: "doc.fill")
                             .foregroundColor(.accentColor)
                     }
+                    FormButton {
+                        viewModel.isLoading = true
+                        Task {
+                            await viewModel.updateProfile(profile, environments: environments)
+                        }
+                    } label: {
+                        Label("Update", systemImage: "arrow.clockwise")
+                    }
+                    .foregroundColor(.accentColor)
+                    .disabled(viewModel.isLoading)
+                }
+                FormButton(role: .destructive) {
+                    Task {
+                        await viewModel.deleteProfile(profile, environments: environments, dismiss: dismiss)
+                    }
+                } label: {
+                    Label("Delete", systemImage: "trash.fill")
+                }
+                .foregroundColor(.red)
+            }
+        }
+    #endif
+
+    #if os(tvOS)
+        private var tvOSBody: some View {
+            Section("Action") {
+                if profile.type == .remote {
                     FormButton {
                         viewModel.isLoading = true
                         Task {

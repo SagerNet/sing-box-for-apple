@@ -19,12 +19,17 @@ public struct HTTPProxyCard: View {
 
     public var body: some View {
         DashboardCardView(title: "", isHalfWidth: false) {
-            Toggle("System HTTP Proxy", isOn: $systemProxyEnabled)
-                .onChangeCompat(of: systemProxyEnabled) { newValue in
-                    Task {
-                        await onToggle(newValue)
+            HStack {
+                Text("System HTTP Proxy")
+                Spacer()
+                Toggle("", isOn: $systemProxyEnabled)
+                    .labelsHidden()
+                    .onChangeCompat(of: systemProxyEnabled) { newValue in
+                        Task {
+                            await onToggle(newValue)
+                        }
                     }
-                }
+            }
         }
     }
 }

@@ -85,7 +85,7 @@ private struct LogViewContent: View {
             .focusEffectDisabled()
             .focusSection()
         #else
-            let previewLogs = logList.enumerated().map { _, message in
+            let previewLogs = logList.map { message in
                 LogEntry(level: 4, message: message)
             }
             return LogTextView(
@@ -205,9 +205,9 @@ private struct LogViewContent: View {
                     Button(action: {
                         viewModel.prepareLogFile()
                         viewModel.showFileExporter = true
-                    }) {
+                    }, label: {
                         Label("To File", systemImage: "arrow.down.doc")
-                    }
+                    })
                     Button(action: viewModel.prepareLogFile) {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }

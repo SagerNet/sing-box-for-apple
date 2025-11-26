@@ -197,7 +197,14 @@
       }
     },
     "Cancel" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
     },
     "Chain" : {
       "localizations" : {
@@ -326,6 +333,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "连接"
+          }
+        }
+      }
+    },
+    "Connections (%lld)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接 (%lld)"
           }
         }
       }
@@ -512,7 +529,14 @@
       }
     },
     "Do you want to save the changes you made?" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "您要保存所做的更改吗？"
+          }
+        }
+      }
     },
     "Documentation" : {
       "localizations" : {
@@ -535,7 +559,14 @@
       }
     },
     "Don't Save" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不保存"
+          }
+        }
+      }
     },
     "Done" : {
       "localizations" : {
@@ -748,6 +779,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "组"
+          }
+        }
+      }
+    },
+    "Groups (%lld)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "组 (%lld)"
           }
         }
       }
@@ -1028,7 +1069,14 @@
       "shouldTranslate" : false
     },
     "Manage profiles" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理配置"
+          }
+        }
+      }
     },
     "Match Rule" : {
       "shouldTranslate" : false
@@ -1501,9 +1549,6 @@
         }
       }
     },
-    "Share QR Code" : {
-
-    },
     "Share URL as QR Code" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1761,7 +1806,14 @@
       }
     },
     "Unsaved Changes" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未保存的更改"
+          }
+        }
+      }
     },
     "Update" : {
       "localizations" : {
@@ -1774,7 +1826,14 @@
       }
     },
     "Update Failed" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新失败"
+          }
+        }
+      }
     },
     "Uplink" : {
       "localizations" : {

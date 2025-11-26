@@ -1,4 +1,3 @@
-import Combine
 import Libbox
 import Library
 import SwiftUI
@@ -11,8 +10,6 @@ public class ConnectionListViewModel: ObservableObject {
     @Published public var alert: Alert?
     @Published public var connectionStateFilter: ConnectionStateFilter {
         didSet {
-            commandClient?.connectionStateFilter = connectionStateFilter
-            commandClient?.filterConnectionsNow()
             saveStateFilterTask?.cancel()
             saveStateFilterTask = Task {
                 await SharedPreferences.connectionStateFilter.set(connectionStateFilter.rawValue)
@@ -22,8 +19,6 @@ public class ConnectionListViewModel: ObservableObject {
 
     @Published public var connectionSort: ConnectionSort {
         didSet {
-            commandClient?.connectionSort = connectionSort
-            commandClient?.filterConnectionsNow()
             saveSortTask?.cancel()
             saveSortTask = Task {
                 await SharedPreferences.connectionSort.set(connectionSort.rawValue)
@@ -31,8 +26,6 @@ public class ConnectionListViewModel: ObservableObject {
         }
     }
 
-    private var commandClient: CommandClient?
-    private var cancellables = Set<AnyCancellable>()
     private var connectTask: Task<Void, Never>?
     private var saveStateFilterTask: Task<Void, Never>?
     private var saveSortTask: Task<Void, Never>?
@@ -40,16 +33,6 @@ public class ConnectionListViewModel: ObservableObject {
     public init() {
         connectionStateFilter = .active
         connectionSort = .byDate
-    }
-
-    public func setCommandClient(_ client: CommandClient) {
-        commandClient = client
-        client.$connections
-            .compactMap { $0 }
-            .sink { [weak self] goConnections in
-                self?.setConnections(goConnections)
-            }
-            .store(in: &cancellables)
     }
 
     public func connect() {
@@ -97,7 +80,8 @@ public class ConnectionListViewModel: ObservableObject {
         }
     }
 
-    private func setConnections(_ goConnections: [LibboxConnection]) {
+    public func setConnections(_ goConnections: [LibboxConnection]?) {
+        guard let goConnections else { return }
         connections = convertConnections(goConnections)
         isLoading = false
     }

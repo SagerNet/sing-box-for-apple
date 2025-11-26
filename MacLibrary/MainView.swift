@@ -46,7 +46,7 @@ public struct MainView: View {
                             Label("Dashboard Items", systemImage: "square.grid.2x2")
                         }
                     } label: {
-                        Label("Others", systemImage: "ellipsis.circle")
+                        Label("Others", systemImage: "line.3.horizontal.circle")
                     }
                 }
             }
@@ -65,9 +65,11 @@ public struct MainView: View {
         .environment(\.profileEditor, profileEditor)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
         .onOpenURL(perform: viewModel.openURL)
-        .sheet(isPresented: $showCardManagement) {
-            CardManagementSheet(configurationVersion: $cardConfigurationVersion)
+        .sheet(isPresented: $showCardManagement, onDismiss: {
+            cardConfigurationVersion += 1
+        }, content: {
+            CardManagementSheet()
                 .frame(minWidth: 400, minHeight: 400)
-        }
+        })
     }
 }

@@ -17,7 +17,7 @@ public struct ConnectionListView: View {
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.flexible())], alignment: .leading) {
-                            ForEach(viewModel.filteredConnections(), id: \.hashValue) { it in
+                            ForEach(viewModel.filteredConnections(), id: \.id) { it in
                                 ConnectionView(it)
                             }
                         }
@@ -56,8 +56,18 @@ public struct ConnectionListView: View {
         #endif
         .alertBinding($viewModel.alert)
         .onAppear {
-            viewModel.setCommandClient(environments.commandClient)
             viewModel.connect()
+        }
+        .onReceive(environments.commandClient.$connections) { connections in
+            viewModel.setConnections(connections)
+        }
+        .onChangeCompat(of: viewModel.connectionStateFilter) { filter in
+            environments.commandClient.connectionStateFilter = filter
+            environments.commandClient.filterConnectionsNow()
+        }
+        .onChangeCompat(of: viewModel.connectionSort) { sort in
+            environments.commandClient.connectionSort = sort
+            environments.commandClient.filterConnectionsNow()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         #if os(iOS)

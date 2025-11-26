@@ -27,20 +27,6 @@ public struct NavigationButtonsView: View {
 
     public var body: some View {
         HStack(spacing: 12) {
-            if showGroupsButton {
-                Divider()
-                Text(verbatim: "\(groupsCount)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize()
-                Button {
-                    onGroupsTap()
-                } label: {
-                    Label("Groups", systemImage: "rectangle.3.group.fill")
-                }
-                .labelStyle(.iconOnly)
-                .foregroundStyle(.primary)
-            }
             if showConnectionsButton {
                 Divider()
                 Text(verbatim: "\(connectionsCount)")
@@ -51,6 +37,20 @@ public struct NavigationButtonsView: View {
                     onConnectionsTap()
                 } label: {
                     Label("Connections", systemImage: "list.bullet.rectangle.portrait.fill")
+                }
+                .labelStyle(.iconOnly)
+                .foregroundStyle(.primary)
+            }
+            if showGroupsButton {
+                Divider()
+                Text(verbatim: "\(groupsCount)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+                Button {
+                    onGroupsTap()
+                } label: {
+                    Label("Groups", systemImage: "rectangle.3.group.fill")
                 }
                 .labelStyle(.iconOnly)
                 .foregroundStyle(.primary)

@@ -51,8 +51,8 @@ struct MainView: View {
                 HStack(spacing: 12) {
                     if let profile = environments.extensionProfile {
                         StatusText(profile: profile)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    Spacer()
                     NavigationButtonsView(
                         showGroupsButton: buttonState.showGroupsButton,
                         showConnectionsButton: buttonState.showConnectionsButton,
@@ -187,6 +187,8 @@ struct MainView: View {
             Text(statusText)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .fixedSize()
         }
 
         private var statusText: String {
