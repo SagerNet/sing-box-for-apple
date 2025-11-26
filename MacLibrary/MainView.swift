@@ -18,7 +18,7 @@ public struct MainView: View {
 
     public var body: some View {
         NavigationSplitView {
-            SidebarView()
+            SidebarView(selection: $viewModel.selection)
                 .navigationSplitViewColumnWidth(150)
         } detail: {
             NavigationStack {
@@ -60,7 +60,6 @@ public struct MainView: View {
         .onReceive(environments.openSettings) {
             viewModel.openSettings()
         }
-        .environment(\.selection, $viewModel.selection)
         .environment(\.importProfile, $viewModel.importProfile)
         .environment(\.importRemoteProfile, $viewModel.importRemoteProfile)
         .environment(\.profileEditor, profileEditor)
