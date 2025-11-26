@@ -25,6 +25,14 @@ public struct NewProfileView: View {
     }
 
     public var body: some View {
+        #if os(macOS)
+            macOSBody
+        #else
+            iOSBody
+        #endif
+    }
+
+    private var formContent: some View {
         FormView {
             FormItem(String(localized: "Name")) {
                 TextField("Name", text: $viewModel.profileName, prompt: Text("Required"))
@@ -113,8 +121,19 @@ public struct NewProfileView: View {
                 }
             #endif
         }
-        .navigationTitle("New Profile")
-        #if os(macOS)
+    }
+
+    #if os(macOS)
+        private var macOSBody: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("New Profile")
+                    .font(.headline)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
+
+                formContent
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -138,10 +157,8 @@ public struct NewProfileView: View {
                     }
                 }
             }
-        #endif
             .disabled(viewModel.isSaving)
             .alertBinding($viewModel.alert)
-        #if os(iOS) || os(macOS)
             .fileImporter(
                 isPresented: $viewModel.pickerPresented,
                 allowedContentTypes: [.json],
@@ -157,6 +174,30 @@ public struct NewProfileView: View {
                     return
                 }
             }
-        #endif
-    }
+        }
+    #else
+        private var iOSBody: some View {
+            formContent
+                .navigationTitle("New Profile")
+                .disabled(viewModel.isSaving)
+                .alertBinding($viewModel.alert)
+            #if os(iOS)
+                .fileImporter(
+                    isPresented: $viewModel.pickerPresented,
+                    allowedContentTypes: [.json],
+                    allowsMultipleSelection: false
+                ) { result in
+                    do {
+                        let urls = try result.get()
+                        if !urls.isEmpty {
+                            viewModel.fileURL = urls[0]
+                        }
+                    } catch {
+                        viewModel.alert = Alert(error)
+                        return
+                    }
+                }
+            #endif
+        }
+    #endif
 }

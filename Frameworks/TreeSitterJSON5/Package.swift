@@ -13,7 +13,7 @@ let package = Package(
         .library(name: "TreeSitterJSON5Runestone", targets: ["TreeSitterJSON5Runestone"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/simonbs/Runestone", from: "0.3.0"),
+        .package(path: "../Runestone"),
     ],
     targets: [
         .target(name: "TreeSitterJSON5", cSettings: [.headerSearchPath("src")]),

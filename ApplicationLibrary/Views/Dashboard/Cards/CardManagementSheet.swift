@@ -11,20 +11,65 @@ import SwiftUI
     }
 
     public var body: some View {
-        NavigationStackCompat {
-            Group {
-                if configuration.isLoading {
-                    ProgressView()
-                } else {
-                    listContent
+        #if os(macOS)
+            macOSBody
+        #else
+            iOSBody
+        #endif
+    }
+
+    #if os(macOS)
+        private var macOSBody: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Dashboard Items")
+                    .font(.headline)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
+
+                Group {
+                    if configuration.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        listContent
+                    }
                 }
             }
-            .navigationTitle("Dashboard Items")
-            #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-            #endif
-                .toolbar {
-                    #if os(iOS) || os(tvOS)
+            .toolbar {
+                ToolbarItem(placement: .destructiveAction) {
+                    Button("Reset", role: .destructive) {
+                        Task {
+                            await configuration.resetToDefault()
+                            configurationVersion += 1
+                        }
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .onExitCommand {
+                dismiss()
+            }
+        }
+    #else
+        private var iOSBody: some View {
+            NavigationStackCompat {
+                Group {
+                    if configuration.isLoading {
+                        ProgressView()
+                    } else {
+                        listContent
+                    }
+                }
+                .navigationTitle("Dashboard Items")
+                #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                #endif
+                    .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Reset", role: .destructive) {
                                 Task {
@@ -33,24 +78,10 @@ import SwiftUI
                                 }
                             }
                         }
-                    #else
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Reset", role: .destructive) {
-                                Task {
-                                    await configuration.resetToDefault()
-                                    configurationVersion += 1
-                                }
-                            }
-                        }
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") {
-                                dismiss()
-                            }
-                        }
-                    #endif
-                }
+                    }
+            }
         }
-    }
+    #endif
 
     private var listContent: some View {
         List {

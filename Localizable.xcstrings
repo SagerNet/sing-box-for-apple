@@ -196,6 +196,9 @@
         }
       }
     },
+    "Cancel" : {
+
+    },
     "Chain" : {
       "localizations" : {
         "zh-Hans" : {
@@ -508,6 +511,9 @@
         }
       }
     },
+    "Do you want to save the changes you made?" : {
+
+    },
     "Documentation" : {
       "localizations" : {
         "zh-Hans" : {
@@ -527,6 +533,9 @@
           }
         }
       }
+    },
+    "Don't Save" : {
+
     },
     "Done" : {
       "localizations" : {
@@ -1018,6 +1027,9 @@
     "Machine: " : {
       "shouldTranslate" : false
     },
+    "Manage profiles" : {
+
+    },
     "Match Rule" : {
       "shouldTranslate" : false
     },
@@ -1295,6 +1307,7 @@
       }
     },
     "Profiles" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1746,6 +1759,9 @@
           }
         }
       }
+    },
+    "Unsaved Changes" : {
+
     },
     "Update" : {
       "localizations" : {

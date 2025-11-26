@@ -19,6 +19,7 @@
         }
 
         @Environment(\.dismiss) private var dismiss
+        @Environment(\.profileEditor) private var profileEditor
 
         public var body: some View {
             viewBuilder {
@@ -29,30 +30,10 @@
                         }
                     }
                 } else {
-                    #if os(iOS)
-                        RunestoneTextView(
-                            text: readOnly ? .constant(viewModel.profileContent) : $viewModel.profileContent,
-                            isEditable: !readOnly
-                        )
+                    editorView
                         .onChangeCompat(of: viewModel.profileContent) {
                             viewModel.markAsChanged()
                         }
-                    #elseif os(macOS)
-                        viewBuilder {
-                            if readOnly {
-                                TextEditor(text: .constant(viewModel.profileContent))
-                            } else {
-                                TextEditor(text: $viewModel.profileContent)
-                            }
-                        }
-                        .font(Font.system(.caption2, design: .monospaced))
-                        .autocorrectionDisabled(true)
-                        .textContentType(.init(rawValue: ""))
-                        .padding()
-                        .onChangeCompat(of: viewModel.profileContent) {
-                            viewModel.markAsChanged()
-                        }
-                    #endif
                 }
             }
             .alertBinding($viewModel.alert)
@@ -104,6 +85,38 @@
             } else {
                 return String(localized: "Edit Content")
             }
+        }
+
+        @ViewBuilder
+        private var editorView: some View {
+            if let profileEditor {
+                profileEditor(
+                    readOnly ? .constant(viewModel.profileContent) : $viewModel.profileContent,
+                    !readOnly
+                )
+                #if os(macOS)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                #endif
+            } else {
+                defaultEditorView
+            }
+        }
+
+        @ViewBuilder
+        private var defaultEditorView: some View {
+            viewBuilder {
+                if readOnly {
+                    TextEditor(text: .constant(viewModel.profileContent))
+                } else {
+                    TextEditor(text: $viewModel.profileContent)
+                }
+            }
+            .font(Font.system(.caption2, design: .monospaced))
+            .autocorrectionDisabled(true)
+            #if os(macOS)
+                .textContentType(.init(rawValue: ""))
+                .padding()
+            #endif
         }
     }
 

@@ -21,6 +21,14 @@
             isChanged = true
         }
 
+        public func reset() {
+            isLoading = true
+            profile = nil
+            profileContent = ""
+            isChanged = false
+            alert = nil
+        }
+
         public func loadContent() async {
             do {
                 try await loadContentBackground()

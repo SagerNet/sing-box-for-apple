@@ -7,6 +7,10 @@ public struct MacApplication: Scene {
     @State private var isMenuPresented = false
     @StateObject private var environments = ExtensionEnvironments()
 
+    private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
+        AnyView(CodeEditTextView(text: text, isEditable: isEditable))
+    }
+
     public init() {}
     public var body: some Scene {
         Window("sing-box", id: "main", content: {
@@ -52,6 +56,13 @@ public struct MacApplication: Scene {
         }
         .menuBarExtraStyle(.window)
         .menuBarExtraAccess(isPresented: $isMenuPresented)
+
+        WindowGroup(for: EditProfileContentView.Context.self) { $context in
+            EditProfileContentWindow(context: context)
+                .environment(\.profileEditor, profileEditor)
+        }
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 700, height: 500)
     }
 
     private func initialize() async {

@@ -216,7 +216,7 @@ public struct ProfileCard: View {
 
     private var manageProfilesSheet: some View {
         NavigationSheet(
-            title: "Profiles",
+            title: String(localized: "Manage profiles"),
             showDoneButton: true,
             onDismiss: { viewModel.showManageProfiles = false }
         ) {
@@ -227,11 +227,20 @@ public struct ProfileCard: View {
 
     @ViewBuilder
     private func editProfileSheet(for profile: Profile) -> some View {
-        NavigationSheet(title: "Edit Profile") {
-            EditProfileView()
-                .environmentObject(profile)
-                .environmentObject(environments)
-        }
+        #if os(macOS)
+            NavigationSheet {
+                EditProfileView()
+                    .environmentObject(profile)
+                    .environmentObject(environments)
+            }
+            .frame(minWidth: 500, minHeight: 400)
+        #else
+            NavigationSheet(title: "Edit Profile") {
+                EditProfileView()
+                    .environmentObject(profile)
+                    .environmentObject(environments)
+            }
+        #endif
     }
 }
 
@@ -272,7 +281,16 @@ extension ProfileCard {
         @State private var createdProfile: Profile?
 
         var body: some View {
-            NavigationStackCompat {
+            #if os(macOS)
+                macOSBody
+            #else
+                iOSBody
+            #endif
+        }
+
+        #if os(macOS)
+            @ViewBuilder
+            private var macOSBody: some View {
                 if let profile = createdProfile {
                     EditProfileView()
                         .environmentObject(profile)
@@ -282,15 +300,28 @@ extension ProfileCard {
                         createdProfile = profile
                     }
                     .environmentObject(environments)
-                    #if os(iOS)
-                        .navigationBarTitleDisplayMode(.inline)
-                    #endif
                 }
             }
-            #if os(iOS) || os(tvOS)
-            .presentationDetentsIfAvailable()
-            #endif
-        }
+        #else
+            private var iOSBody: some View {
+                NavigationStackCompat {
+                    if let profile = createdProfile {
+                        EditProfileView()
+                            .environmentObject(profile)
+                            .environmentObject(environments)
+                    } else {
+                        NewProfileView { profile in
+                            createdProfile = profile
+                        }
+                        .environmentObject(environments)
+                        #if os(iOS)
+                            .navigationBarTitleDisplayMode(.inline)
+                        #endif
+                    }
+                }
+                .presentationDetentsIfAvailable()
+            }
+        #endif
     }
 }
 
@@ -305,12 +336,14 @@ extension ProfileCard {
         var body: some View {
             VStack {
                 if viewModel.isLoading {
-                    ProgressView().onAppear {
-                        viewModel.setEnvironments(environments)
-                        Task {
-                            await viewModel.doReload()
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .onAppear {
+                            viewModel.setEnvironments(environments)
+                            Task {
+                                await viewModel.doReload()
+                            }
                         }
-                    }
                 } else {
                     FormView {
                         if viewModel.profileList.isEmpty {

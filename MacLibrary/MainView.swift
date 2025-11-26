@@ -10,6 +10,10 @@ public struct MainView: View {
     @State private var showCardManagement = false
     @State private var cardConfigurationVersion = 0
 
+    private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
+        AnyView(CodeEditTextView(text: text, isEditable: isEditable))
+    }
+
     public init() {}
 
     public var body: some View {
@@ -59,6 +63,7 @@ public struct MainView: View {
         .environment(\.selection, $viewModel.selection)
         .environment(\.importProfile, $viewModel.importProfile)
         .environment(\.importRemoteProfile, $viewModel.importRemoteProfile)
+        .environment(\.profileEditor, profileEditor)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
         .onOpenURL(perform: viewModel.openURL)
         .sheet(isPresented: $showCardManagement) {

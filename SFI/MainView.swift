@@ -16,6 +16,10 @@ struct MainView: View {
     @State private var showConnections = false
     @State private var buttonState = ButtonVisibilityState()
 
+    private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
+        AnyView(RunestoneTextView(text: text, isEditable: isEditable))
+    }
+
     private var shouldShowBottomAccessory: Bool {
         guard !environments.extensionProfileLoading else {
             return false
@@ -124,6 +128,7 @@ struct MainView: View {
                     .environment(\.selection, $selection)
                     .environment(\.importProfile, $importProfile)
                     .environment(\.importRemoteProfile, $importRemoteProfile)
+                    .environment(\.profileEditor, profileEditor)
                     .handlesExternalEvents(preferring: [], allowing: ["*"])
                     .onOpenURL(perform: openURL)
                     .sheet(isPresented: $showGroups) {
@@ -160,6 +165,7 @@ struct MainView: View {
                 .environment(\.selection, $selection)
                 .environment(\.importProfile, $importProfile)
                 .environment(\.importRemoteProfile, $importRemoteProfile)
+                .environment(\.profileEditor, profileEditor)
                 .handlesExternalEvents(preferring: [], allowing: ["*"])
                 .onOpenURL(perform: openURL)
             }

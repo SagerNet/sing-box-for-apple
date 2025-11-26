@@ -10,7 +10,16 @@ public struct EditProfileView: View {
     @StateObject private var viewModel = EditProfileViewModel()
 
     public init() {}
+
     public var body: some View {
+        #if os(macOS)
+            macOSBody
+        #else
+            iOSBody
+        #endif
+    }
+
+    private var formContent: some View {
         FormView {
             FormItem(String(localized: "Name")) {
                 TextField("Name", text: $profile.name, prompt: Text("Required"))
@@ -60,48 +69,61 @@ public struct EditProfileView: View {
                 ProfileActionToolbar(profile: profile, viewModel: viewModel)
             #endif
         }
-        #if os(macOS)
-        .safeAreaInset(edge: .bottom) {
-            ProfileActionToolbar(profile: profile, viewModel: viewModel)
-        }
-        #endif
-        .onChangeCompat(of: profile.name) {
-            viewModel.markAsChanged()
-        }
-        .onChangeCompat(of: profile.remoteURL) {
-            viewModel.markAsChanged()
-        }
-        .onChangeCompat(of: profile.autoUpdate) {
-            viewModel.markAsChanged()
-        }
-        .disabled(viewModel.isLoading)
-        #if os(macOS)
-            .toolbar {
-                ToolbarItemGroup(placement: .navigation) {
-                    Button {
-                        viewModel.isLoading = true
-                        Task {
-                            await viewModel.saveProfile(profile, environments: environments)
-                        }
-                    } label: {
-                        Image("save", bundle: ApplicationLibrary.bundle, label: Text("Save"))
-                    }
-                    .disabled(viewModel.isLoading || !viewModel.isChanged)
-                }
-            }
-        #elseif os(iOS)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        viewModel.isLoading = true
-                        Task {
-                            await viewModel.saveProfile(profile, environments: environments)
-                        }
-                    }.disabled(!viewModel.isChanged)
-                }
-            }
-        #endif
-            .alertBinding($viewModel.alert)
-            .navigationTitle("Edit Profile")
     }
+
+    #if os(macOS)
+        private var macOSBody: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Edit Profile")
+                    .font(.headline)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
+
+                formContent
+            }
+            .safeAreaInset(edge: .bottom) {
+                ProfileActionToolbar(profile: profile, viewModel: viewModel)
+            }
+            .onChangeCompat(of: profile.name) {
+                viewModel.markAsChanged()
+            }
+            .onChangeCompat(of: profile.remoteURL) {
+                viewModel.markAsChanged()
+            }
+            .onChangeCompat(of: profile.autoUpdate) {
+                viewModel.markAsChanged()
+            }
+            .disabled(viewModel.isLoading)
+            .alertBinding($viewModel.alert)
+        }
+    #else
+        private var iOSBody: some View {
+            formContent
+                .onChangeCompat(of: profile.name) {
+                    viewModel.markAsChanged()
+                }
+                .onChangeCompat(of: profile.remoteURL) {
+                    viewModel.markAsChanged()
+                }
+                .onChangeCompat(of: profile.autoUpdate) {
+                    viewModel.markAsChanged()
+                }
+                .disabled(viewModel.isLoading)
+            #if os(iOS)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Save") {
+                            viewModel.isLoading = true
+                            Task {
+                                await viewModel.saveProfile(profile, environments: environments)
+                            }
+                        }.disabled(!viewModel.isChanged)
+                    }
+                }
+            #endif
+                .alertBinding($viewModel.alert)
+                .navigationTitle("Edit Profile")
+        }
+    #endif
 }

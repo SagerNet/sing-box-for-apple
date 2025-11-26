@@ -6,6 +6,9 @@ import SwiftUI
 public struct ProfileActionToolbar: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
+    #if os(macOS)
+        @Environment(\.openWindow) private var openWindow
+    #endif
     @ObservedObject private var profile: Profile
     @ObservedObject private var viewModel: EditProfileViewModel
 
@@ -69,16 +72,12 @@ public struct ProfileActionToolbar: View {
 
                 HStack(spacing: 12) {
                     if profile.type != .remote {
-                        NavigationLink {
-                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                        } label: {
-                            Text("Edit Content")
+                        Button("Edit Content") {
+                            openWindow(value: EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
                         }
                     } else {
-                        NavigationLink {
-                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                        } label: {
-                            Text("View Content")
+                        Button("View Content") {
+                            openWindow(value: EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
                         }
 
                         Button {
@@ -92,14 +91,27 @@ public struct ProfileActionToolbar: View {
                         .disabled(viewModel.isLoading)
                     }
 
-                    Spacer()
-
                     Button("Delete", role: .destructive) {
                         Task {
                             await viewModel.deleteProfile(profile, environments: environments, dismiss: dismiss)
                         }
                     }
                     .foregroundColor(.red)
+
+                    Spacer()
+
+                    Button("Cancel") {
+                        dismiss()
+                    }
+
+                    Button("Save") {
+                        viewModel.isLoading = true
+                        Task {
+                            await viewModel.saveProfile(profile, environments: environments)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(viewModel.isLoading || !viewModel.isChanged)
                 }
                 .padding()
                 .background(Color(NSColor.controlBackgroundColor))

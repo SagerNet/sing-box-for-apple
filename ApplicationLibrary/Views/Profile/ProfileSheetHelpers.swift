@@ -18,14 +18,14 @@ public enum SheetSize {
 
 @MainActor
 public struct NavigationSheet<Content: View>: View {
-    private let title: String
+    private let title: String?
     private let size: SheetSize
     private let showDoneButton: Bool
     private let onDismiss: (() -> Void)?
     private let content: () -> Content
 
     public init(
-        title: String,
+        title: String? = nil,
         size: SheetSize = .large,
         showDoneButton: Bool = false,
         onDismiss: (() -> Void)? = nil,
@@ -39,13 +39,25 @@ public struct NavigationSheet<Content: View>: View {
     }
 
     public var body: some View {
-        NavigationStackCompat {
-            content()
-                .navigationTitle(title)
-            #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-            #endif
-            #if os(macOS)
+        #if os(macOS)
+            macOSBody
+        #else
+            iOSBody
+        #endif
+    }
+
+    #if os(macOS)
+        private var macOSBody: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                if let title {
+                    Text(title)
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .padding(.bottom, 12)
+                }
+                content()
+            }
             .toolbar {
                 if showDoneButton {
                     ToolbarItem(placement: .confirmationAction) {
@@ -55,12 +67,19 @@ public struct NavigationSheet<Content: View>: View {
                     }
                 }
             }
-            #endif
         }
-        #if os(iOS) || os(tvOS)
-        .sheetDetent(size)
-        #endif
-    }
+    #else
+        private var iOSBody: some View {
+            NavigationStackCompat {
+                content()
+                    .navigationTitle(title ?? "")
+                #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                #endif
+            }
+            .sheetDetent(size)
+        }
+    #endif
 }
 
 #if os(iOS) || os(tvOS)
