@@ -26,35 +26,64 @@ public struct NavigationButtonsView: View {
     }
 
     public var body: some View {
-        HStack(spacing: 12) {
-            if showConnectionsButton {
-                Divider()
-                Text(verbatim: "\(connectionsCount)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize()
-                Button {
-                    onConnectionsTap()
-                } label: {
-                    Label("Connections", systemImage: "list.bullet.rectangle.portrait.fill")
+        #if os(tvOS)
+            tvOSBody
+        #else
+            iOSBody
+        #endif
+    }
+
+    #if os(tvOS)
+        private var tvOSBody: some View {
+            viewBuilder {
+                if showConnectionsButton {
+                    Button {
+                        onConnectionsTap()
+                    } label: {
+                        Image(systemName: "list.bullet.rectangle.portrait.fill")
+                    }
                 }
-                .labelStyle(.iconOnly)
-                .foregroundStyle(.primary)
-            }
-            if showGroupsButton {
-                Divider()
-                Text(verbatim: "\(groupsCount)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize()
-                Button {
-                    onGroupsTap()
-                } label: {
-                    Label("Groups", systemImage: "rectangle.3.group.fill")
+                if showGroupsButton {
+                    Button {
+                        onGroupsTap()
+                    } label: {
+                        Image(systemName: "rectangle.3.group.fill")
+                    }
                 }
-                .labelStyle(.iconOnly)
-                .foregroundStyle(.primary)
             }
         }
-    }
+    #else
+        private var iOSBody: some View {
+            HStack(spacing: 12) {
+                if showConnectionsButton {
+                    Divider()
+                    Text(verbatim: "\(connectionsCount)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize()
+                    Button {
+                        onConnectionsTap()
+                    } label: {
+                        Label("Connections", systemImage: "list.bullet.rectangle.portrait.fill")
+                    }
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.primary)
+                }
+                if showGroupsButton {
+                    Divider()
+                    Text(verbatim: "\(groupsCount)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize()
+                    Button {
+                        onGroupsTap()
+                    } label: {
+                        Label("Groups", systemImage: "rectangle.3.group.fill")
+                    }
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.primary)
+                }
+            }
+        }
+    #endif
 }

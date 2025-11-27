@@ -3,8 +3,7 @@ import Libbox
 import Library
 import SwiftUI
 
-@MainActor
-public struct ActiveDashboardView: View {
+@MainActor public struct ActiveDashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
@@ -25,35 +24,48 @@ public struct ActiveDashboardView: View {
 
     public var body: some View {
         if coordinator.isLoading {
-            ProgressView()
-                .onAppear {
-                    coordinator.onEmptyProfilesChange = { environments.emptyProfiles = $0 }
-                    Task { await coordinator.reload() }
+            ProgressView().onAppear {
+                coordinator.onEmptyProfilesChange = {
+                    environments.emptyProfiles = $0
                 }
+                Task {
+                    await coordinator.reload()
+                }
+            }
         } else {
-            content
-                .onAppear {
-                    guard !ApplicationLibrary.inPreview else { return }
-                    Task { await coordinator.reloadSystemProxy() }
+            content.onAppear {
+                guard !ApplicationLibrary.inPreview else {
+                    return
                 }
-                .onChangeCompat(of: profile.status) { status in
-                    guard !ApplicationLibrary.inPreview, status == .connected else { return }
-                    Task { await coordinator.reloadSystemProxy() }
+                Task {
+                    await coordinator.reloadSystemProxy()
                 }
+            }.onChangeCompat(of: profile.status) {
+                status in
+                guard !ApplicationLibrary.inPreview, status == .connected else {
+                    return
+                }
+                Task {
+                    await coordinator.reloadSystemProxy()
+                }
+            }
         }
     }
 
-    @ViewBuilder
-    private var content: some View {
+    @ViewBuilder private var content: some View {
         overviewPage
         #if os(iOS) || os(tvOS)
-        .toolbar { toolbar }
-        .sheet(isPresented: $showGroups) {
+        .toolbar {
+            toolbar
+        }.sheet(isPresented: $showGroups) {
             groupsSheetContent
-        }
-        .sheet(isPresented: $showConnections) {
+        }.sheet(isPresented: $showConnections) {
             connectionsSheetContent
-        }
+        }.sheet(isPresented: $showCardManagement, onDismiss: {
+            cardConfigurationVersion += 1
+        }, content: {
+            CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
+        })
         #endif
         .onAppear {
             if ApplicationLibrary.inPreview {
@@ -61,19 +73,25 @@ public struct ActiveDashboardView: View {
             } else {
                 environments.connect()
             }
-        }
-        .onChangeCompat(of: scenePhase) { phase in
-            guard phase == .active else { return }
+        }.onChangeCompat(of: scenePhase) {
+            phase in
+            guard phase == .active else {
+                return
+            }
             environments.connect()
-        }
-        .onChangeCompat(of: profile.status) { status in
-            guard status.isConnected else { return }
+        }.onChangeCompat(of: profile.status) {
+            status in
+            guard status.isConnected else {
+                return
+            }
             environments.connect()
-        }
-        .onReceive(environments.profileUpdate) { _ in
-            Task { await coordinator.reload() }
-        }
-        .onReceive(environments.selectedProfileUpdate) { _ in
+        }.onReceive(environments.profileUpdate) {
+            _ in
+            Task {
+                await coordinator.reload()
+            }
+        }.onReceive(environments.selectedProfileUpdate) {
+            _ in
             Task {
                 await coordinator.updateSelectedProfile()
                 if profile.status.isConnected {
@@ -82,24 +100,23 @@ public struct ActiveDashboardView: View {
             }
         }
         #if os(iOS) || os(tvOS)
-        .onReceive(environments.commandClient.$groups) { _ in
+        .onReceive(environments.commandClient.$groups) {
+            _ in
             updateButtonVisibility()
-        }
-        .onReceive(environments.commandClient.$connections) { _ in
+        }.onReceive(environments.commandClient.$connections) {
+            _ in
             updateButtonVisibility()
-        }
-        .onReceive(profile.$status) { _ in
+        }.onReceive(profile.$status) {
+            _ in
             updateButtonVisibility()
-        }
-        .onAppear {
+        }.onAppear {
             updateButtonVisibility()
         }
         #endif
         .alertBinding($coordinator.alert)
     }
 
-    @ViewBuilder
-    private var overviewPage: some View {
+    @ViewBuilder private var overviewPage: some View {
         OverviewView(
             $coordinator.profileList,
             $coordinator.selectedProfileID,
@@ -123,28 +140,21 @@ public struct ActiveDashboardView: View {
             }
         #endif
 
-        @ToolbarContentBuilder
-        private var toolbar: some ToolbarContent {
+        @ToolbarContentBuilder private var toolbar: some ToolbarContent {
             #if os(tvOS)
                 ToolbarItem(placement: .topBarLeading) {
                     navigationButtons
                 }
             #endif
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 if #available(iOS 16.0, tvOS 17.0, *) {
                     cardManagementButton
                 }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                #if os(iOS)
-                    if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                        EmptyView()
-                    } else {
-                        StartStopButton()
-                    }
+                #if os(tvOS)
+                    StartStopButton()
                 #else
-                    HStack(spacing: 12) {
-                        Divider()
+                    if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                    } else {
                         StartStopButton()
                     }
                 #endif
@@ -158,8 +168,12 @@ public struct ActiveDashboardView: View {
                     showConnectionsButton: buttonState.showConnectionsButton,
                     groupsCount: buttonState.groupsCount,
                     connectionsCount: buttonState.connectionsCount,
-                    onGroupsTap: { showGroups = true },
-                    onConnectionsTap: { showConnections = true }
+                    onGroupsTap: {
+                        showGroups = true
+                    },
+                    onConnectionsTap: {
+                        showConnections = true
+                    }
                 )
             }
         #endif
@@ -174,11 +188,9 @@ public struct ActiveDashboardView: View {
             ConnectionsSheetContent()
         }
 
-        @available(iOS 16.0, tvOS 17.0, *)
-        @ViewBuilder
-        private var cardManagementButton: some View {
-            Menu {
-                #if os(iOS)
+        @available(iOS 16.0, *) @ViewBuilder private var cardManagementButton: some View {
+            #if os(iOS)
+                Menu {
                     if !isTabViewBottomAccessoryAvailable {
                         if buttonState.showGroupsButton {
                             Button {
@@ -198,22 +210,21 @@ public struct ActiveDashboardView: View {
                             Divider()
                         }
                     }
-                #endif
+                    Button {
+                        showCardManagement = true
+                    } label: {
+                        Label("Dashboard Items", systemImage: "square.grid.2x2")
+                    }
+                } label: {
+                    Label("Others", systemImage: "line.3.horizontal.circle")
+                }
+            #elseif os(tvOS)
                 Button {
                     showCardManagement = true
                 } label: {
-                    Label("Dashboard Items", systemImage: "square.grid.2x2")
+                    Image(systemName: "line.3.horizontal.circle")
                 }
-            } label: {
-                Label("Others", systemImage: "line.3.horizontal.circle")
-            }
-            .sheet(isPresented: $showCardManagement, onDismiss: {
-                cardConfigurationVersion += 1
-            }, content: {
-                CardManagementSheet()
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-            })
+            #endif
         }
     #endif
 }

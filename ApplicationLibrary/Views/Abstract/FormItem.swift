@@ -128,7 +128,6 @@ public func FormNavigationLink(@ViewBuilder destination: () -> some View, @ViewB
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         BackButton()
-                            .tint(.accentColor)
                     }
                 }
         }, label: label)

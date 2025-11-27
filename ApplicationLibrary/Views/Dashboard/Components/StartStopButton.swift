@@ -12,14 +12,22 @@ public struct StartStopButton: View {
         viewBuilder {
             if ApplicationLibrary.inPreview {
                 Button {} label: {
-                    Label("Stop", systemImage: "stop.fill")
+                    #if os(tvOS)
+                        Image(systemName: "stop.fill")
+                    #else
+                        Label("Stop", systemImage: "stop.fill")
+                    #endif
                 }
                 .labelStyle(.iconOnly)
             } else if let profile = environments.extensionProfile {
                 ToggleConnectionButton().environmentObject(profile)
             } else {
                 Button {} label: {
-                    Label("Start", systemImage: "play.fill")
+                    #if os(tvOS)
+                        Image(systemName: "play.fill")
+                    #else
+                        Label("Start", systemImage: "play.fill")
+                    #endif
                 }
                 .labelStyle(.iconOnly)
                 .disabled(true)
@@ -63,6 +71,12 @@ public struct StartStopButton: View {
                         }
                     }
                     .animation(.spring(response: 0.35, dampingFraction: 0.75), value: profile.status.isConnectedStrict)
+                #elseif os(tvOS)
+                    if !profile.status.isConnected {
+                        Image(systemName: "play.fill")
+                    } else {
+                        Image(systemName: "stop.fill")
+                    }
                 #else
                     HStack(spacing: 8) {
                         if profile.status.isConnectedStrict, let duration = runtimeDuration {
@@ -89,8 +103,6 @@ public struct StartStopButton: View {
             .labelStyle(.iconOnly)
             #if os(iOS)
                 .modifier(PrimaryTintModifier())
-            #else
-                .tint(.primary)
             #endif
                 .disabled(!profile.status.isEnabled)
                 .alertBinding($alert)
