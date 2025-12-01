@@ -1,0 +1,43 @@
+name: Build and Sign sing-box-for-apple
+
+on:
+  push:
+    branches:
+      - dev # Запускать при push в ветку dev
+  workflow_dispatch: # Разрешить ручной запуск
+
+jobs:
+  build:
+    runs-on: macos-latest # Обязательно использовать macOS-раннер для сборки iOS
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: true # Клонировать сабмодули, необходимые для sing-box
+
+    - name: Install dependencies (CocoaPods )
+      run: |
+        # Установка CocoaPods, если требуется проектом
+        gem install cocoapods
+        pod install --repo-update
+
+    - name: Build and Sign IPA
+      uses: yukiarrr/ios-build-action@v1.6.0
+      with:
+        # Пути могут отличаться, проверьте структуру проекта
+        workspace-path: 'sing-box-for-apple.xcworkspace'
+        scheme: 'sing-box-for-apple' # Имя схемы, может быть другим
+        configuration: 'Release'
+        # Использование секретов для подписи
+        p12-base64: ${{ secrets.P12_BASE64 }}
+        p12-password: ${{ secrets.P12_PASSWORD }}
+        mobileprovision-base64: ${{ secrets.MOBILEPROVISION_BASE64 }}
+        # Выходной файл IPA
+        output-path: 'sing-box-for-apple.ipa'
+
+    - name: Upload IPA artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sing-box-for-apple-ipa
+        path: sing-box-for-apple.ipa
