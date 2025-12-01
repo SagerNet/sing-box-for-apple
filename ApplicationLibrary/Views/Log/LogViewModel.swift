@@ -10,13 +10,12 @@ import SwiftUI
 #endif
 
 @MainActor
-public class LogViewModel: ObservableObject {
+public class LogViewModel: BaseViewModel {
     @Published public var selectedLogLevel: Int?
     @Published public var isPaused = false
     @Published public var searchText = ""
     @Published public var isSearching = false
     @Published public var filteredLogs: [LogEntry] = []
-    @Published public var alert: AlertState?
     @Published public var showFileExporter = false
     @Published public var logFileURL: URL?
 
@@ -42,6 +41,7 @@ public class LogViewModel: ObservableObject {
 
     public init(commandClient: CommandClient) {
         self.commandClient = commandClient
+        super.init()
 
         let debouncedSearchText = $searchText
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)

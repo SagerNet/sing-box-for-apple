@@ -3,10 +3,13 @@ import Library
 import SwiftUI
 
 @MainActor
-final class ServiceLogViewModel: ObservableObject {
-    @Published var isLoading = true
+final class ServiceLogViewModel: BaseViewModel {
     @Published var content = ""
-    @Published var alert: AlertState?
+
+    override init() {
+        super.init()
+        isLoading = true
+    }
 
     var isEmpty: Bool {
         content.isEmpty

@@ -2,9 +2,13 @@ import Library
 import SwiftUI
 
 @MainActor
-final class SettingViewModel: ObservableObject {
-    @Published var isLoading = true
+final class SettingViewModel: BaseViewModel {
     @Published var taiwanFlagAvailable = false
+
+    override init() {
+        super.init()
+        isLoading = true
+    }
 
     nonisolated func checkTaiwanFlagAvailability() async {
         let available: Bool

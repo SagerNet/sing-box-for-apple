@@ -22,6 +22,7 @@ public struct DashboardView: View {
         content
             .onAppear {
                 coordinator.setOpenURL { openURL($0) }
+                coordinator.setEnvironments(environments)
                 #if os(macOS)
                     Task { await coordinator.reload() }
                 #endif
@@ -133,9 +134,9 @@ public struct DashboardView: View {
     @ViewBuilder
     private var activeDashboardView: some View {
         #if os(macOS)
-            ActiveDashboardView(externalCardConfigurationVersion: cardConfigurationVersion)
+            ActiveDashboardView(coordinator: coordinator, externalCardConfigurationVersion: cardConfigurationVersion)
         #else
-            ActiveDashboardView()
+            ActiveDashboardView(coordinator: coordinator)
         #endif
     }
 }

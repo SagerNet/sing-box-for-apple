@@ -5,13 +5,10 @@ import Library
 import SwiftUI
 
 @MainActor
-public class MainViewModel: ObservableObject {
+public class MainViewModel: BaseViewModel {
     @Published public var selection = NavigationPage.dashboard
     @Published public var importProfile: LibboxProfileContent?
     @Published public var importRemoteProfile: LibboxImportRemoteProfile?
-    @Published public var alert: AlertState?
-
-    public init() {}
 
     public func onAppear(environments: ExtensionEnvironments) {
         environments.postReload()

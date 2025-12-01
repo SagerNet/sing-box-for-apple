@@ -17,8 +17,12 @@ public final class DashboardViewModel: BaseViewModel {
         @Published public var systemExtensionInstalled = true
     #endif
 
-    public var onEmptyProfilesChange: ((Bool) -> Void)?
+    private weak var environments: ExtensionEnvironments?
     private var openURL: ((URL) -> Void)?
+
+    public func setEnvironments(_ environments: ExtensionEnvironments) {
+        self.environments = environments
+    }
 
     override public init() {
         super.init()
@@ -55,7 +59,7 @@ public final class DashboardViewModel: BaseViewModel {
             do {
                 profileList = try await ProfileManager.list().map { ProfilePreview($0) }
                 guard !profileList.isEmpty else {
-                    onEmptyProfilesChange?(true)
+                    environments?.emptyProfiles = true
                     return
                 }
 
@@ -69,7 +73,7 @@ public final class DashboardViewModel: BaseViewModel {
                 return
             }
         }
-        onEmptyProfilesChange?(profileList.isEmpty)
+        environments?.emptyProfiles = profileList.isEmpty
     }
 
     public func reloadSystemProxy() async {

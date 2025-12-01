@@ -7,7 +7,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
-    @StateObject private var coordinator = DashboardViewModel()
+    @ObservedObject private var coordinator: DashboardViewModel
     @State private var cardConfigurationVersion = 0
     #if os(iOS) || os(tvOS)
         @State private var showCardManagement = false
@@ -18,20 +18,25 @@ import SwiftUI
 
     private let externalCardConfigurationVersion: Int?
 
-    public init(externalCardConfigurationVersion: Int? = nil) {
+    public init(coordinator: DashboardViewModel, externalCardConfigurationVersion: Int? = nil) {
+        _coordinator = ObservedObject(wrappedValue: coordinator)
         self.externalCardConfigurationVersion = externalCardConfigurationVersion
     }
 
     public var body: some View {
+        viewContent
+    }
+
+    @ViewBuilder private var viewContent: some View {
         if coordinator.isLoading {
-            ProgressView().onAppear {
-                coordinator.onEmptyProfilesChange = {
-                    environments.emptyProfiles = $0
+            ProgressView()
+            #if os(iOS) || os(tvOS)
+                .onAppear {
+                    Task {
+                        await coordinator.reload()
+                    }
                 }
-                Task {
-                    await coordinator.reload()
-                }
-            }
+            #endif
         } else {
             content.onAppear {
                 guard !ApplicationLibrary.inPreview, profile.status.isConnected else {
@@ -40,8 +45,7 @@ import SwiftUI
                 Task {
                     await coordinator.reloadSystemProxy()
                 }
-            }.onChangeCompat(of: profile.status) {
-                status in
+            }.onChangeCompat(of: profile.status) { status in
                 guard !ApplicationLibrary.inPreview, status == .connected else {
                     return
                 }
@@ -77,25 +81,21 @@ import SwiftUI
             } else {
                 environments.connect()
             }
-        }.onChangeCompat(of: scenePhase) {
-            phase in
+        }.onChangeCompat(of: scenePhase) { phase in
             guard phase == .active else {
                 return
             }
             environments.connect()
-        }.onChangeCompat(of: profile.status) {
-            status in
+        }.onChangeCompat(of: profile.status) { status in
             guard status.isConnected else {
                 return
             }
             environments.connect()
-        }.onReceive(environments.profileUpdate) {
-            _ in
+        }.onReceive(environments.profileUpdate) { _ in
             Task {
                 await coordinator.reload()
             }
-        }.onReceive(environments.selectedProfileUpdate) {
-            _ in
+        }.onReceive(environments.selectedProfileUpdate) { _ in
             Task {
                 await coordinator.updateSelectedProfile()
                 if profile.status.isConnected {
@@ -104,20 +104,16 @@ import SwiftUI
             }
         }
         #if os(iOS) || os(tvOS)
-        .onReceive(environments.commandClient.$groups) {
-            _ in
+        .onReceive(environments.commandClient.$groups) { _ in
             updateButtonVisibility()
-        }.onReceive(environments.commandClient.$connections) {
-            _ in
+        }.onReceive(environments.commandClient.$connections) { _ in
             updateButtonVisibility()
-        }.onReceive(profile.$status) {
-            _ in
+        }.onReceive(profile.$status) { _ in
             updateButtonVisibility()
         }.onAppear {
             updateButtonVisibility()
         }
         #endif
-        .alert($coordinator.alert)
     }
 
     @ViewBuilder private var overviewPage: some View {
