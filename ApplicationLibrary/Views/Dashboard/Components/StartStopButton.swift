@@ -9,7 +9,7 @@ public struct StartStopButton: View {
     public init() {}
 
     public var body: some View {
-        viewBuilder {
+        Group {
             if ApplicationLibrary.inPreview {
                 Button {} label: {
                     #if os(tvOS)

@@ -3,14 +3,15 @@ import Library
 import SwiftUI
 
 @MainActor
-public class GroupListViewModel: ObservableObject {
-    @Published public var isLoading = true
+public class GroupListViewModel: BaseViewModel {
     @Published public var groups: [OutboundGroup] = []
-    @Published public var alert: Alert?
 
     private var pendingSelections: [String: String] = [:]
 
-    public init() {}
+    public override init() {
+        super.init()
+        isLoading = true
+    }
 
     public func connect() {
         if ApplicationLibrary.inPreview {

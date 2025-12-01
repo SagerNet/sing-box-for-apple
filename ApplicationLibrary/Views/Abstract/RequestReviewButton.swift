@@ -4,7 +4,7 @@
     import SwiftUI
 
     public func RequestReviewButton(label: @escaping () -> some View) -> some View {
-        viewBuilder {
+        Group {
             if #available(iOS 16.0, macOS 13.0, visionOS 1.0, *) {
                 RequestReviewButton0(label: label)
             } else {

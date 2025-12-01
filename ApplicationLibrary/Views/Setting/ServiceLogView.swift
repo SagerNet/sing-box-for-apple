@@ -12,7 +12,7 @@ public struct ServiceLogView: View {
     public init() {}
 
     public var body: some View {
-        viewBuilder {
+        Group {
             if viewModel.isLoading {
                 ProgressView().onAppear {
                     Task {

@@ -4,17 +4,17 @@
     import SwiftUI
 
     @MainActor
-    public final class EditProfileContentViewModel: ObservableObject {
-        @Published public var isLoading = true
+    public final class EditProfileContentViewModel: BaseViewModel {
         @Published public var profile: Profile?
         @Published public var profileContent = ""
         @Published public var isChanged = false
-        @Published public var alert: Alert?
 
         private let profileID: Int64?
 
         public init(profileID: Int64?) {
             self.profileID = profileID
+            super.init()
+            isLoading = true
         }
 
         public func markAsChanged() {

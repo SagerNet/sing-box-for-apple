@@ -3,14 +3,10 @@ import Library
 import SwiftUI
 
 @MainActor
-public final class EditProfileViewModel: ObservableObject {
-    @Published public var isLoading = false
+public final class EditProfileViewModel: BaseViewModel {
     @Published public var isChanged = false
-    @Published public var alert: Alert?
     @Published public var shareLinkPresented = false
     @Published public var shareLinkText: String?
-
-    public init() {}
 
     public func markAsChanged() {
         isChanged = true

@@ -4,11 +4,8 @@ import Library
 import SwiftUI
 
 @MainActor
-public final class OverviewCoordinator: ObservableObject {
-    @Published public var alert: Alert?
+public final class OverviewViewModel: BaseViewModel {
     @Published public var reasserting = false
-
-    public init() {}
 
     public func switchProfile(_ profileID: Int64, profile: ExtensionProfile, environments: ExtensionEnvironments) async {
         await SharedPreferences.selectedProfileID.set(profileID)

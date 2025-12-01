@@ -4,12 +4,10 @@ import Library
 import SwiftUI
 
 @MainActor
-public class ProfileViewModel: ObservableObject {
+public class ProfileViewModel: BaseViewModel {
     @Published public var importRemoteProfileRequest: NewProfileView.ImportRequest?
     @Published public var importRemoteProfilePresented = false
-    @Published public var isLoading = true
     @Published public var isUpdating = false
-    @Published public var alert: Alert?
     @Published public var profileList: [ProfilePreview] = []
 
     #if os(iOS) || os(tvOS)
@@ -18,7 +16,10 @@ public class ProfileViewModel: ObservableObject {
 
     private weak var environments: ExtensionEnvironments?
 
-    public init() {}
+    public override init() {
+        super.init()
+        isLoading = true
+    }
 
     public func setEnvironments(_ environments: ExtensionEnvironments) {
         self.environments = environments

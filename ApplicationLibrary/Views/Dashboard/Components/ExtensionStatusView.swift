@@ -25,7 +25,7 @@ public struct ExtensionStatusView: View {
     }
 
     public var body0: some View {
-        viewBuilder {
+        Group {
             VStack {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
                     if ApplicationLibrary.inPreview {

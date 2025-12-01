@@ -3,11 +3,9 @@ import Library
 import SwiftUI
 
 @MainActor
-public class ConnectionListViewModel: ObservableObject {
-    @Published public var isLoading = true
+public class ConnectionListViewModel: BaseViewModel {
     @Published public var connections: [Connection] = []
     @Published public var searchText = ""
-    @Published public var alert: Alert?
     @Published public var connectionStateFilter: ConnectionStateFilter {
         didSet {
             saveStateFilterTask?.cancel()
@@ -30,9 +28,11 @@ public class ConnectionListViewModel: ObservableObject {
     private var saveStateFilterTask: Task<Void, Never>?
     private var saveSortTask: Task<Void, Never>?
 
-    public init() {
+    public override init() {
         connectionStateFilter = .active
         connectionSort = .byDate
+        super.init()
+        isLoading = true
     }
 
     public func connect() {

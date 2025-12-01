@@ -67,7 +67,7 @@ public struct ProfileView: View {
                         } else {
                             List {
                                 ForEach(viewModel.profileList, id: \.id) { profile in
-                                    viewBuilder {
+                                    Group {
                                         #if os(iOS) || os(tvOS)
                                             if viewModel.editMode.isEditing == true {
                                                 Text(profile.name)
@@ -182,7 +182,7 @@ public struct ProfileView: View {
         }
 
         private var draggableBody: some View {
-            viewBuilder {
+            Group {
                 #if !os(macOS)
                     FormNavigationLink {
                         EditProfileView().environmentObject(profile.origin)

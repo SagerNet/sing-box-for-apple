@@ -22,7 +22,7 @@
         @Environment(\.profileEditor) private var profileEditor
 
         public var body: some View {
-            viewBuilder {
+            Group {
                 if viewModel.isLoading {
                     ProgressView().onAppear {
                         Task {
@@ -104,7 +104,7 @@
 
         @ViewBuilder
         private var defaultEditorView: some View {
-            viewBuilder {
+            Group {
                 if readOnly {
                     TextEditor(text: .constant(viewModel.profileContent))
                 } else {

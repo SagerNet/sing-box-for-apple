@@ -57,7 +57,7 @@ public struct NewProfileView: View {
                 #if os(tvOS)
                 .disabled(true)
                 #endif
-                viewBuilder {
+                Group {
                     if viewModel.fileImport {
                         HStack {
                             Text("File Path")

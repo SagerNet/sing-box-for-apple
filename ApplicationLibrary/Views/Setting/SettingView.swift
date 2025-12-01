@@ -57,7 +57,7 @@ public struct SettingView: View {
 
         @MainActor
         var contentView: some View {
-            viewBuilder {
+            Group {
                 switch self {
                 #if os(macOS)
                     case .app:

@@ -7,7 +7,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
-    @StateObject private var coordinator = DashboardCoordinator()
+    @StateObject private var coordinator = DashboardViewModel()
     @State private var cardConfigurationVersion = 0
     #if os(iOS) || os(tvOS)
         @State private var showCardManagement = false

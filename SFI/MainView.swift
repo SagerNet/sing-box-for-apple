@@ -37,46 +37,28 @@ struct MainView: View {
     @ViewBuilder
     private var tabViewContent: some View {
         if shouldShowBottomAccessory {
-            TabView(selection: $selection) {
-                ForEach(NavigationPage.allCases, id: \.self) { page in
-                    NavigationStackCompat {
-                        page.contentView
-                            .navigationTitle(page.title)
+            baseTabView
+                .tabViewBottomAccessory {
+                    HStack(spacing: 12) {
+                        if let profile = environments.extensionProfile {
+                            StatusText(profile: profile)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        NavigationButtonsView(
+                            showGroupsButton: buttonState.showGroupsButton,
+                            showConnectionsButton: buttonState.showConnectionsButton,
+                            groupsCount: buttonState.groupsCount,
+                            connectionsCount: buttonState.connectionsCount,
+                            onGroupsTap: { showGroups = true },
+                            onConnectionsTap: { showConnections = true }
+                        )
+                        Divider()
+                        StartStopButton()
                     }
-                    .tag(page)
-                    .tabItem { page.label }
+                    .padding(.horizontal)
                 }
-            }
-            .tabViewBottomAccessory {
-                HStack(spacing: 12) {
-                    if let profile = environments.extensionProfile {
-                        StatusText(profile: profile)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    NavigationButtonsView(
-                        showGroupsButton: buttonState.showGroupsButton,
-                        showConnectionsButton: buttonState.showConnectionsButton,
-                        groupsCount: buttonState.groupsCount,
-                        connectionsCount: buttonState.connectionsCount,
-                        onGroupsTap: { showGroups = true },
-                        onConnectionsTap: { showConnections = true }
-                    )
-                    Divider()
-                    StartStopButton()
-                }
-                .padding(.horizontal)
-            }
         } else {
-            TabView(selection: $selection) {
-                ForEach(NavigationPage.allCases, id: \.self) { page in
-                    NavigationStackCompat {
-                        page.contentView
-                            .navigationTitle(page.title)
-                    }
-                    .tag(page)
-                    .tabItem { page.label }
-                }
-            }
+            baseTabView
         }
     }
 
@@ -88,24 +70,26 @@ struct MainView: View {
         }
     }
 
+    @ViewBuilder
+    private var baseTabView: some View {
+        TabView(selection: $selection) {
+            ForEach(NavigationPage.allCases, id: \.self) { page in
+                NavigationStackCompat {
+                    page.contentView
+                        .navigationTitle(page.title)
+                }
+                .tag(page)
+                .tabItem { page.label }
+            }
+        }
+    }
+
     private var mainBody: some View {
-        viewBuilder {
+        Group {
             if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
                 tabViewContent
                     .onAppear {
-                        environments.postReload()
                         updateButtonVisibility()
-                    }
-                    .alertBinding($alert)
-                    .onChangeCompat(of: scenePhase) { newValue in
-                        if newValue == .active {
-                            environments.postReload()
-                        }
-                    }
-                    .onChangeCompat(of: selection) { newValue in
-                        if newValue == .logs {
-                            environments.connect()
-                        }
                     }
                     .onReceive(environments.commandClient.$groups) { _ in
                         updateButtonVisibility()
@@ -125,12 +109,6 @@ struct MainView: View {
                     .onReceive(environments.$emptyProfiles) { _ in
                         updateButtonVisibility()
                     }
-                    .environment(\.selection, $selection)
-                    .environment(\.importProfile, $importProfile)
-                    .environment(\.importRemoteProfile, $importRemoteProfile)
-                    .environment(\.profileEditor, profileEditor)
-                    .handlesExternalEvents(preferring: [], allowing: ["*"])
-                    .onOpenURL(perform: openURL)
                     .sheet(isPresented: $showGroups) {
                         GroupsSheetContent()
                     }
@@ -138,38 +116,29 @@ struct MainView: View {
                         ConnectionsSheetContent()
                     }
             } else {
-                TabView(selection: $selection) {
-                    ForEach(NavigationPage.allCases, id: \.self) { page in
-                        NavigationStackCompat {
-                            page.contentView
-                                .navigationTitle(page.title)
-                        }
-                        .tag(page)
-                        .tabItem { page.label }
-                    }
-                }
-                .onAppear {
-                    environments.postReload()
-                }
-                .alertBinding($alert)
-                .onChangeCompat(of: scenePhase) { newValue in
-                    if newValue == .active {
-                        environments.postReload()
-                    }
-                }
-                .onChangeCompat(of: selection) { newValue in
-                    if newValue == .logs {
-                        environments.connect()
-                    }
-                }
-                .environment(\.selection, $selection)
-                .environment(\.importProfile, $importProfile)
-                .environment(\.importRemoteProfile, $importRemoteProfile)
-                .environment(\.profileEditor, profileEditor)
-                .handlesExternalEvents(preferring: [], allowing: ["*"])
-                .onOpenURL(perform: openURL)
+                baseTabView
             }
         }
+        .onAppear {
+            environments.postReload()
+        }
+        .alertBinding($alert)
+        .onChangeCompat(of: scenePhase) { newValue in
+            if newValue == .active {
+                environments.postReload()
+            }
+        }
+        .onChangeCompat(of: selection) { newValue in
+            if newValue == .logs {
+                environments.connect()
+            }
+        }
+        .environment(\.selection, $selection)
+        .environment(\.importProfile, $importProfile)
+        .environment(\.importRemoteProfile, $importRemoteProfile)
+        .environment(\.profileEditor, profileEditor)
+        .handlesExternalEvents(preferring: [], allowing: ["*"])
+        .onOpenURL(perform: openURL)
     }
 
     private func updateButtonVisibility() {

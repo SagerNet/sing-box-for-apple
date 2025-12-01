@@ -5,11 +5,9 @@ import NetworkExtension
 import SwiftUI
 
 @MainActor
-public final class DashboardCoordinator: ObservableObject {
-    @Published public var isLoading = true
+public final class DashboardViewModel: BaseViewModel {
     @Published public var profileList: [ProfilePreview] = []
     @Published public var selectedProfileID: Int64 = 0
-    @Published public var alert: Alert?
     @Published public var selection = DashboardPage.overview
     @Published public var systemProxyAvailable = false
     @Published public var systemProxyEnabled = false
@@ -22,7 +20,10 @@ public final class DashboardCoordinator: ObservableObject {
     public var onEmptyProfilesChange: ((Bool) -> Void)?
     private var openURL: ((URL) -> Void)?
 
-    public init() {}
+    public override init() {
+        super.init()
+        isLoading = true
+    }
 
     public func setOpenURL(_ openURL: @escaping (URL) -> Void) {
         self.openURL = openURL

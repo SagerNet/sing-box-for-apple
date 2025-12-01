@@ -17,7 +17,7 @@ public struct AppView: View {
 
     public init() {}
     public var body: some View {
-        viewBuilder {
+        Group {
             if isLoading {
                 ProgressView().onAppear {
                     Task {

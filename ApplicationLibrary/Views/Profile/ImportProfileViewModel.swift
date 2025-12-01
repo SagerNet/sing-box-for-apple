@@ -7,16 +7,12 @@
     import SwiftUI
 
     @MainActor
-    public final class ImportProfileViewModel: ObservableObject {
-        @Published public var isLoading = false
+    public final class ImportProfileViewModel: BaseViewModel {
         @Published public var selected = false
-        @Published public var alert: Alert?
         @Published public var connection: NWConnection?
         @Published public var socket: NWSocket?
         @Published public var profiles: [LibboxProfilePreview]?
         @Published public var isImporting = false
-
-        public init() {}
 
         public func reset() {
             if let connection {

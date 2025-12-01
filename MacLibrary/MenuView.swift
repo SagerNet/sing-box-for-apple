@@ -129,7 +129,7 @@ public struct MenuView: View {
         }
 
         var body: some View {
-            viewBuilder {
+            Group {
                 if isLoading {
                     ProgressView().onAppear {
                         Task {

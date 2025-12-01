@@ -7,7 +7,7 @@ import SwiftUI
 public struct OverviewView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
-    @StateObject private var coordinator = OverviewCoordinator()
+    @StateObject private var coordinator = OverviewViewModel()
     @StateObject private var configuration = DashboardCardConfiguration()
 
     @Binding private var profileList: [ProfilePreview]

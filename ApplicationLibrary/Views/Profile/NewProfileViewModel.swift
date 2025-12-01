@@ -4,7 +4,7 @@ import Library
 import SwiftUI
 
 @MainActor
-public final class NewProfileViewModel: ObservableObject {
+public final class NewProfileViewModel: BaseViewModel {
     @Published public var isSaving = false
     @Published public var profileName = ""
     #if !os(tvOS)
@@ -18,9 +18,9 @@ public final class NewProfileViewModel: ObservableObject {
     @Published public var autoUpdate = true
     @Published public var autoUpdateInterval: Int32 = 60
     @Published public var pickerPresented = false
-    @Published public var alert: Alert?
 
     public init(importRequest: NewProfileView.ImportRequest? = nil) {
+        super.init()
         if let importRequest {
             profileName = importRequest.name
             profileType = .remote

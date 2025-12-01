@@ -14,7 +14,7 @@ struct PacketTunnelView: View {
 
     init() {}
     var body: some View {
-        viewBuilder {
+        Group {
             if isLoading {
                 ProgressView().onAppear {
                     Task.detached {

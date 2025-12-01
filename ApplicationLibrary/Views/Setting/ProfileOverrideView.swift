@@ -9,7 +9,7 @@ public struct ProfileOverrideView: View {
 
     public init() {}
     public var body: some View {
-        viewBuilder {
+        Group {
             if isLoading {
                 ProgressView().onAppear {
                     Task.detached {

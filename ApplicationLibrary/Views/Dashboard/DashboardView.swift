@@ -9,7 +9,7 @@ public struct DashboardView: View {
     @Environment(\.importProfile) private var importProfile
     @Environment(\.importRemoteProfile) private var importRemoteProfile
     @EnvironmentObject private var environments: ExtensionEnvironments
-    @StateObject private var coordinator = DashboardCoordinator()
+    @StateObject private var coordinator = DashboardViewModel()
     @State private var importRemoteProfileRequest: NewProfileView.ImportRequest?
 
     #if os(macOS)

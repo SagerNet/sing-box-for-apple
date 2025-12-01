@@ -64,7 +64,7 @@ public extension NavigationPage {
 
     @MainActor
     var contentView: some View {
-        viewBuilder {
+        Group {
             switch self {
             case .dashboard:
                 DashboardView()
