@@ -60,6 +60,10 @@ public struct GroupItemView: View {
         .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
         .background(backgroundColor)
         .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        )
         #endif
     }
 
