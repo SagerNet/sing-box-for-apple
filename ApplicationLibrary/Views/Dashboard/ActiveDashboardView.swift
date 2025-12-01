@@ -64,7 +64,11 @@ import SwiftUI
         }.sheet(isPresented: $showCardManagement, onDismiss: {
             cardConfigurationVersion += 1
         }, content: {
-            CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
+            if #available(iOS 16.0, tvOS 17.0, *) {
+                CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
+            } else {
+                CardManagementSheet()
+            }
         })
         #endif
         .onAppear {

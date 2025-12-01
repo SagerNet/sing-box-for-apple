@@ -13,8 +13,8 @@ public struct GroupListView: View {
             } else if !viewModel.groups.isEmpty {
                 ScrollView {
                     VStack {
-                        ForEach(viewModel.groups, id: \.hashValue) { it in
-                            GroupView(it)
+                        ForEach($viewModel.groups, id: \.tag) { $group in
+                            GroupView($group)
                         }
                     }.padding()
                 }
@@ -22,6 +22,8 @@ public struct GroupListView: View {
                 Text("Empty groups")
             }
         }
+        .environmentObject(viewModel)
+        .alertBinding($viewModel.alert)
         .onAppear {
             viewModel.connect()
         }

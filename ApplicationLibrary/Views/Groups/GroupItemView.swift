@@ -1,28 +1,25 @@
-import Libbox
 import Library
 import SwiftUI
 
 @MainActor
 public struct GroupItemView: View {
-    private let _group: Binding<OutboundGroup>
-    private var group: OutboundGroup {
-        _group.wrappedValue
+    @EnvironmentObject private var listViewModel: GroupListViewModel
+    @Binding private var group: OutboundGroup
+
+    private let itemTag: String
+    private var item: OutboundGroupItem {
+        group.items.first { $0.tag == itemTag }!
     }
 
-    private let item: OutboundGroupItem
     public init(_ group: Binding<OutboundGroup>, _ item: OutboundGroupItem) {
         _group = group
-        self.item = item
+        itemTag = item.tag
     }
-
-    @State private var alert: Alert?
 
     public var body: some View {
         Button {
             if group.selectable, group.selected != item.tag {
-                Task {
-                    await selectOutbound()
-                }
+                listViewModel.selectOutbound(groupTag: group.tag, outboundTag: item.tag)
             }
         } label: {
             HStack {
@@ -64,22 +61,6 @@ public struct GroupItemView: View {
         .background(backgroundColor)
         .cornerRadius(10)
         #endif
-        .alertBinding($alert)
-    }
-
-    private nonisolated func selectOutbound() async {
-        do {
-            try await LibboxNewStandaloneCommandClient()!.selectOutbound(group.tag, outboundTag: item.tag)
-            var newGroup = await group
-            newGroup.selected = await item.tag
-            await MainActor.run { [newGroup] in
-                _group.wrappedValue = newGroup
-            }
-        } catch {
-            await MainActor.run {
-                alert = Alert(error)
-            }
-        }
     }
 
     private var backgroundColor: Color {

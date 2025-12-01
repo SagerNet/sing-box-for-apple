@@ -3,29 +3,30 @@ import SwiftUI
 
 @MainActor
 public struct GroupView: View {
-    @StateObject private var viewModel: GroupViewModel
+    @EnvironmentObject private var listViewModel: GroupListViewModel
+    @Binding private var group: OutboundGroup
     @State private var geometryWidth: CGFloat = 300
 
-    public init(_ group: OutboundGroup) {
-        _viewModel = StateObject(wrappedValue: GroupViewModel(group: group))
+    public init(_ group: Binding<OutboundGroup>) {
+        _group = group
     }
 
     private var title: some View {
         HStack {
-            Text(viewModel.group.tag)
+            Text(group.tag)
                 .font(.headline)
-            Text(viewModel.group.displayType)
+            Text(group.displayType)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-            Text("\(viewModel.group.items.count)")
+            Text("\(group.items.count)")
                 .font(.subheadline)
                 .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
                 .background(Color.gray.opacity(0.5))
                 .cornerRadius(4)
             Button {
-                viewModel.toggleExpand()
+                listViewModel.toggleExpand(groupTag: group.tag)
             } label: {
-                if viewModel.group.isExpand {
+                if group.isExpand {
                     Image(systemName: "arrow.down.to.line")
                 } else {
                     Image(systemName: "arrow.up.to.line")
@@ -35,7 +36,7 @@ public struct GroupView: View {
             .buttonStyle(.plain)
             #endif
             Button {
-                viewModel.performURLTest()
+                listViewModel.performURLTest(group.tag)
             } label: {
                 Image(systemName: "bolt.fill")
             }
@@ -43,19 +44,18 @@ public struct GroupView: View {
             .buttonStyle(.plain)
             #endif
         }
-        .alertBinding($viewModel.alert)
         .padding([.top, .bottom], 8)
-        .animation(.easeInOut, value: viewModel.group.isExpand)
+        .animation(.easeInOut, value: group.isExpand)
     }
 
     public var body: some View {
         Section {
-            if viewModel.group.isExpand {
+            if group.isExpand {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
                                          count: explandColumnCount()))
                 {
-                    ForEach(viewModel.group.items, id: \.tag) { it in
-                        GroupItemView($viewModel.group, it)
+                    ForEach(group.items, id: \.tag) { it in
+                        GroupItemView($group, it)
                     }
                 }
             } else {
@@ -66,7 +66,7 @@ public struct GroupView: View {
                                 ZStack {
                                     Rectangle()
                                         .fill(it.delayColor)
-                                    if it.tag == viewModel.group.selected {
+                                    if it.tag == group.selected {
                                         Rectangle()
                                             .fill(Color.white)
                                         #if !os(tvOS)
@@ -113,9 +113,9 @@ public struct GroupView: View {
             count = Int(Int(geometryWidth) / 20)
         #endif
         if count == 0 {
-            return [viewModel.group.items]
+            return [group.items]
         } else {
-            return viewModel.group.items.chunked(
+            return group.items.chunked(
                 into: count
             )
         }
