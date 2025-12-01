@@ -13,7 +13,7 @@ public struct AppView: View {
     @Environment(\.showMenuBarExtra) private var showMenuBarExtra
     @State private var menuBarExtraInBackground = false
 
-    @State private var alert: Alert?
+    @State private var alert: AlertState?
 
     public init() {}
     public var body: some View {
@@ -72,7 +72,7 @@ public struct AppView: View {
                 }
             }
         }
-        .alertBinding($alert)
+        .alert($alert)
         .navigationTitle("App")
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -101,7 +101,7 @@ public struct AppView: View {
                     try SMAppService.mainApp.unregister()
                 }
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
 
@@ -110,21 +110,19 @@ public struct AppView: View {
                 if let result = try await SystemExtension.install(forceUpdate: true) {
                     switch result {
                     case .completed:
-                        alert = Alert(
-                            title: Text("Update"),
-                            message: Text("System Extension updated."),
-                            dismissButton: .default(Text("Ok")) {}
+                        alert = AlertState(
+                            title: String(localized: "Update"),
+                            message: String(localized: "System Extension updated.")
                         )
                     case .willCompleteAfterReboot:
-                        alert = Alert(
-                            title: Text("Update"),
-                            message: Text("Reboot required."),
-                            dismissButton: .default(Text("Ok")) {}
+                        alert = AlertState(
+                            title: String(localized: "Update"),
+                            message: String(localized: "Reboot required.")
                         )
                     }
                 }
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
 
@@ -133,21 +131,19 @@ public struct AppView: View {
                 if let result = try await SystemExtension.uninstall() {
                     switch result {
                     case .completed:
-                        alert = Alert(
-                            title: Text("Uninstall"),
-                            message: Text("System Extension removed."),
-                            dismissButton: .default(Text("Ok")) {}
+                        alert = AlertState(
+                            title: String(localized: "Uninstall"),
+                            message: String(localized: "System Extension removed.")
                         )
                     case .willCompleteAfterReboot:
-                        alert = Alert(
-                            title: Text("Uninstall"),
-                            message: Text("Reboot required."),
-                            dismissButton: .default(Text("Ok")) {}
+                        alert = AlertState(
+                            title: String(localized: "Uninstall"),
+                            message: String(localized: "Reboot required.")
                         )
                     }
                 }
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
 

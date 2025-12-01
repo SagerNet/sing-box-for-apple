@@ -16,7 +16,7 @@ public class ProfileViewModel: BaseViewModel {
 
     private weak var environments: ExtensionEnvironments?
 
-    public override init() {
+    override public init() {
         super.init()
         isLoading = true
     }
@@ -26,15 +26,15 @@ public class ProfileViewModel: BaseViewModel {
     }
 
     public func createImportProfileDialog(_ profile: LibboxProfileContent) {
-        alert = Alert(
-            title: Text("Import Profile"),
-            message: Text("Are you sure to import profile \(profile.name)?"),
-            primaryButton: .default(Text("Import")) {
+        alert = AlertState(
+            title: String(localized: "Import Profile"),
+            message: String(localized: "Are you sure to import profile \(profile.name)?"),
+            primaryButton: .default(String(localized: "Import")) {
                 Task {
                     do {
                         try await profile.importProfile()
                     } catch {
-                        self.alert = Alert(error)
+                        self.alert = AlertState(error: error)
                         return
                     }
                     await self.doReload()
@@ -47,10 +47,10 @@ public class ProfileViewModel: BaseViewModel {
 
     public func createImportRemoteProfileDialog(_ newValue: LibboxImportRemoteProfile) {
         importRemoteProfileRequest = .init(name: newValue.name, url: newValue.url)
-        alert = Alert(
-            title: Text("Import Remote Profile"),
-            message: Text("Are you sure to import remote profile \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
-            primaryButton: .default(Text("Import")) {
+        alert = AlertState(
+            title: String(localized: "Import Remote Profile"),
+            message: String(localized: "Are you sure to import remote profile \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
+            primaryButton: .default(String(localized: "Import")) {
                 self.importRemoteProfilePresented = true
             },
             secondaryButton: .cancel()
@@ -70,7 +70,7 @@ public class ProfileViewModel: BaseViewModel {
             do {
                 profileList = try await ProfileManager.list().map { ProfilePreview($0) }
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 return
             }
         }
@@ -87,7 +87,7 @@ public class ProfileViewModel: BaseViewModel {
             _ = try await profile.updateRemoteProfile()
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }
@@ -98,7 +98,7 @@ public class ProfileViewModel: BaseViewModel {
             environments?.profileUpdate.send()
             environments?.emptyProfiles = profileList.isEmpty
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
         }
     }
 
@@ -113,7 +113,7 @@ public class ProfileViewModel: BaseViewModel {
                 try await ProfileManager.update(profileList.map(\.origin))
                 environments?.profileUpdate.send()
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }
@@ -129,7 +129,7 @@ public class ProfileViewModel: BaseViewModel {
                 environments?.emptyProfiles = profileList.isEmpty
                 environments?.profileUpdate.send()
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }

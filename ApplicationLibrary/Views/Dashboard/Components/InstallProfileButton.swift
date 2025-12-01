@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 public struct InstallProfileButton: View {
-    @State private var alert: Alert?
+    @State private var alert: AlertState?
 
     private let callback: () async -> Void
     public init(_ callback: @escaping (() async -> Void)) {
@@ -18,7 +18,7 @@ public struct InstallProfileButton: View {
         } label: {
             Label("Install Network Extension", systemImage: "lock.doc.fill")
         }
-        .alertBinding($alert)
+        .alert($alert)
     }
 
     private func installProfile() async {
@@ -26,7 +26,7 @@ public struct InstallProfileButton: View {
             try await ExtensionProfile.install()
             await callback()
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
         }
     }
 }

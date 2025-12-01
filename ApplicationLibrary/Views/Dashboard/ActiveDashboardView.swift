@@ -34,7 +34,7 @@ import SwiftUI
             }
         } else {
             content.onAppear {
-                guard !ApplicationLibrary.inPreview else {
+                guard !ApplicationLibrary.inPreview, profile.status.isConnected else {
                     return
                 }
                 Task {
@@ -117,7 +117,7 @@ import SwiftUI
             updateButtonVisibility()
         }
         #endif
-        .alertBinding($coordinator.alert)
+        .alert($coordinator.alert)
     }
 
     @ViewBuilder private var overviewPage: some View {

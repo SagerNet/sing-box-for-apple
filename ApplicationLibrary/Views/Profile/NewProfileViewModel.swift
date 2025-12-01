@@ -45,17 +45,17 @@ public final class NewProfileViewModel: BaseViewModel {
         defer { isSaving = false }
 
         guard !profileName.isEmpty else {
-            alert = Alert(errorMessage: String(localized: "Missing profile name"))
+            alert = AlertState(errorMessage: String(localized: "Missing profile name"))
             return
         }
 
         if profileType == .icloud, remotePath.isEmpty {
-            alert = Alert(errorMessage: String(localized: "Missing path"))
+            alert = AlertState(errorMessage: String(localized: "Missing path"))
             return
         }
 
         if profileType == .remote, remotePath.isEmpty {
-            alert = Alert(errorMessage: String(localized: "Missing URL"))
+            alert = AlertState(errorMessage: String(localized: "Missing URL"))
             return
         }
 
@@ -63,7 +63,7 @@ public final class NewProfileViewModel: BaseViewModel {
         do {
             createdProfile = try await createProfileBackground()
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
             return
         }
 

@@ -49,7 +49,7 @@ private struct LogViewContent: View {
                 }
             }
         }
-        .alertBinding($viewModel.alert)
+        .alert($viewModel.alert)
         .background(
             LogExportView(
                 showFileExporter: $viewModel.showFileExporter,
@@ -242,7 +242,7 @@ private struct LogViewContent: View {
     private struct LogExportView: View {
         @Binding var showFileExporter: Bool
         @Binding var logFileURL: URL?
-        @Binding var alert: Alert?
+        @Binding var alert: AlertState?
         @State private var showShareSheet = false
         let cleanup: () -> Void
 
@@ -257,7 +257,7 @@ private struct LogViewContent: View {
                     cleanup()
                     logFileURL = nil
                     if case let .failure(error) = result {
-                        alert = Alert(error)
+                        alert = AlertState(error: error)
                     }
                 }
                 .sheet(isPresented: $showShareSheet) {
@@ -320,7 +320,7 @@ private struct LogViewContent: View {
     #elseif os(macOS)
         private struct ShareView: NSViewRepresentable {
             let items: [Any]
-            @Binding var alert: Alert?
+            @Binding var alert: AlertState?
 
             func makeNSView(context _: Context) -> NSView {
                 let view = NSView()

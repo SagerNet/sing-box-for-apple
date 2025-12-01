@@ -59,7 +59,7 @@
                 }
             }
             .focusSection()
-            .alertBinding($viewModel.alert)
+            .alert($viewModel.alert)
             .navigationTitle("Import Profile")
         }
     }

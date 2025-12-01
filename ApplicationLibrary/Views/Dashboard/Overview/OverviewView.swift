@@ -44,7 +44,7 @@ public struct OverviewView: View {
         .onChangeCompat(of: cardConfigurationVersion) { _ in
             Task { await configuration.reload() }
         }
-        .alertBinding($coordinator.alert)
+        .alert($coordinator.alert)
         .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || coordinator.reasserting))
     }
 

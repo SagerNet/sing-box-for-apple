@@ -95,7 +95,7 @@ public struct EditProfileView: View {
                 viewModel.markAsChanged()
             }
             .disabled(viewModel.isLoading)
-            .alertBinding($viewModel.alert)
+            .alert($viewModel.alert)
         }
     #else
         private var iOSBody: some View {
@@ -122,7 +122,7 @@ public struct EditProfileView: View {
                     }
                 }
             #endif
-                .alertBinding($viewModel.alert)
+                .alert($viewModel.alert)
                 .navigationTitle("Edit Profile")
         }
     #endif

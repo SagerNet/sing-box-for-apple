@@ -21,7 +21,7 @@ public final class EditProfileViewModel: BaseViewModel {
             try await profile.updateRemoteProfile()
             environments.profileUpdate.send()
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
         }
     }
 
@@ -29,7 +29,7 @@ public final class EditProfileViewModel: BaseViewModel {
         do {
             try await ProfileManager.delete(profile)
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
             return
         }
         environments.profileUpdate.send()
@@ -46,7 +46,7 @@ public final class EditProfileViewModel: BaseViewModel {
             #endif
             try await profile.onProfileUpdated()
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
             return
         }
         isChanged = false

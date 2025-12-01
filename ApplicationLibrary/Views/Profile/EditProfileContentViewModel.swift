@@ -33,7 +33,7 @@
             do {
                 try await loadContentBackground()
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
             isLoading = false
         }
@@ -59,7 +59,7 @@
             do {
                 try await saveContentBackground(profile)
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 return
             }
             isChanged = false

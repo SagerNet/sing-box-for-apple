@@ -11,7 +11,7 @@ struct MainView: View {
     @State private var selection = NavigationPage.dashboard
     @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
-    @State private var alert: Alert?
+    @State private var alert: AlertState?
     @State private var showGroups = false
     @State private var showConnections = false
     @State private var buttonState = ButtonVisibilityState()
@@ -122,7 +122,7 @@ struct MainView: View {
         .onAppear {
             environments.postReload()
         }
-        .alertBinding($alert)
+        .alert($alert)
         .onChangeCompat(of: scenePhase) { newValue in
             if newValue == .active {
                 environments.postReload()
@@ -185,7 +185,7 @@ struct MainView: View {
             var error: NSError?
             importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
             if let error {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 return
             }
             if selection != .dashboard {
@@ -197,14 +197,14 @@ struct MainView: View {
                 importProfile = try .from(Data(contentsOf: url))
                 url.stopAccessingSecurityScopedResource()
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 return
             }
             if selection != .dashboard {
                 selection = .dashboard
             }
         } else {
-            alert = Alert(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
+            alert = AlertState(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
         }
     }
 }

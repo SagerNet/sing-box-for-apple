@@ -23,7 +23,7 @@ public struct GroupListView: View {
             }
         }
         .environmentObject(viewModel)
-        .alertBinding($viewModel.alert)
+        .alert($viewModel.alert)
         .onAppear {
             viewModel.connect()
         }

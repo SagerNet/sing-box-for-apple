@@ -76,7 +76,7 @@ struct EditProfileContentWindow: View {
         } message: {
             Text("Do you want to save the changes you made?")
         }
-        .alertBinding($viewModel.alert)
+        .alert($viewModel.alert)
         .navigationTitle(navigationTitle)
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {

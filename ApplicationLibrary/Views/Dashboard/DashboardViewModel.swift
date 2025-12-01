@@ -20,7 +20,7 @@ public final class DashboardViewModel: BaseViewModel {
     public var onEmptyProfilesChange: ((Bool) -> Void)?
     private var openURL: ((URL) -> Void)?
 
-    public override init() {
+    override public init() {
         super.init()
         isLoading = true
     }
@@ -65,7 +65,7 @@ public final class DashboardViewModel: BaseViewModel {
                     await SharedPreferences.selectedProfileID.set(selectedProfileID)
                 }
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 return
             }
         }
@@ -78,7 +78,7 @@ public final class DashboardViewModel: BaseViewModel {
             systemProxyAvailable = status.available
             systemProxyEnabled = status.enabled
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
         }
     }
 
@@ -114,7 +114,7 @@ public final class DashboardViewModel: BaseViewModel {
             }
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }
@@ -123,34 +123,29 @@ public final class DashboardViewModel: BaseViewModel {
         guard reports.hasNext() else { return }
 
         let report = reports.next()!
+        let continueChain: () -> Void = { [weak self] in
+            _ = Task.detached {
+                try? await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+                await self?.loopShowDeprecateNotes(reports)
+            }
+        }
+
         if report.migrationLink.isEmpty {
-            alert = Alert(
-                title: Text("Deprecated Warning"),
-                message: Text(report.message()),
-                dismissButton: .cancel(Text("Ok")) {
-                    Task.detached { [weak self] in
-                        try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-                        await self?.loopShowDeprecateNotes(reports)
-                    }
-                }
+            alert = AlertState(
+                title: String(localized: "Deprecated Warning"),
+                message: report.message(),
+                dismissButton: .cancel(String(localized: "Ok"))
             )
+            alert?.onDismiss = continueChain
         } else {
-            alert = Alert(
-                title: Text("Deprecated Warning"),
-                message: Text(report.message()),
-                primaryButton: .default(Text("Documentation")) {
+            alert = AlertState(
+                title: String(localized: "Deprecated Warning"),
+                message: report.message(),
+                primaryButton: .default(String(localized: "Documentation")) {
                     self.openURL?(URL(string: report.migrationLink)!)
-                    Task.detached { [weak self] in
-                        try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-                        await self?.loopShowDeprecateNotes(reports)
-                    }
                 },
-                secondaryButton: .cancel(Text("Ok")) {
-                    Task.detached { [weak self] in
-                        try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-                        await self?.loopShowDeprecateNotes(reports)
-                    }
-                }
+                secondaryButton: .cancel(String(localized: "Ok")),
+                onDismiss: continueChain
             )
         }
     }
@@ -165,10 +160,10 @@ public final class DashboardViewModel: BaseViewModel {
             #if os(macOS)
                 if myError.domain == "Library.FullDiskAccessPermissionRequired" {
                     await MainActor.run {
-                        alert = Alert(
-                            title: Text("Full Disk Access permission is required"),
-                            message: Text("Please grant the permission for **SFMExtension**, then we can continue."),
-                            primaryButton: .default(Text("Authorize"), action: openFDASettings),
+                        alert = AlertState(
+                            title: String(localized: "Full Disk Access permission is required"),
+                            message: String(localized: "Please grant the permission for **SFMExtension**, then we can continue."),
+                            primaryButton: .default(String(localized: "Authorize"), action: openFDASettings),
                             secondaryButton: .cancel()
                         )
                     }
@@ -176,7 +171,7 @@ public final class DashboardViewModel: BaseViewModel {
                 }
             #endif
             await MainActor.run {
-                alert = Alert(title: Text("Service Error"), message: Text(myError.localizedDescription))
+                alert = AlertState(title: String(localized: "Service Error"), message: myError.localizedDescription)
             }
         }
     }

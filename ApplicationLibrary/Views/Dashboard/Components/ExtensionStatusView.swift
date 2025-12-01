@@ -9,7 +9,7 @@ public struct ExtensionStatusView: View {
     @EnvironmentObject private var commandClient: CommandClient
 
     @State private var columnCount: Int = 4
-    @State private var alert: Alert?
+    @State private var alert: AlertState?
 
     private let infoFont = Font.system(.caption, design: .monospaced)
 
@@ -91,7 +91,7 @@ public struct ExtensionStatusView: View {
             .frame(alignment: .topLeading)
             .padding([.top, .leading, .trailing])
         }
-        .alertBinding($alert)
+        .alert($alert)
     }
 
     private func updateColumnCount(_ width: Double) {

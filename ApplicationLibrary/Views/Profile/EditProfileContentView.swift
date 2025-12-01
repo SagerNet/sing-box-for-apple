@@ -36,7 +36,7 @@
                         }
                 }
             }
-            .alertBinding($viewModel.alert)
+            .alert($viewModel.alert)
             .navigationTitle(navigationTitle)
             #if os(macOS)
                 .toolbar {

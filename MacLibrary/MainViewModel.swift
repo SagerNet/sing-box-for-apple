@@ -9,7 +9,7 @@ public class MainViewModel: ObservableObject {
     @Published public var selection = NavigationPage.dashboard
     @Published public var importProfile: LibboxProfileContent?
     @Published public var importRemoteProfile: LibboxImportRemoteProfile?
-    @Published public var alert: Alert?
+    @Published public var alert: AlertState?
 
     public init() {}
 
@@ -53,7 +53,7 @@ public class MainViewModel: ObservableObject {
                 await importURLProfile(url)
             }
         } else {
-            alert = Alert(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
+            alert = AlertState(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
         }
     }
 
@@ -63,7 +63,7 @@ public class MainViewModel: ObservableObject {
             importProfile = try await .from(readURL(url))
             url.stopAccessingSecurityScopedResource()
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
             return
         }
         if selection != .dashboard {
@@ -78,10 +78,10 @@ public class MainViewModel: ObservableObject {
     private func checkApplicationPath() {
         let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.last
         if directoryName != "Applications" {
-            alert = Alert(
-                title: Text("Wrong application location"),
-                message: Text("This app needs to be placed under the Applications folder to work."),
-                dismissButton: .default(Text("Ok")) {
+            alert = AlertState(
+                title: String(localized: "Wrong application location"),
+                message: String(localized: "This app needs to be placed under the Applications folder to work."),
+                dismissButton: .default(String(localized: "Ok")) {
                     NSWorkspace.shared.selectFile(Bundle.main.bundlePath, inFileViewerRootedAtPath: "")
                     NSApp.terminate(nil)
                 }

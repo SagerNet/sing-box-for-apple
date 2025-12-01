@@ -51,7 +51,7 @@ public struct ProfileCard: View {
             }
         }
         #endif
-        .alertBinding($viewModel.alert)
+        .alert($viewModel.alert)
     }
 
     private var headerView: some View {
@@ -254,7 +254,7 @@ extension ProfileCard {
         @Published var showManageProfiles = false
         @Published var showQRCode = false
         @Published var isUpdating = false
-        @Published var alert: Alert?
+        @Published var alert: AlertState?
         @Published var profileToEdit: Profile?
 
         func updateProfile(_ profile: Profile, environments: ExtensionEnvironments) async {
@@ -264,9 +264,9 @@ extension ProfileCard {
                 try await profile.updateRemoteProfile()
                 environments.profileUpdate.send()
             } catch {
-                alert = Alert(
-                    title: Text("Update Failed"),
-                    message: Text(error.localizedDescription)
+                alert = AlertState(
+                    title: String(localized: "Update Failed"),
+                    message: error.localizedDescription
                 )
             }
         }
@@ -368,7 +368,7 @@ extension ProfileCard {
                 }
             }
             .disabled(viewModel.isUpdating)
-            .alertBinding($viewModel.alert, $viewModel.isLoading)
+            .alert($viewModel.alert, isLoading: $viewModel.isLoading)
             .onReceive(environments.profileUpdate) { _ in
                 Task {
                     await viewModel.doReload()

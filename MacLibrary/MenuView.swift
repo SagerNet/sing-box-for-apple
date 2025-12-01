@@ -72,7 +72,7 @@ public struct MenuView: View {
 
     private struct StatusSwitch: View {
         @ObservedObject private var profile: ExtensionProfile
-        @State private var alert: Alert?
+        @State private var alert: AlertState?
 
         init(_ profile: ExtensionProfile) {
             self.profile = profile
@@ -88,7 +88,7 @@ public struct MenuView: View {
             })) {}
                 .toggleStyle(.switch)
                 .disabled(!profile.status.isEnabled)
-                .alertBinding($alert)
+                .alert($alert)
         }
 
         private func switchProfile(_ isEnabled: Bool) async {
@@ -99,7 +99,7 @@ public struct MenuView: View {
                     try await profile.stop()
                 }
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 return
             }
         }
@@ -117,7 +117,7 @@ public struct MenuView: View {
         @State private var profileList: [ProfilePreview] = []
         @State private var selectedProfileID: Int64 = 0
         @State private var reasserting = false
-        @State private var alert: Alert?
+        @State private var alert: AlertState?
 
         private var selectedProfileIDLocal: Binding<Int64> {
             $selectedProfileID.withSetter { newValue in
@@ -161,7 +161,7 @@ public struct MenuView: View {
                     selectedProfileID = await SharedPreferences.selectedProfileID.get()
                 }
             }
-            .alertBinding($alert)
+            .alert($alert)
         }
 
         private func doReload() async {
@@ -171,7 +171,7 @@ public struct MenuView: View {
             do {
                 profileList = try await ProfileManager.list().map { ProfilePreview($0) }
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 return
             }
             if profileList.isEmpty {
@@ -194,7 +194,7 @@ public struct MenuView: View {
                 do {
                     try await serviceReload()
                 } catch {
-                    alert = Alert(error)
+                    alert = AlertState(error: error)
                 }
             }
             reasserting = false

@@ -16,7 +16,7 @@ public class LogViewModel: ObservableObject {
     @Published public var searchText = ""
     @Published public var isSearching = false
     @Published public var filteredLogs: [LogEntry] = []
-    @Published public var alert: Alert?
+    @Published public var alert: AlertState?
     @Published public var showFileExporter = false
     @Published public var logFileURL: URL?
 
@@ -146,7 +146,7 @@ public class LogViewModel: ObservableObject {
                 try text.write(to: fileURL, atomically: true, encoding: .utf8)
                 logFileURL = fileURL
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     #endif

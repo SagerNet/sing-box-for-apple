@@ -55,7 +55,7 @@ public struct ServiceLogView: View {
                 }
             }
         }
-        .alertBinding($viewModel.alert)
+        .alert($viewModel.alert)
         .navigationTitle("Service Log")
         #if os(tvOS)
             .focusable()

@@ -18,7 +18,7 @@ public struct ConnectionView: View {
         LibboxFormatDuration(Int64((closedAt.timeIntervalSince1970 - createdAt.timeIntervalSince1970) * 1000))
     }
 
-    @State private var alert: Alert?
+    @State private var alert: AlertState?
 
     public var body: some View {
         FormNavigationLink {
@@ -86,7 +86,7 @@ public struct ConnectionView: View {
         #if !os(tvOS)
         .buttonStyle(.borderless)
         #endif
-        .alertBinding($alert)
+        .alert($alert)
         .contextMenu {
             if connection.closedAt == nil {
                 Button("Close", role: .destructive) {
@@ -114,7 +114,7 @@ public struct ConnectionView: View {
             try await LibboxNewStandaloneCommandClient()!.closeConnection(connection.id)
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }

@@ -88,7 +88,7 @@ public struct ProfileView: View {
             }
         }
         .disabled(viewModel.isUpdating)
-        .alertBinding($viewModel.alert, $viewModel.isLoading)
+        .alert($viewModel.alert, isLoading: $viewModel.isLoading)
         .onAppear {
             if let profile = importProfile.wrappedValue {
                 importProfile.wrappedValue = nil

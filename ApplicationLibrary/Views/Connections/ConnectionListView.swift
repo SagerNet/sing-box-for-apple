@@ -54,7 +54,7 @@ public struct ConnectionListView: View {
         #if os(macOS)
         .searchable(text: $viewModel.searchText)
         #endif
-        .alertBinding($viewModel.alert)
+        .alert($viewModel.alert)
         .onAppear {
             viewModel.connect()
         }

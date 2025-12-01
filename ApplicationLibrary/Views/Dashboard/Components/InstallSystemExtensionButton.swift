@@ -5,7 +5,7 @@
 
     @MainActor
     public struct InstallSystemExtensionButton: View {
-        @State private var alert: Alert?
+        @State private var alert: AlertState?
         private let callback: () async -> Void
         public init(_ callback: @escaping () async -> Void) {
             self.callback = callback
@@ -19,19 +19,19 @@
             } label: {
                 Label("Install System Extension", systemImage: "lock.doc.fill")
             }
-            .alertBinding($alert)
+            .alert($alert)
         }
 
         private func installSystemExtension() async {
             do {
                 if let result = try await SystemExtension.install() {
                     if result == .willCompleteAfterReboot {
-                        alert = Alert(errorMessage: String(localized: "Need Reboot"))
+                        alert = AlertState(errorMessage: String(localized: "Need Reboot"))
                     }
                 }
                 await callback()
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }

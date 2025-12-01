@@ -158,7 +158,7 @@ public struct NewProfileView: View {
                 }
             }
             .disabled(viewModel.isSaving)
-            .alertBinding($viewModel.alert)
+            .alert($viewModel.alert)
             .fileImporter(
                 isPresented: $viewModel.pickerPresented,
                 allowedContentTypes: [.json],
@@ -170,7 +170,7 @@ public struct NewProfileView: View {
                         viewModel.fileURL = urls[0]
                     }
                 } catch {
-                    viewModel.alert = Alert(error)
+                    viewModel.alert = AlertState(error: error)
                     return
                 }
             }
@@ -180,7 +180,7 @@ public struct NewProfileView: View {
             formContent
                 .navigationTitle("New Profile")
                 .disabled(viewModel.isSaving)
-                .alertBinding($viewModel.alert)
+                .alert($viewModel.alert)
             #if os(iOS)
                 .fileImporter(
                     isPresented: $viewModel.pickerPresented,
@@ -193,7 +193,7 @@ public struct NewProfileView: View {
                             viewModel.fileURL = urls[0]
                         }
                     } catch {
-                        viewModel.alert = Alert(error)
+                        viewModel.alert = AlertState(error: error)
                         return
                     }
                 }

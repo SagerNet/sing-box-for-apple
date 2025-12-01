@@ -8,7 +8,7 @@ public class GroupListViewModel: BaseViewModel {
 
     private var pendingSelections: [String: String] = [:]
 
-    public override init() {
+    override public init() {
         super.init()
         isLoading = true
     }
@@ -89,7 +89,7 @@ public class GroupListViewModel: BaseViewModel {
             try await LibboxNewStandaloneCommandClient()!.selectOutbound(groupTag, outboundTag: outboundTag)
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }
@@ -108,7 +108,7 @@ public class GroupListViewModel: BaseViewModel {
             try await LibboxNewStandaloneCommandClient()!.setGroupExpand(tag, isExpand: isExpand)
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }
@@ -124,7 +124,7 @@ public class GroupListViewModel: BaseViewModel {
             try await LibboxNewStandaloneCommandClient()!.urlTest(tag)
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }

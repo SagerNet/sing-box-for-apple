@@ -28,7 +28,7 @@ public class ConnectionListViewModel: BaseViewModel {
     private var saveStateFilterTask: Task<Void, Never>?
     private var saveSortTask: Task<Void, Never>?
 
-    public override init() {
+    override public init() {
         connectionStateFilter = .active
         connectionSort = .byDate
         super.init()
@@ -70,7 +70,7 @@ public class ConnectionListViewModel: BaseViewModel {
         do {
             try LibboxNewStandaloneCommandClient()!.closeConnections()
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
         }
     }
 

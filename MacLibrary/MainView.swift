@@ -32,7 +32,7 @@ public struct MainView: View {
         .onAppear {
             viewModel.onAppear(environments: environments)
         }
-        .alertBinding($viewModel.alert)
+        .alert($viewModel.alert)
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 StartStopButton()

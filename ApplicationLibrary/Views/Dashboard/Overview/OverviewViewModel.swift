@@ -15,7 +15,7 @@ public final class OverviewViewModel: BaseViewModel {
             do {
                 try await serviceReload()
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
         reasserting = false
@@ -46,7 +46,7 @@ public final class OverviewViewModel: BaseViewModel {
                 await MainActor.run { reasserting = false }
             }
         } catch {
-            await MainActor.run { alert = Alert(error) }
+            await MainActor.run { alert = AlertState(error: error) }
         }
     }
 }

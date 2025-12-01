@@ -6,7 +6,7 @@ import SwiftUI
 final class ServiceLogViewModel: ObservableObject {
     @Published var isLoading = true
     @Published var content = ""
-    @Published var alert: Alert?
+    @Published var alert: AlertState?
 
     var isEmpty: Bool {
         content.isEmpty

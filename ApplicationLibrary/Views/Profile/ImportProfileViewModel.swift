@@ -37,7 +37,7 @@
                 case let .failed(error):
                     DispatchQueue.main.async { [self] in
                         reset()
-                        alert = Alert(error)
+                        alert = AlertState(error: error)
                     }
                 default: break
                 }
@@ -46,7 +46,7 @@
             do {
                 try await loopMessages(environments: environments, dismiss: dismiss)
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 reset()
             }
         }
@@ -115,7 +115,7 @@
                 try socket.write(request.encode())
                 isImporting = true
             } catch {
-                alert = Alert(error)
+                alert = AlertState(error: error)
                 reset()
             }
         }

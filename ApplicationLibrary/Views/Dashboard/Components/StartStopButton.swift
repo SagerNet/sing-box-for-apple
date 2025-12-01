@@ -39,7 +39,7 @@ public struct StartStopButton: View {
     private struct ToggleConnectionButton: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var profile: ExtensionProfile
-        @State private var alert: Alert?
+        @State private var alert: AlertState?
         @State private var currentTime = Date()
 
         private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -105,7 +105,7 @@ public struct StartStopButton: View {
                 .modifier(PrimaryTintModifier())
             #endif
                 .disabled(!profile.status.isEnabled)
-                .alertBinding($alert)
+                .alert($alert)
                 .onReceive(timer) { _ in
                     currentTime = Date()
                 }
@@ -146,7 +146,7 @@ public struct StartStopButton: View {
                 }
             } catch {
                 await MainActor.run {
-                    alert = Alert(error)
+                    alert = AlertState(error: error)
                 }
             }
         }

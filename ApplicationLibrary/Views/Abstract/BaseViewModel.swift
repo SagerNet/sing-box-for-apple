@@ -2,20 +2,20 @@ import SwiftUI
 
 @MainActor
 open class BaseViewModel: ObservableObject {
-    @Published public var alert: Alert?
+    @Published public var alert: AlertState?
     @Published public var isLoading = false
 
     public init() {}
 
     public func showError(_ error: Error) {
-        alert = Alert(error)
+        alert = AlertState(error: error)
     }
 
     public func execute(_ operation: () async throws -> Void) async {
         do {
             try await operation()
         } catch {
-            alert = Alert(error)
+            alert = AlertState(error: error)
         }
     }
 
@@ -24,7 +24,7 @@ open class BaseViewModel: ObservableObject {
             try await operation()
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }

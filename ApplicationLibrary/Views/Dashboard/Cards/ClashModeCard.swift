@@ -5,7 +5,7 @@ import SwiftUI
 public struct ClashModeCard: View {
     @EnvironmentObject private var commandClient: CommandClient
     @State private var clashMode: String = ""
-    @State private var alert: Alert?
+    @State private var alert: AlertState?
 
     public init() {}
 
@@ -32,7 +32,7 @@ public struct ClashModeCard: View {
             .onChangeCompat(of: commandClient.clashMode) { newValue in
                 clashMode = newValue
             }
-            .alertBinding($alert)
+            .alert($alert)
         }
     }
 
@@ -45,7 +45,7 @@ public struct ClashModeCard: View {
             try LibboxNewStandaloneCommandClient()!.setClashMode(newMode)
         } catch {
             await MainActor.run {
-                alert = Alert(error)
+                alert = AlertState(error: error)
             }
         }
     }
