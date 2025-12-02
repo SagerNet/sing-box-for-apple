@@ -27,7 +27,10 @@ public extension View {
 
     @ViewBuilder
     func actionButtonStyle() -> some View {
-        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, *) {
+        #if os(tvOS)
+        ActionButtonWrapper { self }
+        #else
+        if #available(iOS 26.0, macOS 26.0, *) {
             self.frame(width: 36, height: 36)
                 .glassEffect(.regular.interactive(), in: .circle)
         } else {
@@ -35,5 +38,21 @@ public extension View {
                 .background(Color.secondary.opacity(0.1))
                 .clipShape(Circle())
         }
+        #endif
     }
 }
+
+#if os(tvOS)
+private struct ActionButtonWrapper<Content: View>: View {
+    @Environment(\.isFocused) private var isFocused
+    let content: () -> Content
+
+    var body: some View {
+        content()
+            .frame(width: 36, height: 36)
+            .background(isFocused ? Color.secondary.opacity(0.3) : Color.secondary.opacity(0.1))
+            .clipShape(Circle())
+            .focusEffectDisabled()
+    }
+}
+#endif

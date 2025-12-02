@@ -101,24 +101,26 @@ public struct ProfileCard: View {
 
             Spacer()
 
-            Button {
-                viewModel.showNewProfile = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 16))
-            }
-            .buttonStyle(.plain)
-            .actionButtonStyle()
-
-            if !profileList.isEmpty {
+            HStack(spacing: actionButtonSpacing) {
                 Button {
-                    viewModel.showManageProfiles = true
+                    viewModel.showNewProfile = true
                 } label: {
-                    Image(systemName: "line.3.horizontal")
+                    Image(systemName: "plus")
                         .font(.system(size: 16))
                 }
                 .buttonStyle(.plain)
                 .actionButtonStyle()
+
+                if !profileList.isEmpty {
+                    Button {
+                        viewModel.showManageProfiles = true
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.system(size: 16))
+                    }
+                    .buttonStyle(.plain)
+                    .actionButtonStyle()
+                }
             }
         }
     }
@@ -146,9 +148,17 @@ public struct ProfileCard: View {
         }
     }
 
+    private var actionButtonSpacing: CGFloat {
+        #if os(tvOS)
+        24
+        #else
+        12
+        #endif
+    }
+
     @ViewBuilder
     private func actionButtonsRow(for profile: ProfilePreview) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: actionButtonSpacing) {
             editButton(for: profile)
 
             if profile.type == .remote {
@@ -156,12 +166,14 @@ public struct ProfileCard: View {
                 qrCodeButton(for: profile)
             }
 
+            #if !os(tvOS)
             ProfileShareButton($viewModel.alert, profile.origin) {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 16))
             }
             .buttonStyle(.plain)
             .actionButtonStyle()
+            #endif
         }
     }
 
@@ -472,6 +484,14 @@ extension ProfileCard {
             _profile = State(initialValue: profile)
         }
 
+        private var actionButtonSpacing: CGFloat {
+            #if os(tvOS)
+            24
+            #else
+            8
+            #endif
+        }
+
         var body: some View {
             HStack {
                 Image(systemName: "line.3.horizontal")
@@ -489,7 +509,7 @@ extension ProfileCard {
 
                 Spacer()
 
-                HStack(spacing: 8) {
+                HStack(spacing: actionButtonSpacing) {
                     if profile.type == .remote {
                         Button {
                             isUpdating = true
@@ -532,6 +552,7 @@ extension ProfileCard {
                         #endif
                     }
 
+                    #if !os(tvOS)
                     ShareButtonCompat($viewModel.alert) {
                         Image(systemName: "square.and.arrow.up")
                             .font(.system(size: 16))
@@ -539,6 +560,7 @@ extension ProfileCard {
                         try profile.origin.toContent().generateShareFile()
                     }
                     .actionButtonStyle()
+                    #endif
 
                     Button {
                         Task {
