@@ -97,6 +97,55 @@ import SwiftUI
     }
 }
 
+#if os(tvOS)
+@MainActor public struct CardManagementView: View {
+    @StateObject private var configuration = DashboardCardConfiguration()
+    private let onDisappear: (() -> Void)?
+
+    public init(onDisappear: (() -> Void)? = nil) {
+        self.onDisappear = onDisappear
+    }
+
+    public var body: some View {
+        Group {
+            if configuration.isLoading {
+                ProgressView()
+            } else {
+                List {
+                    ForEach(configuration.cardOrder) { card in
+                        CardRow(
+                            card: card,
+                            isEnabled: configuration.isEnabled(card),
+                            onToggle: {
+                                configuration.toggleCard(card)
+                            }
+                        )
+                    }
+                    .onMove { source, destination in
+                        Task {
+                            await configuration.moveCard(from: source, to: destination)
+                        }
+                    }
+                }
+                .applyContentMargins()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Reset", role: .destructive) {
+                    Task {
+                        await configuration.resetToDefault()
+                    }
+                }
+            }
+        }
+        .onDisappear {
+            onDisappear?()
+        }
+    }
+}
+#endif
+
 private struct CardRow: View {
     let card: DashboardCard
     let isEnabled: Bool

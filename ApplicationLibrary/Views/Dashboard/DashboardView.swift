@@ -35,9 +35,24 @@ public struct DashboardView: View {
             .onChangeCompat(of: importRemoteProfile.wrappedValue) { _ in
                 handleImportRemoteProfile()
             }
+            #if os(tvOS)
+            .navigationDestination(item: $importRemoteProfileRequest) { request in
+                NewProfileView(request)
+                    .environmentObject(environments)
+                    .onDisappear {
+                        environments.profileUpdate.send()
+                    }
+                    .toolbar {
+                        ToolbarItemGroup(placement: .topBarLeading) {
+                            BackButton()
+                        }
+                    }
+            }
+            #else
             .sheet(item: $importRemoteProfileRequest) { request in
                 importRemoteProfileSheet(for: request)
             }
+            #endif
         #if os(macOS)
             .onChangeCompat(of: controlActiveState) { state in
                 guard state != .inactive, Variant.useSystemExtension, !coordinator.isLoading else { return }

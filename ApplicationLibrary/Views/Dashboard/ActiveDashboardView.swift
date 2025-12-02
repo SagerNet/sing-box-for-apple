@@ -61,19 +61,52 @@ import SwiftUI
         #if os(iOS) || os(tvOS)
         .toolbar {
             toolbar
-        }.sheet(isPresented: $showGroups) {
+        }
+        #if os(tvOS)
+        .navigationDestination(isPresented: $showGroups) {
+            GroupListView()
+                .navigationTitle("Groups")
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
+                    }
+                }
+        }
+        .navigationDestination(isPresented: $showConnections) {
+            ConnectionListView()
+                .navigationTitle("Connections")
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
+                    }
+                }
+        }
+        .navigationDestination(isPresented: $showCardManagement) {
+            CardManagementView(onDisappear: {
+                cardConfigurationVersion += 1
+            })
+            .navigationTitle("Dashboard Items")
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    BackButton()
+                }
+            }
+        }
+        #else
+        .sheet(isPresented: $showGroups) {
             groupsSheetContent
         }.sheet(isPresented: $showConnections) {
             connectionsSheetContent
         }.sheet(isPresented: $showCardManagement, onDismiss: {
             cardConfigurationVersion += 1
         }, content: {
-            if #available(iOS 16.0, tvOS 17.0, *) {
+            if #available(iOS 16.0, *) {
                 CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
             } else {
                 CardManagementSheet()
             }
         })
+        #endif
         #endif
         .onAppear {
             if ApplicationLibrary.inPreview {

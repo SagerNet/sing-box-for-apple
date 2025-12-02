@@ -32,6 +32,44 @@ public struct ProfileCard: View {
             }
         }
         .disabled(viewModel.isUpdating)
+        #if os(tvOS)
+        .navigationDestination(isPresented: $viewModel.showNewProfile) {
+            NewProfileContentView(onDisappear: {
+                environments.profileUpdate.send()
+            })
+            .environmentObject(environments)
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    BackButton()
+                }
+            }
+        }
+        .navigationDestination(isPresented: $viewModel.showManageProfiles) {
+            ManageProfilesView()
+                .environmentObject(environments)
+                .navigationTitle("Manage profiles")
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
+                    }
+                }
+        }
+        .navigationDestination(item: $viewModel.profileToEdit) { profile in
+            EditProfileView()
+                .environmentObject(profile)
+                .environmentObject(environments)
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
+                    }
+                }
+        }
+        .sheet(isPresented: $viewModel.showQRCode) {
+            if let profile = selectedProfile, let remoteURL = profile.remoteURL {
+                QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+            }
+        }
+        #else
         .sheet(isPresented: $viewModel.showNewProfile, onDismiss: {
             environments.profileUpdate.send()
         }, content: {
@@ -44,12 +82,13 @@ public struct ProfileCard: View {
         .sheet(item: $viewModel.profileToEdit) { profile in
             editProfileSheet(for: profile)
         }
-        #if os(iOS) || os(tvOS)
+        #if os(iOS)
         .sheet(isPresented: $viewModel.showQRCode) {
             if let profile = selectedProfile, let remoteURL = profile.remoteURL {
                 QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
             }
         }
+        #endif
         #endif
         .alert($viewModel.alert)
     }
@@ -325,6 +364,41 @@ extension ProfileCard {
         #endif
     }
 }
+
+// MARK: - NewProfileContentView (tvOS)
+
+#if os(tvOS)
+extension ProfileCard {
+    @MainActor
+    struct NewProfileContentView: View {
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @State private var createdProfile: Profile?
+        private let onDisappear: (() -> Void)?
+
+        init(onDisappear: (() -> Void)? = nil) {
+            self.onDisappear = onDisappear
+        }
+
+        var body: some View {
+            Group {
+                if let profile = createdProfile {
+                    EditProfileView()
+                        .environmentObject(profile)
+                        .environmentObject(environments)
+                } else {
+                    NewProfileView { profile in
+                        createdProfile = profile
+                    }
+                    .environmentObject(environments)
+                }
+            }
+            .onDisappear {
+                onDisappear?()
+            }
+        }
+    }
+}
+#endif
 
 // MARK: - ManageProfilesView
 
