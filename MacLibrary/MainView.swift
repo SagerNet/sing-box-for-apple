@@ -48,6 +48,7 @@ public struct MainView: View {
                     } label: {
                         Label("Others", systemImage: "line.3.horizontal.circle")
                     }
+                    .menuIndicator(.hidden)
                 }
             }
         }

@@ -95,4 +95,20 @@ public enum ProfileManager {
             try UInt32(Profile.fetchCount(db))
         }
     }
+
+    public nonisolated static func uniqueName(_ baseName: String) async throws -> String {
+        let profiles = try await list()
+        let existingNames = Set(profiles.map(\.name))
+        if !existingNames.contains(baseName) {
+            return baseName
+        }
+        var counter = 1
+        while true {
+            let candidate = "\(baseName) (\(counter))"
+            if !existingNames.contains(candidate) {
+                return candidate
+            }
+            counter += 1
+        }
+    }
 }

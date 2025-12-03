@@ -3,6 +3,11 @@ import Libbox
 import Library
 import QRCode
 import SwiftUI
+#if canImport(UIKit)
+    import UIKit
+#elseif canImport(AppKit)
+    import AppKit
+#endif
 
 @MainActor
 public struct ProfileCard: View {
@@ -33,64 +38,68 @@ public struct ProfileCard: View {
         }
         .disabled(viewModel.isUpdating)
         #if os(tvOS)
-        .navigationDestination(isPresented: $viewModel.showNewProfile) {
-            NewProfileContentView(onDisappear: {
-                environments.profileUpdate.send()
-            })
-            .environmentObject(environments)
-            .toolbar {
-                ToolbarItemGroup(placement: .topBarLeading) {
-                    BackButton()
-                }
+            .navigationDestination(isPresented: $viewModel.showNewProfile) {
+                NewProfileMenuView()
+                    .environmentObject(environments)
+                    .onDisappear {
+                        environments.profileUpdate.send()
+                    }
+                    .toolbar {
+                        ToolbarItemGroup(placement: .topBarLeading) {
+                            BackButton()
+                        }
+                    }
             }
-        }
-        .navigationDestination(isPresented: $viewModel.showManageProfiles) {
-            ManageProfilesView()
+            .navigationDestination(isPresented: $viewModel.showProfilePicker) {
+                ProfilePickerSheet(
+                    profileList: $profileList,
+                    selectedProfileID: $selectedProfileID
+                )
                 .environmentObject(environments)
-                .navigationTitle("Manage profiles")
+                .navigationTitle("Profiles")
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         BackButton()
                     }
                 }
-        }
-        .navigationDestination(item: $viewModel.profileToEdit) { profile in
-            EditProfileView()
-                .environmentObject(profile)
-                .environmentObject(environments)
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarLeading) {
-                        BackButton()
-                    }
-                }
-        }
-        .sheet(isPresented: $viewModel.showQRCode) {
-            if let profile = selectedProfile, let remoteURL = profile.remoteURL {
-                QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
             }
-        }
+            .navigationDestination(item: $viewModel.profileToEdit) { profile in
+                EditProfileView()
+                    .environmentObject(profile)
+                    .environmentObject(environments)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .topBarLeading) {
+                            BackButton()
+                        }
+                    }
+            }
+            .sheet(isPresented: $viewModel.showQRCode) {
+                if let profile = selectedProfile, let remoteURL = profile.remoteURL {
+                    QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+                }
+            }
         #else
-        .sheet(isPresented: $viewModel.showNewProfile, onDismiss: {
-            environments.profileUpdate.send()
-        }, content: {
-            NewProfileNavigationView()
-                .environmentObject(environments)
-        })
-        .sheet(isPresented: $viewModel.showManageProfiles) {
-            manageProfilesSheet
-        }
-        .sheet(item: $viewModel.profileToEdit) { profile in
-            editProfileSheet(for: profile)
-        }
-        #if os(iOS)
-        .sheet(isPresented: $viewModel.showQRCode) {
-            if let profile = selectedProfile, let remoteURL = profile.remoteURL {
-                QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
-            }
-        }
+            .sheet(isPresented: $viewModel.showNewProfile, onDismiss: {
+                    environments.profileUpdate.send()
+                }, content: {
+                    NewProfileNavigationView()
+                        .environmentObject(environments)
+                })
+                .sheet(isPresented: $viewModel.showProfilePicker) {
+                    profilePickerSheet
+                }
+                .sheet(item: $viewModel.profileToEdit) { profile in
+                    editProfileSheet(for: profile)
+                }
+            #if os(iOS)
+                .sheet(isPresented: $viewModel.showQRCode) {
+                    if let profile = selectedProfile, let remoteURL = profile.remoteURL {
+                        QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+                    }
+                }
+            #endif
         #endif
-        #endif
-        .alert($viewModel.alert)
+                .alert($viewModel.alert)
     }
 
     private var headerView: some View {
@@ -101,27 +110,14 @@ public struct ProfileCard: View {
 
             Spacer()
 
-            HStack(spacing: actionButtonSpacing) {
-                Button {
-                    viewModel.showNewProfile = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 16))
-                }
-                .buttonStyle(.plain)
-                .actionButtonStyle()
-
-                if !profileList.isEmpty {
-                    Button {
-                        viewModel.showManageProfiles = true
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .font(.system(size: 16))
-                    }
-                    .buttonStyle(.plain)
-                    .actionButtonStyle()
-                }
+            Button {
+                viewModel.showNewProfile = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 16))
             }
+            .buttonStyle(.plain)
+            .actionButtonStyle()
         }
     }
 
@@ -133,9 +129,8 @@ public struct ProfileCard: View {
                     .padding(.vertical, 8)
             } else {
                 ProfileSelectorButton(
-                    items: profileList,
                     selectedItem: selectedProfile,
-                    onSelect: { selectedProfileID = $0 }
+                    isPickerPresented: $viewModel.showProfilePicker
                 )
 
                 if let profile = selectedProfile {
@@ -150,9 +145,9 @@ public struct ProfileCard: View {
 
     private var actionButtonSpacing: CGFloat {
         #if os(tvOS)
-        24
+            24
         #else
-        12
+            12
         #endif
     }
 
@@ -163,17 +158,9 @@ public struct ProfileCard: View {
 
             if profile.type == .remote {
                 updateButton(for: profile)
-                qrCodeButton(for: profile)
             }
 
-            #if !os(tvOS)
-            ProfileShareButton($viewModel.alert, profile.origin) {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 16))
-            }
-            .buttonStyle(.plain)
-            .actionButtonStyle()
-            #endif
+            shareMenu(for: profile)
         }
     }
 
@@ -241,6 +228,112 @@ public struct ProfileCard: View {
     }
 
     @ViewBuilder
+    private func shareMenu(for profile: ProfilePreview) -> some View {
+        #if os(tvOS)
+            if profile.type == .remote {
+                Menu {
+                    Button {
+                        viewModel.showQRCode = true
+                    } label: {
+                        Label("Share URL as QR Code", systemImage: "qrcode")
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 16))
+                }
+                .buttonStyle(.plain)
+                .actionButtonStyle()
+            }
+        #else
+            Menu {
+                Button {
+                    viewModel.shareItemType = .file
+                } label: {
+                    Label("Share File", systemImage: "doc")
+                }
+
+                if profile.type == .remote {
+                    Button {
+                        viewModel.showQRCode = true
+                    } label: {
+                        Label("Share URL as QR Code", systemImage: "qrcode")
+                    }
+                }
+
+                Button {
+                    viewModel.shareItemType = .json
+                } label: {
+                    Label("Share Content JSON File", systemImage: "curlybraces")
+                }
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 16))
+            }
+            .menuIndicator(.hidden)
+            .foregroundStyle(.primary)
+            .menuStyle(.borderlessButton)
+            .actionButtonStyle()
+            .onChange(of: viewModel.shareItemType) { shareItemType in
+                guard let shareItemType else { return }
+                viewModel.shareItemType = nil
+                shareProfile(profile, type: shareItemType)
+            }
+            #if os(macOS)
+            .background(ViewAnchor { viewModel.shareButtonView = $0 })
+            .popover(isPresented: $viewModel.showQRCode, arrowEdge: .bottom) {
+                if let remoteURL = profile.remoteURL {
+                    QRCodeContentView(profileName: profile.name, remoteURL: remoteURL)
+                }
+            }
+            #endif
+        #endif
+    }
+
+    #if !os(tvOS)
+        private func shareProfile(_ profile: ProfilePreview, type: ShareItemType) {
+            do {
+                let url: URL
+                switch type {
+                case .file:
+                    url = try profile.origin.toContent().generateShareFile()
+                case .json:
+                    url = try profile.origin.read().generateShareFile(name: "\(profile.name).json")
+                }
+                #if os(iOS)
+                    presentShareController(url)
+                #elseif os(macOS)
+                    let anchorView = viewModel.shareButtonView ?? NSApp.keyWindow?.contentView ?? NSView()
+                    NSSharingServicePicker(items: [url]).show(
+                        relativeTo: .zero,
+                        of: anchorView,
+                        preferredEdge: .minY
+                    )
+                #endif
+            } catch {
+                viewModel.alert = AlertState(error: error)
+            }
+        }
+
+        #if os(iOS)
+            private func presentShareController(_ item: URL) {
+                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let rootViewController = windowScene.keyWindow?.rootViewController
+                else {
+                    return
+                }
+                var topViewController = rootViewController
+                while let presented = topViewController.presentedViewController {
+                    topViewController = presented
+                }
+                topViewController.present(
+                    UIActivityViewController(activityItems: [item], applicationActivities: nil),
+                    animated: true
+                )
+            }
+        #endif
+    #endif
+
+    @ViewBuilder
     private func profileInfo(for profile: ProfilePreview) -> some View {
         HStack(spacing: 8) {
             HStack(spacing: 4) {
@@ -265,48 +358,65 @@ public struct ProfileCard: View {
         }
     }
 
-    private var manageProfilesSheet: some View {
-        NavigationSheet(
-            title: String(localized: "Manage profiles"),
-            showDoneButton: true,
-            onDismiss: { viewModel.showManageProfiles = false },
-            content: {
-                ManageProfilesView()
+    #if !os(tvOS)
+        private var profilePickerSheet: some View {
+            NavigationSheet(
+                title: String(localized: "Profiles"),
+                size: .large,
+                content: {
+                    ProfilePickerSheet(
+                        profileList: $profileList,
+                        selectedProfileID: $selectedProfileID
+                    )
                     .environmentObject(environments)
-            }
-        )
-    }
+                }
+            )
+            #if os(macOS)
+            .frame(minWidth: 400, minHeight: 300)
+            #endif
+            .modifier(OpaqueSheetBackground())
+        }
 
-    @ViewBuilder
-    private func editProfileSheet(for profile: Profile) -> some View {
-        #if os(macOS)
-            NavigationSheet {
-                EditProfileView()
-                    .environmentObject(profile)
-                    .environmentObject(environments)
-            }
-            .frame(minWidth: 500, minHeight: 400)
-        #else
-            NavigationSheet(title: "Edit Profile") {
-                EditProfileView()
-                    .environmentObject(profile)
-                    .environmentObject(environments)
-            }
-        #endif
-    }
+        @ViewBuilder
+        private func editProfileSheet(for profile: Profile) -> some View {
+            #if os(macOS)
+                NavigationSheet {
+                    EditProfileView()
+                        .environmentObject(profile)
+                        .environmentObject(environments)
+                }
+                .frame(minWidth: 500, minHeight: 400)
+            #else
+                NavigationSheet(title: "Edit Profile") {
+                    EditProfileView()
+                        .environmentObject(profile)
+                        .environmentObject(environments)
+                }
+            #endif
+        }
+    #endif
 }
 
 // MARK: - ViewModel
 
 extension ProfileCard {
+    enum ShareItemType {
+        case file
+        case json
+    }
+
     @MainActor
     class ViewModel: ObservableObject {
         @Published var showNewProfile = false
-        @Published var showManageProfiles = false
+        @Published var showProfilePicker = false
         @Published var showQRCode = false
         @Published var isUpdating = false
         @Published var alert: AlertState?
         @Published var profileToEdit: Profile?
+        @Published var shareItemType: ShareItemType?
+        #if os(macOS)
+            var shareButtonView: NSView?
+        #endif
 
         func updateProfile(_ profile: Profile, environments: ExtensionEnvironments) async {
             defer { isUpdating = false }
@@ -330,253 +440,61 @@ extension ProfileCard {
     @MainActor
     struct NewProfileNavigationView: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
-        @State private var createdProfile: Profile?
 
         var body: some View {
             #if os(macOS)
-                macOSBody
-            #else
-                iOSBody
-            #endif
-        }
-
-        #if os(macOS)
-            @ViewBuilder
-            private var macOSBody: some View {
-                if let profile = createdProfile {
-                    EditProfileView()
-                        .environmentObject(profile)
+                NavigationSheet {
+                    NewProfileMenuView()
                         .environmentObject(environments)
-                } else {
-                    NewProfileView { profile in
-                        createdProfile = profile
-                    }
-                    .environmentObject(environments)
                 }
-            }
-        #else
-            private var iOSBody: some View {
+            #else
                 NavigationStackCompat {
-                    if let profile = createdProfile {
-                        EditProfileView()
-                            .environmentObject(profile)
-                            .environmentObject(environments)
-                    } else {
-                        NewProfileView { profile in
-                            createdProfile = profile
-                        }
+                    NewProfileMenuView()
                         .environmentObject(environments)
-                        #if os(iOS)
-                            .navigationBarTitleDisplayMode(.inline)
-                        #endif
-                    }
                 }
                 .presentationDetentsIfAvailable()
-            }
-        #endif
-    }
-}
-
-// MARK: - NewProfileContentView (tvOS)
-
-#if os(tvOS)
-extension ProfileCard {
-    @MainActor
-    struct NewProfileContentView: View {
-        @EnvironmentObject private var environments: ExtensionEnvironments
-        @State private var createdProfile: Profile?
-        private let onDisappear: (() -> Void)?
-
-        init(onDisappear: (() -> Void)? = nil) {
-            self.onDisappear = onDisappear
-        }
-
-        var body: some View {
-            Group {
-                if let profile = createdProfile {
-                    EditProfileView()
-                        .environmentObject(profile)
-                        .environmentObject(environments)
-                } else {
-                    NewProfileView { profile in
-                        createdProfile = profile
-                    }
-                    .environmentObject(environments)
-                }
-            }
-            .onDisappear {
-                onDisappear?()
-            }
+            #endif
         }
     }
 }
+
+// MARK: - OpaqueSheetBackground
+
+#if os(iOS)
+    private struct OpaqueSheetBackground: ViewModifier {
+        func body(content: Content) -> some View {
+            if #available(iOS 16.4, *) {
+                content.presentationBackground(.regularMaterial)
+            } else {
+                content
+            }
+        }
+    }
+
+#elseif os(macOS)
+    private struct OpaqueSheetBackground: ViewModifier {
+        func body(content: Content) -> some View {
+            content
+        }
+    }
+
+    private struct ViewAnchor: NSViewRepresentable {
+        let callback: (NSView) -> Void
+
+        func makeNSView(context _: Context) -> NSView {
+            let view = NSView()
+            DispatchQueue.main.async {
+                callback(view)
+            }
+            return view
+        }
+
+        func updateNSView(_: NSView, context _: Context) {}
+    }
+#else
+    private struct OpaqueSheetBackground: ViewModifier {
+        func body(content: Content) -> some View {
+            content
+        }
+    }
 #endif
-
-// MARK: - ManageProfilesView
-
-extension ProfileCard {
-    @MainActor
-    struct ManageProfilesView: View {
-        @EnvironmentObject private var environments: ExtensionEnvironments
-        @StateObject private var viewModel = ProfileViewModel()
-
-        var body: some View {
-            VStack {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .onAppear {
-                            viewModel.setEnvironments(environments)
-                            Task {
-                                await viewModel.doReload()
-                            }
-                        }
-                } else {
-                    FormView {
-                        if viewModel.profileList.isEmpty {
-                            Text("Empty profiles")
-                        } else {
-                            List {
-                                ForEach(viewModel.profileList, id: \.id) { profile in
-                                    ManageProfileItem(viewModel, profile)
-                                }
-                                .onMove(perform: moveProfile)
-                                #if os(macOS)
-                                    .onDelete(perform: deleteProfile)
-                                #endif
-                            }
-                            #if os(iOS) || os(tvOS)
-                            .environment(\.editMode, .constant(.active))
-                            .deleteDisabled(true)
-                            #endif
-                        }
-                    }
-                }
-            }
-            .disabled(viewModel.isUpdating)
-            .alert($viewModel.alert, isLoading: $viewModel.isLoading)
-            .onReceive(environments.profileUpdate) { _ in
-                Task {
-                    await viewModel.doReload()
-                }
-            }
-        }
-
-        private func moveProfile(from source: IndexSet, to destination: Int) {
-            viewModel.moveProfile(from: source, to: destination)
-        }
-
-        private func deleteProfile(where profileIndex: IndexSet) {
-            viewModel.deleteProfile(where: profileIndex)
-        }
-    }
-
-    @MainActor
-    struct ManageProfileItem: View {
-        @EnvironmentObject private var environments: ExtensionEnvironments
-        @ObservedObject private var viewModel: ProfileViewModel
-        @State private var profile: ProfilePreview
-        @State private var shareLinkPresented = false
-        @State private var isUpdating = false
-
-        init(_ viewModel: ProfileViewModel, _ profile: ProfilePreview) {
-            self.viewModel = viewModel
-            _profile = State(initialValue: profile)
-        }
-
-        private var actionButtonSpacing: CGFloat {
-            #if os(tvOS)
-            24
-            #else
-            8
-            #endif
-        }
-
-        var body: some View {
-            HStack {
-                Image(systemName: "line.3.horizontal")
-                    .foregroundStyle(.secondary)
-
-                VStack(alignment: .leading) {
-                    Text(profile.name)
-                    #if os(macOS)
-                        if profile.type == .remote {
-                            Spacer(minLength: 4)
-                            Text("Last Updated: \(profile.origin.lastUpdated!.myFormat)").font(.caption)
-                        }
-                    #endif
-                }
-
-                Spacer()
-
-                HStack(spacing: actionButtonSpacing) {
-                    if profile.type == .remote {
-                        Button {
-                            isUpdating = true
-                            Task {
-                                await viewModel.updateProfile(profile.origin)
-                                profile = ProfilePreview(profile.origin)
-                                isUpdating = false
-                            }
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 16))
-                                .rotationEffect(.degrees(isUpdating ? 360 : 0))
-                                .animation(
-                                    isUpdating
-                                        ? .linear(duration: 1).repeatForever(autoreverses: false)
-                                        : .default,
-                                    value: isUpdating
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .actionButtonStyle()
-                        .disabled(isUpdating)
-
-                        Button {
-                            shareLinkPresented = true
-                        } label: {
-                            Image(systemName: "qrcode")
-                                .font(.system(size: 16))
-                        }
-                        .buttonStyle(.plain)
-                        .actionButtonStyle()
-                        #if os(macOS)
-                            .popover(isPresented: $shareLinkPresented, arrowEdge: .bottom) {
-                                QRCodeContentView(profileName: profile.name, remoteURL: profile.remoteURL!)
-                            }
-                        #elseif os(iOS) || os(tvOS)
-                            .sheet(isPresented: $shareLinkPresented) {
-                                QRCodeSheet(profileName: profile.name, remoteURL: profile.remoteURL!)
-                            }
-                        #endif
-                    }
-
-                    #if !os(tvOS)
-                    ShareButtonCompat($viewModel.alert) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 16))
-                    } itemURL: {
-                        try profile.origin.toContent().generateShareFile()
-                    }
-                    .actionButtonStyle()
-                    #endif
-
-                    Button {
-                        Task {
-                            await viewModel.deleteProfile(profile.origin)
-                        }
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.system(size: 16))
-                    }
-                    .buttonStyle(.plain)
-                    .actionButtonStyle()
-                }
-            }
-            #if os(macOS)
-            .padding(.vertical, 4)
-            #endif
-        }
-    }
-}

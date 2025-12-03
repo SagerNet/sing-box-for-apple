@@ -16,11 +16,23 @@ public struct NewProfileView: View {
         public let url: String
     }
 
+    public struct LocalImportRequest: Hashable, Identifiable {
+        public var id: String { fileURL.absoluteString }
+        public let name: String
+        public let fileURL: URL
+
+        public init(name: String, fileURL: URL) {
+            self.name = name
+            self.fileURL = fileURL
+        }
+    }
+
     public init(
         _ importRequest: ImportRequest? = nil,
+        localImportRequest: LocalImportRequest? = nil,
         onSuccess: ((Profile) async -> Void)? = nil
     ) {
-        _viewModel = StateObject(wrappedValue: NewProfileViewModel(importRequest: importRequest))
+        _viewModel = StateObject(wrappedValue: NewProfileViewModel(importRequest: importRequest, localImportRequest: localImportRequest))
         self.onSuccess = onSuccess
     }
 
@@ -108,7 +120,7 @@ public struct NewProfileView: View {
                             Task {
                                 await viewModel.createProfile(
                                     environments: environments,
-                                    dismiss: onSuccess == nil ? dismiss : nil,
+                                    dismiss: dismiss,
                                     onSuccess: onSuccess
                                 )
                             }
@@ -149,7 +161,7 @@ public struct NewProfileView: View {
                             Task {
                                 await viewModel.createProfile(
                                     environments: environments,
-                                    dismiss: onSuccess == nil ? dismiss : nil,
+                                    dismiss: dismiss,
                                     onSuccess: onSuccess
                                 )
                             }

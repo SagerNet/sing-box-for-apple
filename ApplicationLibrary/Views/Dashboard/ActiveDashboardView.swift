@@ -62,7 +62,7 @@ import SwiftUI
         .toolbar {
             toolbar
         }
-        #if os(tvOS)
+            #if os(tvOS)
         .navigationDestination(isPresented: $showGroups) {
             GroupListView()
                 .navigationTitle("Groups")
@@ -92,60 +92,60 @@ import SwiftUI
                 }
             }
         }
-        #else
+            #else
         .sheet(isPresented: $showGroups) {
-            groupsSheetContent
-        }.sheet(isPresented: $showConnections) {
-            connectionsSheetContent
-        }.sheet(isPresented: $showCardManagement, onDismiss: {
-            cardConfigurationVersion += 1
-        }, content: {
-            if #available(iOS 16.0, *) {
-                CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
-            } else {
-                CardManagementSheet()
-            }
-        })
-        #endif
+                        groupsSheetContent
+                    }.sheet(isPresented: $showConnections) {
+                        connectionsSheetContent
+                    }.sheet(isPresented: $showCardManagement, onDismiss: {
+                        cardConfigurationVersion += 1
+                    }, content: {
+                        if #available(iOS 16.0, *) {
+                            CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
+                        } else {
+                            CardManagementSheet()
+                        }
+                    })
+            #endif
         #endif
         .onAppear {
-            if ApplicationLibrary.inPreview {
-                environments.commandClient.connect()
-            } else {
+                if ApplicationLibrary.inPreview {
+                    environments.commandClient.connect()
+                } else {
+                    environments.connect()
+                }
+            }.onChangeCompat(of: scenePhase) { phase in
+                guard phase == .active else {
+                    return
+                }
                 environments.connect()
-            }
-        }.onChangeCompat(of: scenePhase) { phase in
-            guard phase == .active else {
-                return
-            }
-            environments.connect()
-        }.onChangeCompat(of: profile.status) { status in
-            guard status.isConnected else {
-                return
-            }
-            environments.connect()
-        }.onReceive(environments.profileUpdate) { _ in
-            Task {
-                await coordinator.reload()
-            }
-        }.onReceive(environments.selectedProfileUpdate) { _ in
-            Task {
-                await coordinator.updateSelectedProfile()
-                if profile.status.isConnected {
-                    await coordinator.reloadSystemProxy()
+            }.onChangeCompat(of: profile.status) { status in
+                guard status.isConnected else {
+                    return
+                }
+                environments.connect()
+            }.onReceive(environments.profileUpdate) { _ in
+                Task {
+                    await coordinator.reload()
+                }
+            }.onReceive(environments.selectedProfileUpdate) { _ in
+                Task {
+                    await coordinator.updateSelectedProfile()
+                    if profile.status.isConnected {
+                        await coordinator.reloadSystemProxy()
+                    }
                 }
             }
-        }
         #if os(iOS) || os(tvOS)
-        .onReceive(environments.commandClient.$groups) { _ in
-            updateButtonVisibility()
-        }.onReceive(environments.commandClient.$connections) { _ in
-            updateButtonVisibility()
-        }.onReceive(profile.$status) { _ in
-            updateButtonVisibility()
-        }.onAppear {
-            updateButtonVisibility()
-        }
+            .onReceive(environments.commandClient.$groups) { _ in
+                updateButtonVisibility()
+            }.onReceive(environments.commandClient.$connections) { _ in
+                updateButtonVisibility()
+            }.onReceive(profile.$status) { _ in
+                updateButtonVisibility()
+            }.onAppear {
+                updateButtonVisibility()
+            }
         #endif
     }
 

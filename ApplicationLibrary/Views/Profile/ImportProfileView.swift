@@ -11,7 +11,12 @@
         @Environment(\.dismiss) private var dismiss
         @StateObject private var viewModel = ImportProfileViewModel()
 
-        public init() {}
+        var onComplete: (() -> Void)?
+
+        public init(onComplete: (() -> Void)? = nil) {
+            self.onComplete = onComplete
+        }
+
         public var body: some View {
             VStack(alignment: .center) {
                 if !viewModel.selected {
@@ -27,7 +32,7 @@
                         { endpoint in
                             viewModel.selected = true
                             Task {
-                                await viewModel.handleEndpoint(endpoint, environments: environments, dismiss: dismiss)
+                                await viewModel.handleEndpoint(endpoint, environments: environments)
                             }
                         } label: {
                             Text("Select Device")
@@ -61,6 +66,12 @@
             .focusSection()
             .alert($viewModel.alert)
             .navigationTitle("Import Profile")
+            .onChange(of: viewModel.importSucceeded) { newValue in
+                if newValue {
+                    onComplete?()
+                    dismiss()
+                }
+            }
         }
     }
 

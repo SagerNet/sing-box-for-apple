@@ -35,7 +35,7 @@ public struct DashboardView: View {
             .onChangeCompat(of: importRemoteProfile.wrappedValue) { _ in
                 handleImportRemoteProfile()
             }
-            #if os(tvOS)
+        #if os(tvOS)
             .navigationDestination(item: $importRemoteProfileRequest) { request in
                 NewProfileView(request)
                     .environmentObject(environments)
@@ -48,16 +48,16 @@ public struct DashboardView: View {
                         }
                     }
             }
-            #else
+        #else
             .sheet(item: $importRemoteProfileRequest) { request in
-                importRemoteProfileSheet(for: request)
-            }
-            #endif
+                    importRemoteProfileSheet(for: request)
+                }
+        #endif
         #if os(macOS)
             .onChangeCompat(of: controlActiveState) { state in
                 guard state != .inactive, Variant.useSystemExtension, !coordinator.isLoading else { return }
                 Task { await coordinator.reload() }
-            }
+        }
         #endif
     }
 

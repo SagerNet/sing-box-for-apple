@@ -196,6 +196,16 @@
         }
       }
     },
+    "Camera Access Denied" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相机访问被拒绝"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "localizations" : {
         "zh-Hans" : {
@@ -373,6 +383,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "创建"
+          }
+        }
+      }
+    },
+    "Create Manually" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动创建"
           }
         }
       }
@@ -584,6 +604,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载"
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑"
           }
         }
       }
@@ -901,6 +931,26 @@
         }
       }
     },
+    "Import from File" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从文件导入"
+          }
+        }
+      }
+    },
+    "Import from iPhone or iPad" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 iPhone 或 iPad 导入"
+          }
+        }
+      }
+    },
     "Import Profile" : {
       "localizations" : {
         "zh-Hans" : {
@@ -970,6 +1020,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安装系统拓展"
+          }
+        }
+      }
+    },
+    "Invalid QR Code" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效的二维码"
           }
         }
       }
@@ -1069,6 +1129,7 @@
       "shouldTranslate" : false
     },
     "Manage profiles" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1324,6 +1385,16 @@
         }
       }
     },
+    "Please enable camera access in Settings to scan QR codes." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在设置中启用相机访问权限以扫描二维码。"
+          }
+        }
+      }
+    },
     "Please grant the permission for **SFMExtension**, then we can continue." : {
       "localizations" : {
         "zh-Hans" : {
@@ -1355,7 +1426,6 @@
       }
     },
     "Profiles" : {
-      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1469,6 +1539,26 @@
         }
       }
     },
+    "Scan QR Code" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫描二维码"
+          }
+        }
+      }
+    },
+    "Scanner Error" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "扫描器错误"
+          }
+        }
+      }
+    },
     "Search" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1485,6 +1575,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择设备"
+          }
+        }
+      }
+    },
+    "Select Profile" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择配置"
           }
         }
       }
@@ -1535,6 +1635,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分享"
+          }
+        }
+      }
+    },
+    "Share Content JSON File" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享内容 JSON 文件"
+          }
+        }
+      }
+    },
+    "Share File" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享文件"
           }
         }
       }
@@ -1711,6 +1831,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "特殊旗帜可用"
+          }
+        }
+      }
+    },
+    "The QR code does not contain a valid profile import link." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该二维码不包含有效的配置导入链接。"
           }
         }
       }

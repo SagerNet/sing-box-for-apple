@@ -28,31 +28,31 @@ public extension View {
     @ViewBuilder
     func actionButtonStyle() -> some View {
         #if os(tvOS)
-        ActionButtonWrapper { self }
+            ActionButtonWrapper { self }
         #else
-        if #available(iOS 26.0, macOS 26.0, *) {
-            self.frame(width: 36, height: 36)
-                .glassEffect(.regular.interactive(), in: .circle)
-        } else {
-            frame(width: 36, height: 36)
-                .background(Color.secondary.opacity(0.1))
-                .clipShape(Circle())
-        }
+            if #available(iOS 26.0, macOS 26.0, *) {
+                self.frame(width: 44, height: 32)
+                    .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 8))
+            } else {
+                frame(width: 44, height: 32)
+                    .background(Color.secondary.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
         #endif
     }
 }
 
 #if os(tvOS)
-private struct ActionButtonWrapper<Content: View>: View {
-    @Environment(\.isFocused) private var isFocused
-    let content: () -> Content
+    private struct ActionButtonWrapper<Content: View>: View {
+        @Environment(\.isFocused) private var isFocused
+        let content: () -> Content
 
-    var body: some View {
-        content()
-            .frame(width: 36, height: 36)
-            .background(isFocused ? Color.secondary.opacity(0.3) : Color.secondary.opacity(0.1))
-            .clipShape(Circle())
-            .focusEffectDisabled()
+        var body: some View {
+            content()
+                .frame(width: 70, height: 48)
+                .background(isFocused ? Color.secondary.opacity(0.3) : Color.secondary.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .focusEffectDisabled()
+        }
     }
-}
 #endif

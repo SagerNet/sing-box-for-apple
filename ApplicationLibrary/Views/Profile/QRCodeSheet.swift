@@ -53,7 +53,12 @@ public struct QRCodeSheet: View {
     }
 
     public var body: some View {
-        #if os(iOS) || os(tvOS)
+        #if os(macOS)
+            NavigationSheet {
+                QRCodeContentView(profileName: profileName, remoteURL: remoteURL)
+            }
+            .frame(minWidth: 400, minHeight: 400)
+        #elseif os(iOS) || os(tvOS)
             if #available(iOS 16.0, tvOS 17.0, *) {
                 NavigationStackCompat {
                     QRCodeContentView(profileName: profileName, remoteURL: remoteURL)

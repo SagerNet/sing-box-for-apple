@@ -44,53 +44,14 @@ public struct ProfileActionToolbar: View {
                         Label("View Content", systemImage: "doc.fill")
                             .foregroundColor(.accentColor)
                     }
-                    FormButton {
-                        viewModel.isLoading = true
-                        Task {
-                            await viewModel.updateProfile(profile, environments: environments)
-                        }
-                    } label: {
-                        Label("Update", systemImage: "arrow.clockwise")
-                    }
-                    .foregroundColor(.accentColor)
-                    .disabled(viewModel.isLoading)
                 }
-                FormButton(role: .destructive) {
-                    Task {
-                        await viewModel.deleteProfile(profile, environments: environments, dismiss: dismiss)
-                    }
-                } label: {
-                    Label("Delete", systemImage: "trash.fill")
-                }
-                .foregroundColor(.red)
             }
         }
     #endif
 
     #if os(tvOS)
         private var tvOSBody: some View {
-            Section("Action") {
-                if profile.type == .remote {
-                    FormButton {
-                        viewModel.isLoading = true
-                        Task {
-                            await viewModel.updateProfile(profile, environments: environments)
-                        }
-                    } label: {
-                        Label("Update", systemImage: "arrow.clockwise")
-                    }
-                    .foregroundColor(.accentColor)
-                    .disabled(viewModel.isLoading)
-                }
-                FormButton(role: .destructive) {
-                    Task {
-                        await viewModel.deleteProfile(profile, environments: environments, dismiss: dismiss)
-                    }
-                } label: {
-                    Label("Delete", systemImage: "trash.fill")
-                }
-                .foregroundColor(.red)
-            }
+            EmptyView()
         }
     #endif
 
@@ -108,24 +69,7 @@ public struct ProfileActionToolbar: View {
                         Button("View Content") {
                             openWindow(value: EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
                         }
-
-                        Button {
-                            viewModel.isLoading = true
-                            Task {
-                                await viewModel.updateProfile(profile, environments: environments)
-                            }
-                        } label: {
-                            Text("Update")
-                        }
-                        .disabled(viewModel.isLoading)
                     }
-
-                    Button("Delete", role: .destructive) {
-                        Task {
-                            await viewModel.deleteProfile(profile, environments: environments, dismiss: dismiss)
-                        }
-                    }
-                    .foregroundColor(.red)
 
                     Spacer()
 

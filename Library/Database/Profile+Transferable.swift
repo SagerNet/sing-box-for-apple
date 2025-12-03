@@ -52,7 +52,8 @@ public extension LibboxProfileContent {
         if lastUpdated > 0 {
             lastUpdatedAt = Date(timeIntervalSince1970: Double(lastUpdated))
         }
-        try await ProfileManager.create(Profile(name: name, type: ProfileType(rawValue: Int(type))!, path: profileConfig.relativePath, remoteURL: remotePath, autoUpdate: autoUpdate, autoUpdateInterval: autoUpdateInterval, lastUpdated: lastUpdatedAt))
+        let uniqueProfileName = try await ProfileManager.uniqueName(name)
+        try await ProfileManager.create(Profile(name: uniqueProfileName, type: ProfileType(rawValue: Int(type))!, path: profileConfig.relativePath, remoteURL: remotePath, autoUpdate: autoUpdate, autoUpdateInterval: autoUpdateInterval, lastUpdated: lastUpdatedAt))
     }
 
     func generateShareFile() throws -> URL {

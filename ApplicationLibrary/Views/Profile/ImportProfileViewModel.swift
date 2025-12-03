@@ -13,6 +13,7 @@
         @Published public var socket: NWSocket?
         @Published public var profiles: [LibboxProfilePreview]?
         @Published public var isImporting = false
+        @Published public var importSucceeded = false
 
         public func reset() {
             if let connection {
@@ -28,7 +29,7 @@
             profiles = nil
         }
 
-        public func handleEndpoint(_ endpoint: NWEndpoint, environments: ExtensionEnvironments, dismiss: DismissAction) async {
+        public func handleEndpoint(_ endpoint: NWEndpoint, environments: ExtensionEnvironments) async {
             let connection = NWConnection(to: endpoint, using: NWParameters.applicationService)
             self.connection = connection
             socket = NWSocket(connection)
@@ -44,14 +45,14 @@
             }
             connection.start(queue: .global())
             do {
-                try await loopMessages(environments: environments, dismiss: dismiss)
+                try await loopMessages(environments: environments)
             } catch {
                 alert = AlertState(error: error)
                 reset()
             }
         }
 
-        private nonisolated func loopMessages(environments: ExtensionEnvironments, dismiss: DismissAction) async throws {
+        private nonisolated func loopMessages(environments: ExtensionEnvironments) async throws {
             guard let socket = await socket else {
                 return
             }
@@ -93,7 +94,7 @@
                     if let error {
                         throw error
                     }
-                    try await importProfile(content!, environments: environments, dismiss: dismiss)
+                    try await importProfile(content!, environments: environments)
                     return
                 default:
                     throw NSError(domain: "unknown message type \(message[0])", code: 0)
@@ -120,7 +121,7 @@
             }
         }
 
-        private nonisolated func importProfile(_ content: LibboxProfileContent, environments: ExtensionEnvironments, dismiss: DismissAction) async throws {
+        private nonisolated func importProfile(_ content: LibboxProfileContent, environments: ExtensionEnvironments) async throws {
             var type: ProfileType = .local
             switch content.type {
             case LibboxProfileTypeLocal:
@@ -141,11 +142,12 @@
             if content.lastUpdated > 0 {
                 lastUpdated = Date(timeIntervalSince1970: Double(content.lastUpdated))
             }
-            try await ProfileManager.create(Profile(name: content.name, type: type, path: profileConfig.relativePath, remoteURL: content.remotePath, autoUpdate: content.autoUpdate, lastUpdated: lastUpdated))
+            let uniqueProfileName = try await ProfileManager.uniqueName(content.name)
+            try await ProfileManager.create(Profile(name: uniqueProfileName, type: type, path: profileConfig.relativePath, remoteURL: content.remotePath, autoUpdate: content.autoUpdate, lastUpdated: lastUpdated))
             await reset()
             await MainActor.run {
                 environments.profileUpdate.send()
-                dismiss()
+                importSucceeded = true
             }
         }
     }

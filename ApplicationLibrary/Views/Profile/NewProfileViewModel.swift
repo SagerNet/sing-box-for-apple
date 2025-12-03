@@ -19,12 +19,17 @@ public final class NewProfileViewModel: BaseViewModel {
     @Published public var autoUpdateInterval: Int32 = 60
     @Published public var pickerPresented = false
 
-    public init(importRequest: NewProfileView.ImportRequest? = nil) {
+    public init(importRequest: NewProfileView.ImportRequest? = nil, localImportRequest: NewProfileView.LocalImportRequest? = nil) {
         super.init()
         if let importRequest {
             profileName = importRequest.name
             profileType = .remote
             remotePath = importRequest.url
+        } else if let localImportRequest {
+            profileName = localImportRequest.name
+            profileType = .local
+            fileImport = true
+            fileURL = localImportRequest.fileURL
         }
     }
 
@@ -69,12 +74,11 @@ public final class NewProfileViewModel: BaseViewModel {
 
         if let onSuccess {
             await onSuccess(createdProfile)
-        } else {
-            if sendUpdateNotification {
-                environments.profileUpdate.send()
-            }
-            dismiss?()
         }
+        if sendUpdateNotification {
+            environments.profileUpdate.send()
+        }
+        dismiss?()
 
         #if os(macOS)
             resetFields()
@@ -146,9 +150,11 @@ public final class NewProfileViewModel: BaseViewModel {
             lastUpdated = .now
         }
 
+        let uniqueProfileName = try await ProfileManager.uniqueName(profileName)
+
         // Create Profile object - GRDB will set its ID after insertion
         let profile = Profile(
-            name: profileName,
+            name: uniqueProfileName,
             type: profileType,
             path: savePath,
             remoteURL: remoteURL,
