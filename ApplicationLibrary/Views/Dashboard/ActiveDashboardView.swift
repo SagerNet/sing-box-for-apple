@@ -246,7 +246,13 @@ import SwiftUI
             #endif
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if #available(iOS 16.0, tvOS 17.0, *) {
-                    cardManagementButton
+                    #if os(iOS)
+                        if !useLegacyTabView || coordinator.selection == .overview {
+                            cardManagementButton
+                        }
+                    #else
+                        cardManagementButton
+                    #endif
                 }
                 #if os(tvOS)
                     StartStopButton()
@@ -288,10 +294,14 @@ import SwiftUI
 
         @available(iOS 16.0, *) @ViewBuilder private var cardManagementButton: some View {
             #if os(iOS)
-                Button {
-                    showCardManagement = true
+                Menu {
+                    Button {
+                        showCardManagement = true
+                    } label: {
+                        Label("Dashboard Items", systemImage: "square.grid.2x2")
+                    }
                 } label: {
-                    Label("Dashboard Items", systemImage: "square.grid.2x2")
+                    Label("Others", systemImage: "line.3.horizontal.circle")
                 }
             #elseif os(tvOS)
                 Button {

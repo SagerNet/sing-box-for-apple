@@ -13,7 +13,9 @@ struct ProfilePickerSheet: View {
     @Binding var profileList: [ProfilePreview]
     @Binding var selectedProfileID: Int64
 
-    #if os(iOS) || os(tvOS)
+    #if os(iOS)
+        @State private var legacyEditMode: EditMode = .inactive
+    #elseif os(tvOS)
         @State private var editMode: EditMode = .inactive
     #else
         @State private var isEditing = false
@@ -26,7 +28,9 @@ struct ProfilePickerSheet: View {
     #endif
 
     private var isEditingActive: Bool {
-        #if os(iOS) || os(tvOS)
+        #if os(iOS)
+            legacyEditMode.isEditing
+        #elseif os(tvOS)
             editMode.isEditing
         #else
             isEditing
@@ -34,65 +38,44 @@ struct ProfilePickerSheet: View {
     }
 
     var body: some View {
-        listContent
-        #if os(iOS) || os(tvOS)
-        .environment(\.editMode, $editMode)
-        #endif
-        #if os(tvOS)
-        .navigationDestination(item: $profileToEdit) { profile in
-            EditProfileView()
-                .environmentObject(profile)
-                .environmentObject(environments)
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarLeading) {
-                        BackButton()
-                    }
-                }
-        }
-        #elseif os(macOS)
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 0) {
-                Divider()
-                HStack {
-                    Spacer()
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .keyboardShortcut(.escape, modifiers: [])
-                    if isEditing {
-                        Button("Done") {
-                            withAnimation {
-                                isEditing = false
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                    } else {
-                        Button("Edit") {
-                            withAnimation {
-                                isEditing = true
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                }
-                .padding()
-                .background(Color(NSColor.controlBackgroundColor))
+        #if os(iOS)
+            if #available(iOS 26, *) {
+                iOSBody
+            } else {
+                legacyIOSBody
             }
-        }
-        .sheet(item: $profileToEdit) { profile in
-            NavigationSheet {
-                EditProfileView()
-                    .environmentObject(profile)
-                    .environmentObject(environments)
-            }
-            .frame(minWidth: 500, minHeight: 400)
-        }
         #else
-        .toolbar {
+            nonIOSBody
+        #endif
+    }
+
+    #if os(iOS)
+        @available(iOS 26, *)
+        private var iOSBody: some View {
+            listContent
+                .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Button(editMode.isEditing ? "Done" : "Edit") {
+                        EditButton()
+                    }
+                }
+                .sheet(item: $profileToEdit) { profile in
+                    NavigationSheet(title: "Edit Profile") {
+                        EditProfileView()
+                            .environmentObject(profile)
+                            .environmentObject(environments)
+                    }
+                }
+                .alert($alert)
+        }
+
+        private var legacyIOSBody: some View {
+            legacyListContent
+                .environment(\.editMode, $legacyEditMode)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(legacyEditMode.isEditing ? "Done" : "Edit") {
                             withAnimation {
-                                editMode = editMode.isEditing ? .inactive : .active
+                                legacyEditMode = legacyEditMode.isEditing ? .inactive : .active
                             }
                         }
                     }
@@ -104,9 +87,67 @@ struct ProfilePickerSheet: View {
                             .environmentObject(environments)
                     }
                 }
-        #endif
                 .alert($alert)
-    }
+        }
+    #endif
+
+    #if !os(iOS)
+        private var nonIOSBody: some View {
+            listContent
+            #if os(tvOS)
+            .environment(\.editMode, $editMode)
+            .navigationDestination(item: $profileToEdit) { profile in
+                EditProfileView()
+                    .environmentObject(profile)
+                    .environmentObject(environments)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .topBarLeading) {
+                            BackButton()
+                        }
+                    }
+            }
+            #elseif os(macOS)
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 0) {
+                    Divider()
+                    HStack {
+                        Spacer()
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .keyboardShortcut(.escape, modifiers: [])
+                        if isEditing {
+                            Button("Done") {
+                                withAnimation {
+                                    isEditing = false
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                        } else {
+                            Button("Edit") {
+                                withAnimation {
+                                    isEditing = true
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
+                    .padding()
+                    .background(Color(NSColor.controlBackgroundColor))
+                }
+            }
+            .sheet(item: $profileToEdit) { profile in
+                NavigationSheet {
+                    EditProfileView()
+                        .environmentObject(profile)
+                        .environmentObject(environments)
+                }
+                .frame(minWidth: 500, minHeight: 400)
+            }
+            #endif
+            .alert($alert)
+        }
+    #endif
 
     private var listContent: some View {
         #if os(tvOS)
@@ -150,7 +191,6 @@ struct ProfilePickerSheet: View {
                     ProfilePickerRow(
                         profile: profile,
                         isSelected: profile.id == selectedProfileID,
-                        isEditing: isEditingActive,
                         alert: $alert,
                         onSelect: {
                             selectedProfileID = profile.id
@@ -167,11 +207,98 @@ struct ProfilePickerSheet: View {
                 }
                 .onMove(perform: moveProfile)
                 .onDelete(perform: deleteProfile)
-                .moveDisabled(!isEditingActive)
-                .deleteDisabled(!isEditingActive)
             }
         #endif
     }
+
+    #if os(iOS)
+        @ViewBuilder
+        private var legacyListContent: some View {
+            if legacyEditMode.isEditing {
+                legacyEditingList
+            } else {
+                legacyNormalList
+            }
+        }
+
+        private var legacyEditingList: some View {
+            List {
+                ForEach(profileList, id: \.id) { profile in
+                    LegacyProfilePickerRow(
+                        profile: profile,
+                        isSelected: profile.id == selectedProfileID,
+                        alert: $alert,
+                        onSelect: {
+                            selectedProfileID = profile.id
+                            dismiss()
+                        },
+                        onEdit: {
+                            profileToEdit = profile.origin
+                        },
+                        onUpdate: {
+                            await updateProfile(profile)
+                        }
+                    )
+                    .environmentObject(environments)
+                }
+                .onMove(perform: legacyMoveProfile)
+                .onDelete(perform: legacyDeleteProfile)
+            }
+        }
+
+        private var legacyNormalList: some View {
+            List {
+                ForEach(profileList, id: \.id) { profile in
+                    LegacyProfilePickerRow(
+                        profile: profile,
+                        isSelected: profile.id == selectedProfileID,
+                        alert: $alert,
+                        onSelect: {
+                            selectedProfileID = profile.id
+                            dismiss()
+                        },
+                        onEdit: {
+                            profileToEdit = profile.origin
+                        },
+                        onUpdate: {
+                            await updateProfile(profile)
+                        }
+                    )
+                    .environmentObject(environments)
+                }
+            }
+        }
+
+        private func legacyMoveProfile(from source: IndexSet, to destination: Int) {
+            profileList.move(fromOffsets: source, toOffset: destination)
+            for (index, profile) in profileList.enumerated() {
+                profileList[index].order = UInt32(index)
+                profile.origin.order = UInt32(index)
+            }
+            Task {
+                do {
+                    try await ProfileManager.update(profileList.map(\.origin))
+                    environments.profileUpdate.send()
+                } catch {
+                    // Handle error silently
+                }
+            }
+        }
+
+        private func legacyDeleteProfile(at offsets: IndexSet) {
+            let profilesToDelete = offsets.map { profileList[$0].origin }
+            profileList.remove(atOffsets: offsets)
+            Task {
+                do {
+                    _ = try await ProfileManager.delete(profilesToDelete)
+                    environments.emptyProfiles = profileList.isEmpty
+                    environments.profileUpdate.send()
+                } catch {
+                    // Handle error silently
+                }
+            }
+        }
+    #endif
 
     private func updateProfile(_ profile: ProfilePreview) async {
         do {
@@ -273,10 +400,15 @@ struct ProfilePickerSheet: View {
 
 private struct ProfilePickerRow: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
+    #if os(iOS)
+        @Environment(\.editMode) private var editMode
+    #endif
 
     let profile: ProfilePreview
     let isSelected: Bool
-    let isEditing: Bool
+    #if os(tvOS) || os(macOS)
+        let isEditing: Bool
+    #endif
     @Binding var alert: AlertState?
     #if os(tvOS)
         var focusedProfileID: FocusState<Int64?>.Binding
@@ -286,6 +418,12 @@ private struct ProfilePickerRow: View {
     let onUpdate: () async -> Void
     #if os(macOS)
         let onDelete: () -> Void
+    #endif
+
+    #if os(iOS)
+        private var isEditing: Bool {
+            editMode?.wrappedValue.isEditing ?? false
+        }
     #endif
 
     @State private var isUpdating = false
@@ -462,10 +600,12 @@ private struct ProfilePickerRow: View {
                     }
                     .frame(width: 16)
                 #else
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.tint)
-                        .opacity(isSelected ? 1 : 0)
+                    if !isEditing {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.tint)
+                            .opacity(isSelected ? 1 : 0)
+                    }
                 #endif
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -695,5 +835,175 @@ private struct ProfilePickerRow: View {
         }
 
         func updateNSView(_: NSView, context _: Context) {}
+    }
+#endif
+
+// MARK: - Legacy iOS ProfilePickerRow (iOS < 26)
+
+#if os(iOS)
+    private struct LegacyProfilePickerRow: View {
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @Environment(\.editMode) private var editMode
+
+        let profile: ProfilePreview
+        let isSelected: Bool
+        @Binding var alert: AlertState?
+        let onSelect: () -> Void
+        let onEdit: () -> Void
+        let onUpdate: () async -> Void
+
+        private var isEditing: Bool {
+            editMode?.wrappedValue.isEditing ?? false
+        }
+
+        @State private var isUpdating = false
+        @State private var showQRCode = false
+
+        var body: some View {
+            Group {
+                if isEditing {
+                    editingBody
+                } else {
+                    normalBody
+                }
+            }
+            .transaction { $0.animation = nil }
+        }
+
+        private var editingBody: some View {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profile.name)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    profileInfo
+                }
+                Spacer()
+            }
+        }
+
+        private var normalBody: some View {
+            HStack(spacing: 12) {
+                Button {
+                    if !isUpdating {
+                        onSelect()
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.tint)
+                            .opacity(isSelected ? 1 : 0)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(profile.name)
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                            profileInfo
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isUpdating)
+
+                Spacer()
+
+                rowMenu
+            }
+            .sheet(isPresented: $showQRCode) {
+                if let remoteURL = profile.remoteURL {
+                    QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+                }
+            }
+        }
+
+        private var rowMenu: some View {
+            Menu {
+                Button {
+                    onEdit()
+                } label: {
+                    Label("Edit", systemImage: "pencil")
+                }
+
+                if profile.type == .remote {
+                    Button {
+                        isUpdating = true
+                        Task {
+                            await onUpdate()
+                            isUpdating = false
+                        }
+                    } label: {
+                        Label("Update", systemImage: "arrow.clockwise")
+                    }
+                }
+
+                shareMenu
+            } label: {
+                Group {
+                    if isUpdating {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(width: 32, height: 32)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+
+        @ViewBuilder
+        private var shareMenu: some View {
+            Menu {
+                ShareButtonCompat($alert) {
+                    Label("Share File", systemImage: "doc")
+                } itemURL: {
+                    try profile.origin.toContent().generateShareFile()
+                }
+
+                if profile.type == .remote {
+                    Button {
+                        showQRCode = true
+                    } label: {
+                        Label("Share URL as QR Code", systemImage: "qrcode")
+                    }
+                }
+
+                ShareButtonCompat($alert) {
+                    Label("Share Content JSON File", systemImage: "curlybraces")
+                } itemURL: {
+                    try profile.origin.read().generateShareFile(name: "\(profile.name).json")
+                }
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+        }
+
+        private var profileInfo: some View {
+            HStack(spacing: 8) {
+                HStack(spacing: 4) {
+                    Image(systemName: profile.type == .remote ? "cloud.fill" : "doc.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                    Text(profile.type == .remote ? "Remote" : "Local")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if profile.type == .remote, let lastUpdated = profile.lastUpdated {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                        Text(lastUpdated.myFormat)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
     }
 #endif
