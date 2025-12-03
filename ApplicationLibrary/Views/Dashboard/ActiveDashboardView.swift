@@ -57,7 +57,24 @@ import SwiftUI
     }
 
     @ViewBuilder private var content: some View {
-        overviewPage
+        Group {
+            #if os(iOS)
+                if useLegacyTabView {
+                    if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
+                        VStack {
+                            pageSelector
+                            pageContent
+                        }
+                    } else {
+                        overviewPage
+                    }
+                } else {
+                    overviewPage
+                }
+            #else
+                overviewPage
+            #endif
+        }
         #if os(iOS) || os(tvOS)
         .toolbar {
             toolbar
@@ -139,10 +156,20 @@ import SwiftUI
         #if os(iOS) || os(tvOS)
             .onReceive(environments.commandClient.$groups) { _ in
                 updateButtonVisibility()
+                #if os(iOS)
+                    if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
+                        coordinator.selection = .overview
+                    }
+                #endif
             }.onReceive(environments.commandClient.$connections) { _ in
                 updateButtonVisibility()
             }.onReceive(profile.$status) { _ in
                 updateButtonVisibility()
+                #if os(iOS)
+                    if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
+                        coordinator.selection = .overview
+                    }
+                #endif
             }.onAppear {
                 updateButtonVisibility()
             }
@@ -170,6 +197,44 @@ import SwiftUI
                     return true
                 }
                 return false
+            }
+
+            private var useLegacyTabView: Bool {
+                !isTabViewBottomAccessoryAvailable
+            }
+
+            private var enabledPages: [DashboardPage] {
+                DashboardPage.enabledCases(hasGroups: buttonState.showGroupsButton)
+            }
+
+            @ViewBuilder
+            private var pageSelector: some View {
+                Picker("Page", selection: $coordinator.selection) {
+                    ForEach(enabledPages) { page in
+                        page.label
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding([.leading, .trailing])
+                .navigationBarTitleDisplayMode(.inline)
+            }
+
+            @ViewBuilder
+            private var pageContent: some View {
+                TabView(selection: $coordinator.selection) {
+                    ForEach(enabledPages) { page in
+                        page.contentView(
+                            $coordinator.profileList,
+                            $coordinator.selectedProfileID,
+                            $coordinator.systemProxyAvailable,
+                            $coordinator.systemProxyEnabled,
+                            externalCardConfigurationVersion ?? cardConfigurationVersion
+                        )
+                        .tag(page)
+                    }
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .tabViewStyle(.page(indexDisplayMode: .never))
             }
         #endif
 
@@ -223,33 +288,10 @@ import SwiftUI
 
         @available(iOS 16.0, *) @ViewBuilder private var cardManagementButton: some View {
             #if os(iOS)
-                Menu {
-                    if !isTabViewBottomAccessoryAvailable {
-                        if buttonState.showGroupsButton {
-                            Button {
-                                showGroups = true
-                            } label: {
-                                Label("Groups (\(buttonState.groupsCount))", systemImage: "rectangle.3.group.fill")
-                            }
-                        }
-                        if buttonState.showConnectionsButton {
-                            Button {
-                                showConnections = true
-                            } label: {
-                                Label("Connections (\(buttonState.connectionsCount))", systemImage: "list.bullet.rectangle.portrait.fill")
-                            }
-                        }
-                        if buttonState.showGroupsButton || buttonState.showConnectionsButton {
-                            Divider()
-                        }
-                    }
-                    Button {
-                        showCardManagement = true
-                    } label: {
-                        Label("Dashboard Items", systemImage: "square.grid.2x2")
-                    }
+                Button {
+                    showCardManagement = true
                 } label: {
-                    Label("Others", systemImage: "line.3.horizontal.circle")
+                    Label("Dashboard Items", systemImage: "square.grid.2x2")
                 }
             #elseif os(tvOS)
                 Button {

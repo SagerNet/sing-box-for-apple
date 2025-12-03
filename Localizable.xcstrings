@@ -348,6 +348,7 @@
       }
     },
     "Connections (%lld)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -814,6 +815,7 @@
       }
     },
     "Groups (%lld)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1353,7 +1355,6 @@
       }
     },
     "Page" : {
-      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {

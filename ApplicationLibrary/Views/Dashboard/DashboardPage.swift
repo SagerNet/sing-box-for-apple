@@ -18,7 +18,20 @@ public extension DashboardPage {
             .overview,
             .groups,
         ]
-        #if !tvOS
+        #if !os(tvOS)
+            if Variant.isBeta {
+                cases.append(.connections)
+            }
+        #endif
+        return cases
+    }
+
+    static func enabledCases(hasGroups: Bool) -> [DashboardPage] {
+        var cases: [DashboardPage] = [.overview]
+        if hasGroups {
+            cases.append(.groups)
+        }
+        #if !os(tvOS)
             if Variant.isBeta {
                 cases.append(.connections)
             }
