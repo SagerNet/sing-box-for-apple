@@ -56,3 +56,42 @@ public extension View {
         }
     }
 #endif
+
+public extension View {
+    @ViewBuilder
+    func cardStyle() -> some View {
+        modifier(CardStyleModifier())
+    }
+}
+
+private struct CardStyleModifier: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, macOS 26.0, tvOS 26.0, *) {
+            content
+                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+        } else {
+            content
+                .background(backgroundColor)
+                .cornerRadius(16)
+        }
+    }
+
+    private var backgroundColor: Color {
+        #if os(iOS)
+            return Color(uiColor: .secondarySystemGroupedBackground)
+        #elseif os(macOS)
+            return Color(nsColor: .textBackgroundColor)
+        #elseif os(tvOS)
+            switch colorScheme {
+            case .dark:
+                return Color(uiColor: .black)
+            default:
+                return Color(uiColor: .white)
+            }
+        #else
+            return Color.clear
+        #endif
+    }
+}

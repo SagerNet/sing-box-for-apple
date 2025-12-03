@@ -76,9 +76,8 @@ public struct ConnectionView: View {
                 }
                 .foregroundColor(.textColor)
                 #if !os(tvOS)
-                    .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
-                    .background(backgroundColor)
-                    .cornerRadius(10)
+                    .padding(16)
+                    .cardStyle()
                 #endif
             }
             .background(.clear)
@@ -97,16 +96,6 @@ public struct ConnectionView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-    }
-
-    private var backgroundColor: Color {
-        #if os(iOS)
-            return Color(uiColor: .secondarySystemGroupedBackground)
-        #elseif os(macOS)
-            return Color(nsColor: .textBackgroundColor)
-        #elseif os(tvOS)
-            return Color.black
-        #endif
     }
 
     private nonisolated func closeConnection() async {

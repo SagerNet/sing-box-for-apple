@@ -183,8 +183,12 @@ struct ProfilePickerSheet: View {
             List {
                 ForEach(profileList, id: \.id) { profile in
                     macOSProfileRow(profile)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                 }
             }
+            .listStyle(.plain)
         #else
             List {
                 ForEach(profileList, id: \.id) { profile in
@@ -204,10 +208,14 @@ struct ProfilePickerSheet: View {
                         }
                     )
                     .environmentObject(environments)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                 }
                 .onMove(perform: moveProfile)
                 .onDelete(perform: deleteProfile)
             }
+            .listStyle(.plain)
         #endif
     }
 
@@ -623,6 +631,8 @@ private struct ProfilePickerRow: View {
                 }
             }
             .contentShape(Rectangle())
+            .padding(16)
+            .cardStyle()
         }
     #endif
 

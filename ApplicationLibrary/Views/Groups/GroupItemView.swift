@@ -57,23 +57,8 @@ public struct GroupItemView: View {
         }
         #if !os(tvOS)
         .buttonStyle(.borderless)
-        .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
-        .background(backgroundColor)
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        )
-        #endif
-    }
-
-    private var backgroundColor: Color {
-        #if os(iOS)
-            return Color(uiColor: .secondarySystemGroupedBackground)
-        #elseif os(macOS)
-            return Color(nsColor: .textBackgroundColor)
-        #elseif os(tvOS)
-            return Color.black
+        .padding(16)
+        .cardStyle()
         #endif
     }
 }
