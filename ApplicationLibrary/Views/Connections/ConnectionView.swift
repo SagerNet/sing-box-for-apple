@@ -19,71 +19,67 @@ public struct ConnectionView: View {
     }
 
     @State private var alert: AlertState?
+    @State private var showDetails = false
 
     public var body: some View {
-        FormNavigationLink {
-            ConnectionDetailsView(connection)
+        Button {
+            showDetails = true
         } label: {
-            VStack {
-                HStack {
-                    VStack(alignment: .leading) {
-                        HStack(alignment: .center) {
-                            Text("\(connection.network.uppercased()) \(connection.displayDestination)")
-                            Spacer()
-                            if connection.closedAt == nil {
-                                Text("Active").foregroundStyle(.green)
-                            } else {
-                                Text("Closed").foregroundStyle(.red)
-                            }
+            HStack {
+                VStack(alignment: .leading) {
+                    HStack(alignment: .center) {
+                        Text("\(connection.network.uppercased()) \(connection.displayDestination)")
+                        Spacer()
+                        if connection.closedAt == nil {
+                            Text("Active").foregroundStyle(.green)
+                        } else {
+                            Text("Closed").foregroundStyle(.red)
                         }
-                        .font(.caption2.monospaced().bold())
-                        .padding([.bottom], 4)
-                        HStack {
-                            if let closedAt = connection.closedAt {
-                                VStack(alignment: .leading) {
-                                    Text("↑ \(LibboxFormatBytes(connection.uploadTotal))")
-                                    Text("↓ \(LibboxFormatBytes(connection.downloadTotal))")
-                                }
-                                .font(.caption2)
-                                VStack(alignment: .leading) {
-                                    Text(format(connection.createdAt))
-                                    Text(formatInterval(connection.createdAt, closedAt))
-                                }
-                                Spacer()
-                                VStack(alignment: .trailing) {
-                                    Text(connection.inboundType + "/" + connection.inbound)
-                                    Text(connection.chain.reversed().joined(separator: "/"))
-                                }
-                            } else {
-                                VStack(alignment: .leading) {
-                                    Text("↑ \(LibboxFormatBytes(connection.upload))/s")
-                                    Text("↓ \(LibboxFormatBytes(connection.download))/s")
-                                }
-                                .font(.caption2)
-                                VStack(alignment: .leading) {
-                                    Text(LibboxFormatBytes(connection.uploadTotal))
-                                    Text(LibboxFormatBytes(connection.downloadTotal))
-                                }
-                                Spacer()
-                                VStack(alignment: .trailing) {
-                                    Text(connection.inboundType + "/" + connection.inbound)
-                                    Text(connection.chain[0])
-                                }
-                            }
-                        }
-                        .font(.caption2.monospaced())
                     }
+                    .font(.caption2.monospaced().bold())
+                    .padding([.bottom], 4)
+                    HStack {
+                        if let closedAt = connection.closedAt {
+                            VStack(alignment: .leading) {
+                                Text("↑ \(LibboxFormatBytes(connection.uploadTotal))")
+                                Text("↓ \(LibboxFormatBytes(connection.downloadTotal))")
+                            }
+                            .font(.caption2)
+                            VStack(alignment: .leading) {
+                                Text(format(connection.createdAt))
+                                Text(formatInterval(connection.createdAt, closedAt))
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing) {
+                                Text(connection.inboundType + "/" + connection.inbound)
+                                Text(connection.chain.reversed().joined(separator: "/"))
+                            }
+                        } else {
+                            VStack(alignment: .leading) {
+                                Text("↑ \(LibboxFormatBytes(connection.upload))/s")
+                                Text("↓ \(LibboxFormatBytes(connection.download))/s")
+                            }
+                            .font(.caption2)
+                            VStack(alignment: .leading) {
+                                Text(LibboxFormatBytes(connection.uploadTotal))
+                                Text(LibboxFormatBytes(connection.downloadTotal))
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing) {
+                                Text(connection.inboundType + "/" + connection.inbound)
+                                Text(connection.chain[0])
+                            }
+                        }
+                    }
+                    .font(.caption2.monospaced())
                 }
-                .foregroundColor(.textColor)
-                #if !os(tvOS)
-                    .padding(16)
-                    .cardStyle()
-                #endif
             }
-            .background(.clear)
+            .foregroundColor(.textColor)
         }
         #if !os(tvOS)
-        .buttonStyle(.borderless)
+        .buttonStyle(.plain)
+        .padding(16)
+        .cardStyle()
         #endif
         .alert($alert)
         .contextMenu {
@@ -95,6 +91,14 @@ public struct ConnectionView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+        }
+        .background {
+            NavigationLink(isActive: $showDetails) {
+                ConnectionDetailsView(connection)
+            } label: {
+                EmptyView()
+            }
+            .opacity(0)
         }
     }
 

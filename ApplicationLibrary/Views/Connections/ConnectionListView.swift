@@ -16,13 +16,13 @@ public struct ConnectionListView: View {
                     Text("Empty connections")
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: [GridItem(.flexible())], alignment: .leading) {
+                        VStack {
                             ForEach(viewModel.filteredConnections(), id: \.id) { it in
                                 ConnectionView(it)
                             }
                         }
+                        .padding()
                     }
-                    .padding()
                 }
             }
         }
