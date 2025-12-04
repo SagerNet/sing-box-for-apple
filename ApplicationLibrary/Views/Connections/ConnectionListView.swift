@@ -28,7 +28,7 @@ public struct ConnectionListView: View {
         }
         #if !os(tvOS)
         .toolbar {
-            ToolbarItem {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 Menu {
                     Picker("State", selection: $viewModel.connectionStateFilter) {
                         ForEach(ConnectionStateFilter.allCases) { state in
@@ -47,6 +47,10 @@ public struct ConnectionListView: View {
                     }
                 } label: {
                     Label("Filter", systemImage: "line.3.horizontal.circle")
+                }
+                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                } else {
+                    StartStopButton()
                 }
             }
         }
