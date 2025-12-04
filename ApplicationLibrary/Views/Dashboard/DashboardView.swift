@@ -5,7 +5,6 @@ import SwiftUI
 @MainActor
 public struct DashboardView: View {
     @Environment(\.openURL) private var openURL
-    @Environment(\.cardConfigurationVersion) private var cardConfigurationVersion
     @Environment(\.importProfile) private var importProfile
     @Environment(\.importRemoteProfile) private var importRemoteProfile
     @EnvironmentObject private var environments: ExtensionEnvironments
@@ -148,10 +147,6 @@ public struct DashboardView: View {
 
     @ViewBuilder
     private var activeDashboardView: some View {
-        #if os(macOS)
-            ActiveDashboardView(coordinator: coordinator, externalCardConfigurationVersion: cardConfigurationVersion)
-        #else
-            ActiveDashboardView(coordinator: coordinator)
-        #endif
+        ActiveDashboardView(coordinator: coordinator)
     }
 }

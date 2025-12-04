@@ -8,19 +8,19 @@ import SwiftUI
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
     @ObservedObject private var coordinator: DashboardViewModel
-    @State private var cardConfigurationVersion = 0
+    @StateObject private var cardConfiguration = DashboardCardConfiguration()
     #if os(iOS) || os(tvOS)
         @State private var showCardManagement = false
         @State private var showGroups = false
         @State private var showConnections = false
         @State private var buttonState = ButtonVisibilityState()
     #endif
+    #if os(macOS)
+        @Environment(\.cardConfigurationVersion) private var cardConfigurationVersion
+    #endif
 
-    private let externalCardConfigurationVersion: Int?
-
-    public init(coordinator: DashboardViewModel, externalCardConfigurationVersion: Int? = nil) {
+    public init(coordinator: DashboardViewModel) {
         _coordinator = ObservedObject(wrappedValue: coordinator)
-        self.externalCardConfigurationVersion = externalCardConfigurationVersion
     }
 
     public var body: some View {
@@ -100,7 +100,7 @@ import SwiftUI
         }
         .navigationDestination(isPresented: $showCardManagement) {
             CardManagementView(onDisappear: {
-                cardConfigurationVersion += 1
+                Task { await cardConfiguration.reload() }
             })
             .navigationTitle("Dashboard Items")
             .toolbar {
@@ -115,7 +115,7 @@ import SwiftUI
                     }.sheet(isPresented: $showConnections) {
                         connectionsSheetContent
                     }.sheet(isPresented: $showCardManagement, onDismiss: {
-                        cardConfigurationVersion += 1
+                        Task { await cardConfiguration.reload() }
                     }, content: {
                         if #available(iOS 16.0, *) {
                             CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
@@ -174,6 +174,11 @@ import SwiftUI
                 updateButtonVisibility()
             }
         #endif
+        #if os(macOS)
+            .onChangeCompat(of: cardConfigurationVersion) { _ in
+                Task { await cardConfiguration.reload() }
+        }
+        #endif
     }
 
     @ViewBuilder private var overviewPage: some View {
@@ -182,7 +187,7 @@ import SwiftUI
             $coordinator.selectedProfileID,
             $coordinator.systemProxyAvailable,
             $coordinator.systemProxyEnabled,
-            cardConfigurationVersion: externalCardConfigurationVersion ?? cardConfigurationVersion
+            cardConfiguration: cardConfiguration
         )
     }
 
@@ -228,7 +233,7 @@ import SwiftUI
                             $coordinator.selectedProfileID,
                             $coordinator.systemProxyAvailable,
                             $coordinator.systemProxyEnabled,
-                            externalCardConfigurationVersion ?? cardConfigurationVersion
+                            cardConfiguration
                         )
                         .tag(page)
                     }

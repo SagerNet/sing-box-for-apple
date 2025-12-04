@@ -8,26 +8,25 @@ public struct OverviewView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
     @StateObject private var coordinator = OverviewViewModel()
-    @StateObject private var configuration = DashboardCardConfiguration()
+    @ObservedObject private var configuration: DashboardCardConfiguration
 
     @Binding private var profileList: [ProfilePreview]
     @Binding private var selectedProfileID: Int64
     @Binding private var systemProxyAvailable: Bool
     @Binding private var systemProxyEnabled: Bool
-    private let cardConfigurationVersion: Int
 
     public init(
         _ profileList: Binding<[ProfilePreview]>,
         _ selectedProfileID: Binding<Int64>,
         _ systemProxyAvailable: Binding<Bool>,
         _ systemProxyEnabled: Binding<Bool>,
-        cardConfigurationVersion: Int
+        cardConfiguration: DashboardCardConfiguration
     ) {
         _profileList = profileList
         _selectedProfileID = selectedProfileID
         _systemProxyAvailable = systemProxyAvailable
         _systemProxyEnabled = systemProxyEnabled
-        self.cardConfigurationVersion = cardConfigurationVersion
+        _configuration = ObservedObject(wrappedValue: cardConfiguration)
     }
 
     public var body: some View {
@@ -40,9 +39,6 @@ public struct OverviewView: View {
                         .padding()
                 }
             }
-        }
-        .onChangeCompat(of: cardConfigurationVersion) { _ in
-            Task { await configuration.reload() }
         }
         .alert($coordinator.alert)
         .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || coordinator.reasserting))

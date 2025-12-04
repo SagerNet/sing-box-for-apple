@@ -64,11 +64,11 @@ public extension DashboardPage {
     }
 
     @MainActor
-    func contentView(_ profileList: Binding<[ProfilePreview]>, _ selectedProfileID: Binding<Int64>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>, _ cardConfigurationVersion: Int) -> some View {
+    func contentView(_ profileList: Binding<[ProfilePreview]>, _ selectedProfileID: Binding<Int64>, _ systemProxyAvailable: Binding<Bool>, _ systemProxyEnabled: Binding<Bool>, _ cardConfiguration: DashboardCardConfiguration) -> some View {
         Group {
             switch self {
             case .overview:
-                OverviewView(profileList, selectedProfileID, systemProxyAvailable, systemProxyEnabled, cardConfigurationVersion: cardConfigurationVersion)
+                OverviewView(profileList, selectedProfileID, systemProxyAvailable, systemProxyEnabled, cardConfiguration: cardConfiguration)
             case .groups:
                 GroupListView()
             case .connections:
