@@ -51,7 +51,7 @@ struct ProfilePickerSheet: View {
     #if os(iOS)
         @available(iOS 26, *)
         private var iOSBody: some View {
-            listContent
+            iOSListContent
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         EditButton()
@@ -65,6 +65,49 @@ struct ProfilePickerSheet: View {
                     }
                 }
                 .alert($alert)
+        }
+
+        @available(iOS 26, *)
+        @ViewBuilder
+        private var iOSListContent: some View {
+            if editMode.isEditing {
+                iOSEditingList
+            } else {
+                iOSNormalList
+            }
+        }
+
+        @available(iOS 26, *)
+        private var iOSEditingList: some View {
+            listContent
+        }
+
+        @available(iOS 26, *)
+        private var iOSNormalList: some View {
+            List {
+                ForEach(profileList, id: \.id) { profile in
+                    ProfilePickerRow(
+                        profile: profile,
+                        isSelected: profile.id == selectedProfileID,
+                        alert: $alert,
+                        onSelect: {
+                            selectedProfileID = profile.id
+                            dismiss()
+                        },
+                        onEdit: {
+                            profileToEdit = profile.origin
+                        },
+                        onUpdate: {
+                            await updateProfile(profile)
+                        }
+                    )
+                    .environmentObject(environments)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
+                }
+            }
+            .listStyle(.plain)
         }
 
         private var legacyIOSBody: some View {
