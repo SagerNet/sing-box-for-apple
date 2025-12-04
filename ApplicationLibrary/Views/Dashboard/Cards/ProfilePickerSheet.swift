@@ -13,9 +13,7 @@ struct ProfilePickerSheet: View {
     @Binding var profileList: [ProfilePreview]
     @Binding var selectedProfileID: Int64
 
-    #if os(iOS)
-        @State private var legacyEditMode: EditMode = .inactive
-    #elseif os(tvOS)
+    #if !os(macOS)
         @State private var editMode: EditMode = .inactive
     #else
         @State private var isEditing = false
@@ -29,9 +27,7 @@ struct ProfilePickerSheet: View {
     #endif
 
     private var isEditingActive: Bool {
-        #if os(iOS)
-            legacyEditMode.isEditing
-        #elseif os(tvOS)
+        #if !os(macOS)
             editMode.isEditing
         #else
             isEditing
@@ -42,8 +38,10 @@ struct ProfilePickerSheet: View {
         #if os(iOS)
             if #available(iOS 26, *) {
                 iOSBody
+                    .environment(\.editMode, $editMode)
             } else {
                 legacyIOSBody
+                    .environment(\.editMode, $editMode)
             }
         #else
             nonIOSBody
@@ -71,12 +69,11 @@ struct ProfilePickerSheet: View {
 
         private var legacyIOSBody: some View {
             legacyListContent
-                .environment(\.editMode, $legacyEditMode)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Button(legacyEditMode.isEditing ? "Done" : "Edit") {
+                        Button(editMode.isEditing ? "Done" : "Edit") {
                             withAnimation {
-                                legacyEditMode = legacyEditMode.isEditing ? .inactive : .active
+                                editMode = editMode.isEditing ? .inactive : .active
                             }
                         }
                     }
@@ -170,7 +167,6 @@ struct ProfilePickerSheet: View {
                         ProfilePickerRow(
                             profile: profile,
                             isSelected: profile.id == selectedProfileID,
-                            isEditing: isEditingActive,
                             isMoving: movingProfileID == profile.id,
                             alert: $alert,
                             focusedProfileID: $focusedProfileID,
@@ -272,7 +268,7 @@ struct ProfilePickerSheet: View {
     #if os(iOS)
         @ViewBuilder
         private var legacyListContent: some View {
-            if legacyEditMode.isEditing {
+            if editMode.isEditing {
                 legacyEditingList
             } else {
                 legacyNormalList
@@ -458,13 +454,13 @@ struct ProfilePickerSheet: View {
 
 private struct ProfilePickerRow: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
-    #if os(iOS)
+    #if !os(macOS)
         @Environment(\.editMode) private var editMode
     #endif
 
     let profile: ProfilePreview
     let isSelected: Bool
-    #if os(tvOS) || os(macOS)
+    #if os(macOS)
         let isEditing: Bool
     #endif
     #if os(tvOS)
@@ -484,7 +480,7 @@ private struct ProfilePickerRow: View {
         let onToggleMoving: () -> Void
     #endif
 
-    #if os(iOS)
+    #if !os(macOS)
         private var isEditing: Bool {
             editMode?.wrappedValue.isEditing ?? false
         }
