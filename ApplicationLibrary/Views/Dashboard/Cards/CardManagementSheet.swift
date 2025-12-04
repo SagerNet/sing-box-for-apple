@@ -100,6 +100,8 @@ import SwiftUI
 #if os(tvOS)
     @MainActor public struct CardManagementView: View {
         @StateObject private var configuration = DashboardCardConfiguration()
+        @FocusState private var focusedCard: DashboardCard?
+        @State private var movingCard: DashboardCard?
         private let onDisappear: (() -> Void)?
 
         public init(onDisappear: (() -> Void)? = nil) {
@@ -111,37 +113,113 @@ import SwiftUI
                 if configuration.isLoading {
                     ProgressView()
                 } else {
-                    List {
-                        ForEach(configuration.cardOrder) { card in
-                            CardRow(
-                                card: card,
-                                isEnabled: configuration.isEnabled(card),
-                                onToggle: {
-                                    configuration.toggleCard(card)
-                                }
-                            )
-                        }
-                        .onMove { source, destination in
-                            Task {
-                                await configuration.moveCard(from: source, to: destination)
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(configuration.cardOrder) { card in
+                                TVCardRow(
+                                    card: card,
+                                    isEnabled: configuration.isEnabled(card),
+                                    isMoving: movingCard == card,
+                                    focusedCard: $focusedCard,
+                                    onToggle: {
+                                        configuration.toggleCard(card)
+                                    },
+                                    onToggleMoving: {
+                                        withAnimation {
+                                            if movingCard == card {
+                                                movingCard = nil
+                                            } else {
+                                                movingCard = card
+                                            }
+                                        }
+                                    }
+                                )
                             }
                         }
+                        .padding()
                     }
-                    .applyContentMargins()
+                    .focusSection()
                 }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Reset", role: .destructive) {
+                    TVToolbarButton(title: "Reset") {
                         Task {
                             await configuration.resetToDefault()
                         }
                     }
                 }
             }
+            .onMoveCommand { direction in
+                guard let movingCard,
+                      let currentIndex = configuration.cardOrder.firstIndex(of: movingCard)
+                else { return }
+
+                let newIndex: Int
+                switch direction {
+                case .up:
+                    guard currentIndex > 0 else { return }
+                    newIndex = currentIndex - 1
+                case .down:
+                    guard currentIndex < configuration.cardOrder.count - 1 else { return }
+                    newIndex = currentIndex + 1
+                default:
+                    return
+                }
+
+                Task {
+                    await configuration.moveCard(from: IndexSet(integer: currentIndex), to: newIndex > currentIndex ? newIndex + 1 : newIndex)
+                }
+                focusedCard = movingCard
+            }
             .onDisappear {
                 onDisappear?()
             }
+        }
+    }
+
+    private struct TVCardRow: View {
+        let card: DashboardCard
+        let isEnabled: Bool
+        let isMoving: Bool
+        var focusedCard: FocusState<DashboardCard?>.Binding
+        let onToggle: () -> Void
+        let onToggleMoving: () -> Void
+
+        private var isProfileCard: Bool {
+            card == .profile
+        }
+
+        var body: some View {
+            HStack(spacing: 16) {
+                Label(card.title, systemImage: card.systemImage)
+                    .font(.headline)
+                    .foregroundStyle(isEnabled ? .primary : .secondary)
+
+                Spacer()
+
+                if !isProfileCard {
+                    Toggle("", isOn: Binding(
+                        get: { isEnabled },
+                        set: { _ in onToggle() }
+                    ))
+                    .labelsHidden()
+                }
+
+                Button {
+                    onToggleMoving()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 20))
+                }
+                .buttonStyle(.plain)
+                .actionButtonStyle()
+                .focused(focusedCard, equals: card)
+            }
+            .padding()
+            .background(Color.secondary.opacity(0.2), in: RoundedRectangle(cornerRadius: 16))
+            .scaleEffect(isMoving ? 1.05 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isMoving)
         }
     }
 #endif
