@@ -235,7 +235,7 @@ struct ProfilePickerSheet: View {
                     macOSProfileRow(profile)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                        .listRowInsets(EdgeInsets(top: 3, leading: 16, bottom: 3, trailing: 16))
                 }
             }
             .listStyle(.plain)
@@ -260,7 +260,7 @@ struct ProfilePickerSheet: View {
                     .environmentObject(environments)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                    .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
                 }
                 .onMove(perform: moveProfile)
                 .onDelete(perform: deleteProfile)
@@ -662,16 +662,6 @@ private struct ProfilePickerRow: View {
 
             private var macOSEditingBody: some View {
                 rowContent
-                    .overlay(alignment: .trailing) {
-                        Button {
-                            onDelete()
-                        } label: {
-                            Image(systemName: "minus.circle.fill")
-                                .font(.system(size: 20))
-                                .foregroundStyle(.red)
-                        }
-                        .buttonStyle(.plain)
-                    }
             }
         #endif
 
@@ -729,9 +719,24 @@ private struct ProfilePickerRow: View {
 
                 Spacer()
 
-                if !isEditing {
-                    rowMenu
-                }
+                #if os(macOS)
+                    if isEditing {
+                        Button {
+                            onDelete()
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        rowMenu
+                    }
+                #else
+                    if !isEditing {
+                        rowMenu
+                    }
+                #endif
             }
             .contentShape(Rectangle())
             .padding(16)

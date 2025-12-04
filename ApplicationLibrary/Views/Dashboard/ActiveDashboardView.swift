@@ -256,11 +256,13 @@ import SwiftUI
                 }
                 #if os(tvOS)
                     StartStopButton()
-                #else
+                #elseif os(iOS)
                     if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
                     } else if !useLegacyTabView || coordinator.selection != .connections {
                         StartStopButton()
                     }
+                #else
+                    StartStopButton()
                 #endif
             }
         }

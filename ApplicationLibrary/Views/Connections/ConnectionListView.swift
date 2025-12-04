@@ -26,7 +26,7 @@ public struct ConnectionListView: View {
                 }
             }
         }
-        #if !os(tvOS)
+        #if os(iOS)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Menu {
