@@ -25,6 +25,7 @@ struct ProfilePickerSheet: View {
     @State private var alert: AlertState?
     #if os(tvOS)
         @FocusState private var focusedProfileID: Int64?
+        @State private var movingProfileID: Int64?
     #endif
 
     private var isEditingActive: Bool {
@@ -96,6 +97,18 @@ struct ProfilePickerSheet: View {
             listContent
             #if os(tvOS)
             .environment(\.editMode, $editMode)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    TVToolbarButton(title: editMode.isEditing ? "Done" : "Edit") {
+                        withAnimation {
+                            if editMode.isEditing {
+                                movingProfileID = nil
+                            }
+                            editMode = editMode.isEditing ? .inactive : .active
+                        }
+                    }
+                }
+            }
             .navigationDestination(item: $profileToEdit) { profile in
                 EditProfileView()
                     .environmentObject(profile)
@@ -158,6 +171,7 @@ struct ProfilePickerSheet: View {
                             profile: profile,
                             isSelected: profile.id == selectedProfileID,
                             isEditing: isEditingActive,
+                            isMoving: movingProfileID == profile.id,
                             alert: $alert,
                             focusedProfileID: $focusedProfileID,
                             onSelect: {
@@ -169,6 +183,20 @@ struct ProfilePickerSheet: View {
                             },
                             onUpdate: {
                                 await updateProfile(profile)
+                            },
+                            onDelete: {
+                                if let index = profileList.firstIndex(where: { $0.id == profile.id }) {
+                                    deleteProfile(at: IndexSet(integer: index))
+                                }
+                            },
+                            onToggleMoving: {
+                                withAnimation {
+                                    if movingProfileID == profile.id {
+                                        movingProfileID = nil
+                                    } else {
+                                        movingProfileID = profile.id
+                                    }
+                                }
                             }
                         )
                         .environmentObject(environments)
@@ -178,6 +206,28 @@ struct ProfilePickerSheet: View {
             }
             .onAppear {
                 focusedProfileID = selectedProfileID
+            }
+            .onMoveCommand { direction in
+                guard let movingID = movingProfileID,
+                      let currentIndex = profileList.firstIndex(where: { $0.id == movingID })
+                else { return }
+
+                let newIndex: Int
+                switch direction {
+                case .up:
+                    guard currentIndex > 0 else { return }
+                    newIndex = currentIndex - 1
+                case .down:
+                    guard currentIndex < profileList.count - 1 else { return }
+                    newIndex = currentIndex + 1
+                default:
+                    return
+                }
+
+                withAnimation {
+                    moveProfile(from: IndexSet(integer: currentIndex), to: newIndex > currentIndex ? newIndex + 1 : newIndex)
+                }
+                focusedProfileID = movingID
             }
         #elseif os(macOS)
             List {
@@ -417,6 +467,9 @@ private struct ProfilePickerRow: View {
     #if os(tvOS) || os(macOS)
         let isEditing: Bool
     #endif
+    #if os(tvOS)
+        let isMoving: Bool
+    #endif
     @Binding var alert: AlertState?
     #if os(tvOS)
         var focusedProfileID: FocusState<Int64?>.Binding
@@ -424,8 +477,11 @@ private struct ProfilePickerRow: View {
     let onSelect: () -> Void
     let onEdit: () -> Void
     let onUpdate: () async -> Void
-    #if os(macOS)
+    #if os(tvOS) || os(macOS)
         let onDelete: () -> Void
+    #endif
+    #if os(tvOS)
+        let onToggleMoving: () -> Void
     #endif
 
     #if os(iOS)
@@ -451,12 +507,28 @@ private struct ProfilePickerRow: View {
 
     #if os(tvOS)
         private var tvOSBody: some View {
+            Group {
+                if isEditing {
+                    tvOSEditingBody
+                } else {
+                    tvOSNormalBody
+                }
+            }
+            .sheet(isPresented: $showQRCode) {
+                if let remoteURL = profile.remoteURL {
+                    QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+                }
+            }
+        }
+
+        private var tvOSNormalBody: some View {
             Button(action: onSelect) {
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark")
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundStyle(.tint)
                         .opacity(isSelected ? 1 : 0)
+                        .frame(width: 28)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text(profile.name)
@@ -468,60 +540,91 @@ private struct ProfilePickerRow: View {
 
                     Spacer()
 
-                    if !isEditing {
-                        Color.clear.frame(width: 44)
-                    }
+                    Color.clear.frame(width: 70)
                 }
                 .padding()
             }
             .buttonStyle(.card)
             .focused(focusedProfileID, equals: profile.id)
-            .disabled(isEditing || isUpdating)
+            .disabled(isUpdating)
             .overlay(alignment: .trailing) {
-                if !isEditing {
-                    Menu {
-                        Button {
-                            onEdit()
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                        }
-
-                        if profile.type == .remote {
-                            Button {
-                                isUpdating = true
-                                Task {
-                                    await onUpdate()
-                                    isUpdating = false
-                                }
-                            } label: {
-                                Label("Update", systemImage: "arrow.clockwise")
-                            }
-
-                            Menu {
-                                Button {
-                                    showQRCode = true
-                                } label: {
-                                    Label("Share URL as QR Code", systemImage: "qrcode")
-                                }
-                            } label: {
-                                Label("Share", systemImage: "square.and.arrow.up")
-                            }
-                        }
+                Menu {
+                    Button {
+                        onEdit()
                     } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 16))
+                        Label("Edit", systemImage: "pencil")
                     }
-                    .buttonStyle(.plain)
-                    .actionButtonStyle()
-                    .disabled(isUpdating)
-                    .padding(.trailing, 12)
+
+                    if profile.type == .remote {
+                        Button {
+                            isUpdating = true
+                            Task {
+                                await onUpdate()
+                                isUpdating = false
+                            }
+                        } label: {
+                            Label("Update", systemImage: "arrow.clockwise")
+                        }
+
+                        Menu {
+                            Button {
+                                showQRCode = true
+                            } label: {
+                                Label("Share URL as QR Code", systemImage: "qrcode")
+                            }
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16))
                 }
+                .buttonStyle(.plain)
+                .actionButtonStyle()
+                .disabled(isUpdating)
+                .padding(.trailing, 12)
             }
-            .sheet(isPresented: $showQRCode) {
-                if let remoteURL = profile.remoteURL {
-                    QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+        }
+
+        private var tvOSEditingBody: some View {
+            HStack(spacing: 12) {
+                Color.clear.frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(profile.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    profileInfo
                 }
+
+                Spacer()
+
+                Button {
+                    onDelete()
+                } label: {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+                .actionButtonStyle()
+
+                Button {
+                    onToggleMoving()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 20))
+                }
+                .buttonStyle(.plain)
+                .actionButtonStyle()
+                .focused(focusedProfileID, equals: profile.id)
             }
+            .padding()
+            .background(Color.secondary.opacity(0.2), in: RoundedRectangle(cornerRadius: 16))
+            .scaleEffect(isMoving ? 1.05 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isMoving)
         }
     #endif
 
@@ -849,6 +952,46 @@ private struct ProfilePickerRow: View {
 #endif
 
 // MARK: - Legacy iOS ProfilePickerRow (iOS < 26)
+
+#if os(tvOS)
+    /// Workaround for tvOS SwiftUI bug where toolbar Button text labels fail to render properly.
+    /// Using UIButton via UIViewRepresentable bypasses this issue.
+    private struct TVToolbarButton: UIViewRepresentable {
+        let title: String
+        let action: () -> Void
+
+        func makeUIView(context: Context) -> UIButton {
+            let button = UIButton(type: .system)
+            button.setTitle(title, for: .normal)
+            button.setContentHuggingPriority(.required, for: .horizontal)
+            button.setContentCompressionResistancePriority(.required, for: .horizontal)
+            button.addTarget(context.coordinator, action: #selector(Coordinator.buttonTapped), for: .primaryActionTriggered)
+            return button
+        }
+
+        func updateUIView(_ uiView: UIButton, context: Context) {
+            uiView.setTitle(title, for: .normal)
+            uiView.invalidateIntrinsicContentSize()
+            uiView.sizeToFit()
+            context.coordinator.action = action
+        }
+
+        func makeCoordinator() -> Coordinator {
+            Coordinator(action: action)
+        }
+
+        class Coordinator: NSObject {
+            var action: () -> Void
+            init(action: @escaping () -> Void) {
+                self.action = action
+            }
+
+            @objc func buttonTapped() {
+                action()
+            }
+        }
+    }
+#endif
 
 #if os(iOS)
     private struct LegacyProfilePickerRow: View {
