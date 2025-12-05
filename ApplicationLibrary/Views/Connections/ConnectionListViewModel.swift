@@ -4,8 +4,19 @@ import SwiftUI
 
 @MainActor
 public class ConnectionListViewModel: BaseViewModel {
-    @Published public var connections: [Connection] = []
-    @Published public var searchText = ""
+    @Published public var connections: [Connection] = [] {
+        didSet {
+            updateFilteredConnections()
+        }
+    }
+
+    @Published public var searchText = "" {
+        didSet {
+            updateFilteredConnections()
+        }
+    }
+
+    @Published public var filteredConnections: [Connection] = []
     @Published public var connectionStateFilter: ConnectionStateFilter {
         didSet {
             saveStateFilterTask?.cancel()
@@ -74,9 +85,11 @@ public class ConnectionListViewModel: BaseViewModel {
         }
     }
 
-    public func filteredConnections() -> [Connection] {
-        connections.filter { connection in
-            searchText == "" || connection.performSearch(searchText)
+    private func updateFilteredConnections() {
+        if searchText.isEmpty {
+            filteredConnections = connections
+        } else {
+            filteredConnections = connections.filter { $0.performSearch(searchText) }
         }
     }
 

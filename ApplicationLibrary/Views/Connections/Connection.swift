@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Connection: Codable {
+public struct Connection: Codable, Hashable, Equatable {
     public let id: String
     public let inbound: String
     public let inboundType: String
@@ -24,12 +24,22 @@ public struct Connection: Codable {
     public let outboundType: String
     public let chain: [String]
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(upload)
         hasher.combine(download)
         hasher.combine(uploadTotal)
         hasher.combine(downloadTotal)
+        hasher.combine(closedAt)
+    }
+
+    public static func == (lhs: Connection, rhs: Connection) -> Bool {
+        lhs.id == rhs.id &&
+            lhs.upload == rhs.upload &&
+            lhs.download == rhs.download &&
+            lhs.uploadTotal == rhs.uploadTotal &&
+            lhs.downloadTotal == rhs.downloadTotal &&
+            lhs.closedAt == rhs.closedAt
     }
 
     func performSearch(_ content: String) -> Bool {

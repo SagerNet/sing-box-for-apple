@@ -8,10 +8,14 @@ public struct ConnectionView: View {
         self.connection = connection
     }
 
-    private func format(_ date: Date) -> String {
+    private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss"
-        return formatter.string(from: date)
+        return formatter
+    }()
+
+    private func format(_ date: Date) -> String {
+        Self.timeFormatter.string(from: date)
     }
 
     public func formatInterval(_ createdAt: Date, _ closedAt: Date) -> String {

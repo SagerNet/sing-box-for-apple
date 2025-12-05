@@ -16,8 +16,8 @@ public struct ConnectionListView: View {
                     Text("Empty connections")
                 } else {
                     ScrollView {
-                        VStack {
-                            ForEach(viewModel.filteredConnections(), id: \.id) { it in
+                        LazyVStack {
+                            ForEach(viewModel.filteredConnections, id: \.id) { it in
                                 ConnectionView(it)
                             }
                         }
