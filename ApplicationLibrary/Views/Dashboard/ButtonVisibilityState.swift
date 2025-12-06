@@ -12,8 +12,7 @@ public struct ButtonVisibilityState {
 
     public mutating func update(
         profile: ExtensionProfile?,
-        commandClient: CommandClient,
-        requireAnyConnection: Bool = false
+        commandClient: CommandClient
     ) {
         guard let profile else {
             reset()
@@ -25,7 +24,7 @@ public struct ButtonVisibilityState {
 
         let isConnected = ApplicationLibrary.inPreview || profile.status.isConnectedStrict
 
-        showConnectionsButton = isConnected && (!requireAnyConnection || commandClient.hasAnyConnection)
+        showConnectionsButton = isConnected
         showGroupsButton = isConnected && (commandClient.groups?.isEmpty == false)
     }
 

@@ -14,16 +14,7 @@ public enum DashboardPage: Int, CaseIterable, Identifiable {
 
 public extension DashboardPage {
     static func enabledCases() -> [DashboardPage] {
-        var cases: [DashboardPage] = [
-            .overview,
-            .groups,
-        ]
-        #if !os(tvOS)
-            if Variant.isBeta {
-                cases.append(.connections)
-            }
-        #endif
-        return cases
+        [.overview, .groups, .connections]
     }
 
     static func enabledCases(hasGroups: Bool) -> [DashboardPage] {
@@ -31,11 +22,7 @@ public extension DashboardPage {
         if hasGroups {
             cases.append(.groups)
         }
-        #if !os(tvOS)
-            if Variant.isBeta {
-                cases.append(.connections)
-            }
-        #endif
+        cases.append(.connections)
         return cases
     }
 }

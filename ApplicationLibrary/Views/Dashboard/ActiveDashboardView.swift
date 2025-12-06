@@ -161,8 +161,6 @@ import SwiftUI
                         coordinator.selection = .overview
                     }
                 #endif
-            }.onReceive(environments.commandClient.$connections) { _ in
-                updateButtonVisibility()
             }.onReceive(profile.$status) { _ in
                 updateButtonVisibility()
                 #if os(iOS)
@@ -193,7 +191,7 @@ import SwiftUI
 
     #if os(iOS) || os(tvOS)
         private func updateButtonVisibility() {
-            buttonState.update(profile: profile, commandClient: environments.commandClient, requireAnyConnection: true)
+            buttonState.update(profile: profile, commandClient: environments.commandClient)
         }
 
         #if os(iOS)

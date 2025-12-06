@@ -144,8 +144,7 @@ struct MainView: View {
     private func updateButtonVisibility() {
         buttonState.update(
             profile: environments.extensionProfile,
-            commandClient: environments.commandClient,
-            requireAnyConnection: true
+            commandClient: environments.commandClient
         )
     }
 
