@@ -139,7 +139,7 @@ struct ProfilePickerSheet: View {
             .environment(\.editMode, $editMode)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    TVToolbarButton(title: editMode.isEditing ? "Done" : "Edit") {
+                    TVToolbarButton(title: editMode.isEditing ?  String(localized: "Done"):  String(localized: "Edit")) {
                         withAnimation {
                             if editMode.isEditing {
                                 movingProfileID = nil

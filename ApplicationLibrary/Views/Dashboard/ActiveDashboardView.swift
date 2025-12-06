@@ -243,7 +243,7 @@ import SwiftUI
 
         @ToolbarContentBuilder private var toolbar: some ToolbarContent {
             #if os(tvOS)
-                ToolbarItem(placement: .topBarLeading) {
+            ToolbarItemGroup(placement: .topBarLeading) {
                     navigationButtons
                 }
             #endif
@@ -312,7 +312,7 @@ import SwiftUI
                 Button {
                     showCardManagement = true
                 } label: {
-                    Image(systemName: "line.3.horizontal.circle")
+                    Image(systemName: "square.grid.2x2")
                 }
             #endif
         }

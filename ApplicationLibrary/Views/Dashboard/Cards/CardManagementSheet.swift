@@ -143,7 +143,7 @@ import SwiftUI
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    TVToolbarButton(title: "Reset") {
+                    TVToolbarButton(title:  String(localized: "Reset")) {
                         Task {
                             await configuration.resetToDefault()
                         }
