@@ -892,7 +892,7 @@ private struct ProfilePickerRow: View {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
-                    Text(lastUpdated.myFormat)
+                    Text(lastUpdated.relativeFormat)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -947,7 +947,7 @@ private struct ProfilePickerRow: View {
                                 Image(systemName: "clock.fill")
                                     .font(.system(size: 12))
                                     .foregroundStyle(.secondary)
-                                Text(lastUpdated.myFormat)
+                                Text(lastUpdated.relativeFormat)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -1155,7 +1155,7 @@ private struct ProfilePickerRow: View {
                         Image(systemName: "clock.fill")
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
-                        Text(lastUpdated.myFormat)
+                        Text(lastUpdated.relativeFormat)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

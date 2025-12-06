@@ -348,7 +348,7 @@ public struct ProfileCard: View {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
-                    Text(lastUpdated.myFormat)
+                    Text(lastUpdated.relativeFormat)
                         .font(.caption)
                         .foregroundColor(.primary)
                 }
