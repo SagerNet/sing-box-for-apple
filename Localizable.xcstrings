@@ -4,6 +4,9 @@
     "" : {
       "shouldTranslate" : false
     },
+    "..." : {
+      "shouldTranslate" : false
+    },
     "**If I’ve defended your modern life, please consider sponsoring me.**" : {
       "localizations" : {
         "zh-Hans" : {
@@ -23,6 +26,9 @@
           }
         }
       },
+      "shouldTranslate" : false
+    },
+    "%@/s" : {
       "shouldTranslate" : false
     },
     "%lld" : {
@@ -48,6 +54,18 @@
       "shouldTranslate" : false
     },
     "↓ %@/s" : {
+      "shouldTranslate" : false
+    },
+    "5.6 GB" : {
+      "shouldTranslate" : false
+    },
+    "38 B/s" : {
+      "shouldTranslate" : false
+    },
+    "52 MB" : {
+      "shouldTranslate" : false
+    },
+    "249 MB/s" : {
       "shouldTranslate" : false
     },
     "About" : {
@@ -609,6 +627,16 @@
         }
       }
     },
+    "Download" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载"
+          }
+        }
+      }
+    },
     "Edit" : {
       "localizations" : {
         "zh-Hans" : {
@@ -846,6 +874,7 @@
       }
     },
     "HTTP Proxy" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1967,6 +1996,16 @@
       }
     },
     "Uplink" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上传"
+          }
+        }
+      }
+    },
+    "Upload" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {

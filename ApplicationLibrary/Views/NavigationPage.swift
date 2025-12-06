@@ -56,7 +56,7 @@ public extension NavigationPage {
                 return "list.bullet.rectangle.portrait.fill"
         #endif
         case .logs:
-            return "doc.text.fill"
+            return "list.bullet.rectangle"
         case .settings:
             return "gear.circle.fill"
         }

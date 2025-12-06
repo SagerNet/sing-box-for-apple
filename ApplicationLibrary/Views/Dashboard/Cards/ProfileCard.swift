@@ -104,9 +104,7 @@ public struct ProfileCard: View {
 
     private var headerView: some View {
         HStack {
-            Text("Profile")
-                .font(.headline)
-                .foregroundColor(.primary)
+            DashboardCardHeader(icon: "doc.text.fill", title: "Profile")
 
             Spacer()
 

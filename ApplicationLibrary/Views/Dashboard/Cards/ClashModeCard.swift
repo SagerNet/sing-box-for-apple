@@ -11,20 +11,23 @@ public struct ClashModeCard: View {
 
     public var body: some View {
         if shouldShowPicker {
-            DashboardCardView(title: String(localized: "Mode"), isHalfWidth: false) {
-                Picker("", selection: Binding(get: {
-                    clashMode
-                }, set: { newMode in
-                    clashMode = newMode
-                    Task {
-                        await setClashMode(newMode)
+            DashboardCardView(title: "", isHalfWidth: false) {
+                VStack(alignment: .leading, spacing: 12) {
+                    DashboardCardHeader(icon: "circle.grid.2x2.fill", title: "Mode")
+                    Picker("", selection: Binding(get: {
+                        clashMode
+                    }, set: { newMode in
+                        clashMode = newMode
+                        Task {
+                            await setClashMode(newMode)
+                        }
+                    })) {
+                        ForEach(commandClient.clashModeList, id: \.self) { mode in
+                            Text(mode)
+                        }
                     }
-                })) {
-                    ForEach(commandClient.clashModeList, id: \.self) { mode in
-                        Text(mode)
-                    }
+                    .pickerStyle(.segmented)
                 }
-                .pickerStyle(.segmented)
             }
             .onAppear {
                 clashMode = commandClient.clashMode

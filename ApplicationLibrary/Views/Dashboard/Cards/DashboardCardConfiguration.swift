@@ -59,11 +59,11 @@ public final class DashboardCardConfiguration: ObservableObject {
         let saved = await SharedPreferences.enabledDashboardCards.get()
         guard !saved.isEmpty else { return DashboardCard.defaultCards }
 
-        var cards = saved.compactMap { DashboardCard(rawValue: $0) }
+        var cards = saved.compactMap { migrateCardName($0) }.compactMap { DashboardCard(rawValue: $0) }
         if !cards.contains(.profile) {
             cards.append(.profile)
-            await SharedPreferences.enabledDashboardCards.set(cards.map(\.rawValue))
         }
+        await SharedPreferences.enabledDashboardCards.set(cards.map(\.rawValue))
         return cards
     }
 
@@ -71,11 +71,23 @@ public final class DashboardCardConfiguration: ObservableObject {
         let saved = await SharedPreferences.dashboardCardOrder.get()
         guard !saved.isEmpty else { return DashboardCard.defaultOrder }
 
-        var order = saved.compactMap { DashboardCard(rawValue: $0) }
+        var order = saved.compactMap { migrateCardName($0) }.compactMap { DashboardCard(rawValue: $0) }
         let existingSet = Set(order)
         let newCards = DashboardCard.allCases.filter { !existingSet.contains($0) }
         order.append(contentsOf: newCards)
+        await SharedPreferences.dashboardCardOrder.set(order.map(\.rawValue))
         return order
+    }
+
+    private func migrateCardName(_ name: String) -> String {
+        switch name {
+        case "traffic":
+            return "uploadTraffic"
+        case "trafficTotal":
+            return "downloadTraffic"
+        default:
+            return name
+        }
     }
 
     private func saveEnabledCards() async {

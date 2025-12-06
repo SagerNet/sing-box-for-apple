@@ -20,7 +20,7 @@ public struct HTTPProxyCard: View {
     public var body: some View {
         DashboardCardView(title: "", isHalfWidth: false) {
             HStack {
-                Text("System HTTP Proxy")
+                DashboardCardHeader(icon: "network", title: "System HTTP Proxy")
                 Spacer()
                 Toggle("", isOn: $systemProxyEnabled)
                     .labelsHidden()

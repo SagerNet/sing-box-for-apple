@@ -67,6 +67,9 @@ public class CommandClient: ObservableObject {
     @Published public var hasAnyConnection: Bool = false
     public var rawConnections: LibboxConnections?
 
+    @Published public var uplinkHistory: [CGFloat] = Array(repeating: 0, count: 30)
+    @Published public var downlinkHistory: [CGFloat] = Array(repeating: 0, count: 30)
+
     // Batch processing for logs
     private var pendingLogs: [LogEntry] = []
     private var logBatchTimer: DispatchWorkItem?
@@ -270,6 +273,12 @@ public class CommandClient: ObservableObject {
         func writeStatus(_ message: LibboxStatusMessage?) {
             DispatchQueue.main.async { [self] in
                 commandClient.status = message
+                if let message = message, message.trafficAvailable {
+                    commandClient.uplinkHistory.removeFirst()
+                    commandClient.uplinkHistory.append(CGFloat(message.uplink))
+                    commandClient.downlinkHistory.removeFirst()
+                    commandClient.downlinkHistory.append(CGFloat(message.downlink))
+                }
             }
         }
 
