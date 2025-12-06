@@ -35,7 +35,7 @@ public struct NavigationButtonsView: View {
 
     #if os(tvOS)
         private var tvOSBody: some View {
-            Group {
+            HStack {
                 if showConnectionsButton {
                     Button {
                         onConnectionsTap()

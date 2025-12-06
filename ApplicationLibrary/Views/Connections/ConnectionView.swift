@@ -99,6 +99,13 @@ public struct ConnectionView: View {
         .background {
             NavigationLink(isActive: $showDetails) {
                 ConnectionDetailsView(connection)
+                #if os(tvOS)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .topBarLeading) {
+                            BackButton()
+                        }
+                    }
+                #endif
             } label: {
                 EmptyView()
             }

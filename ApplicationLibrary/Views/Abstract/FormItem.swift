@@ -11,29 +11,49 @@ public func FormView(@ViewBuilder content: () -> some View) -> some View {
 }
 
 public func FormTextItem(_ name: LocalizedStringKey, _ value: String) -> some View {
-    HStack {
-        Text(name)
-        Spacer()
-        Text(value)
-            .multilineTextAlignment(.trailing)
-            .font(Font.system(.caption, design: .monospaced))
-        #if os(iOS) || os(macOS)
-            .textSelection(.enabled)
-        #endif
-    }
+    #if os(tvOS)
+        Button {} label: {
+            HStack {
+                Text(name)
+                Spacer()
+                Text(value)
+                    .multilineTextAlignment(.trailing)
+                    .font(Font.system(.caption, design: .monospaced))
+            }
+        }
+    #else
+        HStack {
+            Text(name)
+            Spacer()
+            Text(value)
+                .multilineTextAlignment(.trailing)
+                .font(Font.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+        }
+    #endif
 }
 
 public func FormTextItem(_ name: LocalizedStringKey, _ systemImage: String, @ViewBuilder _ value: () -> some View) -> some View {
-    HStack {
-        Label(name, systemImage: systemImage)
-        Spacer()
-        value()
-            .multilineTextAlignment(.trailing)
-            .font(Font.system(.caption, design: .monospaced))
-        #if os(iOS) || os(macOS)
-            .textSelection(.enabled)
-        #endif
-    }
+    #if os(tvOS)
+        Button {} label: {
+            HStack {
+                Label(name, systemImage: systemImage)
+                Spacer()
+                value()
+                    .multilineTextAlignment(.trailing)
+                    .font(Font.system(.caption, design: .monospaced))
+            }
+        }
+    #else
+        HStack {
+            Label(name, systemImage: systemImage)
+            Spacer()
+            value()
+                .multilineTextAlignment(.trailing)
+                .font(Font.system(.caption, design: .monospaced))
+                .textSelection(.enabled)
+        }
+    #endif
 }
 
 public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> some View {
