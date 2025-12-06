@@ -273,11 +273,16 @@ public class CommandClient: ObservableObject {
         func writeStatus(_ message: LibboxStatusMessage?) {
             DispatchQueue.main.async { [self] in
                 commandClient.status = message
-                if let message = message, message.trafficAvailable {
-                    commandClient.uplinkHistory.removeFirst()
-                    commandClient.uplinkHistory.append(CGFloat(message.uplink))
-                    commandClient.downlinkHistory.removeFirst()
-                    commandClient.downlinkHistory.append(CGFloat(message.downlink))
+                if let message, message.trafficAvailable {
+                    var newUplink = commandClient.uplinkHistory
+                    newUplink.removeFirst()
+                    newUplink.append(CGFloat(message.uplink))
+                    commandClient.uplinkHistory = newUplink
+
+                    var newDownlink = commandClient.downlinkHistory
+                    newDownlink.removeFirst()
+                    newDownlink.append(CGFloat(message.downlink))
+                    commandClient.downlinkHistory = newDownlink
                 }
             }
         }
