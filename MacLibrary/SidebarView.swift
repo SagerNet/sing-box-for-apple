@@ -17,6 +17,7 @@ public struct SidebarView: View {
             ProgressView()
         } else if let profile = environments.extensionProfile {
             sidebarContent(isConnected: profile.status.isConnectedStrict, profile: profile)
+                .onReceive(profile.$status) { _ in }
                 .onChangeCompat(of: profile.status) {
                     if !selection.visible(profile) {
                         DispatchQueue.main.async {

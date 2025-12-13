@@ -82,7 +82,7 @@ public final class DashboardViewModel: BaseViewModel {
             systemProxyAvailable = status.available
             systemProxyEnabled = status.enabled
         } catch {
-            alert = AlertState(error: error)
+            NSLog("reloadSystemProxy: \(error)")
         }
     }
 
@@ -117,9 +117,7 @@ public final class DashboardViewModel: BaseViewModel {
                 }
             }
         } catch {
-            await MainActor.run {
-                alert = AlertState(error: error)
-            }
+            NSLog("checkDeprecatedNotes: \(error)")
         }
     }
 
