@@ -364,6 +364,8 @@
 		3A77016D2A4E6B34008F031F /* IntentsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = IntentsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3ABA46D22A6A32A100D8366B /* Messages.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Messages.framework; path = Library/Frameworks/Messages.framework; sourceTree = DEVELOPER_DIR; };
 		3AC03B962A72BF3300B7946F /* sing-box.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sing-box.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AC72A2E2EED94DD0039DEA4 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		3AC72A302EED94F60039DEA4 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS26.2.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
 		3AE171992A8128DD00393060 /* TVExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TVExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AE395F22C21A5CA00647718 /* WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AE395F32C21A5CA00647718 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -606,6 +608,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3A017F922A4AB2E4009149FA /* GRDB in Frameworks */,
+				3AC72A312EED94F70039DEA4 /* SystemConfiguration.framework in Frameworks */,
 				3A76504C2A4F08BA003945C5 /* Libbox.xcframework in Frameworks */,
 				3A7E90382A46778E00D53052 /* BinaryCodable in Frameworks */,
 				3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */,
@@ -687,6 +690,8 @@
 		3AEC21012A459AE300A63465 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3AC72A2E2EED94DD0039DEA4 /* SystemConfiguration.framework */,
+				3AC72A302EED94F60039DEA4 /* SystemConfiguration.framework */,
 				3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */,
 				3A3DEBE62A4FFA6000373BF4 /* AppIntents.framework */,
 				3A3DEBE12A4FFA1A00373BF4 /* ExtensionFoundation.framework */,
