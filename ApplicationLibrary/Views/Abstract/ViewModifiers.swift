@@ -5,7 +5,7 @@ public extension View {
     func presentationDetentsIfAvailable() -> some View {
         #if os(iOS) || os(tvOS)
             if #available(iOS 16.0, tvOS 17.0, *) {
-                self.presentationDetents([.large])
+                presentationDetents([.large])
                     .presentationDragIndicator(.visible)
             } else {
                 self
@@ -31,7 +31,7 @@ public extension View {
             ActionButtonWrapper { self }
         #else
             if #available(iOS 26.0, macOS 26.0, *) {
-                self.frame(width: 44, height: 32)
+                frame(width: 44, height: 32)
                     .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 8))
             } else {
                 frame(width: 44, height: 32)

@@ -41,6 +41,7 @@ public struct StartStopButton: View {
         @EnvironmentObject private var profile: ExtensionProfile
         @State private var alert: AlertState?
         @State private var currentTime = Date()
+        @State private var isStarting = false
 
         private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -109,6 +110,21 @@ public struct StartStopButton: View {
                 .onReceive(timer) { _ in
                     currentTime = Date()
                 }
+                .onChangeCompat(of: profile.status) { status in
+                    if isStarting {
+                        if status == .disconnected {
+                            isStarting = false
+                            if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
+                                Task {
+                                    await checkStartupError()
+                                }
+                            }
+                        } else if status.isConnectedStrict {
+                            isStarting = false
+                            environments.commandClient.connect()
+                        }
+                    }
+                }
         }
 
         #if os(iOS)
@@ -136,16 +152,26 @@ public struct StartStopButton: View {
             }
         }
 
+        @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
+        private func checkStartupError() async {
+            do {
+                try await profile.fetchLastDisconnectError()
+            } catch {
+                alert = AlertState(title: String(localized: "Service Error"), message: error.localizedDescription)
+            }
+        }
+
         private nonisolated func switchProfile(_ isEnabled: Bool) async {
             do {
                 if isEnabled {
+                    await MainActor.run { isStarting = true }
                     try await profile.start()
-                    await environments.commandClient.connect()
                 } else {
                     try await profile.stop()
                 }
             } catch {
                 await MainActor.run {
+                    isStarting = false
                     alert = AlertState(error: error)
                 }
             }

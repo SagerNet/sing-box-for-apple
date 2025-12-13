@@ -112,6 +112,7 @@ public class CommandClient: ObservableObject {
     }
 
     private func flushPendingLogs() {
+        logBatchTimer = nil
         guard !pendingLogs.isEmpty else { return }
 
         // Batch append all pending logs
@@ -254,19 +255,15 @@ public class CommandClient: ObservableObject {
             guard !newLogs.isEmpty else { return }
 
             DispatchQueue.main.async { [self] in
-                // Add to pending batch
                 commandClient.pendingLogs.append(contentsOf: newLogs)
-
-                // Cancel existing timer
-                commandClient.logBatchTimer?.cancel()
-
-                // Schedule batch flush
-                let workItem = DispatchWorkItem { [weak commandClient] in
-                    guard let commandClient else { return }
-                    commandClient.flushPendingLogs()
+                if commandClient.logBatchTimer == nil {
+                    let workItem = DispatchWorkItem { [weak commandClient] in
+                        guard let commandClient else { return }
+                        commandClient.flushPendingLogs()
+                    }
+                    commandClient.logBatchTimer = workItem
+                    DispatchQueue.main.asyncAfter(deadline: .now() + commandClient.logBatchInterval, execute: workItem)
                 }
-                commandClient.logBatchTimer = workItem
-                DispatchQueue.main.asyncAfter(deadline: .now() + commandClient.logBatchInterval, execute: workItem)
             }
         }
 

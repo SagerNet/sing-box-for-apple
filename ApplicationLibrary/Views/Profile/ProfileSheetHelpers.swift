@@ -87,7 +87,7 @@ public struct NavigationSheet<Content: View>: View {
         @ViewBuilder
         func sheetDetent(_ size: SheetSize) -> some View {
             if #available(iOS 16.0, tvOS 17.0, *) {
-                self.presentationDetents([size.presentationDetent])
+                presentationDetents([size.presentationDetent])
                     .presentationDragIndicator(.visible)
             } else {
                 self

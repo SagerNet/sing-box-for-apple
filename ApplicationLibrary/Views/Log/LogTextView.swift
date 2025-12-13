@@ -147,8 +147,8 @@ class LogCoordinator {
                 ScrollView {
                     LogUITextView(logs: logs, searchText: searchText)
                         .font(font)
-                        // Explicit height ensures navigation bar large title collapse animation works correctly with UITextView
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
                         .padding()
                         .id("logContent")
                 }
@@ -226,6 +226,15 @@ class LogCoordinator {
                 // Update cache to full content
                 context.coordinator.cachedAttributedString = NSAttributedString(attributedString: textStorage)
             }
+
+            textView.invalidateIntrinsicContentSize()
+        }
+
+        @available(iOS 16.0, *)
+        func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context _: Context) -> CGSize? {
+            guard let width = proposal.width, width > 0 else { return nil }
+            let size = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
+            return CGSize(width: width, height: size.height)
         }
 
         func makeCoordinator() -> LogCoordinator {
@@ -300,6 +309,10 @@ class LogCoordinator {
 
                 // Update cache to full content
                 context.coordinator.cachedAttributedString = NSAttributedString(attributedString: textStorage)
+            }
+
+            if let textContainer = textView.textContainer {
+                textView.layoutManager?.ensureLayout(for: textContainer)
             }
 
             let shouldScroll = shouldAutoScroll && logs.count != lastCount

@@ -81,7 +81,7 @@ private extension View {
     @ViewBuilder
     func selectorBackground() -> some View {
         if #available(iOS 26.0, macOS 26.0, tvOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: .rect(cornerRadius: 12))
+            glassEffect(.regular.interactive(), in: .rect(cornerRadius: 12))
         } else {
             background(
                 RoundedRectangle(cornerRadius: 12)
