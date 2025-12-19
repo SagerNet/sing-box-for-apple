@@ -1,4 +1,5 @@
 import ApplicationLibrary
+import FileProvider
 import Foundation
 import Libbox
 import Library
@@ -76,6 +77,20 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
                 NSLog("started profile server")
             } catch {
                 NSLog("setup profile server error: \(error.localizedDescription)")
+            }
+            registerFileProviderDomain()
+        }
+    }
+
+    @available(iOS 16.0, *)
+    private nonisolated func registerFileProviderDomain() {
+        let domain = NSFileProviderDomain(
+            identifier: NSFileProviderDomainIdentifier("io.nekohasekai.sfavt.workingdir"),
+            displayName: "sing-box"
+        )
+        NSFileProviderManager.add(domain) { error in
+            if let error {
+                NSLog("Failed to add file provider domain: \(error)")
             }
         }
     }
