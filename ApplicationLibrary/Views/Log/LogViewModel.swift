@@ -10,27 +10,23 @@ import SwiftUI
 #endif
 
 @MainActor
-public class LogViewModel: BaseViewModel {
-    @Published public var selectedLogLevel: Int?
-    @Published public var isPaused = false
-    @Published public var searchText = ""
-    @Published public var isSearching = false
+public class LogDataModel: ObservableObject {
     @Published public var filteredLogs: [LogEntry] = []
     @Published public var showFileExporter = false
     @Published public var logFileURL: URL?
 
     private let commandClient: CommandClient
+    private weak var viewModel: LogViewModel?
     private var lastProcessedLogCount = 0
     private var lastEffectiveLevel: Int?
     private var lastSearchText = ""
+    private var cancellables = Set<AnyCancellable>()
 
-    // Performance optimization: limit visible logs to prevent UI lag
     private static let maxVisibleLogs = 1000
 
     public var isEmpty: Bool { commandClient.logList.isEmpty }
     public var isConnected: Bool { commandClient.isConnected }
 
-    // Only show last N logs for performance, but keep all in filteredLogs for export
     public var visibleLogs: [LogEntry] {
         if filteredLogs.count <= Self.maxVisibleLogs {
             return filteredLogs
@@ -39,17 +35,17 @@ public class LogViewModel: BaseViewModel {
         }
     }
 
-    public init(commandClient: CommandClient) {
+    public init(commandClient: CommandClient, viewModel: LogViewModel) {
         self.commandClient = commandClient
-        super.init()
+        self.viewModel = viewModel
 
-        let debouncedSearchText = $searchText
+        let debouncedSearchText = viewModel.$searchText
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
 
         Publishers.CombineLatest4(
             commandClient.$logList,
             commandClient.$defaultLogLevel,
-            $selectedLogLevel,
+            viewModel.$selectedLogLevel,
             debouncedSearchText
         )
         .receive(on: DispatchQueue.main)
@@ -57,14 +53,12 @@ public class LogViewModel: BaseViewModel {
             guard let self else { return }
             let effectiveLevel = selectedLogLevel ?? defaultLogLevel
 
-            // Check if we can do incremental filtering
             let canIncrement = self.lastProcessedLogCount > 0 &&
                 logList.count > self.lastProcessedLogCount &&
                 effectiveLevel == self.lastEffectiveLevel &&
                 searchText == self.lastSearchText
 
             if canIncrement {
-                // Incremental filtering: only filter new logs
                 let newLogs = logList[self.lastProcessedLogCount...]
                 let newFilteredLogs = newLogs.filter { log in
                     log.level <= effectiveLevel &&
@@ -72,7 +66,6 @@ public class LogViewModel: BaseViewModel {
                 }
                 self.filteredLogs.append(contentsOf: newFilteredLogs)
             } else {
-                // Full refiltering needed
                 self.filteredLogs = logList.filter { log in
                     log.level <= effectiveLevel &&
                         (searchText.isEmpty || log.message.contains(searchText))
@@ -86,21 +79,8 @@ public class LogViewModel: BaseViewModel {
         .store(in: &cancellables)
     }
 
-    private var cancellables = Set<AnyCancellable>()
-
-    public func togglePause() {
-        isPaused.toggle()
-    }
-
-    public func toggleSearch() {
-        isSearching.toggle()
-        if !isSearching {
-            searchText = ""
-        }
-    }
-
     public func clearLogs() {
-        isPaused = false
+        viewModel?.isPaused = false
         lastProcessedLogCount = 0
         lastEffectiveLevel = nil
         lastSearchText = ""
@@ -110,16 +90,16 @@ public class LogViewModel: BaseViewModel {
         }
     }
 
+    public func getLogsText() -> String {
+        filteredLogs.map(\.message).joined(separator: "\n")
+    }
+
     #if !os(tvOS)
         private static let dateFormatter: DateFormatter = {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd-HH:mm:ss"
             return formatter
         }()
-
-        public func getLogsText() -> String {
-            filteredLogs.map(\.message).joined(separator: "\n")
-        }
 
         public func copyToClipboard() {
             let text = getLogsText()
@@ -146,8 +126,36 @@ public class LogViewModel: BaseViewModel {
                 try text.write(to: fileURL, atomically: true, encoding: .utf8)
                 logFileURL = fileURL
             } catch {
-                alert = AlertState(error: error)
+                viewModel?.alert = AlertState(error: error)
             }
         }
     #endif
+}
+
+@MainActor
+public class LogViewModel: BaseViewModel {
+    @Published public var selectedLogLevel: Int?
+    @Published public var isPaused = false
+    @Published public var searchText = ""
+    @Published public var isSearching = false
+
+    public let commandClient: CommandClient
+    public private(set) var dataModel: LogDataModel!
+
+    public init(commandClient: CommandClient) {
+        self.commandClient = commandClient
+        super.init()
+        dataModel = LogDataModel(commandClient: commandClient, viewModel: self)
+    }
+
+    public func togglePause() {
+        isPaused.toggle()
+    }
+
+    public func toggleSearch() {
+        isSearching.toggle()
+        if !isSearching {
+            searchText = ""
+        }
+    }
 }

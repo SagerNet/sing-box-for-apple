@@ -20,45 +20,217 @@ public struct LogView: View {
 }
 
 private struct LogViewContent: View {
-    @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var viewModel: LogViewModel
-    private let logFont = Font.system(.caption2, design: .monospaced)
 
     init(commandClient: CommandClient) {
         _viewModel = StateObject(wrappedValue: LogViewModel(commandClient: commandClient))
     }
 
     var body: some View {
+        LogContentInnerView(dataModel: viewModel.dataModel, viewModel: viewModel)
+            #if !os(tvOS)
+            .applySearchable(text: $viewModel.searchText, isSearching: $viewModel.isSearching, shouldShow: viewModel.isSearching)
+            .toolbar {
+                ToolbarItemGroup {
+                    toolbarButtons
+                }
+            }
+            .alert($viewModel.alert)
+            .background(
+                LogExportView(
+                    showFileExporter: Binding(
+                        get: { viewModel.dataModel.showFileExporter },
+                        set: { viewModel.dataModel.showFileExporter = $0 }
+                    ),
+                    logFileURL: Binding(
+                        get: { viewModel.dataModel.logFileURL },
+                        set: { viewModel.dataModel.logFileURL = $0 }
+                    ),
+                    alert: $viewModel.alert,
+                    cleanup: { viewModel.dataModel.cleanupLogFile() }
+                )
+            )
+            #endif
+    }
+
+    #if !os(tvOS)
+        @ViewBuilder
+        private var toolbarButtons: some View {
+            if #available(iOS 17.0, macOS 14.0, *) {
+                Button(action: viewModel.toggleSearch) {
+                    Label("Search", systemImage: "magnifyingglass")
+                }
+            }
+            Button(action: viewModel.togglePause) {
+                Label(
+                    viewModel.isPaused ? NSLocalizedString("Resume", comment: "Resume log auto-scroll") : NSLocalizedString("Pause", comment: "Pause log auto-scroll"),
+                    systemImage: viewModel.isPaused ? "play.circle" : "pause.circle"
+                )
+            }
+            #if canImport(UIKit)
+                LogMenuButton(viewModel: viewModel)
+            #else
+                LogMenuView(viewModel: viewModel)
+            #endif
+        }
+    #endif
+}
+
+#if !os(tvOS)
+    #if canImport(UIKit)
+        private struct LogMenuButton: UIViewRepresentable {
+            let viewModel: LogViewModel
+            @Environment(\.colorScheme) private var colorScheme
+
+            func makeUIView(context: Context) -> UIButton {
+                let button = UIButton(type: .system)
+                let config = UIImage.SymbolConfiguration(scale: .large)
+                button.setImage(UIImage(systemName: "line.3.horizontal.circle", withConfiguration: config), for: .normal)
+                button.tintColor = colorScheme == .dark ? .white : .black
+                button.showsMenuAsPrimaryAction = true
+                button.menu = createMenu()
+                button.setContentHuggingPriority(.required, for: .horizontal)
+                button.setContentCompressionResistancePriority(.required, for: .horizontal)
+                return button
+            }
+
+            func updateUIView(_ uiView: UIButton, context: Context) {
+                uiView.menu = createMenu()
+                uiView.tintColor = colorScheme == .dark ? .white : .black
+            }
+
+            private func createMenu() -> UIMenu {
+                let logLevelActions = [
+                    UIAction(
+                        title: NSLocalizedString("Default", comment: "Log level filter default option"),
+                        state: viewModel.selectedLogLevel == nil ? .on : .off
+                    ) { _ in
+                        viewModel.selectedLogLevel = nil
+                    }
+                ] + LogLevel.allCases.map { level in
+                    UIAction(
+                        title: level.name,
+                        state: viewModel.selectedLogLevel == level.rawValue ? .on : .off
+                    ) { _ in
+                        viewModel.selectedLogLevel = level.rawValue
+                    }
+                }
+
+                let logLevelMenu = UIMenu(
+                    title: NSLocalizedString("Log Level", comment: ""),
+                    image: UIImage(systemName: "slider.horizontal.3"),
+                    children: logLevelActions
+                )
+
+                let saveActions = [
+                    UIAction(
+                        title: NSLocalizedString("To Clipboard", comment: ""),
+                        image: UIImage(systemName: "doc.on.clipboard")
+                    ) { _ in
+                        viewModel.dataModel.copyToClipboard()
+                    },
+                    UIAction(
+                        title: NSLocalizedString("To File", comment: ""),
+                        image: UIImage(systemName: "arrow.down.doc")
+                    ) { _ in
+                        viewModel.dataModel.prepareLogFile()
+                        viewModel.dataModel.showFileExporter = true
+                    },
+                    UIAction(
+                        title: NSLocalizedString("Share", comment: ""),
+                        image: UIImage(systemName: "square.and.arrow.up")
+                    ) { _ in
+                        viewModel.dataModel.prepareLogFile()
+                    },
+                ]
+
+                let saveMenu = UIMenu(
+                    title: NSLocalizedString("Save", comment: ""),
+                    image: UIImage(systemName: "square.and.arrow.down"),
+                    children: saveActions
+                )
+
+                let clearAction = UIAction(
+                    title: NSLocalizedString("Clear Logs", comment: "Clear all logs"),
+                    image: UIImage(systemName: "trash"),
+                    attributes: .destructive
+                ) { _ in
+                    viewModel.dataModel.clearLogs()
+                }
+
+                return UIMenu(children: [logLevelMenu, saveMenu, clearAction])
+            }
+        }
+    #endif
+
+    #if canImport(AppKit)
+        private struct LogMenuView: View {
+            let viewModel: LogViewModel
+
+            var body: some View {
+                Menu {
+                    Picker(selection: Binding(
+                        get: { viewModel.selectedLogLevel },
+                        set: { viewModel.selectedLogLevel = $0 }
+                    )) {
+                        Text(NSLocalizedString("Default", comment: "Log level filter default option")).tag(Int?.none)
+                        ForEach(LogLevel.allCases) { level in
+                            Text(level.name).tag(Int?.some(level.rawValue))
+                        }
+                    } label: {
+                        Label("Log Level", systemImage: "slider.horizontal.3")
+                    }
+                    Menu {
+                        Button {
+                            viewModel.dataModel.copyToClipboard()
+                        } label: {
+                            Label("To Clipboard", systemImage: "doc.on.clipboard")
+                        }
+                        Button {
+                            viewModel.dataModel.prepareLogFile()
+                            viewModel.dataModel.showFileExporter = true
+                        } label: {
+                            Label("To File", systemImage: "arrow.down.doc")
+                        }
+                        Button {
+                            viewModel.dataModel.prepareLogFile()
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Label("Save", systemImage: "square.and.arrow.down")
+                    }
+                    Button(role: .destructive) {
+                        viewModel.dataModel.clearLogs()
+                    } label: {
+                        Label(NSLocalizedString("Clear Logs", comment: "Clear all logs"), systemImage: "trash")
+                    }
+                } label: {
+                    Label("Filter", systemImage: "line.3.horizontal.circle")
+                }
+            }
+        }
+    #endif
+#endif
+
+private struct LogContentInnerView: View {
+    @EnvironmentObject private var environments: ExtensionEnvironments
+    @ObservedObject var dataModel: LogDataModel
+    @ObservedObject var viewModel: LogViewModel
+    private let logFont = Font.system(.caption2, design: .monospaced)
+
+    var body: some View {
         Group {
             if ApplicationLibrary.inPreview {
                 previewContent
-            } else if viewModel.isEmpty {
+            } else if dataModel.isEmpty {
                 emptyContent
-            } else if viewModel.visibleLogs.isEmpty {
+            } else if dataModel.visibleLogs.isEmpty {
                 emptyContent
             } else {
                 logScrollView
             }
         }
-        #if !os(tvOS)
-        .applySearchable(text: $viewModel.searchText, isSearching: $viewModel.isSearching, shouldShow: viewModel.isSearching)
-        .toolbar {
-            ToolbarItemGroup {
-                if !viewModel.isEmpty {
-                    toolbarButtons
-                }
-            }
-        }
-        .alert($viewModel.alert)
-        .background(
-            LogExportView(
-                showFileExporter: $viewModel.showFileExporter,
-                logFileURL: $viewModel.logFileURL,
-                alert: $viewModel.alert,
-                cleanup: viewModel.cleanupLogFile
-            )
-        )
-        #endif
     }
 
     private var previewContent: some View {
@@ -99,7 +271,7 @@ private struct LogViewContent: View {
 
     @ViewBuilder
     private var emptyContent: some View {
-        if viewModel.isConnected {
+        if dataModel.isConnected {
             Text("Empty logs")
         } else {
             Text("Service not started").onAppear {
@@ -113,7 +285,7 @@ private struct LogViewContent: View {
             ScrollViewReader { reader in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 8) {
-                        ForEach(viewModel.visibleLogs) { logEntry in
+                        ForEach(dataModel.visibleLogs) { logEntry in
                             Text(highlightedText(for: logEntry.message))
                                 .font(logFont)
                                 .focusable()
@@ -127,7 +299,7 @@ private struct LogViewContent: View {
                 .onAppear {
                     scrollToLastEntry(reader)
                 }
-                .onChangeCompat(of: viewModel.visibleLogs.count) { _ in
+                .onChangeCompat(of: dataModel.visibleLogs.count) { _ in
                     if !viewModel.isPaused {
                         scrollToLastEntry(reader)
                     }
@@ -135,7 +307,7 @@ private struct LogViewContent: View {
             }
         #else
             LogTextView(
-                logs: viewModel.visibleLogs,
+                logs: dataModel.visibleLogs,
                 font: logFont,
                 shouldAutoScroll: !viewModel.isPaused,
                 searchText: viewModel.searchText
@@ -166,62 +338,12 @@ private struct LogViewContent: View {
 
     #if os(tvOS)
         private func scrollToLastEntry(_ reader: ScrollViewProxy) {
-            guard let lastEntry = viewModel.visibleLogs.last else { return }
+            guard let lastEntry = dataModel.visibleLogs.last else { return }
             withAnimation {
                 reader.scrollTo(lastEntry.id, anchor: .bottom)
             }
         }
     #endif
-
-    @ViewBuilder
-    private var toolbarButtons: some View {
-        if #available(iOS 17.0, macOS 14.0, *) {
-            Button(action: viewModel.toggleSearch) {
-                Label("Search", systemImage: "magnifyingglass")
-            }
-        }
-        Button(action: viewModel.togglePause) {
-            Label(
-                viewModel.isPaused ? NSLocalizedString("Resume", comment: "Resume log auto-scroll") : NSLocalizedString("Pause", comment: "Pause log auto-scroll"),
-                systemImage: viewModel.isPaused ? "play.circle" : "pause.circle"
-            )
-        }
-        Menu {
-            Menu {
-                Picker("Log Level", selection: $viewModel.selectedLogLevel) {
-                    Text(NSLocalizedString("Default", comment: "Log level filter default option")).tag(Int?.none)
-                    ForEach(LogLevel.allCases) { level in
-                        Text(level.name).tag(Int?.some(level.rawValue))
-                    }
-                }
-            } label: {
-                Label("Log Level", systemImage: "slider.horizontal.3")
-            }
-            #if !os(tvOS)
-                Menu {
-                    Button(action: viewModel.copyToClipboard) {
-                        Label("To Clipboard", systemImage: "doc.on.clipboard")
-                    }
-                    Button(action: {
-                        viewModel.prepareLogFile()
-                        viewModel.showFileExporter = true
-                    }, label: {
-                        Label("To File", systemImage: "arrow.down.doc")
-                    })
-                    Button(action: viewModel.prepareLogFile) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                    }
-                } label: {
-                    Label("Save", systemImage: "square.and.arrow.down")
-                }
-            #endif
-            Button(role: .destructive, action: viewModel.clearLogs) {
-                Label(NSLocalizedString("Clear Logs", comment: "Clear all logs"), systemImage: "trash")
-            }
-        } label: {
-            Label("Filter", systemImage: "line.3.horizontal.circle")
-        }
-    }
 }
 
 #if !os(tvOS)
