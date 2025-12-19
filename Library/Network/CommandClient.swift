@@ -92,9 +92,7 @@ public class CommandClient: ObservableObject {
         if isConnected {
             return
         }
-        if let connectTask {
-            connectTask.cancel()
-        }
+        disconnect()
         connectTask = Task {
             await performConnection()
         }

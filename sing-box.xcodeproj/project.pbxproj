@@ -54,6 +54,7 @@
 		3AEECC452A6DFE61006A0E0C /* ApplicationLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */; };
 		3AEECC4E2A6DFF13006A0E0C /* MacControlCenterUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3AEECC4D2A6DFF13006A0E0C /* MacControlCenterUI */; };
 		3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */; };
+		3AFE19402EF5677100F61E06 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AC72A302EED94F60039DEA4 /* SystemConfiguration.framework */; };
 		9C37F17D2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
 		9C37F17E2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
 		9C37F17F2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
@@ -639,6 +640,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3A017F922A4AB2E4009149FA /* GRDB in Frameworks */,
+				3AFE19402EF5677100F61E06 /* SystemConfiguration.framework in Frameworks */,
 				3A76504C2A4F08BA003945C5 /* Libbox.xcframework in Frameworks */,
 				3A7E90382A46778E00D53052 /* BinaryCodable in Frameworks */,
 				3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */,
