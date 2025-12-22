@@ -1,5 +1,5 @@
 {
-  "originHash" : "667da5f817ecc784ba63674676b2d92fd0c6e2af5a43e97251ec53e32dafbc26",
+  "originHash" : "3df9e750e08443194175bd6d737045e3d91e43b2e60d468122e1acdd9ea936c0",
   "pins" : [
     {
       "identity" : "binarycodable",
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MacControlCenterUI",
       "state" : {
-        "revision" : "a98dc47a61116b126092839cf1617274f5c603dc",
-        "version" : "2.4.2"
+        "revision" : "7a6ef245d3a136884295e20fd0ffa4b90cbe0940",
+        "version" : "2.7.0"
       }
     },
     {

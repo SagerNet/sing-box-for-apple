@@ -28,7 +28,7 @@ private struct LogViewContent: View {
 
     var body: some View {
         LogContentInnerView(dataModel: viewModel.dataModel, viewModel: viewModel)
-            #if !os(tvOS)
+        #if !os(tvOS)
             .applySearchable(text: $viewModel.searchText, isSearching: $viewModel.isSearching, shouldShow: viewModel.isSearching)
             .toolbar {
                 ToolbarItemGroup {
@@ -50,7 +50,7 @@ private struct LogViewContent: View {
                     cleanup: { viewModel.dataModel.cleanupLogFile() }
                 )
             )
-            #endif
+        #endif
     }
 
     #if !os(tvOS)
@@ -82,7 +82,7 @@ private struct LogViewContent: View {
             let viewModel: LogViewModel
             @Environment(\.colorScheme) private var colorScheme
 
-            func makeUIView(context: Context) -> UIButton {
+            func makeUIView(context _: Context) -> UIButton {
                 let button = UIButton(type: .system)
                 let config = UIImage.SymbolConfiguration(scale: .large)
                 button.setImage(UIImage(systemName: "line.3.horizontal.circle", withConfiguration: config), for: .normal)
@@ -94,7 +94,7 @@ private struct LogViewContent: View {
                 return button
             }
 
-            func updateUIView(_ uiView: UIButton, context: Context) {
+            func updateUIView(_ uiView: UIButton, context _: Context) {
                 uiView.menu = createMenu()
                 uiView.tintColor = colorScheme == .dark ? .white : .black
             }
@@ -106,7 +106,7 @@ private struct LogViewContent: View {
                         state: viewModel.selectedLogLevel == nil ? .on : .off
                     ) { _ in
                         viewModel.selectedLogLevel = nil
-                    }
+                    },
                 ] + LogLevel.allCases.map { level in
                     UIAction(
                         title: level.name,
