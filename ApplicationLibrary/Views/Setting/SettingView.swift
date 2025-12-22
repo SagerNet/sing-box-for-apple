@@ -99,8 +99,10 @@ public struct SettingView: View {
             #if os(macOS)
                 Tabs.app.navigationLink
             #endif
-            ForEach([Tabs.core, Tabs.packetTunnel, Tabs.onDemandRules, Tabs.profileOverride]) { it in
-                it.navigationLink
+            Section {
+                ForEach([Tabs.core, Tabs.packetTunnel, Tabs.onDemandRules, Tabs.profileOverride]) { it in
+                    it.navigationLink
+                }
             }
             #if !os(tvOS)
                 Section("About") {
