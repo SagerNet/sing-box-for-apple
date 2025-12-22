@@ -1,6 +1,10 @@
 import Libbox
 import Library
 import SwiftUI
+#if os(iOS)
+    import FileProvider
+    import UIKit
+#endif
 
 @MainActor
 public struct CoreView: View {
@@ -40,6 +44,16 @@ public struct CoreView: View {
                                 NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FilePath.workingDirectory.relativePath)
                             } label: {
                                 Label("Open", systemImage: "macwindow.and.cursorarrow")
+                            }
+                        #elseif os(iOS)
+                            if #available(iOS 16.0, *) {
+                                FormButton {
+                                    Task {
+                                        await openInFilesApp()
+                                    }
+                                } label: {
+                                    Label("Browse", systemImage: "folder.fill")
+                                }
                             }
                         #endif
                         FormButton(role: .destructive) {
@@ -115,6 +129,30 @@ public struct CoreView: View {
             isLoading = true
         }
     }
+
+    #if os(iOS)
+        @available(iOS 16.0, *)
+        private nonisolated func openInFilesApp() async {
+            do {
+                let domains = try await NSFileProviderManager.domains()
+                guard let domain = domains.first(where: { $0.identifier.rawValue == "io.nekohasekai.sfavt.workingdir" }) else {
+                    throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "File provider domain not found"])
+                }
+                guard let manager = NSFileProviderManager(for: domain) else {
+                    throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to get file provider manager"])
+                }
+                let url = try await manager.getUserVisibleURL(for: .rootContainer)
+                guard let sharedURL = URL(string: "shareddocuments://\(url.path)") else {
+                    throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create shared documents URL"])
+                }
+                await UIApplication.shared.open(sharedURL)
+            } catch {
+                await MainActor.run {
+                    alert = AlertState(error: error)
+                }
+            }
+        }
+    #endif
 }
 
 private extension URL {
