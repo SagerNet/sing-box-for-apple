@@ -38,9 +38,6 @@ public struct EditProfileView: View {
                 FormItem(String(localized: "Path")) {
                     TextField("Path", text: $profile.path, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
-                    #if !os(macOS)
-                        .keyboardType(.asciiCapableNumberPad)
-                    #endif
                 }
             } else if profile.type == .remote {
                 FormItem(String(localized: "URL")) {

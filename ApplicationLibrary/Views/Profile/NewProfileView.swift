@@ -91,9 +91,6 @@ public struct NewProfileView: View {
                 FormItem(String(localized: "Path")) {
                     TextField("Path", text: $viewModel.remotePath, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
-                    #if !os(macOS)
-                        .keyboardType(.asciiCapableNumberPad)
-                    #endif
                 }
             } else if viewModel.profileType == .remote {
                 FormItem(String(localized: "URL")) {
