@@ -19,7 +19,10 @@ public final class NewProfileViewModel: BaseViewModel {
     @Published public var autoUpdateInterval: Int32 = 60
     @Published public var pickerPresented = false
 
+    public let isImport: Bool
+
     public init(importRequest: NewProfileView.ImportRequest? = nil, localImportRequest: NewProfileView.LocalImportRequest? = nil) {
+        isImport = importRequest != nil
         super.init()
         if let importRequest {
             profileName = importRequest.name

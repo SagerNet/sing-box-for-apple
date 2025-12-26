@@ -135,11 +135,13 @@ public struct NewProfileView: View {
     #if os(macOS)
         private var macOSBody: some View {
             VStack(alignment: .leading, spacing: 0) {
-                Text("New Profile")
-                    .font(.headline)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 12)
+                if !viewModel.isImport {
+                    Text("New Profile")
+                        .font(.headline)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .padding(.bottom, 12)
+                }
 
                 formContent
             }
