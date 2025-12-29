@@ -12,6 +12,7 @@ import SwiftUI
 @MainActor
 public class LogDataModel: ObservableObject {
     @Published public var filteredLogs: [LogEntry] = []
+    @Published public private(set) var visibleLogs: [LogEntry] = []
     @Published public var showFileExporter = false
     @Published public var logFileURL: URL?
 
@@ -27,11 +28,11 @@ public class LogDataModel: ObservableObject {
     public var isEmpty: Bool { commandClient.logList.isEmpty }
     public var isConnected: Bool { commandClient.isConnected }
 
-    public var visibleLogs: [LogEntry] {
+    private func updateVisibleLogs() {
         if filteredLogs.count <= Self.maxVisibleLogs {
-            return filteredLogs
+            visibleLogs = filteredLogs
         } else {
-            return Array(filteredLogs.suffix(Self.maxVisibleLogs))
+            visibleLogs = Array(filteredLogs.suffix(Self.maxVisibleLogs))
         }
     }
 
@@ -72,6 +73,7 @@ public class LogDataModel: ObservableObject {
                 }
             }
 
+            self.updateVisibleLogs()
             self.lastProcessedLogCount = logList.count
             self.lastEffectiveLevel = effectiveLevel
             self.lastSearchText = searchText

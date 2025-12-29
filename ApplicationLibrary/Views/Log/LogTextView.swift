@@ -23,11 +23,17 @@ struct LogTextView: View {
     }
 }
 
+@MainActor
 class LogCoordinator {
     var lastLogsCount: Int = 0
     var lastLog: LogEntry?
     var lastSearchText: String = ""
-    var cachedAttributedString: NSAttributedString?
+    var buildVersion: Int = 0
+    var currentBuildTask: Task<Void, Never>?
+
+    deinit {
+        currentBuildTask?.cancel()
+    }
 
     func shouldUpdate(logs: [LogEntry], searchText: String) -> UpdateStrategy {
         let currentCount = logs.count
@@ -47,14 +53,12 @@ class LogCoordinator {
         if currentCount == 0 || searchChanged || lastLogsCount > currentCount {
             // Full rebuild needed
             strategy = .fullRebuild
-            cachedAttributedString = nil
         } else if currentCount > lastLogsCount {
             // Incremental update possible
             strategy = .incremental(from: lastLogsCount)
         } else {
             // Same count but different last log (shouldn't happen normally)
             strategy = .fullRebuild
-            cachedAttributedString = nil
         }
 
         lastLogsCount = currentCount
@@ -62,6 +66,38 @@ class LogCoordinator {
         lastSearchText = searchText
         return strategy
     }
+
+    #if os(iOS) || os(macOS)
+        fileprivate func scheduleBuildTask(
+            logs: [LogEntry],
+            searchText: String,
+            monoFont: PlatformFont,
+            defaultColor: PlatformColor,
+            startIndex: Int?,
+            isViewValid: @escaping @MainActor () -> Bool,
+            applyUpdate: @escaping @MainActor (NSAttributedString, Bool) -> Void
+        ) {
+            currentBuildTask?.cancel()
+            buildVersion += 1
+            let version = buildVersion
+
+            currentBuildTask = Task.detached(priority: .userInitiated) { [weak self] in
+                guard let attributedString = try? await buildAttributedString(
+                    logs: logs,
+                    monoFont: monoFont,
+                    defaultColor: defaultColor,
+                    searchText: searchText,
+                    startIndex: startIndex ?? 0
+                ) else { return }
+                await MainActor.run {
+                    guard let self, isViewValid() else { return }
+                    guard self.buildVersion == version else { return }
+                    applyUpdate(attributedString, startIndex != nil)
+                    self.currentBuildTask = nil
+                }
+            }
+        }
+    #endif
 
     enum UpdateStrategy {
         case noUpdate
@@ -71,26 +107,18 @@ class LogCoordinator {
 }
 
 #if os(iOS) || os(macOS)
-    private func buildAttributedString(logs: [LogEntry], monoFont: PlatformFont, defaultColor: PlatformColor, searchText: String, baseAttributedString: NSAttributedString? = nil, startIndex: Int = 0) -> NSAttributedString {
-        let result: NSMutableAttributedString
+    private func buildAttributedString(logs: [LogEntry], monoFont: PlatformFont, defaultColor: PlatformColor, searchText: String, startIndex: Int = 0) async throws -> NSAttributedString {
+        let result = NSMutableAttributedString()
         let highlightColor: PlatformColor = .systemYellow
-
-        if let base = baseAttributedString {
-            result = NSMutableAttributedString(attributedString: base)
-            // Add newline separator if appending to existing content
-            if result.length > 0 {
-                result.append(NSAttributedString(string: "\n", attributes: [
-                    .foregroundColor: defaultColor,
-                    .font: monoFont,
-                ]))
-            }
-        } else {
-            result = NSMutableAttributedString()
-        }
+        let cancellationCheckInterval = 50
 
         let logsToProcess = logs[startIndex...]
 
         for (offset, log) in logsToProcess.enumerated() {
+            if offset % cancellationCheckInterval == 0 {
+                try Task.checkCancellation()
+            }
+
             let attributedString = ANSIColors.parseAnsiString(log.message)
             let nsAttributedString = NSMutableAttributedString(string: String(attributedString.characters))
 
@@ -136,44 +164,10 @@ class LogCoordinator {
 #endif
 
 #if os(iOS)
-    struct LogTextViewIOS: View {
+    struct LogTextViewIOS: UIViewRepresentable {
         let logs: [LogEntry]
         let font: Font
         let shouldAutoScroll: Bool
-        let searchText: String
-
-        var body: some View {
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LogUITextView(logs: logs, searchText: searchText)
-                        .font(font)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
-                        .padding()
-                        .id("logContent")
-                }
-                .onAppear {
-                    if shouldAutoScroll {
-                        scrollToBottom(proxy: proxy)
-                    }
-                }
-                .onChangeCompat(of: logs.count) { _ in
-                    if shouldAutoScroll {
-                        scrollToBottom(proxy: proxy)
-                    }
-                }
-            }
-        }
-
-        private func scrollToBottom(proxy: ScrollViewProxy) {
-            DispatchQueue.main.async {
-                proxy.scrollTo("logContent", anchor: .bottom)
-            }
-        }
-    }
-
-    struct LogUITextView: UIViewRepresentable {
-        let logs: [LogEntry]
         let searchText: String
 
         private static let monoFont = UIFont.monospacedSystemFont(ofSize: 11, weight: .regular)
@@ -183,58 +177,64 @@ class LogCoordinator {
             let textView = UITextView()
             textView.isEditable = false
             textView.isSelectable = true
-            textView.isScrollEnabled = false
+            textView.isScrollEnabled = true
             textView.backgroundColor = .clear
-            textView.textContainerInset = .zero
+            textView.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
             textView.textContainer.lineFragmentPadding = 0
             textView.font = Self.monoFont
             textView.textColor = Self.defaultColor
-            textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-            // Low hugging priority allows expansion to fill available space for proper ScrollView integration
-            textView.setContentHuggingPriority(.defaultLow, for: .vertical)
             return textView
         }
 
         func updateUIView(_ textView: UITextView, context: Context) {
             let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText)
 
+            let startIndex: Int?
             switch updateStrategy {
             case .noUpdate:
                 return
             case .fullRebuild:
-                let attributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText)
-                context.coordinator.cachedAttributedString = attributedString
-                textView.attributedText = attributedString
-            case let .incremental(from: startIndex):
-                // Build only the new logs, not the entire attributed string
-                let newLogsAttributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: nil, startIndex: startIndex)
-
-                // Append to existing text storage instead of replacing
-                let textStorage = textView.textStorage
-
-                // Add newline separator before appending if there's existing content
-                if textStorage.length > 0 {
-                    let newline = NSAttributedString(string: "\n", attributes: [
-                        .foregroundColor: Self.defaultColor,
-                        .font: Self.monoFont,
-                    ])
-                    textStorage.append(newline)
-                }
-
-                textStorage.append(newLogsAttributedString)
-
-                // Update cache to full content
-                context.coordinator.cachedAttributedString = NSAttributedString(attributedString: textStorage)
+                startIndex = nil
+            case let .incremental(from: index):
+                startIndex = index
             }
 
-            textView.invalidateIntrinsicContentSize()
+            let shouldAutoScroll = shouldAutoScroll
+            context.coordinator.scheduleBuildTask(
+                logs: logs,
+                searchText: searchText,
+                monoFont: Self.monoFont,
+                defaultColor: Self.defaultColor,
+                startIndex: startIndex,
+                isViewValid: { [weak textView] in textView?.window != nil },
+                applyUpdate: { [weak textView] attributedString, isIncremental in
+                    guard let textView else { return }
+                    if isIncremental {
+                        let textStorage = textView.textStorage
+                        if textStorage.length > 0 {
+                            textStorage.append(NSAttributedString(string: "\n", attributes: [
+                                .foregroundColor: Self.defaultColor,
+                                .font: Self.monoFont,
+                            ]))
+                        }
+                        textStorage.append(attributedString)
+                    } else {
+                        textView.attributedText = attributedString
+                    }
+                    if shouldAutoScroll {
+                        Self.scrollToBottom(textView)
+                    }
+                }
+            )
         }
 
-        @available(iOS 16.0, *)
-        func sizeThatFits(_ proposal: ProposedViewSize, uiView: UITextView, context _: Context) -> CGSize? {
-            guard let width = proposal.width, width > 0 else { return nil }
-            let size = uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude))
-            return CGSize(width: width, height: size.height)
+        private static func scrollToBottom(_ textView: UITextView) {
+            textView.layoutManager.ensureLayout(for: textView.textContainer)
+            textView.layoutIfNeeded()
+            let bottom = textView.contentSize.height - textView.bounds.height + textView.adjustedContentInset.bottom
+            if bottom > 0 {
+                textView.setContentOffset(CGPoint(x: 0, y: bottom), animated: false)
+            }
         }
 
         func makeCoordinator() -> LogCoordinator {
@@ -271,6 +271,7 @@ class LogCoordinator {
             if let textContainer = textView.textContainer {
                 textContainer.widthTracksTextView = true
                 textContainer.containerSize = NSSize(width: scrollView.contentSize.width, height: .greatestFiniteMagnitude)
+                textContainer.lineFragmentPadding = 0
             }
 
             scrollView.documentView = textView
@@ -281,46 +282,47 @@ class LogCoordinator {
             guard let textView = scrollView.documentView as? NSTextView else { return }
             guard let textStorage = textView.textStorage else { return }
 
-            let lastCount = context.coordinator.lastLogsCount
             let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText)
 
+            let startIndex: Int?
             switch updateStrategy {
             case .noUpdate:
                 return
             case .fullRebuild:
-                let attributedText = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText)
-                context.coordinator.cachedAttributedString = attributedText
-                textStorage.setAttributedString(attributedText)
-            case let .incremental(from: startIndex):
-                // Build only the new logs, not the entire attributed string
-                let newLogsAttributedString = buildAttributedString(logs: logs, monoFont: Self.monoFont, defaultColor: Self.defaultColor, searchText: searchText, baseAttributedString: nil, startIndex: startIndex)
+                startIndex = nil
+            case let .incremental(from: index):
+                startIndex = index
+            }
 
-                // Add newline separator before appending if there's existing content
-                if textStorage.length > 0 {
-                    let newline = NSAttributedString(string: "\n", attributes: [
-                        .foregroundColor: Self.defaultColor,
-                        .font: Self.monoFont,
-                    ])
-                    textStorage.append(newline)
+            let shouldAutoScroll = shouldAutoScroll
+            context.coordinator.scheduleBuildTask(
+                logs: logs,
+                searchText: searchText,
+                monoFont: Self.monoFont,
+                defaultColor: Self.defaultColor,
+                startIndex: startIndex,
+                isViewValid: { [weak textView] in textView?.window != nil },
+                applyUpdate: { [weak textView, weak textStorage] attributedString, isIncremental in
+                    guard let textView, let textStorage else { return }
+                    if isIncremental {
+                        if textStorage.length > 0 {
+                            textStorage.append(NSAttributedString(string: "\n", attributes: [
+                                .foregroundColor: Self.defaultColor,
+                                .font: Self.monoFont,
+                            ]))
+                        }
+                        textStorage.append(attributedString)
+                    } else {
+                        textStorage.setAttributedString(attributedString)
+                    }
+                    if let textContainer = textView.textContainer {
+                        textView.layoutManager?.ensureLayout(for: textContainer)
+                    }
+                    if shouldAutoScroll {
+                        textView.scrollToEndOfDocument(nil)
+                    }
                 }
-
-                // Append to existing text storage instead of replacing
-                textStorage.append(newLogsAttributedString)
-
-                // Update cache to full content
-                context.coordinator.cachedAttributedString = NSAttributedString(attributedString: textStorage)
-            }
-
-            if let textContainer = textView.textContainer {
-                textView.layoutManager?.ensureLayout(for: textContainer)
-            }
-
-            let shouldScroll = shouldAutoScroll && logs.count != lastCount
-            if shouldScroll {
-                DispatchQueue.main.async {
-                    textView.scrollToEndOfDocument(nil)
-                }
-            }
+            )
         }
 
         func makeCoordinator() -> LogCoordinator {
