@@ -12,9 +12,9 @@ public enum SharedPreferences {
     public static let ignoreMemoryLimit = Preference<Bool>("ignore_memory_limit", defaultValue: ignoreMemoryLimitByDefault)
 
     #if os(iOS)
-        public static let excludeLocalNetworksByDefault = true
+        private static let excludeLocalNetworksByDefault = true
     #elseif os(macOS)
-        public static let excludeLocalNetworksByDefault = false
+        private static let excludeLocalNetworksByDefault = false
     #endif
 
     #if !os(tvOS)
@@ -83,9 +83,11 @@ public enum SharedPreferences {
     // On Demand Rules
 
     public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)
+    public static let onDemandEnabled = Preference<Bool>("on_demand_enabled", defaultValue: false)
+    public static let onDemandRules = Preference<[OnDemandRule]>("on_demand_rules", defaultValue: [])
 
-    public static func resetOnDemandRules() async {
-        try? await batchDelete([alwaysOn.name])
+    public static func resetOnDemandRules() async throws {
+        try await batchDelete([alwaysOn.name, onDemandEnabled.name, onDemandRules.name])
     }
 
     // Core

@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 public class ExtensionEnvironments: ObservableObject {
     @Published public var commandClient = CommandClient([.log, .status, .groups, .clashMode, .connections])
     @Published public var extensionProfileLoading = true
@@ -13,8 +14,10 @@ public class ExtensionEnvironments: ObservableObject {
 
     public init() {}
 
-    deinit {
-        commandClient.disconnect()
+    nonisolated deinit {
+        Task { @MainActor in
+            commandClient.disconnect()
+        }
     }
 
     public func postReload() {
@@ -23,7 +26,6 @@ public class ExtensionEnvironments: ObservableObject {
         }
     }
 
-    @MainActor
     public func reload() async {
         if let newProfile = try? await ExtensionProfile.load() {
             if extensionProfile == nil || extensionProfile?.status == .invalid {

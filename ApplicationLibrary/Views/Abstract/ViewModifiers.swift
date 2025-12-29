@@ -1,5 +1,94 @@
 import SwiftUI
 
+public struct PlatformSheetSize {
+    let minWidth: CGFloat
+    let minHeight: CGFloat
+
+    public init(minWidth: CGFloat, minHeight: CGFloat) {
+        self.minWidth = minWidth
+        self.minHeight = minHeight
+    }
+
+    public static let `default` = PlatformSheetSize(minWidth: 500, minHeight: 400)
+    public static let small = PlatformSheetSize(minWidth: 400, minHeight: 300)
+}
+
+public extension View {
+    func platformSheet(
+        isPresented: Binding<Bool>,
+        size: PlatformSheetSize = .default,
+        @ViewBuilder content: @escaping () -> some View
+    ) -> some View {
+        modifier(PlatformSheetModifier(isPresented: isPresented, size: size, content: content))
+    }
+
+    func platformSheet<Item: Identifiable>(
+        item: Binding<Item?>,
+        size: PlatformSheetSize = .default,
+        @ViewBuilder content: @escaping (Item) -> some View
+    ) -> some View {
+        modifier(PlatformSheetItemModifier(item: item, size: size, content: content))
+    }
+}
+
+private struct PlatformSheetModifier<SheetContent: View>: ViewModifier {
+    @Binding var isPresented: Bool
+    let size: PlatformSheetSize
+    @ViewBuilder let content: () -> SheetContent
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+            content.sheet(isPresented: $isPresented) {
+                NavigationStackCompat {
+                    self.content()
+                }
+            }
+        #elseif os(macOS)
+            content.sheet(isPresented: $isPresented) {
+                NavigationStackCompat {
+                    self.content()
+                }
+                .frame(minWidth: size.minWidth, minHeight: size.minHeight)
+            }
+        #elseif os(tvOS)
+            content.fullScreenCover(isPresented: $isPresented) {
+                NavigationStackCompat {
+                    self.content()
+                }
+            }
+        #endif
+    }
+}
+
+private struct PlatformSheetItemModifier<Item: Identifiable, SheetContent: View>: ViewModifier {
+    @Binding var item: Item?
+    let size: PlatformSheetSize
+    @ViewBuilder let content: (Item) -> SheetContent
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+            content.sheet(item: $item) { item in
+                NavigationStackCompat {
+                    self.content(item)
+                }
+            }
+        #elseif os(macOS)
+            content.sheet(item: $item) { item in
+                NavigationStackCompat {
+                    self.content(item)
+                }
+                .frame(minWidth: size.minWidth, minHeight: size.minHeight)
+            }
+        #elseif os(tvOS)
+            content.fullScreenCover(item: $item) { item in
+                NavigationStackCompat {
+                    self.content(item)
+                }
+            }
+        #endif
+    }
+}
+
 public extension View {
     @ViewBuilder
     func presentationDetentsIfAvailable() -> some View {

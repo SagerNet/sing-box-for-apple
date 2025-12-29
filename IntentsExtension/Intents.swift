@@ -32,12 +32,12 @@ struct StartServiceIntent: AppIntent {
         } else if profile != "default" {
             throw NSError(domain: "Specified profile not found: \(profile)", code: 0)
         }
-        if extensionProfile.status == .connected {
+        if await extensionProfile.status == .connected {
             if !profileChanged {
                 return .result(dialog: "Service is already running")
             }
             try LibboxNewStandaloneCommandClient()!.serviceReload()
-        } else if extensionProfile.status.isConnected {
+        } else if await extensionProfile.status.isConnected {
             try await extensionProfile.restart()
         } else {
             try await extensionProfile.start()
@@ -60,9 +60,9 @@ struct RestartServiceIntent: AppIntent {
         guard let extensionProfile = try await (ExtensionProfile.load()) else {
             return .result(dialog: "Service is not installed")
         }
-        if extensionProfile.status == .connected {
+        if await extensionProfile.status == .connected {
             try LibboxNewStandaloneCommandClient()!.serviceReload()
-        } else if extensionProfile.status.isConnected {
+        } else if await extensionProfile.status.isConnected {
             try await extensionProfile.restart()
         } else {
             try await extensionProfile.start()
@@ -104,7 +104,7 @@ struct ToggleServiceIntent: AppIntent {
         guard let extensionProfile = try await (ExtensionProfile.load()) else {
             return .result(value: false)
         }
-        if extensionProfile.status.isConnected {
+        if await extensionProfile.status.isConnected {
             try await extensionProfile.stop()
             return .result(value: false)
 
@@ -129,7 +129,7 @@ struct GetServiceStatus: AppIntent {
         guard let extensionProfile = try await (ExtensionProfile.load()) else {
             return .result(value: false)
         }
-        return .result(value: extensionProfile.status.isConnected)
+        return await .result(value: extensionProfile.status.isConnected)
     }
 }
 
@@ -144,7 +144,7 @@ struct GetCurrentProfile: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        guard let profile = try await ProfileManager.get(SharedPreferences.selectedProfileID.get()) else {
+        guard let profile = try await ProfileManager.get(await SharedPreferences.selectedProfileID.get()) else {
             throw NSError(domain: "No profile selected", code: 0)
         }
         return .result(value: profile.name)

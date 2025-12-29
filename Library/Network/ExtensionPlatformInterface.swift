@@ -248,12 +248,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     private func onUpdateDefaultInterface(_ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath) {
-        if path.status == .unsatisfied {
+        guard path.status != .unsatisfied,
+              let defaultInterface = path.availableInterfaces.first else {
             listener.updateDefaultInterface("", interfaceIndex: -1, isExpensive: false, isConstrained: false)
-        } else {
-            let defaultInterface = path.availableInterfaces.first!
-            listener.updateDefaultInterface(defaultInterface.name, interfaceIndex: Int32(defaultInterface.index), isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+            return
         }
+        listener.updateDefaultInterface(defaultInterface.name, interfaceIndex: Int32(defaultInterface.index), isExpensive: path.isExpensive, isConstrained: path.isConstrained)
     }
 
     public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
@@ -351,6 +351,18 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 return nil
             }
             return LibboxWIFIState(ssid, wifiBSSID: bssid)!
+        #else
+            return nil
+        #endif
+    }
+
+    public func readWIFISSID() -> String? {
+        #if os(iOS)
+            return runBlocking {
+                await NEHotspotNetwork.fetchCurrent()?.ssid
+            }
+        #elseif os(macOS)
+            return CWWiFiClient.shared().interface()?.ssid()
         #else
             return nil
         #endif

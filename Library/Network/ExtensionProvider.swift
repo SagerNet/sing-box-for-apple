@@ -13,7 +13,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private var commandServer: LibboxCommandServer!
     private var platformInterface: ExtensionPlatformInterface!
 
-    override open func startTunnel(options _: [String: NSObject]?) async throws {
+    override open func startTunnel(options startOptions: [String: NSObject]?) async throws {
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath
@@ -68,9 +68,10 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     private func startService() async throws {
+        let profileID = await SharedPreferences.selectedProfileID.get()
         let profile: Profile?
         do {
-            profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get()))
+            profile = try await ProfileManager.get(profileID)
         } catch {
             throw ExtensionStartupError("(packet-tunnel) error: read selected profile: \(error.localizedDescription)")
         }

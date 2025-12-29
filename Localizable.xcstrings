@@ -98,6 +98,18 @@
         }
       }
     },
+    "Add DNS server IP" : {
+
+    },
+    "Add domain" : {
+
+    },
+    "Add domain (e.g., example.com)" : {
+
+    },
+    "Add SSID" : {
+
+    },
     "All" : {
       "localizations" : {
         "zh-Hans" : {
@@ -108,6 +120,9 @@
         }
       }
     },
+    "All specified conditions must match for the rule to apply. Leave empty to match any network." : {
+
+    },
     "Always On" : {
       "localizations" : {
         "zh-Hans" : {
@@ -117,6 +132,9 @@
           }
         }
       }
+    },
+    "Any" : {
+
     },
     "App" : {
       "localizations" : {
@@ -204,6 +222,12 @@
         }
       }
     },
+    "Automatically connect or disconnect VPN based on custom rules.\n\nWhen enabled, iOS manages VPN state automatically. You may need to use the in-app interface to stop the service." : {
+
+    },
+    "Automatically connect VPN on any network.\n\nWhen enabled, VPN connects automatically when network is available. Custom rules below will be disabled." : {
+
+    },
     "Browse" : {
       "localizations" : {
         "zh-Hans" : {
@@ -243,6 +267,9 @@
           }
         }
       }
+    },
+    "Cellular" : {
+
     },
     "Chain" : {
       "localizations" : {
@@ -335,6 +362,9 @@
         }
       }
     },
+    "Conditions" : {
+
+    },
     "Configuration" : {
       "localizations" : {
         "zh-Hans" : {
@@ -344,6 +374,15 @@
           }
         }
       }
+    },
+    "Connect" : {
+
+    },
+    "Connect If Needed" : {
+
+    },
+    "Connect VPN if the destination is not directly accessible." : {
+
     },
     "Connecting..." : {
       "localizations" : {
@@ -364,6 +403,12 @@
           }
         }
       }
+    },
+    "Connection Rule" : {
+
+    },
+    "Connection Rules" : {
+
     },
     "Connections" : {
       "localizations" : {
@@ -445,6 +490,9 @@
           }
         }
       }
+    },
+    "Custom Rules" : {
+
     },
     "Dashboard" : {
       "localizations" : {
@@ -557,6 +605,21 @@
         }
       }
     },
+    "Disconnect" : {
+
+    },
+    "DNS Search Domain" : {
+
+    },
+    "DNS Server Address" : {
+
+    },
+    "DNS Servers" : {
+
+    },
+    "DNS servers to use for resolving the destination. If resolution fails, VPN is started." : {
+
+    },
     "Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken iOS and tvOS devices." : {
       "localizations" : {
         "zh-Hans" : {
@@ -607,6 +670,9 @@
         }
       }
     },
+    "Domains that trigger this rule. The rule matches if the destination host shares a suffix with any domain in this list." : {
+
+    },
     "Don't Save" : {
       "localizations" : {
         "zh-Hans" : {
@@ -616,6 +682,9 @@
           }
         }
       }
+    },
+    "Don't Switch" : {
+
     },
     "Done" : {
       "localizations" : {
@@ -676,6 +745,9 @@
           }
         }
       }
+    },
+    "Edit Rule" : {
+
     },
     "Empty connections" : {
       "localizations" : {
@@ -739,6 +811,15 @@
           }
         }
       }
+    },
+    "Ethernet" : {
+
+    },
+    "Evaluate Connection" : {
+
+    },
+    "Evaluate the destination host before deciding to connect." : {
+
     },
     "Exclude APNs Route" : {
       "localizations" : {
@@ -894,6 +975,9 @@
         }
       }
     },
+    "http://..." : {
+
+    },
     "https://sing-box.sagernet.org/" : {
       "localizations" : {
         "zh-Hans" : {
@@ -927,6 +1011,9 @@
     "iCloud" : {
       "shouldTranslate" : false
     },
+    "If set, a request is sent to this URL. If it doesn't return HTTP 200, VPN is started." : {
+
+    },
     "If this property is true when the **includeAllNetworks** property is false, the system scopes the included routes to the VPN and the excluded routes to the current primary network interface. This property supersedes the system routing table and scoping operations by apps.\n\nIf you set both the **enforceRoutes** and **excludeLocalNetworks** properties to true, the system excludes network connections to hosts on the local network.\n\n[Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3689459-enforceroutes)" : {
       "shouldTranslate" : false
     },
@@ -942,6 +1029,9 @@
     "If this property is true, the system routes network traffic through the tunnel except traffic for designated system services necessary for maintaining expected device functionality. You can exclude some types of traffic using the **excludeAPNs**, **excludeLocalNetworks**, and **excludeCellularServices** properties in combination with this property.\n\nwhen enabled, the default TUN stack is changed to `gvisor`, and the `system` and `mixed` stacks are not available.\n\n[Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3131931-includeallnetworks)" : {
       "shouldTranslate" : false
     },
+    "Ignore" : {
+
+    },
     "Ignore Memory Limit" : {
       "localizations" : {
         "zh-Hans" : {
@@ -953,6 +1043,7 @@
       }
     },
     "Implement always-on via on-demand rules.\n\nThis should not be an intended use of the API, so you cannot disable VPN in system settings. To stop the service manually, use the in-app interface or simply delete the VPN profile." : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1065,6 +1156,9 @@
         }
       }
     },
+    "Interface Type" : {
+
+    },
     "Invalid QR Code" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1125,6 +1219,9 @@
         }
       }
     },
+    "Leave the VPN connection in its current state." : {
+
+    },
     "Loading..." : {
       "localizations" : {
         "zh-Hans" : {
@@ -1179,6 +1276,9 @@
           }
         }
       }
+    },
+    "Match Domains" : {
+
     },
     "Match Rule" : {
       "shouldTranslate" : false
@@ -1283,6 +1383,12 @@
         }
       }
     },
+    "Never Connect" : {
+
+    },
+    "Never connect VPN for matching domains." : {
+
+    },
     "New Profile" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1293,6 +1399,12 @@
         }
       }
     },
+    "New Rule" : {
+
+    },
+    "No connection rules. Add rules to specify which domains trigger VPN connection." : {
+
+    },
     "No Default Route" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1302,6 +1414,9 @@
           }
         }
       }
+    },
+    "No rules configured. Add a rule to specify when VPN should connect or disconnect." : {
+
     },
     "Ok" : {
       "localizations" : {
@@ -1445,6 +1560,9 @@
         }
       }
     },
+    "Probe URL" : {
+
+    },
     "Profile" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1568,6 +1686,12 @@
           }
         }
       }
+    },
+    "Rules" : {
+
+    },
+    "Rules are evaluated in order from top to bottom. The first matching rule determines the action." : {
+
     },
     "Save" : {
       "localizations" : {
@@ -1782,6 +1906,9 @@
         }
       }
     },
+    "SSID Match" : {
+
+    },
     "Start" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1801,6 +1928,9 @@
           }
         }
       }
+    },
+    "Start the VPN connection when conditions match." : {
+
     },
     "State" : {
       "localizations" : {
@@ -1841,6 +1971,12 @@
           }
         }
       }
+    },
+    "Stop the VPN connection when conditions match." : {
+
+    },
+    "Switch Profile" : {
+
     },
     "System Extension" : {
       "localizations" : {
@@ -2087,6 +2223,12 @@
           }
         }
       }
+    },
+    "When action is 'Evaluate Connection', these rules determine whether to connect based on the destination host." : {
+
+    },
+    "Wi-Fi" : {
+
     },
     "Working Directory" : {
       "localizations" : {

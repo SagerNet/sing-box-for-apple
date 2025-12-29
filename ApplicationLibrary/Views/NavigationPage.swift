@@ -87,6 +87,7 @@ public extension NavigationPage {
     }
 
     #if os(macOS)
+        @MainActor
         func visible(_ profile: ExtensionProfile?) -> Bool {
             switch self {
             case .groups, .connections:

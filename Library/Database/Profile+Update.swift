@@ -28,7 +28,7 @@ public extension Profile {
     nonisolated func onProfileUpdated() async throws {
         if await SharedPreferences.selectedProfileID.get() == id {
             if let profile = try? await ExtensionProfile.load() {
-                if profile.status == .connected {
+                if await profile.status == .connected {
                     try LibboxNewStandaloneCommandClient()!.serviceReload()
                 }
             }

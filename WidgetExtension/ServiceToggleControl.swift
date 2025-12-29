@@ -34,7 +34,7 @@ extension ServiceToggleControl {
             guard let extensionProfile = try await (ExtensionProfile.load()) else {
                 return false
             }
-            return extensionProfile.status.isStarted
+            return await extensionProfile.status.isStarted
         }
     }
 }

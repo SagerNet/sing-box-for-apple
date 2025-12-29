@@ -2,6 +2,7 @@ import Foundation
 import Libbox
 import NetworkExtension
 
+@MainActor
 public class ExtensionProfile: ObservableObject {
     public static let controlKind = "io.nekohasekai.sfavt.widget.ServiceToggle"
 
@@ -28,9 +29,12 @@ public class ExtensionProfile: ObservableObject {
             guard let self else {
                 return
             }
-            self.connection = notification.object as! NEVPNConnection
-            self.status = self.connection.status
-            self.connectedDate = self.connection.connectedDate
+            guard let connection = notification.object as? NEVPNConnection else {
+                return
+            }
+            self.connection = connection
+            self.status = connection.status
+            self.connectedDate = connection.connectedDate
         }
     }
 
@@ -40,17 +44,31 @@ public class ExtensionProfile: ObservableObject {
         }
     }
 
-    private func setOnDemandRules() {
-        let interfaceRule = NEOnDemandRuleConnect()
-        interfaceRule.interfaceTypeMatch = .any
-        let probeRule = NEOnDemandRuleConnect()
-        probeRule.probeURL = URL(string: "http://captive.apple.com")
-        manager.onDemandRules = [interfaceRule, probeRule]
+    nonisolated deinit {
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 
-    public func updateAlwaysOn(_ newState: Bool) async throws {
-        manager.isOnDemandEnabled = newState
-        setOnDemandRules()
+    private static func makeDefaultOnDemandRules() -> [NEOnDemandRule] {
+        let rule = NEOnDemandRuleConnect()
+        rule.interfaceTypeMatch = .any
+        rule.probeURL = URL(string: "http://captive.apple.com")
+        return [rule]
+    }
+
+    private func setOnDemandRules(useDefaultRules: Bool) async {
+        if useDefaultRules {
+            manager.onDemandRules = Self.makeDefaultOnDemandRules()
+        } else {
+            let rules = await SharedPreferences.onDemandRules.get()
+            manager.onDemandRules = rules.isEmpty ? Self.makeDefaultOnDemandRules() : rules.map { $0.toNERule() }
+        }
+    }
+
+    public func updateOnDemand(enabled: Bool, useDefaultRules: Bool) async throws {
+        manager.isOnDemandEnabled = enabled
+        await setOnDemandRules(useDefaultRules: useDefaultRules)
         try await manager.saveToPreferences()
     }
 
@@ -62,9 +80,11 @@ public class ExtensionProfile: ObservableObject {
     public func start() async throws {
         await fetchProfile()
         manager.isEnabled = true
-        if await SharedPreferences.alwaysOn.get() {
+        let alwaysOn = await SharedPreferences.alwaysOn.get()
+        let onDemandEnabled = await SharedPreferences.onDemandEnabled.get()
+        if alwaysOn || onDemandEnabled {
             manager.isOnDemandEnabled = true
-            setOnDemandRules()
+            await setOnDemandRules(useDefaultRules: alwaysOn)
         }
         #if !os(tvOS)
             if let protocolConfiguration = manager.protocolConfiguration {
@@ -80,11 +100,14 @@ public class ExtensionProfile: ObservableObject {
             if Variant.useSystemExtension {
                 try manager.connection.startVPNTunnel(options: [
                     "username": NSString(string: NSUserName()),
+                    "manualStart": NSNumber(value: true),
                 ])
                 return
             }
         #endif
-        try manager.connection.startVPNTunnel()
+        try manager.connection.startVPNTunnel(options: [
+            "manualStart": NSNumber(value: true),
+        ])
     }
 
     public func fetchProfile() async {
@@ -94,7 +117,9 @@ public class ExtensionProfile: ObservableObject {
                     _ = try profile.read()
                 }
             }
-        } catch {}
+        } catch {
+            NSLog("fetchProfile error: \(error.localizedDescription)")
+        }
     }
 
     public func stop() async throws {
@@ -104,14 +129,16 @@ public class ExtensionProfile: ObservableObject {
         }
         do {
             try LibboxNewStandaloneCommandClient()!.serviceClose()
-        } catch {}
+        } catch {
+            NSLog("serviceClose error: \(error.localizedDescription)")
+        }
         manager.connection.stopVPNTunnel()
     }
 
     public func restart() async throws {
         try await stop()
         var waitSeconds = 0
-        while await MainActor.run(body: { status }) != .disconnected {
+        while status != .disconnected {
             try await Task.sleep(nanoseconds: NSEC_PER_SEC)
             waitSeconds += 1
             if waitSeconds >= 5 {
