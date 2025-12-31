@@ -2784,10 +2784,10 @@
 		};
 		3ACE5E012EE1A91100644196 /* XCRemoteSwiftPackageReference "CodeEditSourceEditor" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/CodeEditApp/CodeEditSourceEditor.git";
+			repositoryURL = "https://github.com/nekohasekai/CodeEditSourceEditor.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.15.2;
+				branch = main;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -1,5 +1,5 @@
 {
-  "originHash" : "3df9e750e08443194175bd6d737045e3d91e43b2e60d468122e1acdd9ea936c0",
+  "originHash" : "e52954b983309896985fa80fd8b8c5705fce23b28f9e149f71b7336e5cba3e37",
   "pins" : [
     {
       "identity" : "binarycodable",
@@ -22,10 +22,10 @@
     {
       "identity" : "codeeditsourceeditor",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CodeEditApp/CodeEditSourceEditor.git",
+      "location" : "https://github.com/nekohasekai/CodeEditSourceEditor.git",
       "state" : {
-        "revision" : "424453d2232c9912933a3b5a1f3d3df669404ed0",
-        "version" : "0.15.2"
+        "branch" : "main",
+        "revision" : "941f378fff2bc5336cbf6503a81f705764af9531"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MacControlCenterUI",
       "state" : {
-        "revision" : "7a6ef245d3a136884295e20fd0ffa4b90cbe0940",
-        "version" : "2.7.0"
+        "revision" : "40950d0b3f67dae4259e9ef2c14599977c1f4512",
+        "version" : "2.7.1"
       }
     },
     {
