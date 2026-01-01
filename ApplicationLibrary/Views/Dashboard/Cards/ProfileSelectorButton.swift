@@ -77,7 +77,7 @@ struct ProfileSelectorButton: View {
 
 // MARK: - View Extension
 
-private extension View {
+extension View {
     @ViewBuilder
     func selectorBackground() -> some View {
         if #available(iOS 26.0, macOS 26.0, tvOS 26.0, *) {

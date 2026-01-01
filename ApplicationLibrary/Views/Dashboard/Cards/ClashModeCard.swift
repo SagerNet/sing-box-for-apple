@@ -14,19 +14,7 @@ public struct ClashModeCard: View {
             DashboardCardView(title: "", isHalfWidth: false) {
                 VStack(alignment: .leading, spacing: 12) {
                     DashboardCardHeader(icon: "circle.grid.2x2.fill", title: "Mode")
-                    Picker("", selection: Binding(get: {
-                        clashMode
-                    }, set: { newMode in
-                        clashMode = newMode
-                        Task {
-                            await setClashMode(newMode)
-                        }
-                    })) {
-                        ForEach(commandClient.clashModeList, id: \.self) { mode in
-                            Text(mode)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+                    modeMenu
                 }
             }
             .onAppear {
@@ -37,6 +25,69 @@ public struct ClashModeCard: View {
             }
             .alert($alert)
         }
+    }
+
+    private var modeMenu: some View {
+        Menu {
+            ForEach(commandClient.clashModeList, id: \.self) { mode in
+                Button {
+                    clashMode = mode
+                    Task {
+                        await setClashMode(mode)
+                    }
+                } label: {
+                    if mode == clashMode {
+                        Label(mode, systemImage: "checkmark")
+                    } else {
+                        Text(mode)
+                    }
+                }
+            }
+        } label: {
+            HStack {
+                Text(clashMode)
+                    .font(.system(size: buttonFontSize, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+
+                Spacer()
+
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: chevronSize, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: buttonHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .selectorBackground()
+    }
+
+    private var buttonHeight: CGFloat {
+        #if os(tvOS)
+            60
+        #elseif os(macOS)
+            32
+        #else
+            44
+        #endif
+    }
+
+    private var buttonFontSize: CGFloat {
+        #if os(macOS)
+            13
+        #else
+            17
+        #endif
+    }
+
+    private var chevronSize: CGFloat {
+        #if os(macOS)
+            10
+        #else
+            12
+        #endif
     }
 
     private var shouldShowPicker: Bool {
