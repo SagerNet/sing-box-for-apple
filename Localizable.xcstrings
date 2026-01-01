@@ -98,17 +98,55 @@
         }
       }
     },
+    "Add" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加"
+          }
+        }
+      }
+    },
     "Add DNS server IP" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加 DNS 服务器 IP"
+          }
+        }
+      }
     },
     "Add domain" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加域名"
+          }
+        }
+      }
     },
     "Add domain (e.g., example.com)" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加域名（例如 example.com）"
+          }
+        }
+      }
     },
     "Add SSID" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加 SSID"
+          }
+        }
+      }
     },
     "All" : {
       "localizations" : {
@@ -121,7 +159,14 @@
       }
     },
     "All specified conditions must match for the rule to apply. Leave empty to match any network." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有指定条件必须匹配规则才会生效。留空则匹配任何网络。"
+          }
+        }
+      }
     },
     "Always On" : {
       "localizations" : {
@@ -134,7 +179,14 @@
       }
     },
     "Any" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任意"
+          }
+        }
+      }
     },
     "App" : {
       "localizations" : {
@@ -222,12 +274,6 @@
         }
       }
     },
-    "Automatically connect or disconnect VPN based on custom rules.\n\nWhen enabled, iOS manages VPN state automatically. You may need to use the in-app interface to stop the service." : {
-
-    },
-    "Automatically connect VPN on any network.\n\nWhen enabled, VPN connects automatically when network is available. Custom rules below will be disabled." : {
-
-    },
     "Browse" : {
       "localizations" : {
         "zh-Hans" : {
@@ -248,12 +294,42 @@
         }
       }
     },
+    "Camera" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相机"
+          }
+        }
+      }
+    },
+    "Camera access denied" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相机访问被拒绝"
+          }
+        }
+      }
+    },
     "Camera Access Denied" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "相机访问被拒绝"
+          }
+        }
+      }
+    },
+    "Camera is not available" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相机不可用"
           }
         }
       }
@@ -269,7 +345,14 @@
       }
     },
     "Cellular" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蜂窝网络"
+          }
+        }
+      }
     },
     "Chain" : {
       "localizations" : {
@@ -363,7 +446,14 @@
       }
     },
     "Conditions" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "条件"
+          }
+        }
+      }
     },
     "Configuration" : {
       "localizations" : {
@@ -376,13 +466,34 @@
       }
     },
     "Connect" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接"
+          }
+        }
+      }
     },
     "Connect If Needed" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按需连接"
+          }
+        }
+      }
     },
     "Connect VPN if the destination is not directly accessible." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果目标无法直接访问，则连接 VPN。"
+          }
+        }
+      }
     },
     "Connecting..." : {
       "localizations" : {
@@ -405,10 +516,24 @@
       }
     },
     "Connection Rule" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接规则"
+          }
+        }
+      }
     },
     "Connection Rules" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接规则"
+          }
+        }
+      }
     },
     "Connections" : {
       "localizations" : {
@@ -490,9 +615,6 @@
           }
         }
       }
-    },
-    "Custom Rules" : {
-
     },
     "Dashboard" : {
       "localizations" : {
@@ -606,19 +728,54 @@
       }
     },
     "Disconnect" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "断开连接"
+          }
+        }
+      }
     },
     "DNS Search Domain" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS 搜索域"
+          }
+        }
+      }
     },
     "DNS Server Address" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS 服务器地址"
+          }
+        }
+      }
     },
     "DNS Servers" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS 服务器"
+          }
+        }
+      }
     },
     "DNS servers to use for resolving the destination. If resolution fails, VPN is started." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于解析目标的 DNS 服务器。如果解析失败，则启动 VPN。"
+          }
+        }
+      }
     },
     "Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken iOS and tvOS devices." : {
       "localizations" : {
@@ -671,7 +828,14 @@
       }
     },
     "Domains that trigger this rule. The rule matches if the destination host shares a suffix with any domain in this list." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "触发此规则的域名。如果目标主机与列表中任何域名后缀匹配，则规则生效。"
+          }
+        }
+      }
     },
     "Don't Save" : {
       "localizations" : {
@@ -682,9 +846,6 @@
           }
         }
       }
-    },
-    "Don't Switch" : {
-
     },
     "Done" : {
       "localizations" : {
@@ -747,7 +908,14 @@
       }
     },
     "Edit Rule" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑规则"
+          }
+        }
+      }
     },
     "Empty connections" : {
       "localizations" : {
@@ -799,6 +967,16 @@
         }
       }
     },
+    "Empty rules" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无规则"
+          }
+        }
+      }
+    },
     "enforceRoutes" : {
       "shouldTranslate" : false
     },
@@ -813,13 +991,34 @@
       }
     },
     "Ethernet" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以太网"
+          }
+        }
+      }
     },
     "Evaluate Connection" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "评估连接"
+          }
+        }
+      }
     },
     "Evaluate the destination host before deciding to connect." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在决定连接之前评估目标主机。"
+          }
+        }
+      }
     },
     "Exclude APNs Route" : {
       "localizations" : {
@@ -1012,7 +1211,14 @@
       "shouldTranslate" : false
     },
     "If set, a request is sent to this URL. If it doesn't return HTTP 200, VPN is started." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果设置，将向此 URL 发送请求。如果未返回 HTTP 200，则启动 VPN。"
+          }
+        }
+      }
     },
     "If this property is true when the **includeAllNetworks** property is false, the system scopes the included routes to the VPN and the excluded routes to the current primary network interface. This property supersedes the system routing table and scoping operations by apps.\n\nIf you set both the **enforceRoutes** and **excludeLocalNetworks** properties to true, the system excludes network connections to hosts on the local network.\n\n[Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3689459-enforceroutes)" : {
       "shouldTranslate" : false
@@ -1030,7 +1236,14 @@
       "shouldTranslate" : false
     },
     "Ignore" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忽略"
+          }
+        }
+      }
     },
     "Ignore Memory Limit" : {
       "localizations" : {
@@ -1157,7 +1370,24 @@
       }
     },
     "Interface Type" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接口类型"
+          }
+        }
+      }
+    },
+    "Invalid QR code" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效的二维码"
+          }
+        }
+      }
     },
     "Invalid QR Code" : {
       "localizations" : {
@@ -1220,7 +1450,14 @@
       }
     },
     "Leave the VPN connection in its current state." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持 VPN 连接的当前状态。"
+          }
+        }
+      }
     },
     "Loading..." : {
       "localizations" : {
@@ -1278,7 +1515,14 @@
       }
     },
     "Match Domains" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匹配域名"
+          }
+        }
+      }
     },
     "Match Rule" : {
       "shouldTranslate" : false
@@ -1384,10 +1628,24 @@
       }
     },
     "Never Connect" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从不连接"
+          }
+        }
+      }
     },
     "Never connect VPN for matching domains." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对匹配的域名不连接 VPN。"
+          }
+        }
+      }
     },
     "New Profile" : {
       "localizations" : {
@@ -1400,10 +1658,24 @@
       }
     },
     "New Rule" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建规则"
+          }
+        }
+      }
     },
     "No connection rules. Add rules to specify which domains trigger VPN connection." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无连接规则。添加规则以指定哪些域名触发 VPN 连接。"
+          }
+        }
+      }
     },
     "No Default Route" : {
       "localizations" : {
@@ -1414,9 +1686,6 @@
           }
         }
       }
-    },
-    "No rules configured. Add a rule to specify when VPN should connect or disconnect." : {
-
     },
     "Ok" : {
       "localizations" : {
@@ -1434,6 +1703,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按需启动"
+          }
+        }
+      }
+    },
+    "Only HTTP and HTTPS URLs are allowed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只允许 HTTP 和 HTTPS URL"
           }
         }
       }
@@ -1561,7 +1840,14 @@
       }
     },
     "Probe URL" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "探测 URL"
+          }
+        }
+      }
     },
     "Profile" : {
       "localizations" : {
@@ -1688,10 +1974,24 @@
       }
     },
     "Rules" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "规则"
+          }
+        }
+      }
     },
     "Rules are evaluated in order from top to bottom. The first matching rule determines the action." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "规则从上到下依次评估。第一个匹配的规则决定操作。"
+          }
+        }
+      }
     },
     "Save" : {
       "localizations" : {
@@ -1907,7 +2207,14 @@
       }
     },
     "SSID Match" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSID 匹配"
+          }
+        }
+      }
     },
     "Start" : {
       "localizations" : {
@@ -1930,7 +2237,14 @@
       }
     },
     "Start the VPN connection when conditions match." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当条件匹配时启动 VPN 连接。"
+          }
+        }
+      }
     },
     "State" : {
       "localizations" : {
@@ -1973,10 +2287,14 @@
       }
     },
     "Stop the VPN connection when conditions match." : {
-
-    },
-    "Switch Profile" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当条件匹配时停止 VPN 连接。"
+          }
+        }
+      }
     },
     "System Extension" : {
       "localizations" : {
@@ -2225,10 +2543,24 @@
       }
     },
     "When action is 'Evaluate Connection', these rules determine whether to connect based on the destination host." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当操作为「评估连接」时，这些规则根据目标主机决定是否连接。"
+          }
+        }
+      }
     },
     "Wi-Fi" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wi-Fi"
+          }
+        }
+      }
     },
     "Working Directory" : {
       "localizations" : {

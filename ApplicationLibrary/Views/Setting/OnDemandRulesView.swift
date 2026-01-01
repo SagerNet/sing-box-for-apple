@@ -2,12 +2,35 @@ import Foundation
 import Library
 import SwiftUI
 
+private enum OnDemandMode: String, CaseIterable, Identifiable {
+    case disabled
+    case alwaysOn
+    case enabled
+
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .disabled: "Disabled"
+        case .alwaysOn: "Always On"
+        case .enabled: "Enabled"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .disabled: "VPN will not connect automatically."
+        case .alwaysOn: "Automatically connect VPN on any network."
+        case .enabled: "Automatically connect or disconnect VPN based on rules."
+        }
+    }
+}
+
 public struct OnDemandRulesView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @State private var isLoading = true
     @State private var alert: AlertState?
-    @State private var alwaysOn = false
-    @State private var onDemandEnabled = false
+    @State private var mode: OnDemandMode = .disabled
     @State private var rules: [OnDemandRule] = []
     @State private var editingRule: OnDemandRule?
     @State private var isAddingRule = false
@@ -27,10 +50,9 @@ public struct OnDemandRulesView: View {
                 }
             } else {
                 FormView {
-                    alwaysOnToggle
-                    enableToggle
+                    modePicker
 
-                    if !alwaysOn, onDemandEnabled {
+                    if mode == .enabled {
                         rulesSection
                     }
 
@@ -53,6 +75,7 @@ public struct OnDemandRulesView: View {
             }
             .environment(\.editMode, $editMode)
         #endif
+        #if !os(tvOS)
             .platformSheet(isPresented: $isAddingRule) {
                 OnDemandRuleEditView(rule: OnDemandRule(), isNew: true) { newRule in
                     rules.append(newRule)
@@ -71,36 +94,31 @@ public struct OnDemandRulesView: View {
                     }
                 }
             }
+        #endif
     }
 
-    private var alwaysOnToggle: some View {
-        FormToggle("Always On", """
-        Automatically connect VPN on any network.
-
-        When enabled, VPN connects automatically when network is available. Custom rules below will be disabled.
-        """, $alwaysOn) { newValue in
-            await SharedPreferences.alwaysOn.set(newValue)
-            await updateService()
+    private var modePicker: some View {
+        Section {
+            Picker("Mode", selection: $mode) {
+                ForEach(OnDemandMode.allCases) { m in
+                    Text(m.name).tag(m)
+                }
+            }
+            .onChange(of: mode) { newValue in
+                Task {
+                    await saveMode(newValue)
+                }
+            }
+        } footer: {
+            Text(mode.description)
         }
-    }
-
-    private var enableToggle: some View {
-        FormToggle("Custom Rules", """
-        Automatically connect or disconnect VPN based on custom rules.
-
-        When enabled, iOS manages VPN state automatically. You may need to use the in-app interface to stop the service.
-        """, $onDemandEnabled) { newValue in
-            await SharedPreferences.onDemandEnabled.set(newValue)
-            await updateService()
-        }
-        .disabled(alwaysOn)
     }
 
     @ViewBuilder
     private var rulesSection: some View {
         Section {
             if rules.isEmpty {
-                Text("No rules configured. Add a rule to specify when VPN should connect or disconnect.")
+                Text("Empty rules")
                     .foregroundStyle(.secondary)
                     .font(.callout)
             } else {
@@ -124,13 +142,26 @@ public struct OnDemandRulesView: View {
             HStack {
                 Text("Rules")
                 Spacer()
-                Button {
-                    isAddingRule = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                }
-                #if os(macOS)
-                .buttonStyle(.plain)
+                #if os(tvOS)
+                    FormNavigationLink {
+                        OnDemandRuleEditView(rule: OnDemandRule(), isNew: true) { newRule in
+                            rules.append(newRule)
+                            Task {
+                                await saveRules()
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                #else
+                    Button {
+                        isAddingRule = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                    #if os(macOS)
+                        .buttonStyle(.plain)
+                    #endif
                 #endif
             }
         } footer: {
@@ -140,52 +171,50 @@ public struct OnDemandRulesView: View {
 
     @ViewBuilder
     private func ruleRow(_ rule: OnDemandRule) -> some View {
-        Button {
-            editingRule = rule
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        actionIcon(rule.action)
-                        Text(rule.action.name)
-                            .fontWeight(.medium)
+        #if os(tvOS)
+            FormNavigationLink {
+                OnDemandRuleEditView(rule: rule, isNew: false) { updatedRule in
+                    if let index = rules.firstIndex(where: { $0.id == updatedRule.id }) {
+                        rules[index] = updatedRule
+                        Task {
+                            await saveRules()
+                        }
                     }
+                }
+            } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(rule.action.name)
+                        .fontWeight(.medium)
                     Text(ruleDescription(rule))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Spacer()
-                #if !os(tvOS)
+            }
+        #else
+            Button {
+                editingRule = rule
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(rule.action.name)
+                            .fontWeight(.medium)
+                        Text(ruleDescription(rule))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondary)
                         .font(.caption)
-                #endif
+                }
+                .contentShape(Rectangle())
             }
-            .contentShape(Rectangle())
-        }
-        #if os(macOS)
-        .buttonStyle(.plain)
-        #elseif os(iOS)
-        .foregroundStyle(.primary)
+            #if os(macOS)
+                .buttonStyle(.plain)
+            #elseif os(iOS)
+                .foregroundStyle(.primary)
+            #endif
         #endif
-    }
-
-    @ViewBuilder
-    private func actionIcon(_ action: OnDemandRuleAction) -> some View {
-        switch action {
-        case .connect:
-            Image(systemName: "arrow.up.circle.fill")
-                .foregroundStyle(.green)
-        case .disconnect:
-            Image(systemName: "arrow.down.circle.fill")
-                .foregroundStyle(.red)
-        case .evaluateConnection:
-            Image(systemName: "questionmark.circle.fill")
-                .foregroundStyle(.orange)
-        case .ignore:
-            Image(systemName: "minus.circle.fill")
-                .foregroundStyle(.gray)
-        }
     }
 
     private func ruleDescription(_ rule: OnDemandRule) -> String {
@@ -243,15 +272,21 @@ public struct OnDemandRulesView: View {
         .foregroundStyle(.red)
     }
 
+    private func saveMode(_ newMode: OnDemandMode) async {
+        let alwaysOn = newMode == .alwaysOn
+        let onDemandEnabled = newMode == .enabled
+        await SharedPreferences.alwaysOn.set(alwaysOn)
+        await SharedPreferences.onDemandEnabled.set(onDemandEnabled)
+        await updateService()
+    }
+
     private func updateService() async {
         guard let profile = environments.extensionProfile, profile.status.isConnected else {
             return
         }
         do {
-            let alwaysOnValue = await SharedPreferences.alwaysOn.get()
-            let onDemandEnabledValue = await SharedPreferences.onDemandEnabled.get()
-            let enabled = alwaysOnValue || onDemandEnabledValue
-            try await profile.updateOnDemand(enabled: enabled, useDefaultRules: alwaysOnValue)
+            let enabled = mode != .disabled
+            try await profile.updateOnDemand(enabled: enabled, useDefaultRules: mode == .alwaysOn)
         } catch {
             alert = AlertState(error: error)
         }
@@ -268,8 +303,15 @@ public struct OnDemandRulesView: View {
     }
 
     private func loadSettings() async {
-        alwaysOn = await SharedPreferences.alwaysOn.get()
-        onDemandEnabled = await SharedPreferences.onDemandEnabled.get()
+        let alwaysOn = await SharedPreferences.alwaysOn.get()
+        let onDemandEnabled = await SharedPreferences.onDemandEnabled.get()
+        if alwaysOn {
+            mode = .alwaysOn
+        } else if onDemandEnabled {
+            mode = .enabled
+        } else {
+            mode = .disabled
+        }
         rules = await SharedPreferences.onDemandRules.get()
         isLoading = false
     }
@@ -305,11 +347,21 @@ private struct OnDemandRuleEditView: View {
             if rule.action == .evaluateConnection {
                 connectionRulesSection
             }
+            #if os(tvOS)
+                Section {
+                    Button(isNew ? "Create" : "Save") {
+                        onSave(rule)
+                        dismiss()
+                    }
+                    .disabled(!isProbeURLValid)
+                }
+            #endif
         }
         .navigationTitle(isNew ? "New Rule" : "Edit Rule")
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
+        #if !os(tvOS)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -317,13 +369,14 @@ private struct OnDemandRuleEditView: View {
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(isNew ? "Create" : "Save") {
                         onSave(rule)
                         dismiss()
                     }
                     .disabled(!isProbeURLValid)
                 }
             }
+        #endif
         #if os(macOS)
             .formStyle(.grouped)
         #endif
