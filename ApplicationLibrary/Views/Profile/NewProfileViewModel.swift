@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 public final class NewProfileViewModel: BaseViewModel {
     @Published public var isSaving = false
+    @Published public var createSucceeded = false
     @Published public var profileName = ""
     #if !os(tvOS)
         @Published public var profileType = ProfileType.local
@@ -81,6 +82,7 @@ public final class NewProfileViewModel: BaseViewModel {
         if sendUpdateNotification {
             environments.profileUpdate.send()
         }
+        createSucceeded = true
         dismiss?()
 
         #if os(macOS)

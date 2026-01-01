@@ -51,8 +51,8 @@ public struct NewProfileView: View {
                     .multilineTextAlignment(.trailing)
             }
             Picker(selection: $viewModel.profileType) {
+                Text("Local").tag(ProfileType.local)
                 #if !os(tvOS)
-                    Text("Local").tag(ProfileType.local)
                     Text("iCloud").tag(ProfileType.icloud)
                 #endif
                 Text("Remote").tag(ProfileType.remote)
@@ -190,6 +190,11 @@ public struct NewProfileView: View {
                 .navigationTitle("New Profile")
                 .disabled(viewModel.isSaving)
                 .alert($viewModel.alert)
+                .onChangeCompat(of: viewModel.createSucceeded) { newValue in
+                    if newValue {
+                        dismiss()
+                    }
+                }
             #if os(iOS)
                 .fileImporter(
                     isPresented: $viewModel.pickerPresented,

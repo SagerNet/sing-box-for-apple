@@ -18,16 +18,14 @@ public struct ProfileActionToolbar: View {
     }
 
     public var body: some View {
-        #if os(iOS)
+        #if os(iOS) || os(tvOS)
             iosBody
-        #elseif os(tvOS)
-            tvOSBody
         #elseif os(macOS)
             macOSBody
         #endif
     }
 
-    #if os(iOS)
+    #if os(iOS) || os(tvOS)
         private var iosBody: some View {
             Section("Action") {
                 if profile.type != .remote {
@@ -46,12 +44,6 @@ public struct ProfileActionToolbar: View {
                     }
                 }
             }
-        }
-    #endif
-
-    #if os(tvOS)
-        private var tvOSBody: some View {
-            EmptyView()
         }
     #endif
 

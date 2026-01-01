@@ -6,11 +6,13 @@
     /// Using UIButton via UIViewRepresentable bypasses this issue.
     struct TVToolbarButton: UIViewRepresentable {
         let title: String
+        var isEnabled: Bool = true
         let action: () -> Void
 
         func makeUIView(context: Context) -> UIButton {
             let button = UIButton(type: .system)
             button.setTitle(title, for: .normal)
+            button.isEnabled = isEnabled
             button.setContentHuggingPriority(.required, for: .horizontal)
             button.setContentCompressionResistancePriority(.required, for: .horizontal)
             button.addTarget(context.coordinator, action: #selector(Coordinator.buttonTapped), for: .primaryActionTriggered)
@@ -19,6 +21,7 @@
 
         func updateUIView(_ uiView: UIButton, context: Context) {
             uiView.setTitle(title, for: .normal)
+            uiView.isEnabled = isEnabled
             uiView.invalidateIntrinsicContentSize()
             uiView.sizeToFit()
             context.coordinator.action = action
