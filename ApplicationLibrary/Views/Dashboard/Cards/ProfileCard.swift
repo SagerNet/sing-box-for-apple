@@ -98,6 +98,28 @@ public struct ProfileCard: View {
                     }
                 }
             #endif
+                .fileExporter(
+                    isPresented: $viewModel.showProfileExporter,
+                    document: viewModel.profileExportDocument,
+                    contentType: .profile,
+                    defaultFilename: viewModel.profileExportDocument?.filename
+                ) { result in
+                    viewModel.profileExportDocument = nil
+                    if case let .failure(error) = result {
+                        viewModel.alert = AlertState(error: error)
+                    }
+                }
+                .fileExporter(
+                    isPresented: $viewModel.showJSONExporter,
+                    document: viewModel.profileJSONExportDocument,
+                    contentType: .json,
+                    defaultFilename: viewModel.profileJSONExportDocument?.filename
+                ) { result in
+                    viewModel.profileJSONExportDocument = nil
+                    if case let .failure(error) = result {
+                        viewModel.alert = AlertState(error: error)
+                    }
+                }
         #endif
                 .alert($viewModel.alert)
     }
@@ -245,9 +267,27 @@ public struct ProfileCard: View {
         #else
             Menu {
                 Button {
+                    exportProfile(profile, type: .file)
+                } label: {
+                    Label("Save File", systemImage: "square.and.arrow.down")
+                }
+
+                Button {
                     viewModel.shareItemType = .file
                 } label: {
                     Label("Share File", systemImage: "doc")
+                }
+
+                Button {
+                    exportProfile(profile, type: .json)
+                } label: {
+                    Label("Save Content JSON", systemImage: "square.and.arrow.down")
+                }
+
+                Button {
+                    viewModel.shareItemType = .json
+                } label: {
+                    Label("Share Content JSON File", systemImage: "curlybraces")
                 }
 
                 if profile.type == .remote {
@@ -256,12 +296,6 @@ public struct ProfileCard: View {
                     } label: {
                         Label("Share URL as QR Code", systemImage: "qrcode")
                     }
-                }
-
-                Button {
-                    viewModel.shareItemType = .json
-                } label: {
-                    Label("Share Content JSON File", systemImage: "curlybraces")
                 }
             } label: {
                 Image(systemName: "square.and.arrow.up")
@@ -307,6 +341,21 @@ public struct ProfileCard: View {
                         preferredEdge: .minY
                     )
                 #endif
+            } catch {
+                viewModel.alert = AlertState(error: error)
+            }
+        }
+
+        private func exportProfile(_ profile: ProfilePreview, type: ExportItemType) {
+            do {
+                switch type {
+                case .file:
+                    viewModel.profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
+                    viewModel.showProfileExporter = true
+                case .json:
+                    viewModel.profileJSONExportDocument = ProfileJSONExportDocument(jsonContent: try profile.origin.read(), name: profile.name)
+                    viewModel.showJSONExporter = true
+                }
             } catch {
                 viewModel.alert = AlertState(error: error)
             }
@@ -403,6 +452,11 @@ extension ProfileCard {
         case json
     }
 
+    enum ExportItemType {
+        case file
+        case json
+    }
+
     @MainActor
     class ViewModel: ObservableObject {
         @Published var showNewProfile = false
@@ -412,6 +466,10 @@ extension ProfileCard {
         @Published var alert: AlertState?
         @Published var profileToEdit: Profile?
         @Published var shareItemType: ShareItemType?
+        @Published var profileExportDocument: ProfileExportDocument?
+        @Published var showProfileExporter = false
+        @Published var profileJSONExportDocument: ProfileJSONExportDocument?
+        @Published var showJSONExporter = false
         #if os(macOS)
             var shareButtonView: NSView?
         #endif
