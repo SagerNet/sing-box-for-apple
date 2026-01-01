@@ -9,14 +9,15 @@ public struct NewProfileMenuView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
     @State private var alert: AlertState?
-    @State private var showFileImporter = false
     @State private var importRequest: NewProfileView.ImportRequest?
     @State private var localImportRequest: NewProfileView.LocalImportRequest?
-    #if os(iOS)
-        @State private var showQRScanner = false
-    #elseif os(tvOS)
+    #if os(tvOS)
         @State private var importCompleted = false
-    #elseif os(macOS)
+    #else
+        @State private var showFileImporter = false
+        @State private var showQRScanner = false
+    #endif
+    #if os(macOS)
         @State private var showNewProfile = false
     #endif
 
@@ -76,6 +77,19 @@ public struct NewProfileMenuView: View {
                 })
                 .environmentObject(environments)
             }
+            .sheet(isPresented: $showQRScanner) {
+                QRScannerView { result in
+                    handleQRScanResult(result)
+                }
+                .frame(minWidth: 500, minHeight: 400)
+            }
+            .sheet(item: $importRequest) { request in
+                NewProfileView(request, onSuccess: { profile in
+                    await SharedPreferences.selectedProfileID.set(profile.mustID)
+                    dismiss()
+                })
+                .environmentObject(environments)
+            }
         }
     #endif
 
@@ -117,10 +131,10 @@ public struct NewProfileMenuView: View {
                     handleFileImport(result)
                 }
         #endif
-        #if os(iOS)
+        #if !os(tvOS)
         .sheet(isPresented: $showQRScanner) {
-            QRCodeScannerView { remoteProfile in
-                importRequest = NewProfileView.ImportRequest(name: remoteProfile.name, url: remoteProfile.url)
+            QRScannerView { result in
+                handleQRScanResult(result)
             }
         }
         #endif
@@ -148,7 +162,7 @@ public struct NewProfileMenuView: View {
                     }
                 #endif
 
-                #if os(iOS)
+                #if !os(tvOS)
                     FormButton {
                         showQRScanner = true
                     } label: {
@@ -212,6 +226,28 @@ public struct NewProfileMenuView: View {
             } catch {
                 alert = AlertState(error: error)
             }
+        }
+    #endif
+
+    #if !os(tvOS)
+        private func handleQRScanResult(_ result: QRScanResult) {
+            var error: NSError?
+            let remoteProfile = LibboxParseRemoteProfileImportLink(result.string, &error)
+            if let error {
+                alert = AlertState(
+                    title: String(localized: "Invalid QR Code"),
+                    message: error.localizedDescription
+                )
+                return
+            }
+            guard let remoteProfile else {
+                alert = AlertState(
+                    title: String(localized: "Invalid QR Code"),
+                    message: String(localized: "The QR code does not contain a valid profile import link.")
+                )
+                return
+            }
+            importRequest = NewProfileView.ImportRequest(name: remoteProfile.name, url: remoteProfile.url)
         }
     #endif
 }

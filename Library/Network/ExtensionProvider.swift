@@ -13,7 +13,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private var commandServer: LibboxCommandServer!
     private var platformInterface: ExtensionPlatformInterface!
 
-    override open func startTunnel(options startOptions: [String: NSObject]?) async throws {
+    override open func startTunnel(options _: [String: NSObject]?) async throws {
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath

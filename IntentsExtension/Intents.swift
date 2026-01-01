@@ -144,7 +144,7 @@ struct GetCurrentProfile: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        guard let profile = try await ProfileManager.get(await SharedPreferences.selectedProfileID.get()) else {
+        guard let profile = try await ProfileManager.get(SharedPreferences.selectedProfileID.get()) else {
             throw NSError(domain: "No profile selected", code: 0)
         }
         return .result(value: profile.name)

@@ -249,7 +249,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
     private func onUpdateDefaultInterface(_ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath) {
         guard path.status != .unsatisfied,
-              let defaultInterface = path.availableInterfaces.first else {
+              let defaultInterface = path.availableInterfaces.first
+        else {
             listener.updateDefaultInterface("", interfaceIndex: -1, isExpensive: false, isConstrained: false)
             return
         }
