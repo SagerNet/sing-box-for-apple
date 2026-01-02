@@ -96,10 +96,10 @@ public struct SettingView: View {
     public init() {}
     public var body: some View {
         FormView {
-            #if os(macOS)
-                Tabs.app.navigationLink
-            #endif
             Section {
+                #if os(macOS)
+                    Tabs.app.navigationLink
+                #endif
                 ForEach([Tabs.core, Tabs.packetTunnel, Tabs.onDemandRules, Tabs.profileOverride]) { it in
                     it.navigationLink
                 }

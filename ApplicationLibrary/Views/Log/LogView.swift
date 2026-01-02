@@ -271,13 +271,16 @@ private struct LogContentInnerView: View {
 
     @ViewBuilder
     private var emptyContent: some View {
-        if dataModel.isConnected {
-            Text("Empty logs")
-        } else {
-            Text("Service not started").onAppear {
-                environments.connect()
+        Group {
+            if dataModel.isConnected {
+                Text("Empty logs")
+            } else {
+                Text("Service not started").onAppear {
+                    environments.connect()
+                }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var logScrollView: some View {

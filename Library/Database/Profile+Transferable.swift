@@ -118,6 +118,7 @@ public extension UTType {
     static var profile: UTType { .init(exportedAs: "io.nekohasekai.sfavt.profile") }
 }
 
+#if !os(tvOS)
 // MARK: - FileDocument for Export
 
 public struct ProfileExportDocument: FileDocument {
@@ -175,3 +176,4 @@ public struct ProfileJSONExportDocument: FileDocument {
         return FileWrapper(regularFileWithContents: data)
     }
 }
+#endif

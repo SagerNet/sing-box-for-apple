@@ -78,11 +78,6 @@ public struct ProfileCard: View {
                     QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                 }
             }
-            .sheet(isPresented: $viewModel.showQRSShare) {
-                if let profile = selectedProfile, let data = try? profile.origin.toContent().encode() {
-                    QRSSheet(profileName: profile.name, profileData: data)
-                }
-            }
         #else
             .sheet(isPresented: $viewModel.showNewProfile, onDismiss: {
                     environments.profileUpdate.send()
@@ -269,10 +264,12 @@ public struct ProfileCard: View {
                     }
                 }
 
-                Button {
-                    viewModel.showQRSShare = true
-                } label: {
-                    Label("Share as QRS Code", systemImage: "barcode")
+                if let data = try? profile.origin.toContent().encode() {
+                    FormNavigationLink {
+                        QRSSheet(profileName: profile.name, profileData: data)
+                    } label: {
+                        Label("Share as QRS Code", systemImage: "qrcode")
+                    }
                 }
             } label: {
                 Image(systemName: "square.and.arrow.up")
@@ -317,7 +314,7 @@ public struct ProfileCard: View {
                 Button {
                     viewModel.showQRSShare = true
                 } label: {
-                    Label("Share as QRS Code", systemImage: "barcode")
+                    Label("Share as QRS Code", systemImage: "qrcode")
                 }
             } label: {
                 Image(systemName: "square.and.arrow.up")
@@ -497,10 +494,12 @@ extension ProfileCard {
         @Published var alert: AlertState?
         @Published var profileToEdit: Profile?
         @Published var shareItemType: ShareItemType?
+        #if !os(tvOS)
         @Published var profileExportDocument: ProfileExportDocument?
         @Published var showProfileExporter = false
         @Published var profileJSONExportDocument: ProfileJSONExportDocument?
         @Published var showJSONExporter = false
+        #endif
         #if os(macOS)
             var shareButtonView: NSView?
         #endif

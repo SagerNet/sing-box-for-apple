@@ -570,11 +570,6 @@ private struct ProfilePickerRow: View {
                     QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                 }
             }
-            .sheet(isPresented: $showQRSShare) {
-                if let data = try? profile.origin.toContent().encode() {
-                    QRSSheet(profileName: profile.name, profileData: data)
-                }
-            }
         }
 
         private var tvOSNormalBody: some View {
@@ -632,10 +627,12 @@ private struct ProfilePickerRow: View {
                             }
                         }
 
-                        Button {
-                            showQRSShare = true
-                        } label: {
-                            Label("Share as QRS Code", systemImage: "barcode")
+                        if let data = try? profile.origin.toContent().encode() {
+                            FormNavigationLink {
+                                QRSSheet(profileName: profile.name, profileData: data)
+                            } label: {
+                                Label("Share as QRS Code", systemImage: "barcode")
+                            }
                         }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")

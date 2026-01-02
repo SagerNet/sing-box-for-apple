@@ -94,6 +94,7 @@ final class LubyTransformEncoder {
 
     // Ideal Soliton Distribution for degree selection
     private func getRandomDegree() -> Int {
+        guard k > 1 else { return k }
         var probabilities = [Double](repeating: 0, count: k)
         probabilities[0] = 1.0 / Double(k)
         for d in 2 ... k {
