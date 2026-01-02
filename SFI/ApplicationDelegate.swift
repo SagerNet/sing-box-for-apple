@@ -85,7 +85,7 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
     @available(iOS 16.0, *)
     private nonisolated func registerFileProviderDomain() {
         let domain = NSFileProviderDomain(
-            identifier: NSFileProviderDomainIdentifier("io.nekohasekai.sfavt.workingdir"),
+            identifier: NSFileProviderDomainIdentifier(AppConfiguration.fileProviderDomainID),
             displayName: "sing-box"
         )
         NSFileProviderManager.add(domain) { error in

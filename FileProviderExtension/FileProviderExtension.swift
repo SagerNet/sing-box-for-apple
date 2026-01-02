@@ -4,8 +4,15 @@ import UniformTypeIdentifiers
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     let domain: NSFileProviderDomain
 
+    private static let appGroupID: String = {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String else {
+            fatalError("Missing AppGroupIdentifier in Info.plist")
+        }
+        return value
+    }()
+
     private var workingDirectory: URL {
-        let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.io.nekohasekai.sfavt")!
+        let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupID)!
         return groupURL
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Caches", isDirectory: true)

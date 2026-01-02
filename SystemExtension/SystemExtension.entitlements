@@ -10,7 +10,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.io.nekohasekai.sfavt</string>
+		<string>$(TeamIdentifierPrefix)$(BASE_PACKAGE_IDENTIFIER)</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>
 	<false/>

@@ -4,7 +4,7 @@ import NetworkExtension
 
 @MainActor
 public class ExtensionProfile: ObservableObject {
-    public static let controlKind = "io.nekohasekai.sfavt.widget.ServiceToggle"
+    public static let controlKind = AppConfiguration.widgetControlKind
 
     private let manager: NEVPNManager
     private var connection: NEVPNConnection
@@ -162,9 +162,9 @@ public class ExtensionProfile: ObservableObject {
         manager.localizedDescription = Variant.applicationName
         let tunnelProtocol = NETunnelProviderProtocol()
         if Variant.useSystemExtension {
-            tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).system"
+            tunnelProtocol.providerBundleIdentifier = AppConfiguration.systemExtensionBundleID
         } else {
-            tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).extension"
+            tunnelProtocol.providerBundleIdentifier = AppConfiguration.extensionBundleID
         }
         tunnelProtocol.serverAddress = "sing-box"
         manager.protocolConfiguration = tunnelProtocol

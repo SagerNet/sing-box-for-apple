@@ -135,7 +135,7 @@ public struct CoreView: View {
         private nonisolated func openInFilesApp() async {
             do {
                 let domains = try await NSFileProviderManager.domains()
-                guard let domain = domains.first(where: { $0.identifier.rawValue == "io.nekohasekai.sfavt.workingdir" }) else {
+                guard let domain = domains.first(where: { $0.identifier.rawValue == AppConfiguration.fileProviderDomainID }) else {
                     throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "File provider domain not found"])
                 }
                 guard let manager = NSFileProviderManager(for: domain) else {

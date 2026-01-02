@@ -115,7 +115,7 @@ public struct TypedProfile: Transferable, Codable {
 }
 
 public extension UTType {
-    static var profile: UTType { .init(exportedAs: "io.nekohasekai.sfavt.profile") }
+    static var profile: UTType { .init(exportedAs: AppConfiguration.profileUTType) }
 }
 
 #if !os(tvOS)

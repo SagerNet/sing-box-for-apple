@@ -1,32 +1,29 @@
 import Foundation
 
 public enum FilePath {
-    public static let packageName = "io.nekohasekai.sfavt"
-}
+    public static let packageName = AppConfiguration.packageName
+    public static let groupName = AppConfiguration.appGroupID
 
-public extension FilePath {
-    static let groupName = "group.\(packageName)"
-
-    private static let defaultSharedDirectory: URL! = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: FilePath.groupName)
+    private static let defaultSharedDirectory: URL! = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupName)
 
     #if os(iOS)
-        static let sharedDirectory = defaultSharedDirectory!
+        public static let sharedDirectory = defaultSharedDirectory!
     #elseif os(tvOS)
-        static let sharedDirectory = defaultSharedDirectory
+        public static let sharedDirectory = defaultSharedDirectory
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Caches", isDirectory: true)
     #elseif os(macOS)
-        static var sharedDirectory: URL! = defaultSharedDirectory
+        public static var sharedDirectory: URL! = defaultSharedDirectory
     #endif
 
     #if os(iOS)
-        static let cacheDirectory = sharedDirectory
+        public static let cacheDirectory = sharedDirectory
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Caches", isDirectory: true)
     #elseif os(tvOS)
-        static let cacheDirectory = sharedDirectory
+        public static let cacheDirectory = sharedDirectory
     #elseif os(macOS)
-        static var cacheDirectory: URL {
+        public static var cacheDirectory: URL {
             sharedDirectory
                 .appendingPathComponent("Library", isDirectory: true)
                 .appendingPathComponent("Caches", isDirectory: true)
@@ -34,15 +31,15 @@ public extension FilePath {
     #endif
 
     #if os(macOS)
-        static var workingDirectory: URL {
+        public static var workingDirectory: URL {
             cacheDirectory.appendingPathComponent("Working", isDirectory: true)
         }
     #else
-        static let workingDirectory = cacheDirectory.appendingPathComponent("Working", isDirectory: true)
+        public static let workingDirectory = cacheDirectory.appendingPathComponent("Working", isDirectory: true)
 
     #endif
 
-    static var iCloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents", isDirectory: true) ?? URL(string: "stub")!
+    public static var iCloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents", isDirectory: true) ?? URL(string: "stub")!
 }
 
 public extension URL {

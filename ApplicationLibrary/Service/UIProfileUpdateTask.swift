@@ -7,7 +7,7 @@ import Library
 
 #if os(iOS) || os(tvOS)
     public class UIProfileUpdateTask: BGAppRefreshTask {
-        private static let taskSchedulerPermittedIdentifier = "\(FilePath.packageName).update_profiles"
+        private static let taskSchedulerPermittedIdentifier = AppConfiguration.backgroundTaskID
 
         private static var registered = false
         public static func configure() throws {
