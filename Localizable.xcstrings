@@ -44,6 +44,9 @@
         }
       }
     },
+    "%lld%%" : {
+
+    },
     "↑ %@" : {
       "shouldTranslate" : false
     },
@@ -1049,6 +1052,16 @@
         }
       }
     },
+    "Failed to decode QRS data" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解码 QRS 数据失败"
+          }
+        }
+      }
+    },
     "false" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1088,6 +1101,9 @@
           }
         }
       }
+    },
+    "FPS" : {
+      "shouldTranslate" : false
     },
     "From Outbound" : {
       "localizations" : {
@@ -1430,6 +1446,7 @@
       }
     },
     "Last Updated: %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1889,6 +1906,9 @@
         }
       }
     },
+    "QRS" : {
+      "shouldTranslate" : false
+    },
     "Quit" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2003,6 +2023,26 @@
         }
       }
     },
+    "Save Content JSON" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存内容 JSON"
+          }
+        }
+      }
+    },
+    "Save File" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存文件"
+          }
+        }
+      }
+    },
     "Scan QR Code" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2113,6 +2153,16 @@
         }
       }
     },
+    "Share as QRS Code" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过 QRS 码分享"
+          }
+        }
+      }
+    },
     "Share Content JSON File" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2165,6 +2215,16 @@
     },
     "sing-box" : {
       "shouldTranslate" : false
+    },
+    "Slice Size" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分片大小"
+          }
+        }
+      }
     },
     "Sort By" : {
       "localizations" : {
@@ -2538,6 +2598,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看内容"
+          }
+        }
+      }
+    },
+    "What is QRS" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "什么是 QRS"
           }
         }
       }

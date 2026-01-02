@@ -1,6 +1,7 @@
 import Foundation
 
 struct EncodedBlock {
+    static let qrsURLPrefix = "https://qrss.netlify.app/#"
     var indices: [Int]
     var data: Data
     let k: Int
@@ -80,8 +81,38 @@ struct EncodedBlock {
         toBinary().base64EncodedString()
     }
 
+    func toQRSString() -> String {
+        Self.qrsURLPrefix + toBase64()
+    }
+
+    static func fromQRSString(_ string: String) -> EncodedBlock? {
+        var content = string
+        if content.hasPrefix("http"), let hashIndex = content.firstIndex(of: "#") {
+            content = String(content[content.index(after: hashIndex)...])
+        }
+        return fromBase64(content)
+    }
+
     static func fromBase64(_ string: String) -> EncodedBlock? {
-        guard let data = Data(base64Encoded: string) else { return nil }
-        return fromBinary(data)
+        guard let data = Data(base64Encoded: string, options: .ignoreUnknownCharacters) else {
+            #if DEBUG
+                print("[EncodedBlock] Base64 decode failed for string of length \(string.count)")
+            #endif
+            return nil
+        }
+        #if DEBUG
+            print("[EncodedBlock] Base64 decoded: \(data.count) bytes")
+        #endif
+        guard let block = fromBinary(data) else {
+            #if DEBUG
+                print("[EncodedBlock] fromBinary failed")
+                if data.count >= 4 {
+                    let degree = data.withUnsafeBytes { $0.load(fromByteOffset: 0, as: UInt32.self).littleEndian }
+                    print("[EncodedBlock] degree=\(degree), expected size=\(4 + Int(degree) * 4 + 12), actual=\(data.count)")
+                }
+            #endif
+            return nil
+        }
+        return block
     }
 }

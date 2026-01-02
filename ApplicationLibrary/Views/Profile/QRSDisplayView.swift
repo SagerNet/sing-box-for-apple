@@ -2,162 +2,167 @@ import Foundation
 import QRCode
 import SwiftUI
 
-private extension CGColor {
-    static var labelColor: CGColor {
-        #if canImport(UIKit)
-            UIColor.label.cgColor
-        #elseif canImport(AppKit)
-            NSColor.labelColor.cgColor
-        #endif
-    }
-}
-
 @MainActor
 public struct QRSDisplayView: View {
+    private static let recoveryFactor = 1.3
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     private let data: Data
+    private let filename: String?
 
-    @State private var encoder: LubyTransformEncoder?
-    @State private var currentBlock: EncodedBlock?
-    @State private var frameCount = 0
-    @State private var isPlaying = true
+    @State private var generator: QRSImageGenerator?
     @State private var fps: Double = 10
-    @State private var sliceSize: Int = 500
-    @State private var timer: Timer?
+    @State private var sliceSize: Double = 500
+    @State private var generationTask: Task<Void, Never>?
+    #if os(tvOS)
+        @State private var showQRSInfoQRCode = false
+    #endif
 
-    public init(data: Data) {
+    public init(data: Data, filename: String? = nil) {
         self.data = data
+        self.filename = filename
     }
 
     public var body: some View {
         VStack(spacing: 16) {
-            if let block = currentBlock {
-                QRCodeViewUI(
-                    content: block.toBase64(),
-                    errorCorrection: .low,
-                    foregroundColor: .labelColor,
-                    backgroundColor: CGColor(gray: 1.0, alpha: 0.0)
-                )
-                .aspectRatio(1, contentMode: .fit)
-                #if os(macOS)
-                    .frame(minWidth: 280, minHeight: 280)
-                #else
-                    .frame(maxWidth: 300, maxHeight: 300)
-                #endif
-            } else {
-                ProgressView()
-                    .frame(width: 280, height: 280)
-            }
-
-            VStack(spacing: 4) {
-                Text("Frame: \(frameCount)")
-                    .font(.caption)
-                if let encoder {
-                    Text("Source blocks: \(encoder.k)")
-                        .font(.caption)
-                    Text("Data size: \(encoder.bytes) bytes")
-                        .font(.caption)
-                }
-            }
-            .foregroundStyle(.secondary)
-
-            VStack(spacing: 12) {
-                HStack {
-                    Button {
-                        isPlaying.toggle()
-                    } label: {
-                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+            TimelineView(.periodic(from: .now, by: 1.0 / fps)) { context in
+                Group {
+                    if let image = generator?.currentImage {
+                        Image(decorative: image, scale: 1.0)
+                            .resizable()
+                            .interpolation(.none)
+                            .aspectRatio(1, contentMode: .fit)
+                    } else {
+                        ProgressView()
+                            .frame(width: 280, height: 280)
                     }
-                    #if os(macOS)
-                    .buttonStyle(.bordered)
-                    #endif
-
-                    Spacer()
-
-                    Text(String(localized: "Ideal FPS"))
-                        .font(.caption)
-
-                    Slider(value: $fps, in: 1 ... 30, step: 1)
-                        .frame(maxWidth: 120)
-
-                    Text("\(Int(fps))")
-                        .font(.caption)
-                        .frame(width: 24, alignment: .trailing)
                 }
+                .onChange(of: context.date) { _ in
+                    generator?.advanceFrame()
+                }
+            }
+
+            VStack(spacing: 8) {
+                HStack {
+                    Text(String(localized: "FPS"))
+                    Spacer()
+                    Text(verbatim: "\(Int(fps))")
+                        .foregroundStyle(.secondary)
+                }
+
+                Slider(value: $fps, in: 1 ... 60, step: 1)
 
                 HStack {
                     Text(String(localized: "Slice Size"))
-                        .font(.caption)
-
-                    Picker("", selection: $sliceSize) {
-                        Text("200").tag(200)
-                        Text("500").tag(500)
-                        Text("1000").tag(1000)
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 200)
+                    Spacer()
+                    Text("\(Int(sliceSize))")
+                        .foregroundStyle(.secondary)
                 }
+
+                Slider(value: $sliceSize, in: 100 ... 1500, step: 100)
+            }
+            .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button {
+                    #if os(tvOS)
+                        showQRSInfoQRCode = true
+                    #else
+                        openURL(URL(string: "https://github.com/qifi-dev/qrs")!)
+                    #endif
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle")
+                        Text(String(localized: "What is QRS"))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "xmark")
+                        Text(String(localized: "Close"))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
             }
             .padding(.horizontal)
         }
-        .padding()
+        #if os(macOS)
+            .padding()
+        #else
+            .padding([.horizontal, .bottom])
+        #endif
         .onAppear {
-            setupEncoder()
-            startAnimation()
+            setupGenerator()
         }
         .onDisappear {
-            stopAnimation()
-        }
-        .onChange(of: fps) { _ in
-            if isPlaying {
-                restartTimer()
-            }
-        }
-        .onChange(of: isPlaying) { playing in
-            if playing {
-                startAnimation()
-            } else {
-                stopAnimation()
-            }
+            generator?.cancel()
+            generationTask?.cancel()
         }
         .onChange(of: sliceSize) { _ in
-            setupEncoder()
-            frameCount = 0
+            setupGenerator()
         }
+        #if os(tvOS)
+        .sheet(isPresented: $showQRSInfoQRCode) {
+            URLQRCodeSheet(url: "https://github.com/qifi-dev/qrs", title: String(localized: "What is QRS"))
+        }
+        #endif
     }
 
-    private func setupEncoder() {
-        encoder = LubyTransformEncoder(data: data, sliceSize: sliceSize, compress: true)
-    }
+    private func setupGenerator() {
+        generator?.cancel()
+        generationTask?.cancel()
 
-    private func startAnimation() {
-        nextFrame()
-        restartTimer()
-    }
+        let newGenerator = QRSImageGenerator(
+            foregroundColor: CGColor(gray: 0.0, alpha: 1.0),
+            bufferSize: 30
+        )
+        generator = newGenerator
 
-    private func restartTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0 / fps, repeats: true) { _ in
-            Task { @MainActor in
-                nextFrame()
+        generationTask = Task {
+            let (encoder, requiredFrames) = await createEncoder()
+            if Task.isCancelled { return }
+
+            newGenerator.setExpectedFrames(requiredFrames)
+
+            let fountain = encoder.fountain()
+            for _ in 0 ..< requiredFrames {
+                if Task.isCancelled { return }
+                guard let block = fountain.next() else { continue }
+                await newGenerator.addFrame(block)
             }
         }
     }
 
-    private func stopAnimation() {
-        timer?.invalidate()
-        timer = nil
+    private nonisolated func createEncoder() async -> (LubyTransformEncoder, Int) {
+        await Task.detached(priority: .userInitiated) { [data, filename, sliceSize] in
+            let wrappedData = BinaryMeta.appendFileHeaderMeta(
+                data: data,
+                filename: filename,
+                contentType: "application/octet-stream"
+            )
+            let sliceSizeInt = Int(sliceSize)
+            let encoder = LubyTransformEncoder(data: wrappedData, sliceSize: sliceSizeInt, compress: true)
+            let requiredFrames = Self.calculateRequiredFrames(dataSize: wrappedData.count, sliceSize: sliceSizeInt)
+            return (encoder, requiredFrames)
+        }.value
     }
 
-    private func nextFrame() {
-        guard let encoder else { return }
-        currentBlock = encoder.fountain().next()
-        frameCount += 1
+    private nonisolated static func calculateRequiredFrames(dataSize: Int, sliceSize: Int) -> Int {
+        let k = (dataSize + sliceSize - 1) / sliceSize
+        if k == 0 { return 1 }
+        return max(Int(Double(k) * recoveryFactor), k + 5)
     }
 }
 
 @MainActor
 public struct QRSSheet: View {
-    @Environment(\.dismiss) private var dismiss
     private let profileName: String
     private let profileData: Data
 
@@ -168,26 +173,25 @@ public struct QRSSheet: View {
 
     public var body: some View {
         #if os(macOS)
-            NavigationSheet(title: String(localized: "Share as QRS")) {
-                VStack {
-                    QRSDisplayView(data: profileData)
-                    Text("Ask the receiver to scan continuously until complete.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom)
-                }
-            }
-            .frame(minWidth: 400, minHeight: 520)
+            QRSDisplayView(data: profileData, filename: "\(profileName).bpf")
+                .frame(minWidth: 400, minHeight: 520)
         #elseif os(iOS) || os(tvOS)
-            NavigationSheet(title: String(localized: "Share as QRS"), size: .large) {
-                VStack {
-                    QRSDisplayView(data: profileData)
-                    Text("Ask the receiver to scan continuously until complete.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom)
-                }
-            }
+            QRSDisplayView(data: profileData, filename: "\(profileName).bpf")
+                .modifier(LargeSheetModifier())
         #endif
     }
 }
+
+#if os(iOS) || os(tvOS)
+    private struct LargeSheetModifier: ViewModifier {
+        func body(content: Content) -> some View {
+            if #available(iOS 16.0, tvOS 17.0, *) {
+                content
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+            } else {
+                content
+            }
+        }
+    }
+#endif

@@ -16,10 +16,18 @@ public extension Profile {
             content.autoUpdate = autoUpdate
             content.autoUpdateInterval = autoUpdateInterval
             if let lastUpdated {
-                content.lastUpdated = Int64(lastUpdated.timeIntervalSince1970)
+                content.lastUpdated = Int64(lastUpdated.timeIntervalSince1970 * 1000)
             }
         }
         return content
+    }
+}
+
+public func dateFromTimestamp(_ timestamp: Int64) -> Date {
+    if timestamp > 100_000_000_000 {
+        return Date(timeIntervalSince1970: Double(timestamp) / 1000)
+    } else {
+        return Date(timeIntervalSince1970: Double(timestamp))
     }
 }
 
@@ -51,7 +59,7 @@ public extension LibboxProfileContent {
         try config.write(to: profileConfig, atomically: true, encoding: .utf8)
         var lastUpdatedAt: Date?
         if lastUpdated > 0 {
-            lastUpdatedAt = Date(timeIntervalSince1970: Double(lastUpdated))
+            lastUpdatedAt = dateFromTimestamp(lastUpdated)
         }
         let uniqueProfileName = try await ProfileManager.uniqueName(name)
         let profile = Profile(name: uniqueProfileName, type: ProfileType(rawValue: Int(type))!, path: profileConfig.relativePath, remoteURL: remotePath, autoUpdate: autoUpdate, autoUpdateInterval: autoUpdateInterval, lastUpdated: lastUpdatedAt)

@@ -76,24 +76,24 @@ public struct OnDemandRulesView: View {
             .environment(\.editMode, $editMode)
         #endif
         #if !os(tvOS)
-            .platformSheet(isPresented: $isAddingRule) {
-                OnDemandRuleEditView(rule: OnDemandRule(), isNew: true) { newRule in
-                    rules.append(newRule)
+        .platformSheet(isPresented: $isAddingRule) {
+            OnDemandRuleEditView(rule: OnDemandRule(), isNew: true) { newRule in
+                rules.append(newRule)
+                Task {
+                    await saveRules()
+                }
+            }
+        }
+        .platformSheet(item: $editingRule) { rule in
+            OnDemandRuleEditView(rule: rule, isNew: false) { updatedRule in
+                if let index = rules.firstIndex(where: { $0.id == updatedRule.id }) {
+                    rules[index] = updatedRule
                     Task {
                         await saveRules()
                     }
                 }
             }
-            .platformSheet(item: $editingRule) { rule in
-                OnDemandRuleEditView(rule: rule, isNew: false) { updatedRule in
-                    if let index = rules.firstIndex(where: { $0.id == updatedRule.id }) {
-                        rules[index] = updatedRule
-                        Task {
-                            await saveRules()
-                        }
-                    }
-                }
-            }
+        }
         #endif
     }
 
@@ -160,7 +160,7 @@ public struct OnDemandRulesView: View {
                         Image(systemName: "plus.circle.fill")
                     }
                     #if os(macOS)
-                        .buttonStyle(.plain)
+                    .buttonStyle(.plain)
                     #endif
                 #endif
             }
@@ -210,9 +210,9 @@ public struct OnDemandRulesView: View {
                 .contentShape(Rectangle())
             }
             #if os(macOS)
-                .buttonStyle(.plain)
+            .buttonStyle(.plain)
             #elseif os(iOS)
-                .foregroundStyle(.primary)
+            .foregroundStyle(.primary)
             #endif
         #endif
     }
@@ -362,36 +362,36 @@ private struct OnDemandRuleEditView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
         #if !os(tvOS)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(isNew ? "Create" : "Save") {
-                        onSave(rule)
-                        dismiss()
-                    }
-                    .disabled(!isProbeURLValid)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    dismiss()
                 }
             }
+            ToolbarItem(placement: .confirmationAction) {
+                Button(isNew ? "Create" : "Save") {
+                    onSave(rule)
+                    dismiss()
+                }
+                .disabled(!isProbeURLValid)
+            }
+        }
         #endif
         #if os(macOS)
-            .formStyle(.grouped)
+        .formStyle(.grouped)
         #endif
-            .platformSheet(isPresented: $isAddingConnectionRule, size: .small) {
-                EvaluateConnectionRuleEditView(rule: EvaluateConnectionRule()) { newRule in
-                    rule.connectionRules.append(newRule)
+        .platformSheet(isPresented: $isAddingConnectionRule, size: .small) {
+            EvaluateConnectionRuleEditView(rule: EvaluateConnectionRule()) { newRule in
+                rule.connectionRules.append(newRule)
+            }
+        }
+        .platformSheet(item: $editingConnectionRule, size: .small) { connRule in
+            EvaluateConnectionRuleEditView(rule: connRule) { updatedRule in
+                if let index = rule.connectionRules.firstIndex(where: { $0.id == updatedRule.id }) {
+                    rule.connectionRules[index] = updatedRule
                 }
             }
-            .platformSheet(item: $editingConnectionRule, size: .small) { connRule in
-                EvaluateConnectionRuleEditView(rule: connRule) { updatedRule in
-                    if let index = rule.connectionRules.firstIndex(where: { $0.id == updatedRule.id }) {
-                        rule.connectionRules[index] = updatedRule
-                    }
-                }
-            }
+        }
     }
 
     private var actionSection: some View {

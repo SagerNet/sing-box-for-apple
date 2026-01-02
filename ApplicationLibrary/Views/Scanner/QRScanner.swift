@@ -6,6 +6,7 @@ public enum QRScanError: Error, LocalizedError {
     case permissionDenied
     case scanFailed(Error)
     case invalidCode
+    case qrsDecodeFailed
 
     public var errorDescription: String? {
         switch self {
@@ -17,16 +18,22 @@ public enum QRScanError: Error, LocalizedError {
             return error.localizedDescription
         case .invalidCode:
             return String(localized: "Invalid QR code")
+        case .qrsDecodeFailed:
+            return String(localized: "Failed to decode QRS data")
         }
     }
 }
 
-public struct QRScanResult: Sendable {
-    public let string: String
-    public let type: AVMetadataObject.ObjectType
+public enum QRScanResult: Sendable {
+    case qrCode(string: String, type: AVMetadataObject.ObjectType)
+    case qrsData(Data)
 
-    public init(string: String, type: AVMetadataObject.ObjectType) {
-        self.string = string
-        self.type = type
+    public var string: String? {
+        switch self {
+        case let .qrCode(string, _):
+            return string
+        case .qrsData:
+            return nil
+        }
     }
 }

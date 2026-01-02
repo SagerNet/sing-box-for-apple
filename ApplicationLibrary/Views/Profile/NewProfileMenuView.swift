@@ -231,8 +231,17 @@ public struct NewProfileMenuView: View {
 
     #if !os(tvOS)
         private func handleQRScanResult(_ result: QRScanResult) {
+            switch result {
+            case let .qrCode(string, _):
+                handleQRCodeString(string)
+            case let .qrsData(data):
+                handleQRSData(data)
+            }
+        }
+
+        private func handleQRCodeString(_ string: String) {
             var error: NSError?
-            let remoteProfile = LibboxParseRemoteProfileImportLink(result.string, &error)
+            let remoteProfile = LibboxParseRemoteProfileImportLink(string, &error)
             if let error {
                 alert = AlertState(
                     title: String(localized: "Invalid QR Code"),
@@ -248,6 +257,31 @@ public struct NewProfileMenuView: View {
                 return
             }
             importRequest = NewProfileView.ImportRequest(name: remoteProfile.name, url: remoteProfile.url)
+        }
+
+        private func handleQRSData(_ data: Data) {
+            do {
+                let (actualData, _, _) = try BinaryMeta.readFileHeaderMeta(buffer: data)
+                let content = try LibboxProfileContent.from(actualData)
+                alert = AlertState(
+                    title: String(localized: "Import Profile"),
+                    message: String(localized: "Are you sure to import profile \(content.name)?"),
+                    primaryButton: .default(String(localized: "Import")) {
+                        Task {
+                            do {
+                                try await content.importProfile()
+                                environments.profileUpdate.send()
+                                dismiss()
+                            } catch {
+                                alert = AlertState(error: error)
+                            }
+                        }
+                    },
+                    secondaryButton: .cancel()
+                )
+            } catch {
+                alert = AlertState(error: error)
+            }
         }
     #endif
 }

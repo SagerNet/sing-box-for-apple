@@ -15,6 +15,13 @@
         @Published var availableCameras: [AVCaptureDevice] = []
         @Published var selectedCamera: AVCaptureDevice?
 
+        @Published var qrsMode = false
+        @Published var decoder: LubyTransformDecoder?
+        @Published var progress: Double = 0
+        @Published var framesScanned = 0
+        private var seenBlockIds = Set<String>()
+        private let decodingQueue = DispatchQueue(label: "QRSDecoding", qos: .userInitiated)
+
         let previewView = NSView()
         var onScan: ((Result<QRScanResult, QRScanError>) -> Void)?
 
@@ -89,6 +96,11 @@
 
         func reset() {
             didFinishScanning = false
+            qrsMode = false
+            decoder = nil
+            progress = 0
+            framesScanned = 0
+            seenBlockIds.removeAll()
         }
 
         private func setupCaptureSession() {
@@ -126,7 +138,7 @@
             session.addOutput(videoOutput)
 
             self.videoOutput = videoOutput
-            self.captureSession = session
+            captureSession = session
 
             let previewLayer = AVCaptureVideoPreviewLayer(session: session)
             previewLayer.videoGravity = .resizeAspectFill
@@ -143,23 +155,75 @@
             previewLayer?.frame = frame
         }
 
-        private func processQRCode(_ payloadString: String) {
-            guard !didFinishScanning else { return }
-            didFinishScanning = true
-
+        private func processScannedContent(_ content: String) {
             DispatchQueue.main.async { [weak self] in
-                NSSound.beep()
-                let result = QRScanResult(string: payloadString, type: .qr)
-                self?.onScan?(.success(result))
+                guard let self, !didFinishScanning else { return }
+
+                if let block = EncodedBlock.fromQRSString(content) {
+                    processQRSBlock(block)
+                } else if !qrsMode {
+                    didFinishScanning = true
+                    NSSound.beep()
+                    onScan?(.success(.qrCode(string: content, type: .qr)))
+                }
+            }
+        }
+
+        private func processQRSBlock(_ block: EncodedBlock) {
+            if let currentChecksum = decoder?.meta?.checksum,
+               block.checksum != currentChecksum
+            {
+                decoder = LubyTransformDecoder()
+                seenBlockIds.removeAll()
+                progress = 0
+                framesScanned = 0
+            }
+
+            if !qrsMode {
+                qrsMode = true
+                decoder = LubyTransformDecoder()
+            }
+
+            let blockId = "\(block.checksum):\(block.indices.sorted().map(String.init).joined(separator: ","))"
+            guard !seenBlockIds.contains(blockId) else { return }
+            seenBlockIds.insert(blockId)
+
+            framesScanned += 1
+
+            guard let decoder else { return }
+            decodingQueue.async { [weak self] in
+                do {
+                    let complete = try decoder.addBlock(block)
+                    let currentProgress = decoder.progress
+
+                    DispatchQueue.main.async {
+                        guard let self, !self.didFinishScanning else { return }
+                        self.progress = currentProgress
+
+                        if complete {
+                            self.didFinishScanning = true
+                            self.stopScanning()
+                            NSSound.beep()
+
+                            if let data = try? decoder.getDecoded() {
+                                self.onScan?(.success(.qrsData(data)))
+                            } else {
+                                self.onScan?(.failure(.qrsDecodeFailed))
+                            }
+                        }
+                    }
+                } catch {
+                    // Checksum mismatch is handled above, ignore other errors
+                }
             }
         }
     }
 
     extension QRScannerController: AVCaptureVideoDataOutputSampleBufferDelegate {
         nonisolated func captureOutput(
-            _ output: AVCaptureOutput,
+            _: AVCaptureOutput,
             didOutput sampleBuffer: CMSampleBuffer,
-            from connection: AVCaptureConnection
+            from _: AVCaptureConnection
         ) {
             guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
@@ -168,8 +232,7 @@
 
                 for result in results {
                     if result.symbology == .qr, let payload = result.payloadStringValue {
-                        self?.processQRCode(payload)
-                        return
+                        self?.processScannedContent(payload)
                     }
                 }
             }
@@ -183,12 +246,12 @@
     struct QRScannerControllerView: NSViewControllerRepresentable {
         let controller: QRScannerController
 
-        func makeNSViewController(context: Context) -> NSViewController {
+        func makeNSViewController(context _: Context) -> NSViewController {
             let viewController = QRScannerViewController(controller: controller)
             return viewController
         }
 
-        func updateNSViewController(_ nsViewController: NSViewController, context: Context) {}
+        func updateNSViewController(_: NSViewController, context _: Context) {}
     }
 
     private class QRScannerViewController: NSViewController {
@@ -200,7 +263,7 @@
         }
 
         @available(*, unavailable)
-        required init?(coder: NSCoder) {
+        required init?(coder _: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
 

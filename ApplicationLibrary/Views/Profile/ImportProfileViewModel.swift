@@ -140,7 +140,7 @@
             try content.config.write(to: profileConfig, atomically: true, encoding: .utf8)
             var lastUpdated: Date?
             if content.lastUpdated > 0 {
-                lastUpdated = Date(timeIntervalSince1970: Double(content.lastUpdated))
+                lastUpdated = dateFromTimestamp(content.lastUpdated)
             }
             let uniqueProfileName = try await ProfileManager.uniqueName(content.name)
             let profile = Profile(name: uniqueProfileName, type: type, path: profileConfig.relativePath, remoteURL: content.remotePath, autoUpdate: content.autoUpdate, lastUpdated: lastUpdated)

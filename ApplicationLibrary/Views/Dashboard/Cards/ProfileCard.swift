@@ -78,6 +78,11 @@ public struct ProfileCard: View {
                     QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                 }
             }
+            .sheet(isPresented: $viewModel.showQRSShare) {
+                if let profile = selectedProfile, let data = try? profile.origin.toContent().encode() {
+                    QRSSheet(profileName: profile.name, profileData: data)
+                }
+            }
         #else
             .sheet(isPresented: $viewModel.showNewProfile, onDismiss: {
                     environments.profileUpdate.send()
@@ -98,6 +103,11 @@ public struct ProfileCard: View {
                     }
                 }
             #endif
+                .sheet(isPresented: $viewModel.showQRSShare) {
+                    if let profile = selectedProfile, let data = try? profile.origin.toContent().encode() {
+                        QRSSheet(profileName: profile.name, profileData: data)
+                    }
+                }
                 .fileExporter(
                     isPresented: $viewModel.showProfileExporter,
                     document: viewModel.profileExportDocument,
@@ -250,20 +260,26 @@ public struct ProfileCard: View {
     @ViewBuilder
     private func shareMenu(for profile: ProfilePreview) -> some View {
         #if os(tvOS)
-            if profile.type == .remote {
-                Menu {
+            Menu {
+                if profile.type == .remote {
                     Button {
                         viewModel.showQRCode = true
                     } label: {
                         Label("Share URL as QR Code", systemImage: "qrcode")
                     }
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 16))
                 }
-                .buttonStyle(.plain)
-                .actionButtonStyle()
+
+                Button {
+                    viewModel.showQRSShare = true
+                } label: {
+                    Label("Share as QRS Code", systemImage: "barcode")
+                }
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 16))
             }
+            .buttonStyle(.plain)
+            .actionButtonStyle()
         #else
             Menu {
                 Button {
@@ -297,9 +313,17 @@ public struct ProfileCard: View {
                         Label("Share URL as QR Code", systemImage: "qrcode")
                     }
                 }
+
+                Button {
+                    viewModel.showQRSShare = true
+                } label: {
+                    Label("Share as QRS Code", systemImage: "barcode")
+                }
             } label: {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 16))
+                    .frame(width: 44, height: 32)
+                    .contentShape(Rectangle())
             }
             .menuIndicator(.hidden)
             .foregroundStyle(.primary)
@@ -351,10 +375,16 @@ public struct ProfileCard: View {
                 switch type {
                 case .file:
                     viewModel.profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
-                    viewModel.showProfileExporter = true
                 case .json:
-                    viewModel.profileJSONExportDocument = ProfileJSONExportDocument(jsonContent: try profile.origin.read(), name: profile.name)
-                    viewModel.showJSONExporter = true
+                    viewModel.profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                }
+                DispatchQueue.main.async {
+                    switch type {
+                    case .file:
+                        viewModel.showProfileExporter = true
+                    case .json:
+                        viewModel.showJSONExporter = true
+                    }
                 }
             } catch {
                 viewModel.alert = AlertState(error: error)
@@ -462,6 +492,7 @@ extension ProfileCard {
         @Published var showNewProfile = false
         @Published var showProfilePicker = false
         @Published var showQRCode = false
+        @Published var showQRSShare = false
         @Published var isUpdating = false
         @Published var alert: AlertState?
         @Published var profileToEdit: Profile?

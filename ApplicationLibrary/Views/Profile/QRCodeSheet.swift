@@ -31,7 +31,8 @@ public struct QRCodeContentView: View {
                 content: LibboxGenerateRemoteProfileImportLink(profileName, remoteURL),
                 errorCorrection: .low,
                 foregroundColor: .labelColor,
-                backgroundColor: CGColor(gray: 1.0, alpha: 0.0)
+                backgroundColor: CGColor(gray: 1.0, alpha: 0.0),
+                additionalQuietZonePixels: 4
             )
             #if os(macOS)
             .frame(minWidth: 300, minHeight: 300)
@@ -68,6 +69,67 @@ public struct QRCodeSheet: View {
             } else {
                 NavigationStackCompat {
                     QRCodeContentView(profileName: profileName, remoteURL: remoteURL)
+                }
+            }
+        #endif
+    }
+}
+
+@MainActor
+public struct URLQRCodeContentView: View {
+    private let url: String
+
+    public init(url: String) {
+        self.url = url
+    }
+
+    public var body: some View {
+        VStack {
+            Spacer()
+            QRCodeViewUI(
+                content: url,
+                errorCorrection: .low,
+                foregroundColor: .labelColor,
+                backgroundColor: CGColor(gray: 1.0, alpha: 0.0),
+                additionalQuietZonePixels: 4
+            )
+            #if os(macOS)
+            .frame(minWidth: 300, minHeight: 300)
+            #endif
+            Spacer()
+        }
+        .padding()
+    }
+}
+
+@MainActor
+public struct URLQRCodeSheet: View {
+    private let url: String
+    private let title: String
+
+    public init(url: String, title: String) {
+        self.url = url
+        self.title = title
+    }
+
+    public var body: some View {
+        #if os(macOS)
+            NavigationSheet(title: title) {
+                URLQRCodeContentView(url: url)
+            }
+            .frame(minWidth: 400, minHeight: 400)
+        #elseif os(iOS) || os(tvOS)
+            if #available(iOS 16.0, tvOS 17.0, *) {
+                NavigationStackCompat {
+                    URLQRCodeContentView(url: url)
+                        .navigationTitle(title)
+                }
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+            } else {
+                NavigationStackCompat {
+                    URLQRCodeContentView(url: url)
+                        .navigationTitle(title)
                 }
             }
         #endif

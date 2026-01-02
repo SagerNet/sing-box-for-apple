@@ -14,6 +14,13 @@
         @Published var availableCameras: [AVCaptureDevice] = []
         @Published var selectedCamera: AVCaptureDevice?
 
+        @Published var qrsMode = false
+        @Published var decoder: LubyTransformDecoder?
+        @Published var progress: Double = 0
+        @Published var framesScanned = 0
+        private var seenBlockIds = Set<String>()
+        private let decodingQueue = DispatchQueue(label: "QRSDecoding", qos: .userInitiated)
+
         let previewView = UIView()
         var onScan: ((Result<QRScanResult, QRScanError>) -> Void)?
 
@@ -95,6 +102,11 @@
 
         func reset() {
             didFinishScanning = false
+            qrsMode = false
+            decoder = nil
+            progress = 0
+            framesScanned = 0
+            seenBlockIds.removeAll()
         }
 
         private func setupCaptureSession() {
@@ -129,7 +141,7 @@
             metadataOutput.metadataObjectTypes = [.qr]
 
             self.metadataOutput = metadataOutput
-            self.captureSession = session
+            captureSession = session
 
             let previewLayer = AVCaptureVideoPreviewLayer(session: session)
             previewLayer.videoGravity = .resizeAspectFill
@@ -149,24 +161,79 @@
 
     extension QRScannerController: AVCaptureMetadataOutputObjectsDelegate {
         nonisolated func metadataOutput(
-            _ output: AVCaptureMetadataOutput,
+            _: AVCaptureMetadataOutput,
             didOutput metadataObjects: [AVMetadataObject],
-            from connection: AVCaptureConnection
+            from _: AVCaptureConnection
         ) {
             Task { @MainActor in
-                guard !didFinishScanning,
-                      let metadataObject = metadataObjects.first,
-                      let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject,
-                      let stringValue = readableObject.stringValue
-                else {
-                    return
-                }
+                guard !didFinishScanning else { return }
 
+                for metadataObject in metadataObjects {
+                    guard let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject,
+                          let stringValue = readableObject.stringValue
+                    else { continue }
+
+                    processScannedContent(stringValue, type: readableObject.type)
+                }
+            }
+        }
+
+        private func processScannedContent(_ content: String, type: AVMetadataObject.ObjectType) {
+            if let block = EncodedBlock.fromQRSString(content) {
+                processQRSBlock(block)
+            } else if !qrsMode {
                 didFinishScanning = true
                 AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+                onScan?(.success(.qrCode(string: content, type: type)))
+            }
+        }
 
-                let result = QRScanResult(string: stringValue, type: readableObject.type)
-                onScan?(.success(result))
+        private func processQRSBlock(_ block: EncodedBlock) {
+            if let currentChecksum = decoder?.meta?.checksum,
+               block.checksum != currentChecksum
+            {
+                decoder = LubyTransformDecoder()
+                seenBlockIds.removeAll()
+                progress = 0
+                framesScanned = 0
+            }
+
+            if !qrsMode {
+                qrsMode = true
+                decoder = LubyTransformDecoder()
+            }
+
+            let blockId = "\(block.checksum):\(block.indices.sorted().map(String.init).joined(separator: ","))"
+            guard !seenBlockIds.contains(blockId) else { return }
+            seenBlockIds.insert(blockId)
+
+            framesScanned += 1
+
+            guard let decoder else { return }
+            decodingQueue.async { [weak self] in
+                do {
+                    let complete = try decoder.addBlock(block)
+                    let currentProgress = decoder.progress
+
+                    DispatchQueue.main.async {
+                        guard let self, !self.didFinishScanning else { return }
+                        self.progress = currentProgress
+
+                        if complete {
+                            self.didFinishScanning = true
+                            self.stopScanning()
+                            AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+
+                            if let data = try? decoder.getDecoded() {
+                                self.onScan?(.success(.qrsData(data)))
+                            } else {
+                                self.onScan?(.failure(.qrsDecodeFailed))
+                            }
+                        }
+                    }
+                } catch {
+                    // Checksum mismatch is handled above, ignore other errors
+                }
             }
         }
     }
@@ -174,12 +241,12 @@
     struct QRScannerControllerView: UIViewControllerRepresentable {
         let controller: QRScannerController
 
-        func makeUIViewController(context: Context) -> UIViewController {
+        func makeUIViewController(context _: Context) -> UIViewController {
             let viewController = QRScannerViewController(controller: controller)
             return viewController
         }
 
-        func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+        func updateUIViewController(_: UIViewController, context _: Context) {}
     }
 
     private class QRScannerViewController: UIViewController {
@@ -191,7 +258,7 @@
         }
 
         @available(*, unavailable)
-        required init?(coder: NSCoder) {
+        required init?(coder _: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
 

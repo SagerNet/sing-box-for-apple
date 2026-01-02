@@ -1,5 +1,5 @@
-import Compression
 import Foundation
+import zlib
 
 final class LubyTransformDecoder {
     private(set) var decodedData: [Data?] = []
@@ -66,16 +66,29 @@ final class LubyTransformDecoder {
         indices.map(String.init).joined(separator: ",")
     }
 
-    private func xorData(_ a: Data, _ b: Data) -> Data {
-        var result = a
-        let count = min(a.count, b.count)
-        for i in 0 ..< count {
-            result[i] ^= b[i]
+    private func xorDataInPlace(_ dest: inout Data, _ src: Data) {
+        let count = min(dest.count, src.count)
+        dest.withUnsafeMutableBytes { destPtr in
+            src.withUnsafeBytes { srcPtr in
+                let d = destPtr.bindMemory(to: UInt8.self).baseAddress!
+                let s = srcPtr.bindMemory(to: UInt8.self).baseAddress!
+                for i in 0 ..< count {
+                    d[i] ^= s[i]
+                }
+            }
         }
-        return result
     }
 
     private func propagateDecoded(key: String, wrapper: BlockWrapper) {
+        var queue: [(key: String, wrapper: BlockWrapper)] = [(key, wrapper)]
+
+        while !queue.isEmpty {
+            let (currentKey, currentWrapper) = queue.removeFirst()
+            processBlock(key: currentKey, wrapper: currentWrapper, queue: &queue)
+        }
+    }
+
+    private func processBlock(key: String, wrapper: BlockWrapper, queue: inout [(key: String, wrapper: BlockWrapper)]) {
         var block = wrapper.block
         var indices = block.indices
         var indicesSet = Set(indices)
@@ -88,7 +101,7 @@ final class LubyTransformDecoder {
         if indices.count > 1 {
             for index in indices {
                 if let decoded = decodedData[index] {
-                    block.data = xorData(block.data, decoded)
+                    xorDataInPlace(&block.data, decoded)
                     indicesSet.remove(index)
                 }
             }
@@ -105,7 +118,7 @@ final class LubyTransformDecoder {
                 let subIndices = indices.filter { $0 != index }
                 let subkey = indicesToKey(subIndices)
                 if let subWrapper = encodedBlockKeyMap[subkey] {
-                    block.data = xorData(block.data, subWrapper.block.data)
+                    xorDataInPlace(&block.data, subWrapper.block.data)
                     for i in subWrapper.block.indices {
                         indicesSet.remove(i)
                     }
@@ -121,8 +134,8 @@ final class LubyTransformDecoder {
             // Store subkeys for future matching if still high degree
             if indicesSet.count > 1 {
                 for (index, subkey) in subkeys {
-                    let dispose = { [weak self] in
-                        self?.encodedBlockSubkeyMap[subkey]?.remove(wrapper)
+                    let dispose: () -> Void = { [weak self] in
+                        _ = self?.encodedBlockSubkeyMap[subkey]?.remove(wrapper)
                     }
                     if encodedBlockSubkeyMap[subkey] == nil {
                         encodedBlockSubkeyMap[subkey] = []
@@ -156,14 +169,14 @@ final class LubyTransformDecoder {
                 encodedBlockSubkeyMap.removeValue(forKey: newKey)
                 for superWrapper in superset {
                     var superBlock = superWrapper.block
-                    superBlock.data = xorData(superBlock.data, block.data)
+                    xorDataInPlace(&superBlock.data, block.data)
                     var superIndicesSet = Set(superBlock.indices)
                     for i in indices {
                         superIndicesSet.remove(i)
                     }
                     superBlock.indices = Array(superIndicesSet).sorted()
                     superWrapper.block = superBlock
-                    propagateDecoded(key: indicesToKey(superBlock.indices), wrapper: superWrapper)
+                    queue.append((indicesToKey(superBlock.indices), superWrapper))
                 }
             }
         }
@@ -180,7 +193,7 @@ final class LubyTransformDecoder {
                 for waiting in waitingBlocks {
                     let waitingKey = indicesToKey(waiting.block.indices)
                     encodedBlockKeyMap.removeValue(forKey: waitingKey)
-                    propagateDecoded(key: waitingKey, wrapper: waiting)
+                    queue.append((waitingKey, waiting))
                 }
             }
         }
@@ -227,25 +240,48 @@ final class LubyTransformDecoder {
     }
 
     private static func inflate(_ data: Data) -> Data? {
-        let sourceSize = data.count
-        let destinationSize = sourceSize * 10
+        var stream = z_stream()
 
-        let destinationBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: destinationSize)
-        defer { destinationBuffer.deallocate() }
-
-        let decompressedSize = data.withUnsafeBytes { sourcePtr -> Int in
-            guard let baseAddress = sourcePtr.baseAddress else { return 0 }
-            return compression_decode_buffer(
-                destinationBuffer,
-                destinationSize,
-                baseAddress.assumingMemoryBound(to: UInt8.self),
-                sourceSize,
-                nil,
-                COMPRESSION_ZLIB
-            )
+        // Use 15 for zlib format (with header/trailer) to match pako's default
+        guard inflateInit2_(
+            &stream,
+            15,
+            ZLIB_VERSION,
+            Int32(MemoryLayout<z_stream>.size)
+        ) == Z_OK else {
+            return nil
         }
+        defer { inflateEnd(&stream) }
 
-        guard decompressedSize > 0 else { return nil }
-        return Data(bytes: destinationBuffer, count: decompressedSize)
+        var destCapacity = data.count * 4
+        var dest = Data(count: destCapacity)
+
+        return data.withUnsafeBytes { srcPtr -> Data? in
+            stream.next_in = UnsafeMutablePointer(mutating: srcPtr.bindMemory(to: Bytef.self).baseAddress)
+            stream.avail_in = uInt(data.count)
+
+            while true {
+                dest.withUnsafeMutableBytes { destPtr in
+                    stream.next_out = destPtr.bindMemory(to: Bytef.self).baseAddress?.advanced(by: Int(stream.total_out))
+                    stream.avail_out = uInt(destCapacity - Int(stream.total_out))
+                }
+
+                let result = zlib.inflate(&stream, Z_NO_FLUSH)
+
+                if result == Z_STREAM_END {
+                    dest.count = Int(stream.total_out)
+                    return dest
+                }
+
+                if result != Z_OK {
+                    return nil
+                }
+
+                if stream.avail_out == 0 {
+                    destCapacity *= 2
+                    dest.count = destCapacity
+                }
+            }
+        }
     }
 }

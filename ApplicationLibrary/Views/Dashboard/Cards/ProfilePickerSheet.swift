@@ -531,6 +531,7 @@ private struct ProfilePickerRow: View {
 
     @State private var isUpdating = false
     @State private var showQRCode = false
+    @State private var showQRSShare = false
     #if os(macOS)
         @State private var shareItemType: ShareItemType?
         @State private var exportItemType: ExportItemType?
@@ -567,6 +568,11 @@ private struct ProfilePickerRow: View {
             .sheet(isPresented: $showQRCode) {
                 if let remoteURL = profile.remoteURL {
                     QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+                }
+            }
+            .sheet(isPresented: $showQRSShare) {
+                if let data = try? profile.origin.toContent().encode() {
+                    QRSSheet(profileName: profile.name, profileData: data)
                 }
             }
         }
@@ -615,16 +621,24 @@ private struct ProfilePickerRow: View {
                         } label: {
                             Label("Update", systemImage: "arrow.clockwise")
                         }
+                    }
 
-                        Menu {
+                    Menu {
+                        if profile.type == .remote {
                             Button {
                                 showQRCode = true
                             } label: {
                                 Label("Share URL as QR Code", systemImage: "qrcode")
                             }
-                        } label: {
-                            Label("Share", systemImage: "square.and.arrow.up")
                         }
+
+                        Button {
+                            showQRSShare = true
+                        } label: {
+                            Label("Share as QRS Code", systemImage: "barcode")
+                        }
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
                     }
                 } label: {
                     Image(systemName: "ellipsis")
@@ -708,6 +722,11 @@ private struct ProfilePickerRow: View {
                         QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                     }
                 }
+                .sheet(isPresented: $showQRSShare) {
+                    if let data = try? profile.origin.toContent().encode() {
+                        QRSSheet(profileName: profile.name, profileData: data)
+                    }
+                }
                 .fileExporter(
                     isPresented: $showProfileExporter,
                     document: profileExportDocument,
@@ -751,6 +770,11 @@ private struct ProfilePickerRow: View {
                 .sheet(isPresented: $showQRCode) {
                     if let remoteURL = profile.remoteURL {
                         QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+                    }
+                }
+                .sheet(isPresented: $showQRSShare) {
+                    if let data = try? profile.origin.toContent().encode() {
+                        QRSSheet(profileName: profile.name, profileData: data)
                     }
                 }
                 .fileExporter(
@@ -952,6 +976,12 @@ private struct ProfilePickerRow: View {
                         Label("Share URL as QR Code", systemImage: "qrcode")
                     }
                 }
+
+                Button {
+                    showQRSShare = true
+                } label: {
+                    Label("Share as QRS Code", systemImage: "barcode")
+                }
             } label: {
                 Label("Share", systemImage: "square.and.arrow.up")
             }
@@ -962,10 +992,16 @@ private struct ProfilePickerRow: View {
                 switch type {
                 case .file:
                     profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
-                    showProfileExporter = true
                 case .json:
-                    profileJSONExportDocument = ProfileJSONExportDocument(jsonContent: try profile.origin.read(), name: profile.name)
-                    showJSONExporter = true
+                    profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                }
+                DispatchQueue.main.async {
+                    switch type {
+                    case .file:
+                        showProfileExporter = true
+                    case .json:
+                        showJSONExporter = true
+                    }
                 }
             } catch {
                 alert = AlertState(error: error)
@@ -1025,7 +1061,7 @@ private struct ProfilePickerRow: View {
                     profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
                     showProfileExporter = true
                 case .json:
-                    profileJSONExportDocument = ProfileJSONExportDocument(jsonContent: try profile.origin.read(), name: profile.name)
+                    profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
                     showJSONExporter = true
                 }
             } catch {
@@ -1136,6 +1172,7 @@ private struct ProfilePickerRow: View {
 
         @State private var isUpdating = false
         @State private var showQRCode = false
+        @State private var showQRSShare = false
         @State private var profileExportDocument: ProfileExportDocument?
         @State private var showProfileExporter = false
         @State private var profileJSONExportDocument: ProfileJSONExportDocument?
@@ -1195,6 +1232,11 @@ private struct ProfilePickerRow: View {
             .sheet(isPresented: $showQRCode) {
                 if let remoteURL = profile.remoteURL {
                     QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
+                }
+            }
+            .sheet(isPresented: $showQRSShare) {
+                if let data = try? profile.origin.toContent().encode() {
+                    QRSSheet(profileName: profile.name, profileData: data)
                 }
             }
             .fileExporter(
@@ -1293,6 +1335,12 @@ private struct ProfilePickerRow: View {
                         Label("Share URL as QR Code", systemImage: "qrcode")
                     }
                 }
+
+                Button {
+                    showQRSShare = true
+                } label: {
+                    Label("Share as QRS Code", systemImage: "barcode")
+                }
             } label: {
                 Label("Share", systemImage: "square.and.arrow.up")
             }
@@ -1303,10 +1351,16 @@ private struct ProfilePickerRow: View {
                 switch type {
                 case .file:
                     profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
-                    showProfileExporter = true
                 case .json:
-                    profileJSONExportDocument = ProfileJSONExportDocument(jsonContent: try profile.origin.read(), name: profile.name)
-                    showJSONExporter = true
+                    profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                }
+                DispatchQueue.main.async {
+                    switch type {
+                    case .file:
+                        showProfileExporter = true
+                    case .json:
+                        showJSONExporter = true
+                    }
                 }
             } catch {
                 alert = AlertState(error: error)
