@@ -154,10 +154,8 @@ public struct StartStopButton: View {
 
         @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
         private func checkStartupError() async {
-            do {
-                try await profile.fetchLastDisconnectError()
-            } catch {
-                alert = AlertState(title: String(localized: "Service Error"), message: error.localizedDescription)
+            if let alertState = await profile.checkLastDisconnectError() {
+                alert = alertState
             }
         }
 

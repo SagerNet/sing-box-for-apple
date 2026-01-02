@@ -4,6 +4,10 @@ import Library
 import NetworkExtension
 import SwiftUI
 
+#if os(macOS)
+    import AppKit
+#endif
+
 @MainActor
 public final class DashboardViewModel: BaseViewModel {
     @Published public var profileList: [ProfilePreview] = []
@@ -154,32 +158,38 @@ public final class DashboardViewModel: BaseViewModel {
 
     @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
     nonisolated func checkLastDisconnectError(profile: ExtensionProfile) async {
+        if let alertState = await profile.checkLastDisconnectError() {
+            await MainActor.run {
+                alert = alertState
+            }
+        }
+    }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
+extension ExtensionProfile {
+    public nonisolated func checkLastDisconnectError() async -> AlertState? {
         do {
-            try await profile.fetchLastDisconnectError()
-            return
+            try await fetchLastDisconnectError()
+            return nil
         } catch {
-            let myError = error as NSError
+            let nsError = error as NSError
             #if os(macOS)
-                if myError.domain == "Library.FullDiskAccessPermissionRequired" {
-                    await MainActor.run {
-                        alert = AlertState(
-                            title: String(localized: "Full Disk Access permission is required"),
-                            message: String(localized: "Please grant the permission for **SFMExtension**, then we can continue."),
-                            primaryButton: .default(String(localized: "Authorize"), action: openFDASettings),
-                            secondaryButton: .cancel()
-                        )
-                    }
-                    return
+                if nsError.domain == "Library.FullDiskAccessPermissionRequired" {
+                    return AlertState(
+                        title: String(localized: "Full Disk Access permission is required"),
+                        message: String(localized: "Please grant the permission for **SFMExtension**, then we can continue."),
+                        primaryButton: .default(String(localized: "Authorize"), action: Self.openFDASettings),
+                        secondaryButton: .cancel()
+                    )
                 }
             #endif
-            await MainActor.run {
-                alert = AlertState(title: String(localized: "Service Error"), message: myError.localizedDescription)
-            }
+            return AlertState(title: String(localized: "Service Error"), message: nsError.localizedDescription)
         }
     }
 
     #if os(macOS)
-        private func openFDASettings() {
+        private static func openFDASettings() {
             if NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!) {
                 return
             }
