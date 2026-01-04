@@ -4,12 +4,8 @@ import SwiftUI
 
 @MainActor
 public struct DashboardView: View {
-    @Environment(\.openURL) private var openURL
-    @Environment(\.importProfile) private var importProfile
-    @Environment(\.importRemoteProfile) private var importRemoteProfile
     @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var coordinator = DashboardViewModel()
-    @State private var importRemoteProfileRequest: NewProfileView.ImportRequest?
 
     #if os(macOS)
         @Environment(\.controlActiveState) private var controlActiveState
@@ -19,24 +15,16 @@ public struct DashboardView: View {
 
     public var body: some View {
         content
+            .alert($coordinator.alert)
             .onAppear {
-                coordinator.setOpenURL { openURL($0) }
                 coordinator.setEnvironments(environments)
                 #if os(macOS)
                     Task { await coordinator.reload() }
                 #endif
-                handleImportProfile()
-                handleImportRemoteProfile()
-            }
-            .onChangeCompat(of: importProfile.wrappedValue) { _ in
-                handleImportProfile()
-            }
-            .onChangeCompat(of: importRemoteProfile.wrappedValue) { _ in
-                handleImportRemoteProfile()
             }
         #if os(tvOS)
-            .navigationDestination(item: $importRemoteProfileRequest) { request in
-                NewProfileView(request)
+            .navigationDestination(item: $environments.pendingImportRemoteProfile) { request in
+                NewProfileView(.init(name: request.name, url: request.url))
                     .environmentObject(environments)
                     .onDisappear {
                         environments.profileUpdate.send()
@@ -48,7 +36,7 @@ public struct DashboardView: View {
                     }
             }
         #else
-            .sheet(item: $importRemoteProfileRequest) { request in
+            .sheet(item: $environments.pendingImportRemoteProfile) { request in
                     importRemoteProfileSheet(for: request)
                 }
         #endif
@@ -60,48 +48,12 @@ public struct DashboardView: View {
         #endif
     }
 
-    private func handleImportProfile() {
-        if let profile = importProfile.wrappedValue {
-            importProfile.wrappedValue = nil
-            coordinator.alert = AlertState(
-                title: String(localized: "Import Profile"),
-                message: String(localized: "Are you sure to import profile \(profile.name)?"),
-                primaryButton: .default(String(localized: "Import")) {
-                    Task {
-                        do {
-                            try await profile.importProfile()
-                        } catch {
-                            coordinator.alert = AlertState(error: error)
-                            return
-                        }
-                        environments.profileUpdate.send()
-                    }
-                },
-                secondaryButton: .cancel()
-            )
-        }
-    }
-
-    private func handleImportRemoteProfile() {
-        if let remoteProfile = importRemoteProfile.wrappedValue {
-            importRemoteProfile.wrappedValue = nil
-            coordinator.alert = AlertState(
-                title: String(localized: "Import Remote Profile"),
-                message: String(localized: "Are you sure to import remote profile \(remoteProfile.name)? You will connect to \(remoteProfile.host) to download the configuration."),
-                primaryButton: .default(String(localized: "Import")) {
-                    importRemoteProfileRequest = .init(name: remoteProfile.name, url: remoteProfile.url)
-                },
-                secondaryButton: .cancel()
-            )
-        }
-    }
-
     @ViewBuilder
-    private func importRemoteProfileSheet(for request: NewProfileView.ImportRequest) -> some View {
+    private func importRemoteProfileSheet(for request: ImportRemoteProfileRequest) -> some View {
         NavigationSheet(title: "Import Profile", onDismiss: {
             environments.profileUpdate.send()
         }, content: {
-            NewProfileView(request)
+            NewProfileView(.init(name: request.name, url: request.url))
                 .environmentObject(environments)
         })
     }
@@ -132,9 +84,13 @@ public struct DashboardView: View {
         } else if let profile = environments.extensionProfile {
             activeDashboardView
                 .environmentObject(profile)
-                .alert($coordinator.alert)
                 .onChangeCompat(of: profile.status) { status in
-                    coordinator.handleStatusChange(status, profile: profile)
+                    #if os(macOS)
+                        if Variant.useSystemExtension, status == .connected {
+                            UserServiceEndpointPublisher.shared.refreshEndpointRegistration()
+                            UserServiceEndpointPublisher.shared.checkExtensionRequirements()
+                        }
+                    #endif
                 }
         } else {
             FormView {

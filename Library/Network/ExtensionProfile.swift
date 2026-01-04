@@ -1,6 +1,9 @@
 import Foundation
 import Libbox
 import NetworkExtension
+import os
+
+private let logger = Logger(category: "ExtensionProfile")
 
 @MainActor
 public class ExtensionProfile: ObservableObject {
@@ -24,17 +27,19 @@ public class ExtensionProfile: ObservableObject {
         observer = NotificationCenter.default.addObserver(
             forName: NSNotification.Name.NEVPNStatusDidChange,
             object: manager.connection,
-            queue: .main
+            queue: nil
         ) { [weak self] notification in
-            guard let self else {
-                return
-            }
             guard let connection = notification.object as? NEVPNConnection else {
                 return
             }
-            self.connection = connection
-            self.status = connection.status
-            self.connectedDate = connection.connectedDate
+            Task { @MainActor in
+                guard let self else {
+                    return
+                }
+                self.connection = connection
+                self.status = connection.status
+                self.connectedDate = connection.connectedDate
+            }
         }
     }
 
@@ -78,7 +83,7 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func start() async throws {
-        await fetchProfile()
+        try await fetchProfile()
         manager.isEnabled = true
         let alwaysOn = await SharedPreferences.alwaysOn.get()
         let onDemandEnabled = await SharedPreferences.onDemandEnabled.get()
@@ -96,29 +101,73 @@ public class ExtensionProfile: ObservableObject {
             }
         #endif
         try await manager.saveToPreferences()
-        #if os(macOS)
-            if Variant.useSystemExtension {
-                try manager.connection.startVPNTunnel(options: [
-                    "username": NSString(string: NSUserName()),
-                    "manualStart": NSNumber(value: true),
-                ])
-                return
-            }
-        #endif
-        try manager.connection.startVPNTunnel(options: [
-            "manualStart": NSNumber(value: true),
-        ])
+        let options = try await prepareStartOptions()
+        try manager.connection.startVPNTunnel(options: options)
     }
 
-    public func fetchProfile() async {
-        do {
-            if let profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get())) {
-                if profile.type == .icloud {
-                    _ = try profile.read()
+    public func reloadService() async throws {
+        let options = try await prepareStartOptions()
+        let data = try ExtensionStartOptions.encode(options)
+        guard let session = connection as? NETunnelProviderSession else {
+            throw NSError(domain: "ExtensionStartOptions", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "Tunnel session unavailable",
+            ])
+        }
+        let response = try await withCheckedThrowingContinuation { continuation in
+            do {
+                try session.sendProviderMessage(data) { response in
+                    continuation.resume(returning: response)
                 }
+            } catch {
+                continuation.resume(throwing: error)
             }
-        } catch {
-            NSLog("fetchProfile error: \(error.localizedDescription)")
+        }
+        if let response, !response.isEmpty {
+            let message = String(data: response, encoding: .utf8) ?? "Unknown error"
+            throw NSError(domain: "ExtensionStartOptions", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: message,
+            ])
+        }
+    }
+
+    private func prepareStartOptions() async throws -> [String: NSObject] {
+        var options: [String: NSObject] = [
+            "manualStart": NSNumber(value: true),
+        ]
+
+        let profileID = await SharedPreferences.selectedProfileID.get()
+        guard let profile = try await ProfileManager.get(profileID) else {
+            throw NSError(domain: "ExtensionProfile", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "Missing selected profile",
+            ])
+        }
+
+        let configContent = try profile.read()
+        options["configContent"] = NSString(string: configContent)
+
+        options["ignoreMemoryLimit"] = await NSNumber(value: SharedPreferences.ignoreMemoryLimit.get())
+        options["systemProxyEnabled"] = await NSNumber(value: SharedPreferences.systemProxyEnabled.get())
+        options["excludeDefaultRoute"] = await NSNumber(value: SharedPreferences.excludeDefaultRoute.get())
+        options["autoRouteUseSubRangesByDefault"] = await NSNumber(value: SharedPreferences.autoRouteUseSubRangesByDefault.get())
+        options["excludeAPNsRoute"] = await NSNumber(value: SharedPreferences.excludeAPNsRoute.get())
+
+        #if !os(tvOS)
+            options["includeAllNetworks"] = await NSNumber(value: SharedPreferences.includeAllNetworks.get())
+        #endif
+
+        #if os(tvOS)
+            options["commandServerPort"] = await NSNumber(value: SharedPreferences.commandServerPort.get())
+            options["commandServerSecret"] = await NSString(string: SharedPreferences.commandServerSecret.get())
+        #endif
+
+        return options
+    }
+
+    public func fetchProfile() async throws {
+        if let profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get())) {
+            if profile.type == .icloud {
+                _ = try profile.read()
+            }
         }
     }
 
@@ -130,7 +179,7 @@ public class ExtensionProfile: ObservableObject {
         do {
             try LibboxNewStandaloneCommandClient()!.serviceClose()
         } catch {
-            NSLog("serviceClose error: \(error.localizedDescription)")
+            logger.debug("serviceClose error: \(error.localizedDescription)")
         }
         manager.connection.stopVPNTunnel()
     }
@@ -142,7 +191,7 @@ public class ExtensionProfile: ObservableObject {
             try await Task.sleep(nanoseconds: NSEC_PER_SEC)
             waitSeconds += 1
             if waitSeconds >= 5 {
-                throw NSError(domain: "Restart service timeout", code: 0)
+                throw NSError(domain: "ExtensionProfile", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Restart service timeout")])
             }
         }
         try await start()

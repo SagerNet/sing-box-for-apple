@@ -86,7 +86,9 @@ private struct LogViewContent: View {
                 let button = UIButton(type: .system)
                 let config = UIImage.SymbolConfiguration(scale: .large)
                 button.setImage(UIImage(systemName: "line.3.horizontal.circle", withConfiguration: config), for: .normal)
-                button.tintColor = colorScheme == .dark ? .white : .black
+                if #available(iOS 17.0, *) {
+                    button.tintColor = colorScheme == .dark ? .white : .black
+                }
                 button.showsMenuAsPrimaryAction = true
                 button.menu = createMenu()
                 button.setContentHuggingPriority(.required, for: .horizontal)
@@ -96,7 +98,9 @@ private struct LogViewContent: View {
 
             func updateUIView(_ uiView: UIButton, context _: Context) {
                 uiView.menu = createMenu()
-                uiView.tintColor = colorScheme == .dark ? .white : .black
+                if #available(iOS 17.0, *) {
+                    uiView.tintColor = colorScheme == .dark ? .white : .black
+                }
             }
 
             private func createMenu() -> UIMenu {

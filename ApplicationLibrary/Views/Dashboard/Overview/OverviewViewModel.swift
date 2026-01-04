@@ -13,16 +13,12 @@ public final class OverviewViewModel: BaseViewModel {
 
         if profile.status.isConnected {
             do {
-                try await serviceReload()
+                try await profile.reloadService()
             } catch {
                 alert = AlertState(error: error)
             }
         }
         reasserting = false
-    }
-
-    public nonisolated func serviceReload() async throws {
-        try LibboxNewStandaloneCommandClient()!.serviceReload()
     }
 
     public nonisolated func setSystemProxyEnabled(_ enabled: Bool, profile: ExtensionProfile) async {

@@ -42,6 +42,9 @@
 		3AE396072C21A60C00647718 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3AE4D0BD2A6E2DDC009FEA9E /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3AE4D0BE2A6E2DDC009FEA9E /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		3AE595822F08C3D400C13426 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
+		3AE595AA2F08C61600C13426 /* RootHelper in Copy Helpers */ = {isa = PBXBuildFile; fileRef = 3AE595712F08C34000C13426 /* RootHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		3AE595B02F08D00000C13426 /* HelperService/LaunchDaemons/io.nekohasekai.sfavt.helper.plist in Copy LaunchDaemon */ = {isa = PBXBuildFile; fileRef = 3AE595AE2F08D00000C13426 /* HelperService/LaunchDaemons/io.nekohasekai.sfavt.helper.plist */; };
 		3AEAEE992A4F16430059612D /* Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3A096F862A4ED3DE00D4A2ED /* Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3AEECBF22A6DF40A006A0E0C /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF342B12A4AA520002B34AC /* NetworkExtension.framework */; };
 		3AEECC1A2A6DFA79006A0E0C /* io.nekohasekai.sfavt.system.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 3AEECBF12A6DF40A006A0E0C /* io.nekohasekai.sfavt.system.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -182,6 +185,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 3AEC211C2A459B4700A63465;
 			remoteInfo = Library;
+		};
+		3AE595842F08C3D400C13426 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3AEC20BD2A45991900A63465 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3AEC211C2A459B4700A63465;
+			remoteInfo = Library;
+		};
+		3AE595A52F08C5C700C13426 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3AEC20BD2A45991900A63465 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3AE595702F08C34000C13426;
+			remoteInfo = RootHelper;
 		};
 		3AEAEE9A2A4F16430059612D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -343,6 +360,37 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3AE5956F2F08C34000C13426 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		3AE595A92F08C5E200C13426 /* Copy Helpers */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ../Helpers;
+			dstSubfolderSpec = 6;
+			files = (
+				3AE595AA2F08C61600C13426 /* RootHelper in Copy Helpers */,
+			);
+			name = "Copy Helpers";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE595AC2F08C63000C13426 /* Copy LaunchDaemon */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ../Library/LaunchDaemons;
+			dstSubfolderSpec = 7;
+			files = (
+				3AE595B02F08D00000C13426 /* HelperService/LaunchDaemons/io.nekohasekai.sfavt.helper.plist in Copy LaunchDaemon */,
+			);
+			name = "Copy LaunchDaemon";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3AEECC212A6DFA79006A0E0C /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -384,6 +432,11 @@
 		3AE395F22C21A5CA00647718 /* WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AE395F32C21A5CA00647718 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		3AE395F52C21A5CA00647718 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		3AE595712F08C34000C13426 /* RootHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = RootHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AE595A12F08C4E900C13426 /* CoreWLAN.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreWLAN.framework; path = System/Library/Frameworks/CoreWLAN.framework; sourceTree = SDKROOT; };
+		3AE595A32F08C4ED00C13426 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		3AE595AE2F08D00000C13426 /* HelperService/LaunchDaemons/io.nekohasekai.sfavt.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = HelperService/LaunchDaemons/io.nekohasekai.sfavt.helper.plist; sourceTree = "<group>"; };
+		3AE595AF2F08D00000C13426 /* UserHelper/LaunchAgents/io.nekohasekai.sfavt.userhelper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = UserHelper/LaunchAgents/io.nekohasekai.sfavt.userhelper.plist; sourceTree = "<group>"; };
 		3AEC20DB2A4599D000A63465 /* Libbox.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Libbox.xcframework; sourceTree = "<group>"; };
 		3AEC20F32A459AB400A63465 /* sing-box.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sing-box.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AEC21092A459B1900A63465 /* sing-box.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sing-box.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -545,6 +598,7 @@
 		3ADDCFC62E8B72B4009ACE1D /* IntentsExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3ADDCFC92E8B72B4009ACE1D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = IntentsExtension; sourceTree = "<group>"; };
 		3ADDCFCD2E8B72B8009ACE1D /* TVExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3ADDCFCF2E8B72B8009ACE1D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TVExtension; sourceTree = "<group>"; };
 		3ADDCFD52E8B72BC009ACE1D /* WidgetExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3ADDCFDA2E8B72BC009ACE1D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = WidgetExtension; sourceTree = "<group>"; };
+		3AE595722F08C34000C13426 /* HelperService */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HelperService; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -608,6 +662,14 @@
 				3AE396072C21A60C00647718 /* Library.framework in Frameworks */,
 				3AE395F62C21A5CA00647718 /* SwiftUI.framework in Frameworks */,
 				3AE395F42C21A5CA00647718 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AE5956E2F08C34000C13426 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AE595822F08C3D400C13426 /* Library.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -676,6 +738,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3AE5C9042F08E53400C13426 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				3AE595AE2F08D00000C13426 /* HelperService/LaunchDaemons/io.nekohasekai.sfavt.helper.plist */,
+				3AE595AF2F08D00000C13426 /* UserHelper/LaunchAgents/io.nekohasekai.sfavt.userhelper.plist */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		3AEC20BC2A45991900A63465 = {
 			isa = PBXGroup;
 			children = (
@@ -694,8 +765,10 @@
 				3ADDCFCD2E8B72B8009ACE1D /* TVExtension */,
 				3ADDCFD52E8B72BC009ACE1D /* WidgetExtension */,
 				3AAAFB232EF5218F004C69AD /* FileProviderExtension */,
+				3AE595722F08C34000C13426 /* HelperService */,
 				3AEC20C72A45991900A63465 /* Products */,
 				3AEC21012A459AE300A63465 /* Frameworks */,
+				3AE5C9042F08E53400C13426 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -715,6 +788,7 @@
 				3AE171992A8128DD00393060 /* TVExtension.appex */,
 				3AE395F22C21A5CA00647718 /* WidgetExtension.appex */,
 				3AAAFB202EF5218F004C69AD /* FileProviderExtension.appex */,
+				3AE595712F08C34000C13426 /* RootHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -722,6 +796,8 @@
 		3AEC21012A459AE300A63465 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3AE595A32F08C4ED00C13426 /* UserNotifications.framework */,
+				3AE595A12F08C4E900C13426 /* CoreWLAN.framework */,
 				3AAAFE162EF52772004C69AD /* FileProvider.framework */,
 				3AC72A2E2EED94DD0039DEA4 /* SystemConfiguration.framework */,
 				3AC72A302EED94F60039DEA4 /* SystemConfiguration.framework */,
@@ -909,6 +985,29 @@
 			productReference = 3AE395F22C21A5CA00647718 /* WidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		3AE595702F08C34000C13426 /* RootHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AE595752F08C34000C13426 /* Build configuration list for PBXNativeTarget "RootHelper" */;
+			buildPhases = (
+				3AE5956D2F08C34000C13426 /* Sources */,
+				3AE5956E2F08C34000C13426 /* Frameworks */,
+				3AE5956F2F08C34000C13426 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3AE595852F08C3D400C13426 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3AE595722F08C34000C13426 /* HelperService */,
+			);
+			name = RootHelper;
+			packageProductDependencies = (
+			);
+			productName = RootHelper;
+			productReference = 3AE595712F08C34000C13426 /* RootHelper */;
+			productType = "com.apple.product-type.tool";
+		};
 		3AEC20F22A459AB400A63465 /* SFI */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3AEC20FE2A459AB500A63465 /* Build configuration list for PBXNativeTarget "SFI" */;
@@ -1023,10 +1122,13 @@
 				3AEECC022A6DF9CA006A0E0C /* Resources */,
 				3AEECC212A6DFA79006A0E0C /* Embed Frameworks */,
 				3AEECC232A6DFA79006A0E0C /* Embed System Extensions */,
+				3AE595A92F08C5E200C13426 /* Copy Helpers */,
+				3AE595AC2F08C63000C13426 /* Copy LaunchDaemon */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3AE595A62F08C5C700C13426 /* PBXTargetDependency */,
 				3AEECC1C2A6DFA79006A0E0C /* PBXTargetDependency */,
 				3AEECC202A6DFA79006A0E0C /* PBXTargetDependency */,
 				3AEECC3D2A6DFDC6006A0E0C /* PBXTargetDependency */,
@@ -1097,6 +1199,9 @@
 					3AE395F12C21A5CA00647718 = {
 						CreatedOnToolsVersion = 16.0;
 					};
+					3AE595702F08C34000C13426 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					3AEC20F22A459AB400A63465 = {
 						CreatedOnToolsVersion = 15.0;
 					};
@@ -1155,6 +1260,7 @@
 				3A77016C2A4E6B34008F031F /* IntentsExtension */,
 				3AE395F12C21A5CA00647718 /* WidgetExtension */,
 				3AAAFB1F2EF5218F004C69AD /* FileProviderExtension */,
+				3AE595702F08C34000C13426 /* RootHelper */,
 			);
 		};
 /* End PBXProject section */
@@ -1296,6 +1402,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3AE5956D2F08C34000C13426 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		3AEC20EF2A459AB400A63465 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1425,6 +1538,16 @@
 			isa = PBXTargetDependency;
 			target = 3AEC211C2A459B4700A63465 /* Library */;
 			targetProxy = 3AE4D0BA2A6E2C55009FEA9E /* PBXContainerItemProxy */;
+		};
+		3AE595852F08C3D400C13426 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3AEC211C2A459B4700A63465 /* Library */;
+			targetProxy = 3AE595842F08C3D400C13426 /* PBXContainerItemProxy */;
+		};
+		3AE595A62F08C5C700C13426 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3AE595702F08C34000C13426 /* RootHelper */;
+			targetProxy = 3AE595A52F08C5C700C13426 /* PBXContainerItemProxy */;
 		};
 		3AEAEE9B2A4F16430059612D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1980,6 +2103,86 @@
 			};
 			name = Release;
 		};
+		3AE595762F08C34000C13426 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APP_GROUP_IDENTIFIER = "$(TeamIdentifierPrefix)$(BASE_PACKAGE_IDENTIFIER)";
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = HelperService/RootHelper.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = 287TTNZF8L;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				INFOPLIST_FILE = HelperService/Info.plist;
+				INFOPLIST_KEY_WKSupportsLiveActivityLaunchAttributeTypes = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER).helper";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3AE595772F08C34000C13426 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APP_GROUP_IDENTIFIER = "$(TeamIdentifierPrefix)$(BASE_PACKAGE_IDENTIFIER)";
+				AUTOMATION_APPLE_EVENTS = NO;
+				CODE_SIGN_ENTITLEMENTS = HelperService/RootHelper.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEVELOPMENT_TEAM = 287TTNZF8L;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				INFOPLIST_FILE = HelperService/Info.plist;
+				INFOPLIST_KEY_WKSupportsLiveActivityLaunchAttributeTypes = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER).helper";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
+				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = NO;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = NO;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = NO;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		3AEC20CB2A45991900A63465 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2379,7 +2582,18 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 287TTNZF8L;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SystemExtension/Info.plist;
@@ -2416,7 +2630,18 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 287TTNZF8L;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SystemExtension/Info.plist;
@@ -2665,6 +2890,15 @@
 			buildConfigurations = (
 				3AE396052C21A5CC00647718 /* Debug */,
 				3AE396062C21A5CC00647718 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3AE595752F08C34000C13426 /* Build configuration list for PBXNativeTarget "RootHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AE595762F08C34000C13426 /* Debug */,
+				3AE595772F08C34000C13426 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

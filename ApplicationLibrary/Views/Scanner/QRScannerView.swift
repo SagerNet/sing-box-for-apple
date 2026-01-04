@@ -145,10 +145,7 @@
                         message: String(localized: "Please enable camera access in Settings to scan QR codes.")
                     )
                 default:
-                    alert = AlertState(
-                        title: String(localized: "Scanner Error"),
-                        message: error.localizedDescription
-                    )
+                    alert = AlertState(error: error)
                 }
             }
         }

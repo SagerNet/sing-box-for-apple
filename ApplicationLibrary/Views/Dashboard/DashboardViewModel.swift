@@ -2,11 +2,14 @@ import Foundation
 import Libbox
 import Library
 import NetworkExtension
+import os
 import SwiftUI
 
 #if os(macOS)
     import AppKit
 #endif
+
+private let logger = Logger(category: "DashboardViewModel")
 
 @MainActor
 public final class DashboardViewModel: BaseViewModel {
@@ -15,14 +18,12 @@ public final class DashboardViewModel: BaseViewModel {
     @Published public var selection = DashboardPage.overview
     @Published public var systemProxyAvailable = false
     @Published public var systemProxyEnabled = false
-    @Published public var notStarted = false
 
     #if os(macOS)
         @Published public var systemExtensionInstalled = true
     #endif
 
     private weak var environments: ExtensionEnvironments?
-    private var openURL: ((URL) -> Void)?
 
     public func setEnvironments(_ environments: ExtensionEnvironments) {
         self.environments = environments
@@ -31,10 +32,6 @@ public final class DashboardViewModel: BaseViewModel {
     override public init() {
         super.init()
         isLoading = true
-    }
-
-    public func setOpenURL(_ openURL: @escaping (URL) -> Void) {
-        self.openURL = openURL
     }
 
     public func reload() async {
@@ -86,83 +83,12 @@ public final class DashboardViewModel: BaseViewModel {
             systemProxyAvailable = status.available
             systemProxyEnabled = status.enabled
         } catch {
-            NSLog("reloadSystemProxy: \(error)")
+            logger.debug("reloadSystemProxy: \(error)")
         }
     }
 
     public func updateSelectedProfile() async {
         selectedProfileID = await SharedPreferences.selectedProfileID.get()
-    }
-
-    public func handleStatusChange(_ status: NEVPNStatus, profile: ExtensionProfile) {
-        if status == .connected {
-            notStarted = false
-            Task { await checkDeprecatedNotes() }
-        } else if status == .connecting {
-            notStarted = true
-        } else if status == .disconnected {
-            if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
-                if notStarted {
-                    Task { await checkLastDisconnectError(profile: profile) }
-                }
-            }
-        }
-    }
-
-    nonisolated func checkDeprecatedNotes() async {
-        let disableWarnings = await SharedPreferences.disableDeprecatedWarnings.get()
-        guard !disableWarnings else { return }
-
-        do {
-            let reports = try LibboxNewStandaloneCommandClient()!.getDeprecatedNotes()
-            if reports.hasNext() {
-                await MainActor.run {
-                    loopShowDeprecateNotes(reports)
-                }
-            }
-        } catch {
-            NSLog("checkDeprecatedNotes: \(error)")
-        }
-    }
-
-    private func loopShowDeprecateNotes(_ reports: any LibboxDeprecatedNoteIteratorProtocol) {
-        guard reports.hasNext() else { return }
-
-        let report = reports.next()!
-        let continueChain: () -> Void = { [weak self] in
-            _ = Task.detached {
-                try? await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-                await self?.loopShowDeprecateNotes(reports)
-            }
-        }
-
-        if report.migrationLink.isEmpty {
-            alert = AlertState(
-                title: String(localized: "Deprecated Warning"),
-                message: report.message(),
-                dismissButton: .cancel(String(localized: "Ok"))
-            )
-            alert?.onDismiss = continueChain
-        } else {
-            alert = AlertState(
-                title: String(localized: "Deprecated Warning"),
-                message: report.message(),
-                primaryButton: .default(String(localized: "Documentation")) {
-                    self.openURL?(URL(string: report.migrationLink)!)
-                },
-                secondaryButton: .cancel(String(localized: "Ok")),
-                onDismiss: continueChain
-            )
-        }
-    }
-
-    @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
-    nonisolated func checkLastDisconnectError(profile: ExtensionProfile) async {
-        if let alertState = await profile.checkLastDisconnectError() {
-            await MainActor.run {
-                alert = alertState
-            }
-        }
     }
 }
 
@@ -184,7 +110,7 @@ extension ExtensionProfile {
                     )
                 }
             #endif
-            return AlertState(title: String(localized: "Service Error"), message: nsError.localizedDescription)
+            return AlertState(error: nsError)
         }
     }
 

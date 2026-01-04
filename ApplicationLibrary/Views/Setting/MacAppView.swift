@@ -12,6 +12,11 @@ public struct AppView: View {
     @State private var startAtLogin = false
     @Environment(\.showMenuBarExtra) private var showMenuBarExtra
     @State private var menuBarExtraInBackground = false
+    #if os(macOS)
+
+        @State private var rootHelperRegistrationStatus: SMAppService.Status = .notRegistered
+
+    #endif
 
     @State private var alert: AlertState?
 
@@ -67,6 +72,48 @@ public struct AppView: View {
                                     Label("Uninstall", systemImage: "trash.fill").foregroundColor(.red)
                                 }
                             }
+
+                            Section {
+                                if rootHelperRegistrationStatus == .enabled {
+                                    FormButton {
+                                        performHelperAction {
+                                            try HelperServiceManager.unregisterRootHelper()
+                                            try HelperServiceManager.registerRootHelper()
+                                        }
+                                    } label: {
+                                        Label("Update", systemImage: "arrow.down.doc.fill")
+                                    }
+                                    FormButton(role: .destructive) {
+                                        performHelperAction {
+                                            try HelperServiceManager.unregisterRootHelper()
+                                        }
+                                    } label: {
+                                        Label("Uninstall", systemImage: "trash.fill").foregroundColor(.red)
+                                    }
+                                } else if rootHelperRegistrationStatus == .requiresApproval {
+                                    FormButton {
+                                        openHelperSettings()
+                                    } label: {
+                                        Label("Enable", systemImage: "switch.2")
+                                    }
+                                } else {
+                                    FormButton {
+                                        performHelperAction {
+                                            try HelperServiceManager.registerRootHelper()
+                                        }
+                                    } label: {
+                                        Label("Install", systemImage: "square.and.arrow.down.fill")
+                                    }
+                                }
+                            } header: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Helper Service")
+                                    Text("This helper service provides process lookup for `process_name` and `process_path` routing rules, and manages the working directory.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .textCase(nil)
+                                }
+                            }
                         }
                     #endif
                 }
@@ -83,6 +130,9 @@ public struct AppView: View {
         #if os(macOS)
             startAtLogin = SMAppService.mainApp.status == .enabled
             menuBarExtraInBackground = await SharedPreferences.menuBarExtraInBackground.get()
+            if Variant.useSystemExtension {
+                refreshHelperStatus()
+            }
         #endif
         isLoading = false
     }
@@ -145,6 +195,32 @@ public struct AppView: View {
             } catch {
                 alert = AlertState(error: error)
             }
+        }
+
+        private func performHelperAction(_ action: () throws -> Void) {
+            do {
+                try action()
+                refreshHelperStatus()
+            } catch {
+                alert = AlertState(error: error)
+            }
+        }
+
+        private func refreshHelperStatus() {
+            rootHelperRegistrationStatus = HelperServiceManager.rootHelperStatus
+        }
+
+        private func openHelperSettings() {
+            if #available(macOS 13.0, *) {
+                SMAppService.openSystemSettingsLoginItems()
+                return
+            }
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.users?LoginItems"),
+               NSWorkspace.shared.open(url)
+            {
+                return
+            }
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Preferences.app"))
         }
 
     #endif

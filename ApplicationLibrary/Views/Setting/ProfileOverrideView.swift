@@ -1,4 +1,3 @@
-import Libbox
 import Library
 import SwiftUI
 
@@ -15,7 +14,7 @@ public struct ProfileOverrideView: View {
         Group {
             if isLoading {
                 ProgressView().onAppear {
-                    Task.detached {
+                    Task {
                         await loadSettings()
                     }
                 }
@@ -64,12 +63,13 @@ public struct ProfileOverrideView: View {
             return
         }
         do {
-            try LibboxNewStandaloneCommandClient()?.serviceReload()
+            try await profile.reloadService()
         } catch {
             alert = AlertState(error: error)
         }
     }
 
+    @MainActor
     private func loadSettings() async {
         excludeDefaultRoute = await SharedPreferences.excludeDefaultRoute.get()
         autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()

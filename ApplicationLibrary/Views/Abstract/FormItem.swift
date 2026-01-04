@@ -153,3 +153,15 @@ public func FormNavigationLink(@ViewBuilder destination: () -> some View, @ViewB
         }, label: label)
     #endif
 }
+
+#if os(macOS)
+    public func FormNavigationLink(value: some Hashable, @ViewBuilder label: () -> some View) -> some View {
+        NavigationLink(value: value, label: label)
+    }
+
+    public extension View {
+        func formNavigationDestination<D: Hashable>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> some View) -> some View {
+            navigationDestination(for: data, destination: destination)
+        }
+    }
+#endif

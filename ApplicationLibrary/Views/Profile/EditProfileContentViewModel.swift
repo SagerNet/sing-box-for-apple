@@ -39,10 +39,10 @@ public final class EditProfileContentViewModel: BaseViewModel {
 
     private nonisolated func loadContentBackground() async throws {
         guard let profileID else {
-            throw NSError(domain: "Context destroyed", code: 0)
+            throw NSError(domain: "EditProfileContentViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Context destroyed")])
         }
         guard let profile = try await ProfileManager.get(profileID) else {
-            throw NSError(domain: "Profile missing", code: 0)
+            throw NSError(domain: "EditProfileContentViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Profile missing")])
         }
         let profileContent = try profile.read()
         await MainActor.run {

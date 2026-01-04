@@ -1,5 +1,8 @@
 import Foundation
 import Libbox
+import os
+
+private let logger = Logger(category: "CommandClient")
 
 public struct LogEntry: Identifiable {
     public let id = UUID()
@@ -124,6 +127,13 @@ public class CommandClient: ObservableObject {
         }
     }
 
+    public func clearLogs() {
+        logBatchTimer?.cancel()
+        logBatchTimer = nil
+        pendingLogs.removeAll()
+        logList.removeAll()
+    }
+
     public func filterConnectionsNow() {
         guard let message = rawConnections else {
             return
@@ -222,7 +232,7 @@ public class CommandClient: ObservableObject {
                 commandClient.isConnected = false
             }
             if let message {
-                NSLog("client disconnected: \(message)")
+                logger.debug("client disconnected: \(message)")
             }
         }
 
@@ -234,7 +244,7 @@ public class CommandClient: ObservableObject {
 
         func clearLogs() {
             DispatchQueue.main.async { [self] in
-                commandClient.logList.removeAll()
+                commandClient.clearLogs()
             }
         }
 

@@ -495,10 +495,10 @@ extension ProfileCard {
         @Published var profileToEdit: Profile?
         @Published var shareItemType: ShareItemType?
         #if !os(tvOS)
-        @Published var profileExportDocument: ProfileExportDocument?
-        @Published var showProfileExporter = false
-        @Published var profileJSONExportDocument: ProfileJSONExportDocument?
-        @Published var showJSONExporter = false
+            @Published var profileExportDocument: ProfileExportDocument?
+            @Published var showProfileExporter = false
+            @Published var profileJSONExportDocument: ProfileJSONExportDocument?
+            @Published var showJSONExporter = false
         #endif
         #if os(macOS)
             var shareButtonView: NSView?
@@ -511,10 +511,7 @@ extension ProfileCard {
                 try await profile.updateRemoteProfile()
                 environments.profileUpdate.send()
             } catch {
-                alert = AlertState(
-                    title: String(localized: "Update Failed"),
-                    message: error.localizedDescription
-                )
+                alert = AlertState(error: error)
             }
         }
     }

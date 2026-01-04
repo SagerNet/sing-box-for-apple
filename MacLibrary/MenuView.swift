@@ -192,16 +192,12 @@ public struct MenuView: View {
             environments.selectedProfileUpdate.send()
             if profile.status.isConnected {
                 do {
-                    try await serviceReload()
+                    try await profile.reloadService()
                 } catch {
                     alert = AlertState(error: error)
                 }
             }
             reasserting = false
-        }
-
-        private nonisolated func serviceReload() async throws {
-            try LibboxNewStandaloneCommandClient()!.serviceReload()
         }
     }
 }

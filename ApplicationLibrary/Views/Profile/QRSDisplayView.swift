@@ -48,54 +48,54 @@ public struct QRSDisplayView: View {
                     Text(String(localized: "FPS"))
                     Spacer()
                     #if os(tvOS)
-                    Button {
-                        fps = max(1, fps - 1)
-                    } label: {
-                        Image(systemName: "minus")
-                    }
-                    Text(verbatim: "\(Int(fps))")
-                        .foregroundStyle(.secondary)
-                        .frame(minWidth: 50)
-                    Button {
-                        fps = min(60, fps + 1)
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+                        Button {
+                            fps = max(1, fps - 1)
+                        } label: {
+                            Image(systemName: "minus")
+                        }
+                        Text(verbatim: "\(Int(fps))")
+                            .foregroundStyle(.secondary)
+                            .frame(minWidth: 50)
+                        Button {
+                            fps = min(60, fps + 1)
+                        } label: {
+                            Image(systemName: "plus")
+                        }
                     #else
-                    Text(verbatim: "\(Int(fps))")
-                        .foregroundStyle(.secondary)
+                        Text(verbatim: "\(Int(fps))")
+                            .foregroundStyle(.secondary)
                     #endif
                 }
 
                 #if !os(tvOS)
-                Slider(value: $fps, in: 1 ... 60, step: 1)
+                    Slider(value: $fps, in: 1 ... 60, step: 1)
                 #endif
 
                 HStack {
                     Text(String(localized: "Slice Size"))
                     Spacer()
                     #if os(tvOS)
-                    Button {
-                        sliceSize = max(100, sliceSize - 100)
-                    } label: {
-                        Image(systemName: "minus")
-                    }
-                    Text("\(Int(sliceSize))")
-                        .foregroundStyle(.secondary)
-                        .frame(minWidth: 50)
-                    Button {
-                        sliceSize = min(1500, sliceSize + 100)
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+                        Button {
+                            sliceSize = max(100, sliceSize - 100)
+                        } label: {
+                            Image(systemName: "minus")
+                        }
+                        Text("\(Int(sliceSize))")
+                            .foregroundStyle(.secondary)
+                            .frame(minWidth: 50)
+                        Button {
+                            sliceSize = min(1500, sliceSize + 100)
+                        } label: {
+                            Image(systemName: "plus")
+                        }
                     #else
-                    Text("\(Int(sliceSize))")
-                        .foregroundStyle(.secondary)
+                        Text("\(Int(sliceSize))")
+                            .foregroundStyle(.secondary)
                     #endif
                 }
 
                 #if !os(tvOS)
-                Slider(value: $sliceSize, in: 100 ... 1500, step: 100)
+                    Slider(value: $sliceSize, in: 100 ... 1500, step: 100)
                 #endif
             }
             .padding(.horizontal)
@@ -130,9 +130,9 @@ public struct QRSDisplayView: View {
             .padding(.horizontal)
         }
         #if os(macOS)
-            .padding()
+        .padding()
         #else
-            .padding([.horizontal, .bottom])
+        .padding([.horizontal, .bottom])
         #endif
         .onAppear {
             setupGenerator()

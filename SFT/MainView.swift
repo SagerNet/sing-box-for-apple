@@ -7,6 +7,8 @@ struct MainView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
     @State private var selection = NavigationPage.dashboard
+    @State private var importProfile: LibboxProfileContent?
+    @State private var importRemoteProfile: LibboxImportRemoteProfile?
 
     var body: some View {
         TabView(selection: $selection) {
@@ -32,6 +34,9 @@ struct MainView: View {
                 environments.connect()
             }
         }
+        .globalChecks()
         .environment(\.selection, $selection)
+        .environment(\.importProfile, $importProfile)
+        .environment(\.importRemoteProfile, $importRemoteProfile)
     }
 }

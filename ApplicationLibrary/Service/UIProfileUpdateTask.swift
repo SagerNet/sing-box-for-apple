@@ -19,7 +19,7 @@ import Library
                     }
                 }
                 if !success {
-                    throw NSError(domain: "register task failed", code: 0)
+                    throw NSError(domain: "UIProfileUpdateTask", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Register task failed")])
                 }
                 registered = true
             }

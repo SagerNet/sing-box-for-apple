@@ -61,7 +61,7 @@
                 do {
                     message = try socket.read()
                 } catch {
-                    throw NSError(domain: "read from connection: \(error.localizedDescription)", code: 0)
+                    throw NSError(domain: "ImportProfileViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Read from connection: \(error.localizedDescription)")])
                 }
                 var error: NSError?
                 switch Int64(message[0]) {
@@ -71,7 +71,7 @@
                         throw error
                     }
                     if let message {
-                        throw NSError(domain: "remote error: \(message.message)", code: 0)
+                        throw NSError(domain: "ImportProfileViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Remote error: \(message.message)")])
                     }
                 case LibboxMessageTypeProfileList:
                     let decoder = LibboxProfileDecoder()
@@ -97,7 +97,7 @@
                     try await importProfile(content!, environments: environments)
                     return
                 default:
-                    throw NSError(domain: "unknown message type \(message[0])", code: 0)
+                    throw NSError(domain: "ImportProfileViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Unknown message type \(message[0])")])
                 }
             }
         }

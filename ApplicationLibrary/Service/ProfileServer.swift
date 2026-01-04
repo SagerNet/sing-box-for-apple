@@ -100,7 +100,7 @@ public class ProfileServer {
                     try await processProfileContentRequest(data)
                 }
             default:
-                throw NSError(domain: "unexpected message type \(messageType)", code: 0)
+                throw NSError(domain: "ProfileServer", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Unexpected message type \(messageType)")])
             }
         }
 
@@ -113,7 +113,7 @@ public class ProfileServer {
 
             let profile = try await ProfileManager.get(request!.profileID)
             guard let profile else {
-                throw NSError(domain: "profile not found", code: 0)
+                throw NSError(domain: "ProfileServer", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Profile not found")])
             }
             let content = LibboxProfileContent()
             content.name = profile.name

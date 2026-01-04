@@ -86,9 +86,11 @@ public class LogDataModel: ObservableObject {
         lastProcessedLogCount = 0
         lastEffectiveLevel = nil
         lastSearchText = ""
+        filteredLogs = []
+        visibleLogs = []
+        commandClient.clearLogs()
         Task.detached {
-            let client = LibboxNewStandaloneCommandClient()
-            try? client?.clearLogs()
+            try? LibboxNewStandaloneCommandClient()!.clearLogs()
         }
     }
 

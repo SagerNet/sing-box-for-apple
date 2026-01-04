@@ -243,17 +243,11 @@ public struct NewProfileMenuView: View {
             var error: NSError?
             let remoteProfile = LibboxParseRemoteProfileImportLink(string, &error)
             if let error {
-                alert = AlertState(
-                    title: String(localized: "Invalid QR Code"),
-                    message: error.localizedDescription
-                )
+                alert = AlertState(error: error)
                 return
             }
             guard let remoteProfile else {
-                alert = AlertState(
-                    title: String(localized: "Invalid QR Code"),
-                    message: String(localized: "The QR code does not contain a valid profile import link.")
-                )
+                alert = AlertState(errorMessage: String(localized: "The QR code does not contain a valid profile import link."))
                 return
             }
             importRequest = NewProfileView.ImportRequest(name: remoteProfile.name, url: remoteProfile.url)

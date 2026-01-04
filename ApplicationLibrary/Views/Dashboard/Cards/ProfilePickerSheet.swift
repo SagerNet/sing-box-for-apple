@@ -402,10 +402,7 @@ struct ProfilePickerSheet: View {
             try await profile.origin.updateRemoteProfile()
             environments.profileUpdate.send()
         } catch {
-            alert = AlertState(
-                title: String(localized: "Update Failed"),
-                message: error.localizedDescription
-            )
+            alert = AlertState(error: error)
         }
     }
 

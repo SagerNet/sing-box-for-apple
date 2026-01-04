@@ -29,7 +29,7 @@ public extension Profile {
         if await SharedPreferences.selectedProfileID.get() == id {
             if let profile = try? await ExtensionProfile.load() {
                 if await profile.status == .connected {
-                    try LibboxNewStandaloneCommandClient()!.serviceReload()
+                    try await profile.reloadService()
                 }
             }
         }

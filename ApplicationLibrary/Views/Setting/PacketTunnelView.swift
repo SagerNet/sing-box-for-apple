@@ -19,7 +19,7 @@ struct PacketTunnelView: View {
         Group {
             if isLoading {
                 ProgressView().onAppear {
-                    Task.detached {
+                    Task {
                         await loadSettings()
                     }
                 }
@@ -115,6 +115,7 @@ struct PacketTunnelView: View {
         }
     }
 
+    @MainActor
     private func loadSettings() async {
         ignoreMemoryLimit = await SharedPreferences.ignoreMemoryLimit.get()
         #if !os(tvOS)

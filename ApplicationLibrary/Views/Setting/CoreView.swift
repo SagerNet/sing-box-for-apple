@@ -4,6 +4,8 @@ import SwiftUI
 #if os(iOS)
     import FileProvider
     import UIKit
+#elseif os(macOS)
+    import ServiceManagement
 #endif
 
 @MainActor
@@ -15,7 +17,11 @@ public struct CoreView: View {
     @State private var disableDeprecatedWarnings = false
 
     @State private var version = ""
-    @State private var dataSize = ""
+    @State private var dataSize: String?
+
+    #if os(macOS)
+        @State private var helperUnavailable = false
+    #endif
 
     public init() {}
     public var body: some View {
@@ -29,7 +35,21 @@ public struct CoreView: View {
             } else {
                 FormView {
                     FormTextItem("Version", version)
-                    FormTextItem("Data Size", dataSize)
+                    if let dataSize {
+                        FormTextItem("Data Size", dataSize)
+                    } else {
+                        #if os(macOS)
+                            HStack {
+                                Text("Data Size")
+                                Spacer()
+                                Text("Unavailable")
+                                    .foregroundStyle(.red)
+                                    .onTapGesture {
+                                        alert = helperRequiredAlert()
+                                    }
+                            }
+                        #endif
+                    }
 
                     if Variant.isBeta {
                         Section {}
@@ -40,10 +60,12 @@ public struct CoreView: View {
 
                     Section("Working Directory") {
                         #if os(macOS)
-                            FormButton {
-                                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FilePath.workingDirectory.relativePath)
-                            } label: {
-                                Label("Open", systemImage: "macwindow.and.cursorarrow")
+                            if !Variant.useSystemExtension {
+                                FormButton {
+                                    NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: FilePath.workingDirectory.relativePath)
+                                } label: {
+                                    Label("Open", systemImage: "macwindow.and.cursorarrow")
+                                }
                             }
                         #elseif os(iOS)
                             if #available(iOS 16.0, *) {
@@ -85,7 +107,11 @@ public struct CoreView: View {
         } else {
             await MainActor.run {
                 version = LibboxVersion()
-                dataSize = "Loading..."
+                #if os(macOS)
+                    if Variant.useSystemExtension {
+                        helperUnavailable = HelperServiceManager.rootHelperStatus != .enabled
+                    }
+                #endif
                 isLoading = false
             }
             await loadSettingsBackground()
@@ -94,7 +120,20 @@ public struct CoreView: View {
 
     private nonisolated func loadSettingsBackground() async {
         let disableDeprecatedWarnings = await SharedPreferences.disableDeprecatedWarnings.get()
-        let dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
+        let dataSize: String?
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                if let size = try? RootHelperClient.shared.getWorkingDirectorySize() {
+                    dataSize = LibboxFormatBytes(size)
+                } else {
+                    dataSize = nil
+                }
+            } else {
+                dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
+            }
+        #else
+            dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
+        #endif
         await MainActor.run {
             self.disableDeprecatedWarnings = disableDeprecatedWarnings
             self.dataSize = dataSize
@@ -102,6 +141,12 @@ public struct CoreView: View {
     }
 
     private func confirmDestroyWorkingDirectory() async {
+        #if os(macOS)
+            if helperUnavailable {
+                alert = helperRequiredAlert()
+                return
+            }
+        #endif
         if environments.extensionProfile?.status.isConnected == true {
             alert = AlertState(
                 title: String(localized: "Service is Running"),
@@ -119,16 +164,43 @@ public struct CoreView: View {
     }
 
     private func stopServiceAndDestroy() async {
-        try? await environments.extensionProfile?.stop()
-        await destroyWorkingDirectory()
-    }
-
-    private nonisolated func destroyWorkingDirectory() async {
-        try? FileManager.default.removeItem(at: FilePath.workingDirectory)
-        await MainActor.run {
-            isLoading = true
+        do {
+            try await environments.extensionProfile!.stop()
+            await destroyWorkingDirectory()
+        } catch {
+            alert = AlertState(error: error)
         }
     }
+
+    private func destroyWorkingDirectory() async {
+        do {
+            #if os(macOS)
+                if Variant.useSystemExtension {
+                    try RootHelperClient.shared.cleanWorkingDirectory()
+                } else {
+                    try FileManager.default.removeItem(at: FilePath.workingDirectory)
+                }
+            #else
+                try FileManager.default.removeItem(at: FilePath.workingDirectory)
+            #endif
+            isLoading = true
+        } catch {
+            alert = AlertState(error: error)
+        }
+    }
+
+    #if os(macOS)
+        private func helperRequiredAlert() -> AlertState {
+            AlertState(
+                title: String(localized: "Helper Service Required"),
+                message: String(localized: "Managing working directory requires Helper Service."),
+                primaryButton: .default(String(localized: "App Settings")) {
+                    NotificationCenter.default.post(name: .navigateToSettingsPage, object: SettingsPage.app)
+                },
+                secondaryButton: .cancel(String(localized: "Ok"))
+            )
+        }
+    #endif
 
     #if os(iOS)
         @available(iOS 16.0, *)

@@ -201,6 +201,9 @@
         }
       }
     },
+    "App Settings" : {
+
+    },
     "Append `0.0.0.0/31` and `::/127` to `route_exclude_address` if not exists." : {
       "localizations" : {
         "zh-Hans" : {
@@ -980,6 +983,9 @@
         }
       }
     },
+    "Enable" : {
+
+    },
     "enforceRoutes" : {
       "shouldTranslate" : false
     },
@@ -1169,6 +1175,12 @@
         }
       }
     },
+    "Helper Service" : {
+
+    },
+    "Helper Service Required" : {
+
+    },
     "Hide VPN Icon" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1342,6 +1354,9 @@
         }
       }
     },
+    "In the standalone version of SFM, reading WiFi state requires this app to be running. After you quit the SFM app, the sing-box service cannot continue to provide `wifi_ssid` and `wifi_bssid` routing rules." : {
+
+    },
     "Inbound" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1364,6 +1379,9 @@
     },
     "includeAllNetworks" : {
       "shouldTranslate" : false
+    },
+    "Install" : {
+
     },
     "Install Network Extension" : {
       "localizations" : {
@@ -1530,6 +1548,9 @@
           }
         }
       }
+    },
+    "Managing working directory requires Helper Service." : {
+
     },
     "Match Domains" : {
       "localizations" : {
@@ -2429,6 +2450,9 @@
         }
       }
     },
+    "The sing-box service requires Helper Service to provide process lookup functionality, which supports `process_name` and `process_path` routing rules." : {
+
+    },
     "This app needs to be placed under the Applications folder to work." : {
       "localizations" : {
         "zh-Hans" : {
@@ -2438,6 +2462,9 @@
           }
         }
       }
+    },
+    "This helper service provides process lookup for `process_name` and `process_path` routing rules, and manages the working directory." : {
+
     },
     "To Clipboard" : {
       "localizations" : {
@@ -2508,6 +2535,9 @@
           }
         }
       }
+    },
+    "Unavailable" : {
+
     },
     "Uninstall" : {
       "localizations" : {
@@ -2631,6 +2661,9 @@
           }
         }
       }
+    },
+    "WiFi State Access" : {
+
     },
     "Working Directory" : {
       "localizations" : {

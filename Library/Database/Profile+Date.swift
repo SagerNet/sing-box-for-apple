@@ -10,6 +10,7 @@ public extension Date {
     var relativeFormat: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
+        formatter.dateTimeStyle = .named
         return formatter.localizedString(for: self, relativeTo: Date())
     }
 }

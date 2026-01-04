@@ -1,6 +1,9 @@
 import BinaryCodable
 import Foundation
 import GRDB
+import os
+
+private let logger = Logger(category: "SharedPreferences")
 
 extension SharedPreferences {
     public class Preference<T: Codable> {
@@ -16,7 +19,7 @@ extension SharedPreferences {
             do {
                 return try await SharedPreferences.read(name) ?? defaultValue
             } catch {
-                NSLog("read preferences error: \(error)")
+                logger.error("read preferences error: \(error)")
                 return defaultValue
             }
         }
@@ -31,7 +34,7 @@ extension SharedPreferences {
             do {
                 try await SharedPreferences.write(name, newValue)
             } catch {
-                NSLog("write preferences error: \(error)")
+                logger.error("write preferences error: \(error)")
             }
         }
     }

@@ -296,7 +296,7 @@ public struct OnDemandRulesView: View {
         await SharedPreferences.onDemandRules.set(rules)
         let savedRules = await SharedPreferences.onDemandRules.get()
         if savedRules != rules {
-            alert = AlertState(errorMessage: "Failed to save rules")
+            alert = AlertState(errorMessage: String(localized: "Failed to save rules"))
             return
         }
         await updateService()

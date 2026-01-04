@@ -119,61 +119,62 @@ public extension UTType {
 }
 
 #if !os(tvOS)
-// MARK: - FileDocument for Export
 
-public struct ProfileExportDocument: FileDocument {
-    public static var readableContentTypes: [UTType] { [.profile] }
+    // MARK: - FileDocument for Export
 
-    public let data: Data
-    public let filename: String
+    public struct ProfileExportDocument: FileDocument {
+        public static var readableContentTypes: [UTType] { [.profile] }
 
-    public init(content: LibboxProfileContent) throws {
-        guard let encoded = content.encode() else {
-            throw NSError(domain: "ProfileExportDocument", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode profile"])
+        public let data: Data
+        public let filename: String
+
+        public init(content: LibboxProfileContent) throws {
+            guard let encoded = content.encode() else {
+                throw NSError(domain: "ProfileExportDocument", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode profile"])
+            }
+            data = encoded
+            filename = "\(content.name).bpf"
         }
-        data = encoded
-        filename = "\(content.name).bpf"
-    }
 
-    public init(configuration: ReadConfiguration) throws {
-        guard let data = configuration.file.regularFileContents else {
-            throw CocoaError(.fileReadCorruptFile)
+        public init(configuration: ReadConfiguration) throws {
+            guard let data = configuration.file.regularFileContents else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            self.data = data
+            filename = "profile.bpf"
         }
-        self.data = data
-        filename = "profile.bpf"
-    }
 
-    public func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
-        FileWrapper(regularFileWithContents: data)
-    }
-}
-
-public struct ProfileJSONExportDocument: FileDocument {
-    public static var readableContentTypes: [UTType] { [.json] }
-
-    public let content: String
-    public let filename: String
-
-    public init(jsonContent: String, name: String) {
-        content = jsonContent
-        filename = "\(name).json"
-    }
-
-    public init(configuration: ReadConfiguration) throws {
-        guard let data = configuration.file.regularFileContents,
-              let content = String(data: data, encoding: .utf8)
-        else {
-            throw CocoaError(.fileReadCorruptFile)
+        public func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
+            FileWrapper(regularFileWithContents: data)
         }
-        self.content = content
-        filename = "profile.json"
     }
 
-    public func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
-        guard let data = content.data(using: .utf8) else {
-            throw CocoaError(.fileWriteInapplicableStringEncoding)
+    public struct ProfileJSONExportDocument: FileDocument {
+        public static var readableContentTypes: [UTType] { [.json] }
+
+        public let content: String
+        public let filename: String
+
+        public init(jsonContent: String, name: String) {
+            content = jsonContent
+            filename = "\(name).json"
         }
-        return FileWrapper(regularFileWithContents: data)
+
+        public init(configuration: ReadConfiguration) throws {
+            guard let data = configuration.file.regularFileContents,
+                  let content = String(data: data, encoding: .utf8)
+            else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            self.content = content
+            filename = "profile.json"
+        }
+
+        public func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
+            guard let data = content.data(using: .utf8) else {
+                throw CocoaError(.fileWriteInapplicableStringEncoding)
+            }
+            return FileWrapper(regularFileWithContents: data)
+        }
     }
-}
 #endif

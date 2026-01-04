@@ -9,6 +9,8 @@ public struct MainView: View {
     @StateObject private var viewModel = MainViewModel()
     @State private var showCardManagement = false
     @State private var cardConfigurationVersion = 0
+    @State private var settingsNavigationPath = NavigationPath()
+    @State private var pendingSettingsPage: SettingsPage?
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
         AnyView(CodeEditTextView(text: text, isEditable: isEditable))
@@ -21,11 +23,12 @@ public struct MainView: View {
             SidebarView(selection: $viewModel.selection)
                 .navigationSplitViewColumnWidth(150)
         } detail: {
-            NavigationStack {
+            NavigationStack(path: $settingsNavigationPath) {
                 viewModel.selection.contentView
                     .navigationTitle(viewModel.selection.title)
             }
             .environment(\.cardConfigurationVersion, cardConfigurationVersion)
+            .environment(\.settingsNavigationPath, $settingsNavigationPath)
             .navigationSplitViewColumnWidth(650)
         }
         .frame(minHeight: 500)
@@ -33,6 +36,7 @@ public struct MainView: View {
             viewModel.onAppear(environments: environments)
         }
         .alert($viewModel.alert)
+        .globalChecks()
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 StartStopButton()
@@ -57,10 +61,32 @@ public struct MainView: View {
         }
         .onChangeCompat(of: viewModel.selection) { value in
             viewModel.onSelectionChange(value, environments: environments)
+            if value != .settings {
+                settingsNavigationPath = NavigationPath()
+                pendingSettingsPage = nil
+                return
+            }
+            if let page = pendingSettingsPage {
+                settingsNavigationPath = NavigationPath()
+                settingsNavigationPath.append(page)
+                pendingSettingsPage = nil
+            }
         }
         .onReceive(environments.openSettings) {
             viewModel.openSettings()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToSettingsPage)) { notification in
+            guard let page = notification.object as? SettingsPage else { return }
+            pendingSettingsPage = page
+            if viewModel.selection == .settings {
+                settingsNavigationPath = NavigationPath()
+                settingsNavigationPath.append(page)
+                pendingSettingsPage = nil
+            } else {
+                viewModel.selection = .settings
+            }
+        }
+        .environment(\.selection, $viewModel.selection)
         .environment(\.importProfile, $viewModel.importProfile)
         .environment(\.importRemoteProfile, $viewModel.importRemoteProfile)
         .environment(\.profileEditor, profileEditor)

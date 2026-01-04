@@ -123,6 +123,7 @@ struct MainView: View {
             environments.postReload()
         }
         .alert($alert)
+        .globalChecks()
         .onChangeCompat(of: scenePhase) { newValue in
             if newValue == .active {
                 environments.postReload()
@@ -185,10 +186,6 @@ struct MainView: View {
             importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
             if let error {
                 alert = AlertState(error: error)
-                return
-            }
-            if selection != .dashboard {
-                selection = .dashboard
             }
         } else if url.pathExtension == "bpf" {
             do {
@@ -197,10 +194,6 @@ struct MainView: View {
                 url.stopAccessingSecurityScopedResource()
             } catch {
                 alert = AlertState(error: error)
-                return
-            }
-            if selection != .dashboard {
-                selection = .dashboard
             }
         } else {
             alert = AlertState(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))

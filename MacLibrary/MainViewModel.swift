@@ -39,11 +39,8 @@ public class MainViewModel: BaseViewModel {
         if url.host == "import-remote-profile" {
             var error: NSError?
             importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
-            if error != nil {
-                return
-            }
-            if selection != .dashboard {
-                selection = .dashboard
+            if let error {
+                alert = AlertState(error: error)
             }
         } else if url.pathExtension == "bpf" {
             Task {
@@ -61,10 +58,6 @@ public class MainViewModel: BaseViewModel {
             url.stopAccessingSecurityScopedResource()
         } catch {
             alert = AlertState(error: error)
-            return
-        }
-        if selection != .dashboard {
-            selection = .dashboard
         }
     }
 

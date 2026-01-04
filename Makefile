@@ -23,7 +23,7 @@ archive_ios:
 upload_ios:
 	xcodebuild -exportArchive -archivePath build/SFI.xcarchive -exportOptionsPlist SFI/Upload.plist -allowProvisioningUpdates
 
-release_maocs: archive_macos upload_macos
+release_macos: archive_macos upload_macos
 
 archive_macos:
 	xcodebuild archive -scheme SFM -configuration Release -archivePath build/SFM.xcarchive -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e " ARCHIVE FAILED" -e "❌"
