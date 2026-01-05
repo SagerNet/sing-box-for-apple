@@ -155,19 +155,23 @@ import SwiftUI
             }
         #if os(iOS) || os(tvOS)
             .onReceive(environments.commandClient.$groups) { _ in
-                updateButtonVisibility()
-                #if os(iOS)
-                    if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
-                        coordinator.selection = .overview
-                    }
-                #endif
+                Task { @MainActor in
+                    updateButtonVisibility()
+                    #if os(iOS)
+                        if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
+                            coordinator.selection = .overview
+                        }
+                    #endif
+                }
             }.onReceive(profile.$status) { _ in
-                updateButtonVisibility()
-                #if os(iOS)
-                    if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
-                        coordinator.selection = .overview
-                    }
-                #endif
+                Task { @MainActor in
+                    updateButtonVisibility()
+                    #if os(iOS)
+                        if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
+                            coordinator.selection = .overview
+                        }
+                    #endif
+                }
             }.onAppear {
                 updateButtonVisibility()
             }

@@ -92,22 +92,22 @@ struct MainView: View {
                         updateButtonVisibility()
                     }
                     .onReceive(environments.commandClient.$groups) { _ in
-                        updateButtonVisibility()
+                        Task { @MainActor in updateButtonVisibility() }
                     }
                     .onReceive(environments.commandClient.$connections) { _ in
-                        updateButtonVisibility()
+                        Task { @MainActor in updateButtonVisibility() }
                     }
                     .onReceive(environments.commandClient.$hasAnyConnection) { _ in
-                        updateButtonVisibility()
+                        Task { @MainActor in updateButtonVisibility() }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)) { _ in
-                        updateButtonVisibility()
+                        Task { @MainActor in updateButtonVisibility() }
                     }
                     .onReceive(environments.$extensionProfile) { _ in
-                        updateButtonVisibility()
+                        Task { @MainActor in updateButtonVisibility() }
                     }
                     .onReceive(environments.$emptyProfiles) { _ in
-                        updateButtonVisibility()
+                        Task { @MainActor in updateButtonVisibility() }
                     }
                     .sheet(isPresented: $showGroups) {
                         GroupsSheetContent()

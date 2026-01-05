@@ -77,13 +77,15 @@ public struct MainView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .navigateToSettingsPage)) { notification in
             guard let page = notification.object as? SettingsPage else { return }
-            pendingSettingsPage = page
-            if viewModel.selection == .settings {
-                settingsNavigationPath = NavigationPath()
-                settingsNavigationPath.append(page)
-                pendingSettingsPage = nil
-            } else {
-                viewModel.selection = .settings
+            Task { @MainActor in
+                pendingSettingsPage = page
+                if viewModel.selection == .settings {
+                    settingsNavigationPath = NavigationPath()
+                    settingsNavigationPath.append(page)
+                    pendingSettingsPage = nil
+                } else {
+                    viewModel.selection = .settings
+                }
             }
         }
         .environment(\.selection, $viewModel.selection)
