@@ -1531,6 +1531,26 @@
         }
       }
     },
+    "Language" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        }
+      }
+    },
+    "Language will be changed after restarting the app." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重启应用后语言将生效。"
+          }
+        }
+      }
+    },
     "Last Updated" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1830,9 +1850,6 @@
           }
         }
       }
-    },
-    "Not installed" : {
-
     },
     "Ok" : {
       "localizations" : {
@@ -2137,6 +2154,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重置"
+          }
+        }
+      }
+    },
+    "Restart Required" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要重启"
           }
         }
       }
@@ -2513,6 +2540,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "当条件匹配时停止 VPN 连接。"
+          }
+        }
+      }
+    },
+    "System Default" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随系统"
           }
         }
       }

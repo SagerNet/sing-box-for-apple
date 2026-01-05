@@ -27,11 +27,7 @@ public struct SettingView: View {
             self
         }
 
-        #if os(macOS)
-            case app
-        #endif
-
-        case core, packetTunnel, onDemandRules, profileOverride, sponsors
+        case app, core, packetTunnel, onDemandRules, profileOverride, sponsors
 
         #if os(macOS)
             var page: SettingsPage {
@@ -58,10 +54,8 @@ public struct SettingView: View {
 
         var title: String {
             switch self {
-            #if os(macOS)
-                case .app:
-                    return String(localized: "App")
-            #endif
+            case .app:
+                return String(localized: "App")
             case .core:
                 return String(localized: "Core")
             case .packetTunnel:
@@ -77,10 +71,8 @@ public struct SettingView: View {
 
         private var iconImage: String {
             switch self {
-            #if os(macOS)
-                case .app:
-                    return "app.badge.fill"
-            #endif
+            case .app:
+                return "app.badge.fill"
             case .core:
                 return "shippingbox.fill"
             case .packetTunnel:
@@ -98,10 +90,8 @@ public struct SettingView: View {
         var contentView: some View {
             Group {
                 switch self {
-                #if os(macOS)
-                    case .app:
-                        AppView()
-                #endif
+                case .app:
+                    AppView()
                 case .core:
                     CoreView()
                 case .packetTunnel:
@@ -165,10 +155,7 @@ public struct SettingView: View {
     public var body: some View {
         FormView {
             Section {
-                #if os(macOS)
-                    Tabs.app.navigationLink
-                #endif
-                ForEach([Tabs.core, Tabs.packetTunnel, Tabs.onDemandRules, Tabs.profileOverride]) { it in
+                ForEach([Tabs.app, Tabs.core, Tabs.packetTunnel, Tabs.onDemandRules, Tabs.profileOverride]) { it in
                     it.navigationLink
                 }
             }

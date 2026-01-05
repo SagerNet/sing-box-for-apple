@@ -7,16 +7,21 @@ import SwiftUI
 #endif
 
 public struct AppView: View {
+    private static let supportedLanguages: [(code: String?, name: String)] = [
+        (nil, String(localized: "System Default")),
+        ("en", "English"),
+        ("zh-Hans", "简体中文"),
+    ]
+
     @State private var isLoading = true
+    @State private var selectedLanguage: String?
 
-    @State private var startAtLogin = false
-    @Environment(\.showMenuBarExtra) private var showMenuBarExtra
-    @Environment(\.menuBarExtraSpeedMode) private var menuBarExtraSpeedMode
-    @State private var menuBarExtraInBackground = false
     #if os(macOS)
-
+        @State private var startAtLogin = false
+        @Environment(\.showMenuBarExtra) private var showMenuBarExtra
+        @Environment(\.menuBarExtraSpeedMode) private var menuBarExtraSpeedMode
+        @State private var menuBarExtraInBackground = false
         @State private var rootHelperRegistrationStatus: SMAppService.Status = .notRegistered
-
     #endif
 
     @State private var alert: AlertState?
@@ -32,6 +37,15 @@ public struct AppView: View {
                 }
             } else {
                 FormView {
+                    Picker("Language", selection: $selectedLanguage) {
+                        ForEach(Self.supportedLanguages, id: \.code) { language in
+                            Text(language.name).tag(language.code)
+                        }
+                    }
+                    .onChangeCompat(of: selectedLanguage) { newValue in
+                        updateLanguage(newValue)
+                    }
+
                     #if os(macOS)
                         FormToggle("Start At Login", "Launch the application when the system is logged in. If enabled at the same time as `Show in Menu Bar` and `Keep Menu Bar in Background`, the application interface will not be opened automatically.", $startAtLogin) { newValue in
                             updateLoginItems(newValue)
@@ -145,6 +159,7 @@ public struct AppView: View {
     }
 
     private func loadSettings() async {
+        selectedLanguage = Self.currentLanguage()
         #if os(macOS)
             startAtLogin = SMAppService.mainApp.status == .enabled
             menuBarExtraInBackground = await SharedPreferences.menuBarExtraInBackground.get()
@@ -153,6 +168,32 @@ public struct AppView: View {
             }
         #endif
         isLoading = false
+    }
+
+    private static func currentLanguage() -> String? {
+        guard let languages = UserDefaults.standard.array(forKey: "AppleLanguages") as? [String],
+              let first = languages.first
+        else {
+            return nil
+        }
+        for language in supportedLanguages {
+            if let code = language.code, first.hasPrefix(code) {
+                return code
+            }
+        }
+        return nil
+    }
+
+    private func updateLanguage(_ language: String?) {
+        if let language {
+            UserDefaults.standard.set([language], forKey: "AppleLanguages")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        }
+        alert = AlertState(
+            title: String(localized: "Restart Required"),
+            message: String(localized: "Language will be changed after restarting the app.")
+        )
     }
 
     #if os(macOS)
