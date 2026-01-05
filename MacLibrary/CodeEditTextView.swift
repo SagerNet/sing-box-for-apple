@@ -4,6 +4,36 @@ import CodeEditSourceEditor
 import CodeEditTextView
 import SwiftUI
 
+@MainActor
+public final class CodeEditEditorController: ObservableObject {
+    weak var controller: TextViewController?
+
+    @Published public var canUndo = false
+    @Published public var canRedo = false
+
+    public init() {}
+
+    public func undo() {
+        controller?.textView.undoManager?.undo()
+        updateUndoState()
+    }
+
+    public func redo() {
+        controller?.textView.undoManager?.redo()
+        updateUndoState()
+    }
+
+    public func insertSymbol(_ symbol: String) {
+        guard let textView = controller?.textView else { return }
+        textView.insertText(symbol, replacementRange: textView.selectedRange())
+    }
+
+    func updateUndoState() {
+        canUndo = controller?.textView.undoManager?.canUndo ?? false
+        canRedo = controller?.textView.undoManager?.canRedo ?? false
+    }
+}
+
 private extension NSColor {
     var forEditor: NSColor {
         usingColorSpace(.sRGB) ?? self
@@ -53,6 +83,13 @@ private func makeConfiguration(isEditable: Bool) -> SourceEditorConfiguration {
 struct CodeEditTextView: NSViewRepresentable {
     @Binding var text: String
     let isEditable: Bool
+    let editorController: CodeEditEditorController?
+
+    init(text: Binding<String>, isEditable: Bool, editorController: CodeEditEditorController? = nil) {
+        _text = text
+        self.isEditable = isEditable
+        self.editorController = editorController
+    }
 
     func makeNSView(context: Context) -> NSView {
         let controller = TextViewController(
@@ -79,6 +116,11 @@ struct CodeEditTextView: NSViewRepresentable {
 
         context.coordinator.controller = controller
         context.coordinator.setupObservation()
+        editorController?.controller = controller
+        Task { @MainActor in
+            editorController?.updateUndoState()
+        }
+
         return containerView
     }
 
@@ -90,19 +132,22 @@ struct CodeEditTextView: NSViewRepresentable {
         if controller.configuration.behavior.isEditable != isEditable {
             controller.configuration = makeConfiguration(isEditable: isEditable)
         }
+        editorController?.controller = controller
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
+        Coordinator(text: $text, editorController: editorController)
     }
 
     class Coordinator: NSObject {
         var controller: TextViewController?
         @Binding var text: String
         private var observation: NSObjectProtocol?
+        private weak var editorController: CodeEditEditorController?
 
-        init(text: Binding<String>) {
+        init(text: Binding<String>, editorController: CodeEditEditorController?) {
             _text = text
+            self.editorController = editorController
             super.init()
         }
 
@@ -115,6 +160,9 @@ struct CodeEditTextView: NSViewRepresentable {
             ) { [weak self] _ in
                 guard let self, let controller = self.controller else { return }
                 self.text = controller.text
+                Task { @MainActor in
+                    self.editorController?.updateUndoState()
+                }
             }
         }
 

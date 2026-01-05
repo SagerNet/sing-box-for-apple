@@ -2,9 +2,54 @@ import Runestone
 import SwiftUI
 import TreeSitterJSON5Runestone
 
+@MainActor
+public final class RunestoneEditorController: ObservableObject {
+    weak var textView: TextView?
+
+    @Published public var canUndo = false
+    @Published public var canRedo = false
+
+    public init() {}
+
+    public func undo() {
+        textView?.undoManager?.undo()
+        updateUndoState()
+    }
+
+    public func redo() {
+        textView?.undoManager?.redo()
+        updateUndoState()
+    }
+
+    public func insertSymbol(_ symbol: String) {
+        guard let textView else { return }
+        textView.insertText(symbol)
+    }
+
+    public func setText(_ newText: String) {
+        guard let textView else { return }
+        if let textRange = textView.textRange(from: textView.beginningOfDocument, to: textView.endOfDocument) {
+            textView.selectedTextRange = textRange
+            textView.insertText(newText)
+        }
+    }
+
+    func updateUndoState() {
+        canUndo = textView?.undoManager?.canUndo ?? false
+        canRedo = textView?.undoManager?.canRedo ?? false
+    }
+}
+
 struct RunestoneTextView: UIViewRepresentable {
     @Binding var text: String
     let isEditable: Bool
+    let controller: RunestoneEditorController?
+
+    init(text: Binding<String>, isEditable: Bool, controller: RunestoneEditorController? = nil) {
+        _text = text
+        self.isEditable = isEditable
+        self.controller = controller
+    }
 
     func makeUIView(context: Context) -> TextView {
         let textView = TextView()
@@ -43,6 +88,12 @@ struct RunestoneTextView: UIViewRepresentable {
         textView.isEditable = isEditable
         textView.editorDelegate = context.coordinator
 
+        context.coordinator.textView = textView
+        controller?.textView = textView
+        Task { @MainActor in
+            controller?.updateUndoState()
+        }
+
         return textView
     }
 
@@ -53,6 +104,7 @@ struct RunestoneTextView: UIViewRepresentable {
         if textView.isEditable != isEditable {
             textView.isEditable = isEditable
         }
+        controller?.textView = textView
     }
 
     func makeCoordinator() -> Coordinator {
@@ -61,6 +113,7 @@ struct RunestoneTextView: UIViewRepresentable {
 
     final class Coordinator: TextViewDelegate {
         var parent: RunestoneTextView
+        weak var textView: TextView?
 
         init(_ parent: RunestoneTextView) {
             self.parent = parent
@@ -68,6 +121,9 @@ struct RunestoneTextView: UIViewRepresentable {
 
         func textViewDidChange(_ textView: TextView) {
             parent.text = textView.text
+            Task { @MainActor in
+                parent.controller?.updateUndoState()
+            }
         }
     }
 }

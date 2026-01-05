@@ -17,7 +17,7 @@ struct MainView: View {
     @State private var buttonState = ButtonVisibilityState()
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
-        AnyView(RunestoneTextView(text: text, isEditable: isEditable))
+        AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
     }
 
     private var shouldShowBottomAccessory: Bool {

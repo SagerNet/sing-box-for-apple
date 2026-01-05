@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 import Library
 import SwiftUI
 
@@ -7,8 +8,10 @@ public final class EditProfileContentViewModel: BaseViewModel {
     @Published public var profile: Profile?
     @Published public var profileContent = ""
     @Published public var isChanged = false
+    @Published public var configurationError: String?
 
     private let profileID: Int64?
+    private var validationTask: Task<Void, Never>?
 
     public init(profileID: Int64?) {
         self.profileID = profileID
@@ -18,6 +21,7 @@ public final class EditProfileContentViewModel: BaseViewModel {
 
     public func markAsChanged() {
         isChanged = true
+        scheduleValidation()
     }
 
     public func reset() {
@@ -25,7 +29,51 @@ public final class EditProfileContentViewModel: BaseViewModel {
         profile = nil
         profileContent = ""
         isChanged = false
+        configurationError = nil
+        validationTask?.cancel()
+        validationTask = nil
         alert = nil
+    }
+
+    public func scheduleValidation() {
+        configurationError = nil
+        validationTask?.cancel()
+        validationTask = Task {
+            try? await Task.sleep(nanoseconds: 2 * NSEC_PER_SEC)
+            guard !Task.isCancelled else { return }
+            await checkConfiguration()
+        }
+    }
+
+    private func checkConfiguration() async {
+        let content = profileContent
+        if content.isEmpty { return }
+        var error: NSError?
+        LibboxCheckConfig(content, &error)
+        if let error {
+            configurationError = error.localizedDescription
+        } else {
+            configurationError = nil
+        }
+    }
+
+    public func formatConfiguration() async {
+        let content = profileContent
+        if content.isEmpty { return }
+        var error: NSError?
+        let result = LibboxFormatConfig(content, &error)
+        if let error {
+            configurationError = error.localizedDescription
+            return
+        }
+        if let formatted = result?.value, formatted != content {
+            profileContent = formatted
+            isChanged = true
+        }
+    }
+
+    public func dismissConfigurationError() {
+        configurationError = nil
     }
 
     public func loadContent() async {

@@ -13,7 +13,7 @@ public struct MainView: View {
     @State private var pendingSettingsPage: SettingsPage?
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
-        AnyView(CodeEditTextView(text: text, isEditable: isEditable))
+        AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
     }
 
     public init() {}

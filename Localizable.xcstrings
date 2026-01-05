@@ -1142,6 +1142,9 @@
         }
       }
     },
+    "Format" : {
+
+    },
     "FPS" : {
       "shouldTranslate" : false
     },
@@ -2080,6 +2083,12 @@
         }
       }
     },
+    "Redo" : {
+
+    },
+    "Register task failed" : {
+
+    },
     "Releases" : {
       "shouldTranslate" : false
     },
@@ -2671,6 +2680,9 @@
           }
         }
       }
+    },
+    "Undo" : {
+
     },
     "Unexpected message type %lld" : {
       "localizations" : {
