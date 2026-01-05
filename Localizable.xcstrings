@@ -236,7 +236,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你确定要导入 %@ 吗？"
+            "value" : "您确定要导入 %@ 吗？"
           }
         }
       }
@@ -252,7 +252,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你确定要导入 %1$@ 吗？将会连接到 %2$@ 下载配置。"
+            "value" : "您确定要导入 %1$@ 吗？将会连接到 %2$@ 下载配置。"
           }
         }
       }
@@ -815,7 +815,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不要显示关于废弃功能使用的警告。"
+            "value" : "不要显示关于弃用功能使用的警告。"
           }
         }
       }
@@ -885,7 +885,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下载"
+            "value" : "下行"
           }
         }
       }
@@ -1377,7 +1377,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导入配置文件"
+            "value" : "导入配置"
           }
         }
       }
@@ -1387,7 +1387,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导入远程配置文件"
+            "value" : "导入远程配置"
           }
         }
       }
@@ -1450,7 +1450,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安装网络拓展"
+            "value" : "安装网络扩展"
           }
         }
       }
@@ -1460,7 +1460,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安装系统拓展"
+            "value" : "安装系统扩展"
           }
         }
       }
@@ -1750,7 +1750,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "网络拓展未安装"
+            "value" : "网络扩展未安装"
           }
         }
       }
@@ -2494,7 +2494,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统拓展"
+            "value" : "系统扩展"
           }
         }
       }
