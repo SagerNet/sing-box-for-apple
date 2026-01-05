@@ -57,23 +57,27 @@ public struct MainView: View {
             }
         }
         .onChangeCompat(of: controlActiveState) { newValue in
-            viewModel.onControlActiveStateChange(newValue, environments: environments)
+            Task { @MainActor in
+                viewModel.onControlActiveStateChange(newValue, environments: environments)
+            }
         }
         .onChangeCompat(of: viewModel.selection) { value in
-            viewModel.onSelectionChange(value, environments: environments)
-            if value != .settings {
-                settingsNavigationPath = NavigationPath()
-                pendingSettingsPage = nil
-                return
-            }
-            if let page = pendingSettingsPage {
-                settingsNavigationPath = NavigationPath()
-                settingsNavigationPath.append(page)
-                pendingSettingsPage = nil
+            Task { @MainActor in
+                viewModel.onSelectionChange(value, environments: environments)
+                if value != .settings {
+                    settingsNavigationPath = NavigationPath()
+                    pendingSettingsPage = nil
+                    return
+                }
+                if let page = pendingSettingsPage {
+                    settingsNavigationPath = NavigationPath()
+                    settingsNavigationPath.append(page)
+                    pendingSettingsPage = nil
+                }
             }
         }
         .onReceive(environments.openSettings) {
-            viewModel.openSettings()
+            Task { @MainActor in viewModel.openSettings() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .navigateToSettingsPage)) { notification in
             guard let page = notification.object as? SettingsPage else { return }

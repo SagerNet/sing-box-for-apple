@@ -740,6 +740,9 @@
         }
       }
     },
+    "Detailed" : {
+
+    },
     "Disable Deprecated Warnings" : {
       "localizations" : {
         "zh-Hans" : {
@@ -749,6 +752,9 @@
           }
         }
       }
+    },
+    "Disabled" : {
+
     },
     "Disconnect" : {
       "localizations" : {
@@ -1010,6 +1016,9 @@
         }
       }
     },
+    "Enabled" : {
+
+    },
     "enforceRoutes" : {
       "shouldTranslate" : false
     },
@@ -1180,6 +1189,9 @@
     },
     "Goroutines" : {
       "shouldTranslate" : false
+    },
+    "Group" : {
+
     },
     "Groups" : {
       "localizations" : {
@@ -1749,6 +1761,7 @@
       }
     },
     "NetworkExtension not installed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1817,6 +1830,9 @@
           }
         }
       }
+    },
+    "Not installed" : {
+
     },
     "Ok" : {
       "localizations" : {
@@ -2072,6 +2088,9 @@
           }
         }
       }
+    },
+    "Real-time Speed" : {
+
     },
     "Reboot required." : {
       "localizations" : {

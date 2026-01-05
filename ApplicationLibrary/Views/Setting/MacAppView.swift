@@ -11,6 +11,7 @@ public struct AppView: View {
 
     @State private var startAtLogin = false
     @Environment(\.showMenuBarExtra) private var showMenuBarExtra
+    @Environment(\.menuBarExtraSpeedMode) private var menuBarExtraSpeedMode
     @State private var menuBarExtraInBackground = false
     #if os(macOS)
 
@@ -47,6 +48,17 @@ public struct AppView: View {
                             }
 
                         if showMenuBarExtra.wrappedValue {
+                            Picker("Real-time Speed", selection: menuBarExtraSpeedMode) {
+                                ForEach(MenuBarExtraSpeedMode.allCases, id: \.rawValue) { mode in
+                                    Text(mode.name).tag(mode.rawValue)
+                                }
+                            }
+                            .onChangeCompat(of: menuBarExtraSpeedMode.wrappedValue) { newValue in
+                                Task {
+                                    await SharedPreferences.menuBarExtraSpeedMode.set(newValue)
+                                }
+                            }
+
                             Toggle("Keep Menu Bar in Background", isOn: $menuBarExtraInBackground)
                                 .onChangeCompat(of: menuBarExtraInBackground) { newValue in
                                     Task {

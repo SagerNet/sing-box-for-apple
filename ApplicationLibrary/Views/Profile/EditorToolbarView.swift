@@ -137,11 +137,11 @@ import SwiftUI
             } label: {
                 Text(symbol)
                     .font(.system(.body, design: .monospaced).weight(.medium))
-                    #if os(iOS)
+                #if os(iOS)
                     .frame(minWidth: symbol.count > 1 ? nil : 32, minHeight: 32)
-                    #else
+                #else
                     .frame(minWidth: symbol.count > 1 ? nil : 24)
-                    #endif
+                #endif
             }
         }
     }

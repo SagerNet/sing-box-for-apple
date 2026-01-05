@@ -17,6 +17,19 @@ public extension EnvironmentValues {
         }
     }
 
+    private struct menuBarExtraSpeedModeKey: EnvironmentKey {
+        static let defaultValue: Binding<Int> = .constant(1)
+    }
+
+    var menuBarExtraSpeedMode: Binding<Int> {
+        get {
+            self[menuBarExtraSpeedModeKey.self]
+        }
+        set {
+            self[menuBarExtraSpeedModeKey.self] = newValue
+        }
+    }
+
     private struct selectionKey: EnvironmentKey {
         static let defaultValue: Binding<NavigationPage> = .constant(.dashboard)
     }

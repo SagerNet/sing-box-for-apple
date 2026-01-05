@@ -108,20 +108,22 @@ public struct StartStopButton: View {
                 .disabled(!profile.status.isEnabled)
                 .alert($alert)
                 .onReceive(timer) { _ in
-                    currentTime = Date()
+                    Task { @MainActor in
+                        currentTime = Date()
+                    }
                 }
                 .onChangeCompat(of: profile.status) { status in
-                    if isStarting {
-                        if status == .disconnected {
-                            isStarting = false
-                            if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
-                                Task {
+                    Task { @MainActor in
+                        if isStarting {
+                            if status == .disconnected {
+                                isStarting = false
+                                if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
                                     await checkStartupError()
                                 }
+                            } else if status.isConnectedStrict {
+                                isStarting = false
+                                environments.commandClient.connect()
                             }
-                        } else if status.isConnectedStrict {
-                            isStarting = false
-                            environments.commandClient.connect()
                         }
                     }
                 }

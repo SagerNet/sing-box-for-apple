@@ -63,7 +63,9 @@ public struct ConnectionListView: View {
             viewModel.connect()
         }
         .onReceive(environments.commandClient.$connections) { connections in
-            viewModel.setConnections(connections)
+            Task { @MainActor in
+                viewModel.setConnections(connections)
+            }
         }
         .onChangeCompat(of: viewModel.connectionStateFilter) { filter in
             environments.commandClient.connectionStateFilter = filter

@@ -1,5 +1,24 @@
 import Foundation
 
+#if os(macOS)
+    public enum MenuBarExtraSpeedMode: Int, CaseIterable {
+        case disabled = 0
+        case enabled = 1
+        case separate = 2
+
+        public var name: String {
+            switch self {
+            case .disabled:
+                return NSLocalizedString("Disabled", comment: "")
+            case .enabled:
+                return NSLocalizedString("Enabled", comment: "")
+            case .separate:
+                return NSLocalizedString("Detailed", comment: "")
+            }
+        }
+    }
+#endif
+
 public enum SharedPreferences {
     public static let selectedProfileID = Preference<Int64>("selected_profile_id", defaultValue: -1)
 
@@ -47,10 +66,15 @@ public enum SharedPreferences {
     #if os(macOS)
         public static let showMenuBarExtra = Preference<Bool>("show_menu_bar_extra", defaultValue: true)
         public static let menuBarExtraInBackground = Preference<Bool>("menu_bar_extra_in_background", defaultValue: false)
+        public static let menuBarExtraSpeedMode = Preference<Int>("menu_bar_extra_speed_mode", defaultValue: MenuBarExtraSpeedMode.enabled.rawValue)
         public static let startedByUser = Preference<Bool>("started_by_user", defaultValue: false)
 
         public static func resetMacOS() async {
-            try? await batchDelete([showMenuBarExtra.name, menuBarExtraInBackground.name])
+            try? await batchDelete([
+                showMenuBarExtra.name,
+                menuBarExtraInBackground.name,
+                menuBarExtraSpeedMode.name,
+            ])
         }
     #endif
 

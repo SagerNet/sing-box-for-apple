@@ -28,7 +28,9 @@ public struct GroupListView: View {
             viewModel.connect()
         }
         .onReceive(environments.commandClient.$groups) { groups in
-            viewModel.setGroups(groups)
+            Task { @MainActor in
+                viewModel.setGroups(groups)
+            }
         }
     }
 }

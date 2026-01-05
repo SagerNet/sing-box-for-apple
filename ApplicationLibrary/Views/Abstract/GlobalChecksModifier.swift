@@ -24,8 +24,6 @@ import SwiftUI
             case .notDetermined:
                 pendingAuthorizationRequest = true
                 manager.requestAlwaysAuthorization()
-            case .authorized, .authorizedAlways:
-                onAuthorizationGranted?()
             default:
                 break
             }
@@ -69,10 +67,10 @@ public struct GlobalChecksModifier: ViewModifier {
                 handleImportRemoteProfile()
             }
             .onChangeCompat(of: importProfile.wrappedValue) { _ in
-                handleImportProfile()
+                Task { @MainActor in handleImportProfile() }
             }
             .onChangeCompat(of: importRemoteProfile.wrappedValue) { _ in
-                handleImportRemoteProfile()
+                Task { @MainActor in handleImportRemoteProfile() }
             }
             .onChangeCompat(of: environments.extensionProfile?.status) { status in
                 handleStatusChange(status)
@@ -84,10 +82,10 @@ public struct GlobalChecksModifier: ViewModifier {
         #if os(macOS)
             content
                 .onReceive(NotificationCenter.default.publisher(for: .extensionRequiresWIFIState)) { _ in
-                    handleWiFiStateNotification()
+                    Task { @MainActor in handleWiFiStateNotification() }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .extensionRequiresHelperService)) { _ in
-                    handleHelperServiceNotification()
+                    Task { @MainActor in handleHelperServiceNotification() }
                 }
         #else
             content
@@ -133,26 +131,24 @@ public struct GlobalChecksModifier: ViewModifier {
     }
 
     private func handleStatusChange(_ status: NEVPNStatus?) {
-        guard let status else { return }
-        switch status {
-        case .connected:
-            notStarted = false
-            Task {
+        Task { @MainActor in
+            guard let status else { return }
+            switch status {
+            case .connected:
+                notStarted = false
                 await checkDeprecatedNotes()
-            }
-        case .connecting:
-            notStarted = true
-        case .disconnected:
-            if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
-                if notStarted, let profile = environments.extensionProfile {
-                    Task {
+            case .connecting:
+                notStarted = true
+            case .disconnected:
+                if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
+                    if notStarted, let profile = environments.extensionProfile {
                         await checkLastDisconnectError(profile: profile)
                     }
                 }
+                notStarted = false
+            default:
+                break
             }
-            notStarted = false
-        default:
-            break
         }
     }
 

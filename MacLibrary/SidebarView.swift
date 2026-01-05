@@ -5,6 +5,7 @@ import SwiftUI
 public struct SidebarView: View {
     @Binding var selection: NavigationPage
     @EnvironmentObject private var environments: ExtensionEnvironments
+    @State private var localSelection: NavigationPage = .dashboard
 
     public init(selection: Binding<NavigationPage>) {
         _selection = selection
@@ -19,9 +20,9 @@ public struct SidebarView: View {
             sidebarContent(isConnected: profile.status.isConnectedStrict, profile: profile)
                 .onReceive(profile.$status) { _ in }
                 .onChangeCompat(of: profile.status) {
-                    if !selection.visible(profile) {
-                        DispatchQueue.main.async {
-                            selection = .dashboard
+                    if !localSelection.visible(profile) {
+                        Task { @MainActor in
+                            localSelection = .dashboard
                         }
                     }
                 }
@@ -32,7 +33,7 @@ public struct SidebarView: View {
 
     @ViewBuilder
     private func sidebarContent(isConnected: Bool, profile: ExtensionProfile?) -> some View {
-        List(selection: $selection) {
+        List(selection: $localSelection) {
             if isConnected {
                 Section(NavigationPage.dashboard.title) {
                     Label("Overview", systemImage: "text.and.command.macwindow")
@@ -55,5 +56,20 @@ public struct SidebarView: View {
         }
         .listStyle(.sidebar)
         .scrollDisabled(true)
+        .onAppear {
+            localSelection = selection
+        }
+        .onChangeCompat(of: selection) { newValue in
+            if localSelection != newValue {
+                localSelection = newValue
+            }
+        }
+        .onChangeCompat(of: localSelection) { newValue in
+            if selection != newValue {
+                Task { @MainActor in
+                    selection = newValue
+                }
+            }
+        }
     }
 }
