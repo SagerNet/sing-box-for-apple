@@ -1,3 +1,6 @@
+SHELL := /bin/bash
+.SHELLFLAGS := -o pipefail -c
+
 build_all: build_ios build_macos build_tvos
 
 build_ios:

@@ -42,6 +42,7 @@
 
         func getWorkingDirectorySize(reply: @escaping (Int64, NSError?) -> Void)
         func cleanWorkingDirectory(reply: @escaping (NSError?) -> Void)
+        func getVersion(reply: @escaping (String) -> Void)
     }
 
     public enum RootHelperXPC {
@@ -216,6 +217,53 @@
             try performXPCCallVoid("cleanWorkingDirectory") { proxy, reply in
                 proxy.cleanWorkingDirectory(reply: reply)
             }
+        }
+
+        public func getVersion() throws -> String {
+            let semaphore = DispatchSemaphore(value: 0)
+            var result: String?
+            var resultError: NSError?
+
+            let conn = getConnection()
+            guard let proxy = conn.remoteObjectProxyWithErrorHandler({ error in
+                logger.error("getVersion XPC error: \(error.localizedDescription)")
+                resultError = error as NSError
+                semaphore.signal()
+            }) as? RootHelperProtocol else {
+                connectionLock.lock()
+                connection = nil
+                connectionLock.unlock()
+                conn.invalidate()
+                throw NSError(domain: "RootHelper", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to get RootHelper proxy",
+                ])
+            }
+
+            proxy.getVersion { version in
+                result = version
+                semaphore.signal()
+            }
+
+            let timeout = DispatchTime.now() + .seconds(5)
+            if semaphore.wait(timeout: timeout) == .timedOut {
+                let error = NSError(domain: "RootHelper", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "getVersion request timeout",
+                ])
+                logger.error("getVersion: timeout")
+                throw error
+            }
+
+            if let error = resultError {
+                throw error
+            }
+
+            guard let value = result else {
+                throw NSError(domain: "RootHelper", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "getVersion returned nil",
+                ])
+            }
+
+            return value
         }
     }
 #endif

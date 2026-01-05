@@ -12,6 +12,7 @@ class StandaloneApplicationDelegate: ApplicationDelegate {
         UserServiceEndpointPublisher.shared.start()
         Task {
             await setupSystemExtension()
+            await HelperServiceManager.updateRootHelperIfNeeded()
         }
     }
 

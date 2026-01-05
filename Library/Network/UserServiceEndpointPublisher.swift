@@ -46,14 +46,12 @@
         }
 
         public func listener(_: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
-            let allowedBundleIDs = [AppConfiguration.systemExtensionBundleID]
-            guard XPCConnectionValidator.validateConnection(
-                newConnection,
-                teamID: AppConfiguration.teamID,
-                allowedBundleIDs: allowedBundleIDs
-            ) else {
-                let info = XPCConnectionValidator.getConnectionInfo(newConnection)
-                logger.warning("Rejected XPC connection: pid=\(info.pid), bundleID=\(info.bundleID ?? "unknown"), teamID=\(info.teamID ?? "unknown")")
+            let bundleID = AppConfiguration.systemExtensionBundleID
+            let requirement = "identifier \"\(bundleID)\" and anchor apple generic and certificate leaf[subject.OU] = \"\(AppConfiguration.teamID)\""
+            do {
+                try newConnection.setCodeSigningRequirement(requirement)
+            } catch {
+                logger.warning("Rejected XPC connection: \(error.localizedDescription)")
                 return false
             }
 

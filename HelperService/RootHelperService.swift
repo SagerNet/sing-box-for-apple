@@ -8,46 +8,22 @@ class RootHelperService: NSObject {
     private var listener: NSXPCListener?
 
     func start() {
-        setupLogging()
-        startXPCListener()
-    }
-
-    private func setupLogging() {
-        let basePath = "/var/log/sing-box"
-        try? FileManager.default.createDirectory(atPath: basePath, withIntermediateDirectories: true)
-
-        let logPath = basePath + "/roothelper.log"
-        freopen(logPath, "a", stderr)
-    }
-
-    private func startXPCListener() {
-        let machServiceName = getMachServiceName()
-        listener = NSXPCListener(machServiceName: machServiceName)
+        listener = NSXPCListener(machServiceName: AppConfiguration.rootHelperMachService)
         listener?.delegate = self
         listener?.resume()
-    }
-
-    private func getMachServiceName() -> String {
-        if let identifier = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String {
-            return "\(identifier).helper"
-        }
-        fatalError("Missing AppGroupIdentifier in Info.plist")
     }
 }
 
 extension RootHelperService: NSXPCListenerDelegate {
     func listener(_: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
-        let allowedBundleIDs = [
-            AppConfiguration.systemExtensionBundleID,
-            AppConfiguration.packageName + ".standalone",
-        ]
-        guard XPCConnectionValidator.validateConnection(
-            newConnection,
-            teamID: AppConfiguration.teamID,
-            allowedBundleIDs: allowedBundleIDs
-        ) else {
-            let info = XPCConnectionValidator.getConnectionInfo(newConnection)
-            logger.warning("Rejected XPC connection: pid=\(info.pid), bundleID=\(info.bundleID ?? "unknown"), teamID=\(info.teamID ?? "unknown")")
+        let systemExtensionID = AppConfiguration.systemExtensionBundleID
+        let standaloneID = AppConfiguration.packageName + ".standalone"
+        let teamID = AppConfiguration.teamID
+        let requirement = "(identifier \"\(systemExtensionID)\" or identifier \"\(standaloneID)\") and anchor apple generic and certificate leaf[subject.OU] = \"\(teamID)\""
+        do {
+            try newConnection.setCodeSigningRequirement(requirement)
+        } catch {
+            logger.warning("Rejected XPC connection: \(error.localizedDescription)")
             return false
         }
 
@@ -105,5 +81,9 @@ extension RootHelperService: RootHelperProtocol {
             logger.error("cleanWorkingDirectory error: \(error.localizedDescription)")
             reply(error as NSError)
         }
+    }
+
+    func getVersion(reply: @escaping (String) -> Void) {
+        reply(Bundle.main.version)
     }
 }

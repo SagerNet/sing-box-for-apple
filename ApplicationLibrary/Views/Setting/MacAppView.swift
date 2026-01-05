@@ -76,9 +76,15 @@ public struct AppView: View {
                             Section {
                                 if rootHelperRegistrationStatus == .enabled {
                                     FormButton {
-                                        performHelperAction {
-                                            try HelperServiceManager.unregisterRootHelper()
-                                            try HelperServiceManager.registerRootHelper()
+                                        Task {
+                                            do {
+                                                try HelperServiceManager.unregisterRootHelper()
+                                                try await Task.sleep(for: .seconds(1))
+                                                try HelperServiceManager.registerRootHelper()
+                                                refreshHelperStatus()
+                                            } catch {
+                                                alert = AlertState(error: error)
+                                            }
                                         }
                                     } label: {
                                         Label("Update", systemImage: "arrow.down.doc.fill")

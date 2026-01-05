@@ -202,7 +202,14 @@
       }
     },
     "App Settings" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用设置"
+          }
+        }
+      }
     },
     "Append `0.0.0.0/31` and `::/127` to `route_exclude_address` if not exists." : {
       "localizations" : {
@@ -558,6 +565,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "连接 (%lld)"
+          }
+        }
+      }
+    },
+    "Context destroyed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上下文已销毁"
           }
         }
       }
@@ -984,7 +1001,14 @@
       }
     },
     "Enable" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用"
+          }
+        }
+      }
     },
     "enforceRoutes" : {
       "shouldTranslate" : false
@@ -1064,6 +1088,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解码 QRS 数据失败"
+          }
+        }
+      }
+    },
+    "Failed to save rules" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存规则失败"
           }
         }
       }
@@ -1176,10 +1210,24 @@
       }
     },
     "Helper Service" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辅助服务"
+          }
+        }
+      }
     },
     "Helper Service Required" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要辅助服务"
+          }
+        }
+      }
     },
     "Hide VPN Icon" : {
       "localizations" : {
@@ -1355,7 +1403,14 @@
       }
     },
     "In the standalone version of SFM, reading WiFi state requires this app to be running. After you quit the SFM app, the sing-box service cannot continue to provide `wifi_ssid` and `wifi_bssid` routing rules." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 SFM 独立版本中，读取 WiFi 状态需要应用保持运行。退出 SFM 应用后，sing-box 服务将无法继续提供 `wifi_ssid` 和 `wifi_bssid` 路由规则。"
+          }
+        }
+      }
     },
     "Inbound" : {
       "localizations" : {
@@ -1381,7 +1436,14 @@
       "shouldTranslate" : false
     },
     "Install" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装"
+          }
+        }
+      }
     },
     "Install Network Extension" : {
       "localizations" : {
@@ -1424,6 +1486,7 @@
       }
     },
     "Invalid QR Code" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -1550,7 +1613,14 @@
       }
     },
     "Managing working directory requires Helper Service." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理工作目录需要辅助服务。"
+          }
+        }
+      }
     },
     "Match Domains" : {
       "localizations" : {
@@ -1581,6 +1651,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "元数据"
+          }
+        }
+      }
+    },
+    "Missing access to selected file" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法访问所选文件"
+          }
+        }
+      }
+    },
+    "Missing file" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缺少文件"
           }
         }
       }
@@ -1897,6 +1987,26 @@
         }
       }
     },
+    "Profile missing" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置丢失"
+          }
+        }
+      }
+    },
+    "Profile not found" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到配置"
+          }
+        }
+      }
+    },
     "Profile Override" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2075,6 +2185,7 @@
       }
     },
     "Scanner Error" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -2115,6 +2226,7 @@
       }
     },
     "Service Error" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -2451,7 +2563,14 @@
       }
     },
     "The sing-box service requires Helper Service to provide process lookup functionality, which supports `process_name` and `process_path` routing rules." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sing-box 服务需要辅助服务来提供进程查找功能，以支持 `process_name` 和 `process_path` 路由规则。"
+          }
+        }
+      }
     },
     "This app needs to be placed under the Applications folder to work." : {
       "localizations" : {
@@ -2464,7 +2583,14 @@
       }
     },
     "This helper service provides process lookup for `process_name` and `process_path` routing rules, and manages the working directory." : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此辅助服务为 `process_name` 和 `process_path` 路由规则提供进程查找功能，并管理工作目录。"
+          }
+        }
+      }
     },
     "To Clipboard" : {
       "localizations" : {
@@ -2537,7 +2663,24 @@
       }
     },
     "Unavailable" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用"
+          }
+        }
+      }
+    },
+    "Unexpected message type %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "意外的消息类型 %lld"
+          }
+        }
+      }
     },
     "Uninstall" : {
       "localizations" : {
@@ -2570,6 +2713,7 @@
       }
     },
     "Update Failed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -2663,7 +2807,14 @@
       }
     },
     "WiFi State Access" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WiFi 状态访问"
+          }
+        }
+      }
     },
     "Working Directory" : {
       "localizations" : {
