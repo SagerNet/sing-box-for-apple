@@ -2,6 +2,9 @@ import Foundation
 import Libbox
 import NetworkExtension
 import os
+#if os(iOS)
+    import FileProvider
+#endif
 
 private let logger = Logger(category: "ExtensionProfile")
 
@@ -39,9 +42,31 @@ public class ExtensionProfile: ObservableObject {
                 self.connection = connection
                 self.status = connection.status
                 self.connectedDate = connection.connectedDate
+                #if os(iOS)
+                    if #available(iOS 16.0, *) {
+                        if connection.status == .connected || connection.status == .disconnected {
+                            Self.signalFileProviderChanges()
+                        }
+                    }
+                #endif
             }
         }
     }
+
+    #if os(iOS)
+        @available(iOS 16.0, *)
+        private static func signalFileProviderChanges() {
+            Task.detached {
+                guard let domain = try? await NSFileProviderManager.domains()
+                    .first(where: { $0.identifier.rawValue == AppConfiguration.fileProviderDomainID }),
+                    let manager = NSFileProviderManager(for: domain)
+                else {
+                    return
+                }
+                try? await manager.signalEnumerator(for: .workingSet)
+            }
+        }
+    #endif
 
     private func unregister() {
         if let observer {

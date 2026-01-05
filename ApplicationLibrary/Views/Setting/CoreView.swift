@@ -213,6 +213,7 @@ public struct CoreView: View {
                 guard let manager = NSFileProviderManager(for: domain) else {
                     throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to get file provider manager"])
                 }
+                try await manager.signalEnumerator(for: .workingSet)
                 let url = try await manager.getUserVisibleURL(for: .rootContainer)
                 guard let sharedURL = URL(string: "shareddocuments://\(url.path)") else {
                     throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create shared documents URL"])
