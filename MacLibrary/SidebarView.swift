@@ -2,6 +2,71 @@ import ApplicationLibrary
 import Library
 import SwiftUI
 
+private struct SidebarContentView: View {
+    @Binding var selection: NavigationPage
+    @Binding var localSelection: NavigationPage
+    @ObservedObject var profile: ExtensionProfile
+    var environments: ExtensionEnvironments
+
+    private var hasGroups: Bool {
+        environments.commandClient.groups?.isEmpty == false
+    }
+
+    var body: some View {
+        List(selection: $localSelection) {
+            if profile.status.isConnectedStrict {
+                Section(NavigationPage.dashboard.title) {
+                    Label("Overview", systemImage: "text.and.command.macwindow")
+                        .tint(.textColor)
+                        .tag(NavigationPage.dashboard)
+                    if hasGroups {
+                        NavigationPage.groups.label.tag(NavigationPage.groups)
+                    }
+                    NavigationPage.connections.label.tag(NavigationPage.connections)
+                }
+                ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
+                    it.label
+                }
+            } else {
+                ForEach(NavigationPage.allCases.filter { $0.visible(profile) }, id: \.self) { it in
+                    it.label
+                }
+            }
+        }
+        .listStyle(.sidebar)
+        .scrollDisabled(true)
+        .onAppear {
+            localSelection = selection
+        }
+        .onChangeCompat(of: selection) { newValue in
+            if localSelection != newValue {
+                localSelection = newValue
+            }
+        }
+        .onChangeCompat(of: localSelection) { newValue in
+            if selection != newValue {
+                Task { @MainActor in
+                    selection = newValue
+                }
+            }
+        }
+        .onChangeCompat(of: profile.status) {
+            if !localSelection.visible(profile) {
+                Task { @MainActor in
+                    localSelection = .dashboard
+                }
+            }
+        }
+        .onReceive(environments.commandClient.$groups) { groups in
+            if localSelection == .groups, groups?.isEmpty != false {
+                Task { @MainActor in
+                    localSelection = .dashboard
+                }
+            }
+        }
+    }
+}
+
 public struct SidebarView: View {
     @Binding var selection: NavigationPage
     @EnvironmentObject private var environments: ExtensionEnvironments
@@ -13,45 +78,44 @@ public struct SidebarView: View {
 
     public var body: some View {
         if ApplicationLibrary.inPreview {
-            sidebarContent(isConnected: true, profile: nil)
+            previewContent
         } else if environments.extensionProfileLoading {
             ProgressView()
         } else if let profile = environments.extensionProfile {
-            sidebarContent(isConnected: profile.status.isConnectedStrict, profile: profile)
-                .onReceive(profile.$status) { _ in }
-                .onChangeCompat(of: profile.status) {
-                    if !localSelection.visible(profile) {
-                        Task { @MainActor in
-                            localSelection = .dashboard
-                        }
-                    }
-                }
+            SidebarContentView(
+                selection: $selection,
+                localSelection: $localSelection,
+                profile: profile,
+                environments: environments
+            )
         } else {
-            sidebarContent(isConnected: false, profile: nil)
+            disconnectedContent
         }
     }
 
     @ViewBuilder
-    private func sidebarContent(isConnected: Bool, profile: ExtensionProfile?) -> some View {
+    private var previewContent: some View {
         List(selection: $localSelection) {
-            if isConnected {
-                Section(NavigationPage.dashboard.title) {
-                    Label("Overview", systemImage: "text.and.command.macwindow")
-                        .tint(.textColor)
-                        .tag(NavigationPage.dashboard)
-                    NavigationPage.groups.label.tag(NavigationPage.groups)
-                    if Variant.isBeta {
-                        NavigationPage.connections.label.tag(NavigationPage.connections)
-                    }
-                }
-                Divider()
-                ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
-                    it.label
-                }
-            } else {
-                ForEach(NavigationPage.allCases.filter { $0.visible(profile) }, id: \.self) { it in
-                    it.label
-                }
+            Section(NavigationPage.dashboard.title) {
+                Label("Overview", systemImage: "text.and.command.macwindow")
+                    .tint(.textColor)
+                    .tag(NavigationPage.dashboard)
+                NavigationPage.groups.label.tag(NavigationPage.groups)
+                NavigationPage.connections.label.tag(NavigationPage.connections)
+            }
+            ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
+                it.label
+            }
+        }
+        .listStyle(.sidebar)
+        .scrollDisabled(true)
+    }
+
+    @ViewBuilder
+    private var disconnectedContent: some View {
+        List(selection: $localSelection) {
+            ForEach(NavigationPage.allCases.filter { $0.visible(nil) }, id: \.self) { it in
+                it.label
             }
         }
         .listStyle(.sidebar)

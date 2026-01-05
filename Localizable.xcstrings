@@ -741,7 +741,14 @@
       }
     },
     "Detailed" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "详细"
+          }
+        }
+      }
     },
     "Disable Deprecated Warnings" : {
       "localizations" : {
@@ -754,7 +761,14 @@
       }
     },
     "Disabled" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已禁用"
+          }
+        }
+      }
     },
     "Disconnect" : {
       "localizations" : {
@@ -1017,7 +1031,14 @@
       }
     },
     "Enabled" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已启用"
+          }
+        }
+      }
     },
     "enforceRoutes" : {
       "shouldTranslate" : false
@@ -1152,7 +1173,14 @@
       }
     },
     "Format" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "格式化"
+          }
+        }
+      }
     },
     "FPS" : {
       "shouldTranslate" : false
@@ -1191,7 +1219,14 @@
       "shouldTranslate" : false
     },
     "Group" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分组"
+          }
+        }
+      }
     },
     "Groups" : {
       "localizations" : {
@@ -2107,7 +2142,14 @@
       }
     },
     "Real-time Speed" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时速率"
+          }
+        }
+      }
     },
     "Reboot required." : {
       "localizations" : {
@@ -2120,10 +2162,24 @@
       }
     },
     "Redo" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重做"
+          }
+        }
+      }
     },
     "Register task failed" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注册任务失败"
+          }
+        }
+      }
     },
     "Releases" : {
       "shouldTranslate" : false
@@ -2738,7 +2794,14 @@
       }
     },
     "Undo" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤销"
+          }
+        }
+      }
     },
     "Unexpected message type %lld" : {
       "localizations" : {

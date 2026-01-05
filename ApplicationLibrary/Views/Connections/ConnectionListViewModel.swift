@@ -16,6 +16,15 @@ public class ConnectionListViewModel: BaseViewModel {
         }
     }
 
+    @Published public var isSearching = false
+
+    public func toggleSearch() {
+        isSearching.toggle()
+        if !isSearching {
+            searchText = ""
+        }
+    }
+
     @Published public var filteredConnections: [Connection] = []
     @Published public var connectionStateFilter: ConnectionStateFilter {
         didSet {
