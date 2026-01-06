@@ -4,6 +4,10 @@
     import Library
     import SwiftUI
 
+    #if os(macOS)
+        import AppKit
+    #endif
+
     @MainActor
     public struct QRScannerView: View {
         @Environment(\.dismiss) private var dismiss
@@ -140,15 +144,34 @@
             case let .failure(error):
                 switch error {
                 case .permissionDenied:
-                    alert = AlertState(
-                        title: String(localized: "Camera Access Denied"),
-                        message: String(localized: "Please enable camera access in Settings to scan QR codes.")
-                    )
+                    #if os(macOS)
+                        alert = AlertState(
+                            title: String(localized: "Camera Access Denied"),
+                            message: String(localized: "Please enable camera access in Settings to scan QR codes."),
+                            primaryButton: .default(String(localized: "Open Settings")) {
+                                openCameraPrivacySettings()
+                            },
+                            secondaryButton: .cancel()
+                        )
+                    #else
+                        alert = AlertState(
+                            title: String(localized: "Camera Access Denied"),
+                            message: String(localized: "Please enable camera access in Settings to scan QR codes.")
+                        )
+                    #endif
                 default:
                     alert = AlertState(error: error)
                 }
             }
         }
+
+        #if os(macOS)
+            private func openCameraPrivacySettings() {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        #endif
     }
 
     private struct CircularProgressView: View {
