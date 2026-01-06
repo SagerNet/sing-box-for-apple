@@ -2,6 +2,8 @@ SHELL := /bin/bash
 .SHELLFLAGS := -o pipefail -c
 .SILENT:
 
+INSTALLER_SIGN_IDENTITY := 16480CA444F481F8DEAF9421FAD2CCE590FC54E4
+
 build_all: build_ios build_macos build_tvos
 
 build_ios:
@@ -42,18 +44,39 @@ archive_tvos:
 upload_tvos:
 	xcodebuild -exportArchive -archivePath build/SFT.xcarchive -exportOptionsPlist SFI/Upload.plist -allowProvisioningUpdates
 
-release_macos_standalone: build_macos_dmg notarize_macos_dmg
+release_macos_standalone: release_macos_dmg release_macos_pkg
 
-build_macos_standalone:
-	rm -rf build/SFM.System-arm64.xcarchive build/SFM.System-x86_64.xcarchive
+# Archive commands
+archive_macos_standalone_apple:
+	rm -rf build/SFM.System-arm64.xcarchive
 	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-arm64.xcarchive ARCHS=arm64 -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
+
+archive_macos_standalone_intel:
+	rm -rf build/SFM.System-x86_64.xcarchive
 	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-x86_64.xcarchive ARCHS=x86_64 -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
 
-build_macos_dmg: build_macos_standalone
-	rm -rf build/SFM.System-arm64 build/SFM.System-x86_64
+archive_macos_standalone_universal:
+	rm -rf build/SFM.System-universal.xcarchive
+	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-universal.xcarchive -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
+
+archive_macos_standalone: archive_macos_standalone_apple archive_macos_standalone_intel archive_macos_standalone_universal
+
+# Export commands
+export_macos_standalone_apple:
+	rm -rf build/SFM.System-arm64
 	xcodebuild -exportArchive -archivePath build/SFM.System-arm64.xcarchive -exportOptionsPlist SFM.System/Export.plist -exportPath build/SFM.System-arm64 -allowProvisioningUpdates
+
+export_macos_standalone_intel:
+	rm -rf build/SFM.System-x86_64
 	xcodebuild -exportArchive -archivePath build/SFM.System-x86_64.xcarchive -exportOptionsPlist SFM.System/Export.plist -exportPath build/SFM.System-x86_64 -allowProvisioningUpdates
-	rm -rf build/SFM-arm64.dmg build/SFM-x86_64.dmg
+
+export_macos_standalone_universal:
+	rm -rf build/SFM.System-universal
+	xcodebuild -exportArchive -archivePath build/SFM.System-universal.xcarchive -exportOptionsPlist SFM.System/Export.plist -exportPath build/SFM.System-universal -allowProvisioningUpdates
+
+# DMG commands
+build_macos_dmg_apple: archive_macos_standalone_apple export_macos_standalone_apple
+	rm -f build/SFM-Apple.dmg
 	create-dmg \
 		--volname "sing-box" \
 		--volicon "build/SFM.System-arm64/SFM.app/Contents/Resources/AppIcon.icns" \
@@ -61,7 +84,10 @@ build_macos_dmg: build_macos_standalone
 		--hide-extension "SFM.app" \
 		--app-drop-link 0 0 \
 		--skip-jenkins \
-		"build/SFM-arm64.dmg" "build/SFM.System-arm64/SFM.app"
+		"build/SFM-Apple.dmg" "build/SFM.System-arm64/SFM.app"
+
+build_macos_dmg_intel: archive_macos_standalone_intel export_macos_standalone_intel
+	rm -f build/SFM-Intel.dmg
 	create-dmg \
 		--volname "sing-box" \
 		--volicon "build/SFM.System-x86_64/SFM.app/Contents/Resources/AppIcon.icns" \
@@ -69,13 +95,104 @@ build_macos_dmg: build_macos_standalone
 		--hide-extension "SFM.app" \
 		--app-drop-link 0 0 \
 		--skip-jenkins \
-		"build/SFM-x86_64.dmg" "build/SFM.System-x86_64/SFM.app"
+		"build/SFM-Intel.dmg" "build/SFM.System-x86_64/SFM.app"
 
-notarize_macos_dmg:
-	xcrun notarytool submit "build/SFM-arm64.dmg" --wait --keychain-profile "notarytool-password"
-	xcrun notarytool submit "build/SFM-x86_64.dmg" --wait --keychain-profile "notarytool-password"
-	xcrun stapler staple "build/SFM-arm64.dmg"
-	xcrun stapler staple "build/SFM-x86_64.dmg"
+build_macos_dmg_universal: archive_macos_standalone_universal export_macos_standalone_universal
+	rm -f build/SFM-Universal.dmg
+	create-dmg \
+		--volname "sing-box" \
+		--volicon "build/SFM.System-universal/SFM.app/Contents/Resources/AppIcon.icns" \
+		--icon "SFM.app" 0 0 \
+		--hide-extension "SFM.app" \
+		--app-drop-link 0 0 \
+		--skip-jenkins \
+		"build/SFM-Universal.dmg" "build/SFM.System-universal/SFM.app"
+
+build_macos_dmg: build_macos_dmg_apple build_macos_dmg_intel build_macos_dmg_universal
+
+# DMG notarize commands
+notarize_macos_dmg_apple:
+	xcrun notarytool submit "build/SFM-Apple.dmg" --wait --keychain-profile "notarytool-password"
+	xcrun stapler staple "build/SFM-Apple.dmg"
+
+notarize_macos_dmg_intel:
+	xcrun notarytool submit "build/SFM-Intel.dmg" --wait --keychain-profile "notarytool-password"
+	xcrun stapler staple "build/SFM-Intel.dmg"
+
+notarize_macos_dmg_universal:
+	xcrun notarytool submit "build/SFM-Universal.dmg" --wait --keychain-profile "notarytool-password"
+	xcrun stapler staple "build/SFM-Universal.dmg"
+
+notarize_macos_dmg: notarize_macos_dmg_apple notarize_macos_dmg_intel notarize_macos_dmg_universal
+
+# DMG release commands
+release_macos_dmg_apple: build_macos_dmg_apple notarize_macos_dmg_apple
+release_macos_dmg_intel: build_macos_dmg_intel notarize_macos_dmg_intel
+release_macos_dmg_universal: build_macos_dmg_universal notarize_macos_dmg_universal
+release_macos_dmg: release_macos_dmg_apple release_macos_dmg_intel release_macos_dmg_universal
+
+# PKG commands
+build_macos_pkg_apple: archive_macos_standalone_apple export_macos_standalone_apple
+	rm -f build/SFM-Apple.pkg
+	pkgbuild --component "build/SFM.System-arm64/SFM.app" \
+		--identifier io.nekohasekai.sfavt.standalone \
+		--install-location /Applications \
+		build/component-arm64.pkg
+	productbuild --distribution SFM.System/distribution-arm64.xml \
+		--package-path build \
+		--resources SFM.System/Resources \
+		--sign "$(INSTALLER_SIGN_IDENTITY)" \
+		build/SFM-Apple.pkg
+	rm -f build/component-arm64.pkg
+
+build_macos_pkg_intel: archive_macos_standalone_intel export_macos_standalone_intel
+	rm -f build/SFM-Intel.pkg
+	pkgbuild --component "build/SFM.System-x86_64/SFM.app" \
+		--identifier io.nekohasekai.sfavt.standalone \
+		--install-location /Applications \
+		build/component-x86_64.pkg
+	productbuild --distribution SFM.System/distribution-x86_64.xml \
+		--package-path build \
+		--resources SFM.System/Resources \
+		--sign "$(INSTALLER_SIGN_IDENTITY)" \
+		build/SFM-Intel.pkg
+	rm -f build/component-x86_64.pkg
+
+build_macos_pkg_universal: archive_macos_standalone_universal export_macos_standalone_universal
+	rm -f build/SFM-Universal.pkg
+	pkgbuild --component "build/SFM.System-universal/SFM.app" \
+		--identifier io.nekohasekai.sfavt.standalone \
+		--install-location /Applications \
+		build/component-universal.pkg
+	productbuild --distribution SFM.System/distribution-universal.xml \
+		--package-path build \
+		--resources SFM.System/Resources \
+		--sign "$(INSTALLER_SIGN_IDENTITY)" \
+		build/SFM-Universal.pkg
+	rm -f build/component-universal.pkg
+
+build_macos_pkg: build_macos_pkg_apple build_macos_pkg_intel build_macos_pkg_universal
+
+# PKG notarize commands
+notarize_macos_pkg_apple:
+	xcrun notarytool submit build/SFM-Apple.pkg --wait --keychain-profile "notarytool-password"
+	xcrun stapler staple build/SFM-Apple.pkg
+
+notarize_macos_pkg_intel:
+	xcrun notarytool submit build/SFM-Intel.pkg --wait --keychain-profile "notarytool-password"
+	xcrun stapler staple build/SFM-Intel.pkg
+
+notarize_macos_pkg_universal:
+	xcrun notarytool submit build/SFM-Universal.pkg --wait --keychain-profile "notarytool-password"
+	xcrun stapler staple build/SFM-Universal.pkg
+
+notarize_macos_pkg: notarize_macos_pkg_apple notarize_macos_pkg_intel notarize_macos_pkg_universal
+
+# PKG release commands
+release_macos_pkg_apple: build_macos_pkg_apple notarize_macos_pkg_apple
+release_macos_pkg_intel: build_macos_pkg_intel notarize_macos_pkg_intel
+release_macos_pkg_universal: build_macos_pkg_universal notarize_macos_pkg_universal
+release_macos_pkg: release_macos_pkg_apple release_macos_pkg_intel release_macos_pkg_universal
 
 fmt:
 	swiftformat .
@@ -98,7 +215,9 @@ clean:
 	rm -rf build/SFT.xcarchive
 	rm -rf build/SFM.System-arm64.xcarchive
 	rm -rf build/SFM.System-x86_64.xcarchive
+	rm -rf build/SFM.System-universal.xcarchive
 	rm -rf build/SFM.System-arm64
 	rm -rf build/SFM.System-x86_64
-	rm -rf build/SFM-arm64.dmg
-	rm -rf build/SFM-x86_64.dmg
+	rm -rf build/SFM.System-universal
+	rm -f build/SFM-Apple.dmg build/SFM-Intel.dmg build/SFM-Universal.dmg
+	rm -f build/SFM-Apple.pkg build/SFM-Intel.pkg build/SFM-Universal.pkg

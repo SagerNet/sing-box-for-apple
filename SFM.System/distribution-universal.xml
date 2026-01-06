@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>sing-box</title>
+    <license file="LICENSE"/>
+    <pkg-ref id="io.nekohasekai.sfavt.standalone"/>
+    <options customize="never" require-scripts="false" hostArchitectures="arm64,x86_64"/>
+    <choices-outline>
+        <line choice="default"/>
+    </choices-outline>
+    <choice id="default" title="sing-box">
+        <pkg-ref id="io.nekohasekai.sfavt.standalone"/>
+    </choice>
+    <pkg-ref id="io.nekohasekai.sfavt.standalone" version="0" onConclusion="none">component-universal.pkg</pkg-ref>
+</installer-gui-script>
