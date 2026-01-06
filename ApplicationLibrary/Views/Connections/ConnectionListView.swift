@@ -115,7 +115,7 @@ public struct ConnectionListView: View {
             let button = UIButton(type: .system)
             let config = UIImage.SymbolConfiguration(scale: .large)
             button.setImage(UIImage(systemName: "line.3.horizontal.circle", withConfiguration: config), for: .normal)
-            if #available(iOS 17.0, *) {
+            if #available(iOS 26.0, *) {
                 button.tintColor = colorScheme == .dark ? .white : .black
             }
             button.showsMenuAsPrimaryAction = true
@@ -143,7 +143,7 @@ public struct ConnectionListView: View {
 
             if coordinator.lastColorScheme != colorScheme {
                 coordinator.lastColorScheme = colorScheme
-                if #available(iOS 17.0, *) {
+                if #available(iOS 26.0, *) {
                     uiView.tintColor = colorScheme == .dark ? .white : .black
                 }
             }
