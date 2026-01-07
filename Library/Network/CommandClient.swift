@@ -91,6 +91,15 @@ public class CommandClient: ObservableObject {
         self.init([connectionType], logMaxLines: logMaxLines)
     }
 
+    public func setupMockData() {
+        isConnected = true
+        clashModeList = ["rule", "global", "direct"]
+        clashMode = "rule"
+        uplinkHistory = Array(repeating: CGFloat(1000), count: 30)
+        downlinkHistory = Array(repeating: CGFloat(5000), count: 30)
+        hasAnyConnection = true
+    }
+
     public func connect() {
         if isConnected {
             return

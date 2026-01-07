@@ -32,7 +32,12 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
         let launchedAsLogInItem =
             event?.eventID == kAEOpenApplication &&
             event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
-        if SharedPreferences.inDebug || !launchedAsLogInItem || !SharedPreferences.showMenuBarExtra.getBlocking() || !SharedPreferences.menuBarExtraInBackground.getBlocking() {
+        let shouldShowWindow = Variant.screenshotMode ||
+            SharedPreferences.inDebug ||
+            !launchedAsLogInItem ||
+            !SharedPreferences.showMenuBarExtra.getBlocking() ||
+            !SharedPreferences.menuBarExtraInBackground.getBlocking()
+        if shouldShowWindow {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
         } else {

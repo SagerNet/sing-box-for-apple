@@ -141,7 +141,13 @@ public class ExtensionEnvironments: ObservableObject {
     public let selectedProfileUpdate = ObjectWillChangePublisher()
     public let openSettings = ObjectWillChangePublisher()
 
-    public init() {}
+    public init() {
+        if Variant.screenshotMode {
+            extensionProfileLoading = false
+            extensionProfile = .mock
+            commandClient.setupMockData()
+        }
+    }
 
     public func postReload() {
         Task {
@@ -150,6 +156,7 @@ public class ExtensionEnvironments: ObservableObject {
     }
 
     public func reload() async {
+        if Variant.screenshotMode { return }
         if let newProfile = try? await ExtensionProfile.load() {
             if extensionProfile == nil || extensionProfile?.status == .invalid {
                 newProfile.register()
@@ -163,6 +170,7 @@ public class ExtensionEnvironments: ObservableObject {
     }
 
     public func connect() {
+        if Variant.screenshotMode { return }
         guard let profile = extensionProfile else {
             return
         }

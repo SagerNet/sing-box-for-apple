@@ -1,4 +1,5 @@
 import ApplicationLibrary
+import Foundation
 import Libbox
 import Library
 import SwiftUI
@@ -6,7 +7,16 @@ import SwiftUI
 struct MainView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
-    @State private var selection = NavigationPage.dashboard
+    @State private var selection: NavigationPage = {
+        if Variant.screenshotMode,
+           let pageValue = ProcessInfo.processInfo.environment["SCREENSHOT_PAGE"],
+           let page = NavigationPage(snapshotValue: pageValue)
+        {
+            return page
+        }
+        return .dashboard
+    }()
+
     @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
 
@@ -22,6 +32,12 @@ struct MainView: View {
             }
         }
         .onAppear {
+            if Variant.screenshotMode,
+               let pageValue = ProcessInfo.processInfo.environment["SCREENSHOT_PAGE"],
+               let page = NavigationPage(snapshotValue: pageValue)
+            {
+                selection = page
+            }
             environments.postReload()
         }
         .onChangeCompat(of: scenePhase) { newValue in

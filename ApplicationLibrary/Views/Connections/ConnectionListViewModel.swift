@@ -56,7 +56,7 @@ public class ConnectionListViewModel: BaseViewModel {
     }
 
     public func connect() {
-        if ApplicationLibrary.inPreview {
+        if Variant.screenshotMode {
             isLoading = false
             return
         }

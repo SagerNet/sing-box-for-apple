@@ -1,0 +1,30 @@
+# iOS Screenshots
+# App Store requirements:
+# - iPhone 6.5" Display
+# - iPad 13" Display
+devices([
+  "iPhone 11 Pro Max",
+  "iPad Pro 13-inch (M4)"
+])
+
+languages([
+  "en-US",
+  "zh-Hans"
+])
+
+project("./sing-box.xcodeproj")
+scheme("SFI")
+app_identifier("io.nekohasekai.sfavt")
+output_directory("./screenshots/ios")
+clear_previous_screenshots(true)
+reinstall_app(true)
+skip_helper_version_check(true)
+override_status_bar(true)
+dark_mode(true)
+number_of_retries(0)
+stop_after_first_error(true)
+skip_package_dependencies_resolution(true)
+disable_package_automatic_updates(true)
+cloned_source_packages_path("/tmp/fastlane_source_packages")
+derived_data_path("/tmp/fastlane_derived_data")
+localize_simulator(true)

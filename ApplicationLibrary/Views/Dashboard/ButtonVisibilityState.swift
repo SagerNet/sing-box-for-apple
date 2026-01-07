@@ -19,13 +19,19 @@ public struct ButtonVisibilityState {
             return
         }
 
-        groupsCount = commandClient.groups?.count ?? 0
+        let actualGroupsCount = commandClient.groups?.count ?? 0
+        let screenshotFallbackGroupsCount = 2
+        groupsCount = Variant.screenshotMode && actualGroupsCount == 0
+            ? screenshotFallbackGroupsCount
+            : actualGroupsCount
         connectionsCount = commandClient.connections?.count ?? 0
 
-        let isConnected = ApplicationLibrary.inPreview || profile.status.isConnectedStrict
+        let isConnected = Variant.screenshotMode || profile.status.isConnectedStrict
+
+        let hasGroups = Variant.screenshotMode || (commandClient.groups?.isEmpty == false)
 
         showConnectionsButton = isConnected
-        showGroupsButton = isConnected && (commandClient.groups?.isEmpty == false)
+        showGroupsButton = isConnected && hasGroups
     }
 
     private mutating func reset() {

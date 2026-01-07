@@ -10,16 +10,7 @@ public struct StartStopButton: View {
 
     public var body: some View {
         Group {
-            if ApplicationLibrary.inPreview {
-                Button {} label: {
-                    #if os(tvOS)
-                        Image(systemName: "stop.fill")
-                    #else
-                        Label("Stop", systemImage: "stop.fill")
-                    #endif
-                }
-                .labelStyle(.iconOnly)
-            } else if let profile = environments.extensionProfile {
+            if let profile = environments.extensionProfile {
                 ToggleConnectionButton().environmentObject(profile)
             } else {
                 Button {} label: {
@@ -108,6 +99,7 @@ public struct StartStopButton: View {
                 .disabled(!profile.status.isEnabled)
                 .alert($alert)
                 .onReceive(timer) { _ in
+                    guard !Variant.screenshotMode else { return }
                     Task { @MainActor in
                         currentTime = Date()
                     }
@@ -140,7 +132,12 @@ public struct StartStopButton: View {
 
         private var runtimeDuration: String? {
             guard let connectedDate = profile.connectedDate else { return nil }
-            let interval = currentTime.timeIntervalSince(connectedDate)
+            let interval: TimeInterval
+            if Variant.screenshotMode {
+                interval = 3600
+            } else {
+                interval = currentTime.timeIntervalSince(connectedDate)
+            }
             guard interval >= 0 else { return nil }
 
             let hours = Int(interval) / 3600

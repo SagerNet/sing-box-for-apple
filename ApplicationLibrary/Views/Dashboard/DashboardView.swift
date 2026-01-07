@@ -77,9 +77,7 @@ public struct DashboardView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        if ApplicationLibrary.inPreview {
-            activeDashboardView
-        } else if environments.extensionProfileLoading {
+        if environments.extensionProfileLoading {
             ProgressView()
         } else if let profile = environments.extensionProfile {
             activeDashboardView

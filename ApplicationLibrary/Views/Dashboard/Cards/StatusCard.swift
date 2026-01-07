@@ -11,7 +11,7 @@ public struct StatusCard: View {
         DashboardCardView(title: "", isHalfWidth: true) {
             VStack(alignment: .leading, spacing: 8) {
                 DashboardCardHeader(icon: "info.circle.fill", title: "Status")
-                if ApplicationLibrary.inPreview {
+                if Variant.screenshotMode {
                     DashboardCardLine(String(localized: "Memory"), "6.4 MB")
                     DashboardCardLine(String(localized: "Goroutines"), "89")
                 } else if let message = commandClient.status {

@@ -98,7 +98,7 @@ public struct CoreView: View {
     }
 
     private nonisolated func loadSettings() async {
-        if ApplicationLibrary.inPreview {
+        if Variant.screenshotMode {
             await MainActor.run {
                 version = "<redacted>"
                 dataSize = LibboxFormatBytes(1000 * 1000 * 10)

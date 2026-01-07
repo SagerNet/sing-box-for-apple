@@ -41,7 +41,7 @@ public struct OverviewView: View {
             }
         }
         .alert($coordinator.alert)
-        .disabled(!ApplicationLibrary.inPreview && (!profile.status.isSwitchable || coordinator.reasserting))
+        .disabled(!Variant.screenshotMode && (!profile.status.isSwitchable || coordinator.reasserting))
     }
 
     @ViewBuilder
@@ -85,9 +85,9 @@ public struct OverviewView: View {
     private func shouldShowCard(_ card: DashboardCard) -> Bool {
         switch card {
         case .status, .connections, .uploadTraffic, .downloadTraffic, .clashMode:
-            return ApplicationLibrary.inPreview || profile.status.isConnected
+            return Variant.screenshotMode || profile.status.isConnected
         case .httpProxy:
-            return (ApplicationLibrary.inPreview || profile.status.isConnectedStrict) && systemProxyAvailable
+            return (Variant.screenshotMode || profile.status.isConnectedStrict) && systemProxyAvailable
         case .profile:
             return true
         }

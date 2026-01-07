@@ -12,7 +12,7 @@ final class SettingViewModel: BaseViewModel {
 
     nonisolated func checkTaiwanFlagAvailability() async {
         let available: Bool
-        if ApplicationLibrary.inPreview {
+        if Variant.screenshotMode {
             available = true
         } else {
             available = !DeviceCensorship.isChinaDevice()

@@ -9,7 +9,7 @@ private struct SidebarContentView: View {
     var environments: ExtensionEnvironments
 
     private var hasGroups: Bool {
-        environments.commandClient.groups?.isEmpty == false
+        Variant.screenshotMode || environments.commandClient.groups?.isEmpty == false
     }
 
     var body: some View {
@@ -77,9 +77,7 @@ public struct SidebarView: View {
     }
 
     public var body: some View {
-        if ApplicationLibrary.inPreview {
-            previewContent
-        } else if environments.extensionProfileLoading {
+        if environments.extensionProfileLoading {
             ProgressView()
         } else if let profile = environments.extensionProfile {
             SidebarContentView(
@@ -91,24 +89,6 @@ public struct SidebarView: View {
         } else {
             disconnectedContent
         }
-    }
-
-    @ViewBuilder
-    private var previewContent: some View {
-        List(selection: $localSelection) {
-            Section(NavigationPage.dashboard.title) {
-                Label("Overview", systemImage: "text.and.command.macwindow")
-                    .tint(.textColor)
-                    .tag(NavigationPage.dashboard)
-                NavigationPage.groups.label.tag(NavigationPage.groups)
-                NavigationPage.connections.label.tag(NavigationPage.connections)
-            }
-            ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
-                it.label
-            }
-        }
-        .listStyle(.sidebar)
-        .scrollDisabled(true)
     }
 
     @ViewBuilder

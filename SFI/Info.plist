@@ -30,7 +30,7 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
-		<string>zh_CN</string>
+		<string>zh-Hans</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>

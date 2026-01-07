@@ -28,7 +28,7 @@ public struct ExtensionStatusView: View {
         Group {
             VStack {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columnCount), alignment: .leading) {
-                    if ApplicationLibrary.inPreview {
+                    if Variant.screenshotMode {
                         StatusItem(String(localized: "Status")) {
                             StatusLine(String(localized: "Memory"), "6.4 MB")
                             StatusLine(String(localized: "Goroutines"), "89")

@@ -63,7 +63,7 @@ struct MainView: View {
     }
 
     var body: some View {
-        if ApplicationLibrary.inPreview {
+        if Variant.screenshotMode {
             mainBody.preferredColorScheme(.dark)
         } else {
             mainBody

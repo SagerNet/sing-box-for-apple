@@ -98,7 +98,7 @@ private struct LogViewContent: View {
 
             func updateUIView(_ uiView: UIButton, context _: Context) {
                 uiView.menu = createMenu()
-                if #available(iOS 26.0, *) {
+                if #available(iOS 17.0, *) {
                     uiView.tintColor = colorScheme == .dark ? .white : .black
                 }
             }
@@ -225,7 +225,7 @@ private struct LogContentInnerView: View {
 
     var body: some View {
         Group {
-            if ApplicationLibrary.inPreview {
+            if Variant.screenshotMode {
                 previewContent
             } else if dataModel.isEmpty {
                 emptyContent
@@ -240,8 +240,6 @@ private struct LogContentInnerView: View {
     private var previewContent: some View {
         let logList = [
             "(packet-tunnel) log server started",
-            "INFO[0000] router: loaded geoip database: 250 codes",
-            "INFO[0000] router: loaded geosite database: 1400 codes",
             "INFO[0000] router: updated default interface en0, index 11",
             "inbound/tun[0]: started at utun3",
             "sing-box started (1.666s)",

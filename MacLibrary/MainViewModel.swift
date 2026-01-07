@@ -6,9 +6,14 @@ import SwiftUI
 
 @MainActor
 public class MainViewModel: BaseViewModel {
-    @Published public var selection = NavigationPage.dashboard
+    @Published public var selection: NavigationPage
     @Published public var importProfile: LibboxProfileContent?
     @Published public var importRemoteProfile: LibboxImportRemoteProfile?
+
+    public init(selection: NavigationPage = .dashboard) {
+        self.selection = selection
+        super.init()
+    }
 
     public func onAppear(environments: ExtensionEnvironments) {
         environments.postReload()

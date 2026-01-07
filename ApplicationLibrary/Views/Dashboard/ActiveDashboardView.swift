@@ -39,14 +39,14 @@ import SwiftUI
             #endif
         } else {
             content.onAppear {
-                guard !ApplicationLibrary.inPreview, profile.status.isConnected else {
+                guard !Variant.screenshotMode, profile.status.isConnected else {
                     return
                 }
                 Task {
                     await coordinator.reloadSystemProxy()
                 }
             }.onChangeCompat(of: profile.status) { status in
-                guard !ApplicationLibrary.inPreview, status == .connected else {
+                guard !Variant.screenshotMode, status == .connected else {
                     return
                 }
                 Task {
@@ -60,7 +60,7 @@ import SwiftUI
         Group {
             #if os(iOS)
                 if useLegacyTabView {
-                    if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
+                    if Variant.screenshotMode || profile.status.isConnectedStrict {
                         VStack {
                             pageSelector
                             pageContent
@@ -126,11 +126,7 @@ import SwiftUI
             #endif
         #endif
         .onAppear {
-                if ApplicationLibrary.inPreview {
-                    environments.commandClient.connect()
-                } else {
-                    environments.connect()
-                }
+                environments.connect()
             }.onChangeCompat(of: scenePhase) { phase in
                 guard phase == .active else {
                     return

@@ -12,7 +12,7 @@ public struct UploadTrafficCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 DashboardCardHeader(icon: "arrow.up.circle.fill", title: "Upload")
 
-                if ApplicationLibrary.inPreview {
+                if Variant.screenshotMode {
                     Text("38 B/s")
                         .font(.title2)
                         .fontWeight(.medium)

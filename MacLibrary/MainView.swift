@@ -1,4 +1,6 @@
+import AppKit
 import ApplicationLibrary
+import Foundation
 import Library
 import SwiftUI
 
@@ -6,17 +8,49 @@ import SwiftUI
 public struct MainView: View {
     @Environment(\.controlActiveState) private var controlActiveState
     @EnvironmentObject private var environments: ExtensionEnvironments
-    @StateObject private var viewModel = MainViewModel()
+    @StateObject private var viewModel: MainViewModel
     @State private var showCardManagement = false
     @State private var cardConfigurationVersion = 0
     @State private var settingsNavigationPath = NavigationPath()
     @State private var pendingSettingsPage: SettingsPage?
+    @State private var didConfigureScreenshotWindow = false
+    @State private var pendingScreenshotSelection: NavigationPage?
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
         AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
     }
 
-    public init() {}
+    private let screenshotDefaultPixelHeight: CGFloat = 1000
+
+    public init() {
+        let initialSelection: NavigationPage = .dashboard
+        if Variant.screenshotMode,
+           let pageValue = ProcessInfo.processInfo.environment["SCREENSHOT_PAGE"],
+           let page = NavigationPage(snapshotValue: pageValue)
+        {
+            _pendingScreenshotSelection = State(initialValue: page)
+        } else {
+            _pendingScreenshotSelection = State(initialValue: nil)
+        }
+        _viewModel = StateObject(wrappedValue: MainViewModel(selection: initialSelection))
+    }
+
+    private func screenshotTargetHeight(baseHeight _: CGFloat, window: NSWindow) -> CGFloat {
+        let scale = max(window.backingScaleFactor, 1)
+        if let pixelOverride = ProcessInfo.processInfo.environment["SCREENSHOT_WINDOW_PIXEL_HEIGHT"] {
+            let trimmed = pixelOverride.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let height = Double(trimmed), height > 0 {
+                return CGFloat(height) / scale
+            }
+        }
+        if let override = ProcessInfo.processInfo.environment["SCREENSHOT_WINDOW_HEIGHT"] {
+            let trimmed = override.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let height = Double(trimmed), height > 0 {
+                return CGFloat(height)
+            }
+        }
+        return screenshotDefaultPixelHeight / scale
+    }
 
     public var body: some View {
         NavigationSplitView {
@@ -31,7 +65,27 @@ public struct MainView: View {
             .environment(\.settingsNavigationPath, $settingsNavigationPath)
             .navigationSplitViewColumnWidth(650)
         }
-        .frame(minHeight: 500)
+        .frame(minHeight: Variant.screenshotMode ? 0 : 500)
+        .background(WindowAccessor { window in
+            guard Variant.screenshotMode, !didConfigureScreenshotWindow, let window else { return }
+            didConfigureScreenshotWindow = true
+            DispatchQueue.main.async {
+                window.hasShadow = true
+                let baseSize = window.contentLayoutRect.size
+                let targetHeight = screenshotTargetHeight(baseHeight: baseSize.height, window: window)
+                let targetSize = NSSize(width: baseSize.width, height: targetHeight)
+                guard targetSize.width > 0, targetSize.height > 0 else { return }
+                window.contentMinSize = targetSize
+                window.contentMaxSize = targetSize
+                window.minSize = targetSize
+                window.maxSize = targetSize
+                window.setContentSize(targetSize)
+                if let pending = pendingScreenshotSelection, pending != viewModel.selection {
+                    viewModel.selection = pending
+                    pendingScreenshotSelection = nil
+                }
+            }
+        })
         .onAppear {
             viewModel.onAppear(environments: environments)
         }

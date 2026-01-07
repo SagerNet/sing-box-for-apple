@@ -203,7 +203,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
 
         guard let groups else { return }
 
-        let selectableGroups = groups.filter { $0.selectable }
+        let selectableGroups = groups.filter(\.selectable)
         if selectableGroups.isEmpty {
             groupsItem?.isHidden = true
             return

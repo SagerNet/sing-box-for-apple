@@ -191,6 +191,7 @@ public struct ConnectionListView: View {
             return UIMenu(children: [stateMenu, sortMenu, closeAction])
         }
     }
+
 #elseif os(macOS)
     private struct ConnectionMenuView: View {
         @Binding var connectionStateFilter: ConnectionStateFilter

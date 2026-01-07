@@ -48,7 +48,7 @@ public final class DashboardViewModel: BaseViewModel {
 
         defer { isLoading = false }
 
-        if ApplicationLibrary.inPreview {
+        if Variant.screenshotMode {
             profileList = [
                 ProfilePreview(Profile(id: 0, name: "profile local", type: .local, path: "")),
                 ProfilePreview(Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0))),

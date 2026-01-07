@@ -157,20 +157,6 @@ private class WindowState {
     }
 }
 
-private struct WindowAccessor: NSViewRepresentable {
-    let callback: (NSWindow?) -> Void
-
-    func makeNSView(context _: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async {
-            callback(view.window)
-        }
-        return view
-    }
-
-    func updateNSView(_: NSView, context _: Context) {}
-}
-
 private class WindowCloseDelegate: NSObject, NSWindowDelegate {
     var allowClose = false
     private let windowState: WindowState

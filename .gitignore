@@ -7,4 +7,8 @@ xcuserdata/
 CLAUDE.md
 .claude
 .mcp.json
-.serena
+/screenshots/
+/fastlane/report.xml
+/fastlane/test_output/
+/fastlane/.bundle/
+/fastlane/.cache/

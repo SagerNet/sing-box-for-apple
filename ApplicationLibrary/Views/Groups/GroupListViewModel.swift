@@ -14,17 +14,18 @@ public class GroupListViewModel: BaseViewModel {
     }
 
     public func connect() {
-        if ApplicationLibrary.inPreview {
+        if Variant.screenshotMode {
             groups = [
                 OutboundGroup(tag: "my_group", type: "selector", selected: "server", selectable: true, isExpand: true, items: [
-                    OutboundGroupItem(tag: "server", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 12),
-                    OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 34),
-                    OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 100),
+                    OutboundGroupItem(tag: "server", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 10),
+                    OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 20),
+                    OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 30),
                 ]),
-                OutboundGroup(tag: "group2", type: "urltest", selected: "client", selectable: true, isExpand: false, items:
-                    (0 ..< 234).map { index in
-                        OutboundGroupItem(tag: "client\(index)", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: UInt16(100 + index * 10))
-                    }),
+                OutboundGroup(tag: "Auto", type: "urltest", selected: "Tokyo", selectable: true, isExpand: false, items: [
+                    OutboundGroupItem(tag: "Tokyo", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 10),
+                    OutboundGroupItem(tag: "Singapore", type: "VMess", urlTestTime: .now, urlTestDelay: 20),
+                    OutboundGroupItem(tag: "Hong Kong", type: "Trojan", urlTestTime: .now, urlTestDelay: 15),
+                ]),
             ]
             isLoading = false
         }

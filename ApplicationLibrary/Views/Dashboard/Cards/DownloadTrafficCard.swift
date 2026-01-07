@@ -12,7 +12,7 @@ public struct DownloadTrafficCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 DashboardCardHeader(icon: "arrow.down.circle.fill", title: "Download")
 
-                if ApplicationLibrary.inPreview {
+                if Variant.screenshotMode {
                     Text("249 MB/s")
                         .font(.title2)
                         .fontWeight(.medium)

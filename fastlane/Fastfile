@@ -1,0 +1,261 @@
+default_platform(:ios)
+
+ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "0"
+ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "30"
+
+SCREENSHOT_LANGUAGES = ["en-US", "zh-Hans"].freeze
+SCREENSHOT_LOCALES = {
+  "zh-Hans" => "zh_CN"
+}.freeze
+
+def reset_dir(path)
+  FileUtils.rm_rf(path)
+  FileUtils.mkdir_p(path)
+end
+
+def screenshot_locale(language)
+  SCREENSHOT_LOCALES[language]
+end
+
+def write_screenshot_language_files(dir, language, locale)
+  FileUtils.mkdir_p(dir)
+  File.write(File.join(dir, "language.txt"), language)
+  if locale
+    File.write(File.join(dir, "locale.txt"), locale)
+  else
+    FileUtils.rm_f(File.join(dir, "locale.txt"))
+  end
+end
+
+def shutdown_simulator(name)
+  sh("xcrun simctl shutdown \"#{name}\" || true")
+end
+
+platform :ios do
+  desc "Generate iOS screenshots"
+  lane :screenshots do
+    ENV["SNAPSHOT_SIMULATOR_WAIT_FOR_BOOT_TIMEOUT"] = "10"
+    screenshots_cache = File.expand_path("~/Library/Caches/tools.fastlane/screenshots")
+    reset_dir(screenshots_cache)
+    capture_screenshots
+    shutdown_simulator("iPhone 11 Pro Max")
+    shutdown_simulator("iPad Pro 13-inch (M4)")
+  end
+end
+
+platform :mac do
+  desc "Generate macOS screenshots"
+  lane :screenshots do
+    output_base_dir = File.expand_path("../screenshots/macos", __dir__)
+    screenshots_cache_candidates = [
+      File.expand_path("~/Library/Caches/tools.fastlane/screenshots"),
+      File.expand_path("~/Library/Containers/io.nekohasekai.sfavt.SFMUITests.xctrunner/Data/Library/Caches/tools.fastlane/screenshots")
+    ].uniq
+    ENV["DISABLE_SWIFTLINT"] = "1"
+    ENV["SCREENSHOT_WINDOW_PIXEL_HEIGHT"] = "1000"
+
+    reset_dir(output_base_dir)
+
+    SCREENSHOT_LANGUAGES.each do |language|
+      output_dir = File.join(output_base_dir, language)
+      ENV["SCREENSHOT_LANGUAGE"] = language
+      locale = screenshot_locale(language)
+      if locale
+        ENV["SCREENSHOT_LOCALE"] = locale
+      else
+        ENV.delete("SCREENSHOT_LOCALE")
+      end
+      reset_dir(output_dir)
+      screenshots_cache_candidates.each do |dir|
+        reset_dir(dir)
+        write_screenshot_language_files(dir, language, locale)
+      end
+
+      run_tests(
+        project: "sing-box.xcodeproj",
+        scheme: "SFM",
+        destination: "platform=macOS",
+        result_bundle: false,
+        reinstall_app: false,
+        app_identifier: "io.nekohasekai.sfavt",
+        only_testing: ["SFMUITests/SnapshotTests"],
+        number_of_retries: 0
+      )
+
+      copied = {}
+      screenshots_cache_candidates.each do |dir|
+        Dir.glob("#{dir}/Mac-*.png").each do |file|
+          basename = File.basename(file)
+          next if copied[basename]
+          FileUtils.cp(file, output_dir)
+          copied[basename] = true
+        end
+      end
+
+      padded_files = Dir.glob("#{output_dir}/*.png")
+      magick_bin = `which magick 2>/dev/null`.strip
+      magick_bin = `which convert 2>/dev/null`.strip if magick_bin.empty?
+      if magick_bin.empty?
+        UI.user_error!("ImageMagick not found. Install it (magick/convert) to add shadow.")
+      end
+
+      canvas_width = 2880
+      canvas_height = 1800
+      target_width = 2620
+      target_height = 1620
+      shadow_opacity = 26
+
+      padded_files.each do |file|
+        size_output = sh(
+          magick_bin,
+          file,
+          "-format",
+          "%w %h",
+          "info:",
+          log: false
+        ).strip
+        opaque_output = sh(
+          magick_bin,
+          file,
+          "-format",
+          "%[opaque]",
+          "info:",
+          log: false
+        ).strip
+        width, height = size_output.split.map(&:to_i)
+        has_transparency = opaque_output != "True"
+        tmp_file = "#{file}.tmp.png"
+
+        if has_transparency
+          shadow_sigma = 24
+          shadow_offset = 8
+          shadow = "#{shadow_opacity}x#{shadow_sigma}+0+#{shadow_offset}"
+          sh(
+            magick_bin,
+            file,
+            "-alpha", "set",
+            "-background", "none",
+            "-trim",
+            "+repage",
+            "-resize",
+            "#{target_width}x#{target_height}",
+            "(",
+            "+clone",
+            "-background",
+            "black",
+            "-shadow",
+            shadow,
+            ")",
+            "+swap",
+            "-background",
+            "white",
+            "-layers",
+            "merge",
+            "+repage",
+            "-gravity",
+            "center",
+            "-extent",
+            "#{canvas_width}x#{canvas_height}",
+            tmp_file
+          )
+        else
+          scale = [
+            target_width.to_f / width,
+            target_height.to_f / height
+          ].min
+          scaled_width = (width * scale).round
+          scaled_height = (height * scale).round
+          mask_width = [scaled_width - 1, 1].max
+          mask_height = [scaled_height - 1, 1].max
+          corner_radius = [(28 * scale).round, 28].max
+          shadow_sigma = [(16 * scale).round, 1].max
+          shadow_offset = [(5 * scale).round, 1].max
+          shadow = "#{shadow_opacity}x#{shadow_sigma}+0+#{shadow_offset}"
+          sh(
+            magick_bin,
+            file,
+            "-resize",
+            "#{scaled_width}x#{scaled_height}",
+            "-alpha",
+            "set",
+            "(",
+            "-size",
+            "#{scaled_width}x#{scaled_height}",
+            "xc:none",
+            "-fill",
+            "white",
+            "-draw",
+            "roundrectangle 0,0 #{mask_width},#{mask_height},#{corner_radius},#{corner_radius}",
+            ")",
+            "-compose",
+            "DstIn",
+            "-composite",
+            "-compose",
+            "over",
+            "(",
+            "+clone",
+            "-background",
+            "black",
+            "-shadow",
+            shadow,
+            ")",
+            "+swap",
+            "-background",
+            "white",
+            "-layers",
+            "merge",
+            "+repage",
+            "-gravity",
+            "center",
+            "-extent",
+            "#{canvas_width}x#{canvas_height}",
+            tmp_file
+          )
+        end
+        FileUtils.mv(tmp_file, file, force: true)
+      end
+    end
+  end
+end
+
+platform :tvos do
+  desc "Generate tvOS screenshots"
+  lane :screenshots do
+    output_base_dir = File.expand_path("../screenshots/tvos", __dir__)
+    screenshots_cache = File.expand_path("~/Library/Caches/tools.fastlane/screenshots")
+
+    reset_dir(output_base_dir)
+
+    SCREENSHOT_LANGUAGES.each do |language|
+      output_dir = File.join(output_base_dir, language)
+      ENV["SCREENSHOT_LANGUAGE"] = language
+      locale = screenshot_locale(language)
+      if locale
+        ENV["SCREENSHOT_LOCALE"] = locale
+      else
+        ENV.delete("SCREENSHOT_LOCALE")
+      end
+      reset_dir(output_dir)
+      reset_dir(screenshots_cache)
+      write_screenshot_language_files(screenshots_cache, language, locale)
+
+      run_tests(
+        project: "sing-box.xcodeproj",
+        scheme: "SFT",
+        devices: ["Apple TV 4K (3rd generation)"],
+        result_bundle: false,
+        reinstall_app: true,
+        app_identifier: "io.nekohasekai.sfavt",
+        only_testing: ["SFTUITests/SnapshotTests"],
+        number_of_retries: 0,
+        cloned_source_packages_path: "/tmp/fastlane_source_packages",
+        derived_data_path: "/tmp/fastlane_derived_data"
+      )
+
+      Dir.glob("#{screenshots_cache}/*.png").each do |file|
+        FileUtils.cp(file, output_dir)
+      end
+    end
+    shutdown_simulator("Apple TV 4K (3rd generation)")
+  end
+end

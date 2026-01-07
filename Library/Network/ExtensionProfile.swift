@@ -12,9 +12,10 @@ private let logger = Logger(category: "ExtensionProfile")
 public class ExtensionProfile: ObservableObject {
     public static let controlKind = AppConfiguration.widgetControlKind
 
-    private let manager: NEVPNManager
-    private var connection: NEVPNConnection
+    private let manager: NEVPNManager?
+    private var connection: NEVPNConnection?
     private var observer: Any?
+    private let isMock: Bool
 
     @Published public var status: NEVPNStatus
     @Published public var connectedDate: Date?
@@ -24,9 +25,28 @@ public class ExtensionProfile: ObservableObject {
         connection = manager.connection
         status = manager.connection.status
         connectedDate = manager.connection.connectedDate
+        isMock = false
+    }
+
+    private init(mockStatus: NEVPNStatus, mockConnectedDate: Date?) {
+        manager = nil
+        connection = nil
+        status = mockStatus
+        connectedDate = mockConnectedDate
+        isMock = true
+    }
+
+    private static var _mock: ExtensionProfile?
+
+    public static var mock: ExtensionProfile {
+        if _mock == nil {
+            _mock = ExtensionProfile(mockStatus: .connected, mockConnectedDate: Date().addingTimeInterval(-3600))
+        }
+        return _mock!
     }
 
     public func register() {
+        guard !isMock, let manager else { return }
         observer = NotificationCenter.default.addObserver(
             forName: NSNotification.Name.NEVPNStatusDidChange,
             object: manager.connection,
@@ -88,6 +108,7 @@ public class ExtensionProfile: ObservableObject {
     }
 
     private func setOnDemandRules(useDefaultRules: Bool) async {
+        guard let manager else { return }
         if useDefaultRules {
             manager.onDemandRules = Self.makeDefaultOnDemandRules()
         } else {
@@ -97,6 +118,7 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func updateOnDemand(enabled: Bool, useDefaultRules: Bool) async throws {
+        guard let manager else { return }
         manager.isOnDemandEnabled = enabled
         await setOnDemandRules(useDefaultRules: useDefaultRules)
         try await manager.saveToPreferences()
@@ -104,10 +126,19 @@ public class ExtensionProfile: ObservableObject {
 
     @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
     public func fetchLastDisconnectError() async throws {
+        guard let connection else { return }
         try await connection.fetchLastDisconnectError()
     }
 
     public func start() async throws {
+        if isMock {
+            status = .connecting
+            try await Task.sleep(nanoseconds: 500_000_000)
+            status = .connected
+            connectedDate = Date()
+            return
+        }
+        guard let manager else { return }
         try await fetchProfile()
         manager.isEnabled = true
         let alwaysOn = await SharedPreferences.alwaysOn.get()
@@ -131,6 +162,7 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func reloadService() async throws {
+        if isMock { return }
         let options = try await prepareStartOptions()
         let data = try ExtensionStartOptions.encode(options)
         guard let session = connection as? NETunnelProviderSession else {
@@ -197,6 +229,14 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func stop() async throws {
+        if isMock {
+            status = .disconnecting
+            try await Task.sleep(nanoseconds: 300_000_000)
+            status = .disconnected
+            connectedDate = nil
+            return
+        }
+        guard let manager else { return }
         if manager.isOnDemandEnabled {
             manager.isOnDemandEnabled = false
             try await manager.saveToPreferences()
