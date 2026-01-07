@@ -1926,6 +1926,9 @@
         }
       }
     },
+    "Open Settings" : {
+
+    },
     "Other methods" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2876,6 +2879,16 @@
     },
     "URL" : {
       "shouldTranslate" : false
+    },
+    "URLTest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL 测试"
+          }
+        }
+      }
     },
     "User" : {
       "localizations" : {

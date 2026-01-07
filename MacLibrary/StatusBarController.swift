@@ -16,8 +16,14 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private var menu: NSMenu?
     private var headerItem: NSMenuItem?
     private var headerView: StatusBarHeaderView?
+    private var urlTestAllItem: NSMenuItem?
+    private var urlTestAllView: StatusBarURLTestView?
+    private var urlTestGroupViews: [String: StatusBarURLTestView] = [:]
     private var groupsItem: NSMenuItem?
     private var profilesItem: NSMenuItem?
+    private var currentGroups: [LibboxOutboundGroup] = []
+    private var isURLTestingAll = false
+    private var urlTestingGroups = Set<String>()
 
     public init(environments: ExtensionEnvironments) {
         self.environments = environments
@@ -71,6 +77,12 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         }
         menu = nil
         headerView = nil
+        urlTestAllView = nil
+        urlTestAllItem = nil
+        urlTestGroupViews.removeAll()
+        currentGroups = []
+        isURLTestingAll = false
+        urlTestingGroups.removeAll()
         commandClient?.disconnect()
         commandClient = nil
     }
@@ -162,6 +174,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         if isConnected {
             environments.commandClient.connect()
         }
+        updateURLTestAvailability()
     }
 
     private func loadProfiles() async {
@@ -198,18 +211,40 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func updateGroupsMenu(_ groups: [LibboxOutboundGroup]?) {
+        currentGroups = groups ?? []
         guard let submenu = groupsItem?.submenu else { return }
         submenu.removeAllItems()
+        urlTestGroupViews.removeAll()
 
-        guard let groups else { return }
+        let groups = currentGroups
 
         let selectableGroups = groups.filter(\.selectable)
         if selectableGroups.isEmpty {
             groupsItem?.isHidden = true
+            updateURLTestAvailability()
             return
         }
 
         groupsItem?.isHidden = environments.extensionProfile?.status.isConnected != true
+
+        let urlTestAllView = StatusBarURLTestView(title: NSLocalizedString("URLTest", comment: "")) { [weak self] in
+            self?.performURLTestForAllGroups()
+        }
+        let urlTestAllItem = NSMenuItem()
+        urlTestAllItem.view = urlTestAllView
+        self.urlTestAllView = urlTestAllView
+        self.urlTestAllItem = urlTestAllItem
+        submenu.addItem(urlTestAllItem)
+
+        let closeAllItem = NSMenuItem(
+            title: NSLocalizedString("Close All Connections", comment: ""),
+            action: #selector(closeAllConnections),
+            keyEquivalent: ""
+        )
+        closeAllItem.target = self
+        submenu.addItem(closeAllItem)
+
+        submenu.addItem(NSMenuItem.separator())
 
         let font = NSFont.menuFont(ofSize: 0)
         let attrs: [NSAttributedString.Key: Any] = [.font: font]
@@ -217,6 +252,15 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         for group in selectableGroups {
             let groupItem = NSMenuItem(title: group.tag, action: nil, keyEquivalent: "")
             let groupSubmenu = NSMenu()
+
+            let groupURLTestView = StatusBarURLTestView(title: NSLocalizedString("URLTest", comment: "")) { [weak self] in
+                self?.performURLTestForGroup(group.tag)
+            }
+            let groupURLTestItem = NSMenuItem()
+            groupURLTestItem.view = groupURLTestView
+            groupSubmenu.addItem(groupURLTestItem)
+            groupSubmenu.addItem(NSMenuItem.separator())
+            urlTestGroupViews[group.tag] = groupURLTestView
 
             var outboundData: [(LibboxOutboundGroupItem, NSMenuItem)] = []
             var maxTagWidth: CGFloat = 0
@@ -275,6 +319,8 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             groupItem.submenu = groupSubmenu
             submenu.addItem(groupItem)
         }
+
+        updateURLTestAvailability()
     }
 
     @objc private func selectProfile(_ sender: NSMenuItem) {
@@ -305,6 +351,14 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             } catch {
                 showAlert(error: error)
             }
+        }
+    }
+
+    @objc private func closeAllConnections() {
+        do {
+            try LibboxNewStandaloneCommandClient()!.closeConnections()
+        } catch {
+            showAlert(error: error)
         }
     }
 
@@ -365,6 +419,77 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         alert.runModal()
     }
 
+    private func updateURLTestAvailability() {
+        let isConnected = environments.extensionProfile?.status.isConnected == true
+        let hasGroups = currentGroups.contains(where: \.selectable)
+        let isAnyGroupTesting = !urlTestingGroups.isEmpty
+        let allEnabled = isConnected && hasGroups && !isURLTestingAll && !isAnyGroupTesting
+        urlTestAllView?.setLoading(isURLTestingAll)
+        urlTestAllView?.setEnabled(allEnabled)
+        urlTestAllItem?.isHidden = !isConnected || !hasGroups
+
+        for (tag, view) in urlTestGroupViews {
+            let isGroupTesting = urlTestingGroups.contains(tag)
+            view.setLoading(isGroupTesting)
+            view.setEnabled(isConnected && !isURLTestingAll && !isGroupTesting)
+        }
+    }
+
+    private func performURLTestForAllGroups() {
+        let groups = currentGroups.filter(\.selectable)
+        guard !groups.isEmpty else { return }
+        guard environments.extensionProfile?.status.isConnected == true else { return }
+        guard !isURLTestingAll else { return }
+        setURLTestAllRunning(true)
+
+        Task {
+            do {
+                let client = LibboxNewStandaloneCommandClient()!
+                for group in groups {
+                    try await client.urlTest(group.tag)
+                }
+            } catch {
+                await showAlert(error: error)
+            }
+            await MainActor.run {
+                self.setURLTestAllRunning(false)
+            }
+        }
+    }
+
+    private func performURLTestForGroup(_ tag: String) {
+        guard environments.extensionProfile?.status.isConnected == true else { return }
+        guard !isURLTestingAll else { return }
+        guard !urlTestingGroups.contains(tag) else { return }
+        setURLTestGroupRunning(tag, true)
+
+        Task {
+            do {
+                let client = LibboxNewStandaloneCommandClient()!
+                try await client.urlTest(tag)
+            } catch {
+                await showAlert(error: error)
+            }
+            await MainActor.run {
+                self.setURLTestGroupRunning(tag, false)
+            }
+        }
+    }
+
+    private func setURLTestAllRunning(_ running: Bool) {
+        isURLTestingAll = running
+        updateURLTestAvailability()
+    }
+
+    private func setURLTestGroupRunning(_ tag: String, _ running: Bool) {
+        if running {
+            urlTestingGroups.insert(tag)
+        } else {
+            urlTestingGroups.remove(tag)
+        }
+        updateURLTestAvailability()
+    }
+
     // MARK: - NSMenuDelegate
 
     public func menuWillOpen(_: NSMenu) {
@@ -372,6 +497,77 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         Task {
             await loadProfiles()
         }
+    }
+}
+
+// MARK: - StatusBarURLTestView
+
+@MainActor
+private class StatusBarURLTestView: NSView {
+    private let button: NSButton
+    private let progressIndicator: NSProgressIndicator
+    private let action: () -> Void
+    private var isEnabled = true
+    private var isLoading = false
+
+    init(title: String, action: @escaping () -> Void) {
+        self.action = action
+        button = NSButton(title: title, target: nil, action: nil)
+        progressIndicator = NSProgressIndicator()
+        super.init(frame: NSRect(x: 0, y: 0, width: 250, height: 30))
+        setupView()
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupView() {
+        button.target = self
+        button.action = #selector(buttonClicked)
+        button.bezelStyle = .texturedRounded
+        button.controlSize = .small
+        button.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(button)
+
+        progressIndicator.style = .spinning
+        progressIndicator.controlSize = .small
+        progressIndicator.isDisplayedWhenStopped = false
+        progressIndicator.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(progressIndicator)
+
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+            button.trailingAnchor.constraint(lessThanOrEqualTo: progressIndicator.leadingAnchor, constant: -8),
+            button.centerYAnchor.constraint(equalTo: centerYAnchor),
+
+            progressIndicator.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            progressIndicator.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+    }
+
+    func setEnabled(_ enabled: Bool) {
+        isEnabled = enabled
+        updateState()
+    }
+
+    func setLoading(_ loading: Bool) {
+        isLoading = loading
+        updateState()
+    }
+
+    private func updateState() {
+        button.isEnabled = isEnabled && !isLoading
+        if isLoading {
+            progressIndicator.startAnimation(nil)
+        } else {
+            progressIndicator.stopAnimation(nil)
+        }
+    }
+
+    @objc private func buttonClicked() {
+        action()
     }
 }
 
