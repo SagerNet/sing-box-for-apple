@@ -19,6 +19,10 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private var urlTestAllItem: NSMenuItem?
     private var urlTestAllView: StatusBarURLTestView?
     private var urlTestGroupViews: [String: StatusBarURLTestView] = [:]
+    private var groupMenuItems: [String: NSMenuItem] = [:]
+    private var groupOutboundItems: [String: [String: NSMenuItem]] = [:]
+    private var groupOrder: [String] = []
+    private var outboundOrderByGroup: [String: [String]] = [:]
     private var groupsItem: NSMenuItem?
     private var profilesItem: NSMenuItem?
     private var currentGroups: [LibboxOutboundGroup] = []
@@ -80,6 +84,10 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         urlTestAllView = nil
         urlTestAllItem = nil
         urlTestGroupViews.removeAll()
+        groupMenuItems.removeAll()
+        groupOutboundItems.removeAll()
+        groupOrder.removeAll()
+        outboundOrderByGroup.removeAll()
         currentGroups = []
         isURLTestingAll = false
         urlTestingGroups.removeAll()
@@ -213,8 +221,6 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private func updateGroupsMenu(_ groups: [LibboxOutboundGroup]?) {
         currentGroups = groups ?? []
         guard let submenu = groupsItem?.submenu else { return }
-        submenu.removeAllItems()
-        urlTestGroupViews.removeAll()
 
         let groups = currentGroups
 
@@ -226,6 +232,43 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         }
 
         groupsItem?.isHidden = environments.extensionProfile?.status.isConnected != true
+
+        let newGroupOrder = selectableGroups.map(\.tag)
+        var newOutboundOrderByGroup: [String: [String]] = [:]
+        for group in selectableGroups {
+            var tags: [String] = []
+            let items = group.getItems()!
+            while items.hasNext() {
+                tags.append(items.next()!.tag)
+            }
+            newOutboundOrderByGroup[group.tag] = tags
+        }
+
+        let structureSame = newGroupOrder == groupOrder
+            && newOutboundOrderByGroup == outboundOrderByGroup
+            && urlTestAllView != nil
+            && !groupMenuItems.isEmpty
+
+        if structureSame {
+            if !updateGroupMenuItems(selectableGroups) {
+                rebuildGroupsMenu(selectableGroups, submenu: submenu)
+                groupOrder = newGroupOrder
+                outboundOrderByGroup = newOutboundOrderByGroup
+            }
+        } else {
+            rebuildGroupsMenu(selectableGroups, submenu: submenu)
+            groupOrder = newGroupOrder
+            outboundOrderByGroup = newOutboundOrderByGroup
+        }
+
+        updateURLTestAvailability()
+    }
+
+    private func rebuildGroupsMenu(_ selectableGroups: [LibboxOutboundGroup], submenu: NSMenu) {
+        submenu.removeAllItems()
+        urlTestGroupViews.removeAll()
+        groupMenuItems.removeAll()
+        groupOutboundItems.removeAll()
 
         let urlTestAllView = StatusBarURLTestView(title: NSLocalizedString("URLTest", comment: "")) { [weak self] in
             self?.performURLTestForAllGroups()
@@ -262,6 +305,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             groupSubmenu.addItem(NSMenuItem.separator())
             urlTestGroupViews[group.tag] = groupURLTestView
 
+            var outboundItemsByTag: [String: NSMenuItem] = [:]
             var outboundData: [(LibboxOutboundGroupItem, NSMenuItem)] = []
             var maxTagWidth: CGFloat = 0
             var maxDelayWidth: CGFloat = 0
@@ -277,6 +321,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
                 outboundItem.target = self
                 outboundItem.representedObject = ["groupTag": group.tag, "outboundTag": outbound.tag]
                 outboundItem.state = group.selected == outbound.tag ? .on : .off
+                outboundItemsByTag[outbound.tag] = outboundItem
 
                 let tagWidth = (outbound.tag as NSString).size(withAttributes: attrs).width
                 maxTagWidth = max(maxTagWidth, tagWidth)
@@ -318,9 +363,67 @@ public class StatusBarController: NSObject, NSMenuDelegate {
 
             groupItem.submenu = groupSubmenu
             submenu.addItem(groupItem)
+            groupMenuItems[group.tag] = groupItem
+            groupOutboundItems[group.tag] = outboundItemsByTag
+        }
+    }
+
+    private func updateGroupMenuItems(_ selectableGroups: [LibboxOutboundGroup]) -> Bool {
+        let font = NSFont.menuFont(ofSize: 0)
+        let attrs: [NSAttributedString.Key: Any] = [.font: font]
+
+        for group in selectableGroups {
+            guard let outboundItemsByTag = groupOutboundItems[group.tag] else { return false }
+
+            var outboundData: [(LibboxOutboundGroupItem, NSMenuItem)] = []
+            var maxTagWidth: CGFloat = 0
+            var maxDelayWidth: CGFloat = 0
+
+            let items = group.getItems()!
+            while items.hasNext() {
+                let outbound = items.next()!
+                guard let outboundItem = outboundItemsByTag[outbound.tag] else { return false }
+                outboundItem.state = group.selected == outbound.tag ? .on : .off
+
+                let tagWidth = (outbound.tag as NSString).size(withAttributes: attrs).width
+                maxTagWidth = max(maxTagWidth, tagWidth)
+
+                if outbound.urlTestDelay > 0 {
+                    let delayText = "\(outbound.urlTestDelay)ms"
+                    let delayWidth = (delayText as NSString).size(withAttributes: attrs).width
+                    maxDelayWidth = max(maxDelayWidth, delayWidth)
+                }
+
+                outboundData.append((outbound, outboundItem))
+            }
+
+            let tabLocation = maxTagWidth + 20 + maxDelayWidth
+            let tabStop = NSTextTab(textAlignment: .right, location: tabLocation)
+            let style = NSMutableParagraphStyle()
+            style.tabStops = [tabStop]
+
+            for (outbound, outboundItem) in outboundData {
+                let delay = outbound.urlTestDelay
+                let delayText = delay > 0 ? "\(delay)ms" : ""
+                let fullText = "\(outbound.tag)\t\(delayText)"
+                let attrString = NSMutableAttributedString(
+                    string: fullText,
+                    attributes: [.font: font, .paragraphStyle: style]
+                )
+                if delay > 0 {
+                    let color = NSColor.delayColor(for: UInt16(delay))
+                    let delayStart = (fullText as NSString).length - (delayText as NSString).length
+                    attrString.addAttribute(
+                        .foregroundColor,
+                        value: color,
+                        range: NSRange(location: delayStart, length: (delayText as NSString).length)
+                    )
+                }
+                outboundItem.attributedTitle = attrString
+            }
         }
 
-        updateURLTestAvailability()
+        return true
     }
 
     @objc private func selectProfile(_ sender: NSMenuItem) {
@@ -504,17 +607,19 @@ public class StatusBarController: NSObject, NSMenuDelegate {
 
 @MainActor
 private class StatusBarURLTestView: NSView {
-    private let button: NSButton
+    private let titleLabel: NSTextField
     private let progressIndicator: NSProgressIndicator
     private let action: () -> Void
     private var isEnabled = true
     private var isLoading = false
+    private var isHighlighted = false
+    private var trackingArea: NSTrackingArea?
 
     init(title: String, action: @escaping () -> Void) {
         self.action = action
-        button = NSButton(title: title, target: nil, action: nil)
+        titleLabel = NSTextField(labelWithString: title)
         progressIndicator = NSProgressIndicator()
-        super.init(frame: NSRect(x: 0, y: 0, width: 250, height: 30))
+        super.init(frame: NSRect(x: 0, y: 0, width: 250, height: 22))
         setupView()
     }
 
@@ -524,12 +629,10 @@ private class StatusBarURLTestView: NSView {
     }
 
     private func setupView() {
-        button.target = self
-        button.action = #selector(buttonClicked)
-        button.bezelStyle = .texturedRounded
-        button.controlSize = .small
-        button.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(button)
+        titleLabel.font = NSFont.menuFont(ofSize: 0)
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(titleLabel)
 
         progressIndicator.style = .spinning
         progressIndicator.controlSize = .small
@@ -538,13 +641,14 @@ private class StatusBarURLTestView: NSView {
         addSubview(progressIndicator)
 
         NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            button.trailingAnchor.constraint(lessThanOrEqualTo: progressIndicator.leadingAnchor, constant: -8),
-            button.centerYAnchor.constraint(equalTo: centerYAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: progressIndicator.leadingAnchor, constant: -8),
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
 
             progressIndicator.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             progressIndicator.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
+        updateState()
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -558,16 +662,81 @@ private class StatusBarURLTestView: NSView {
     }
 
     private func updateState() {
-        button.isEnabled = isEnabled && !isLoading
+        let canInteract = isEnabled && !isLoading
+        if !canInteract {
+            isHighlighted = false
+        }
+        if isHighlighted, canInteract {
+            titleLabel.textColor = NSColor.selectedMenuItemTextColor
+        } else {
+            titleLabel.textColor = canInteract ? NSColor.labelColor : NSColor.disabledControlTextColor
+        }
         if isLoading {
             progressIndicator.startAnimation(nil)
         } else {
             progressIndicator.stopAnimation(nil)
         }
+        needsDisplay = true
     }
 
-    @objc private func buttonClicked() {
-        action()
+    override func updateTrackingAreas() {
+        if let trackingArea {
+            removeTrackingArea(trackingArea)
+        }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+        trackingArea = area
+        super.updateTrackingAreas()
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        guard isEnabled, !isLoading else { return }
+        isHighlighted = true
+        titleLabel.textColor = NSColor.selectedMenuItemTextColor
+        needsDisplay = true
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        guard isEnabled, !isLoading else { return }
+        isHighlighted = false
+        titleLabel.textColor = NSColor.labelColor
+        needsDisplay = true
+    }
+
+    override func mouseDown(with _: NSEvent) {
+        guard isEnabled, !isLoading else { return }
+        isHighlighted = true
+        titleLabel.textColor = NSColor.selectedMenuItemTextColor
+        needsDisplay = true
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        guard isEnabled, !isLoading else { return }
+        let point = convert(event.locationInWindow, from: nil)
+        if bounds.contains(point) {
+            action()
+        }
+        isHighlighted = false
+        titleLabel.textColor = NSColor.labelColor
+        needsDisplay = true
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        if isHighlighted {
+            NSColor.selectedMenuItemColor.setFill()
+            dirtyRect.fill()
+        } else {
+            NSColor.clear.setFill()
+            dirtyRect.fill()
+        }
+        super.draw(dirtyRect)
     }
 }
 
