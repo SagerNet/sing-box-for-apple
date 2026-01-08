@@ -7,6 +7,7 @@ import Library
 @MainActor
 public class StatusBarController: NSObject, NSMenuDelegate {
     private var statusItem: NSStatusItem?
+    private var statusItemView: StatusBarItemView?
     private let environments: ExtensionEnvironments
     private var commandClient: CommandClient?
     private var cancellables = Set<AnyCancellable>()
@@ -62,9 +63,24 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         let button = statusItem!.button!
-        button.image = NSImage(named: "MenuIcon")
-        button.image?.isTemplate = true
-        button.imagePosition = .imageTrailing
+        button.image = nil
+        button.title = ""
+        let itemView = StatusBarItemView()
+        itemView.translatesAutoresizingMaskIntoConstraints = false
+        button.addSubview(itemView)
+        NSLayoutConstraint.activate([
+            itemView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+            itemView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+            itemView.topAnchor.constraint(equalTo: button.topAnchor),
+            itemView.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+        ])
+        statusItemView = itemView
+        itemView.attach(to: button)
+        if let image = NSImage(named: "MenuIcon") {
+            image.isTemplate = true
+            itemView.setIcon(image)
+        }
+        updateStatusItemLength()
 
         menu = NSMenu()
         menu!.delegate = self
@@ -79,6 +95,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             NSStatusBar.system.removeStatusItem(statusItem)
             self.statusItem = nil
         }
+        statusItemView = nil
         menu = nil
         headerView = nil
         urlTestAllView = nil
@@ -503,14 +520,20 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func updateSpeedDisplay(status: LibboxStatusMessage?) {
-        guard let button = statusItem?.button else { return }
+        guard statusItem != nil else { return }
         if speedMode == .disabled || status == nil || !status!.trafficAvailable {
-            button.title = ""
-        } else if speedMode == .separate {
-            button.title = "↑ \(LibboxFormatBytes(status!.uplink))/s ↓ \(LibboxFormatBytes(status!.downlink))/s  "
+            statusItemView?.setTitle("")
+        } else if speedMode == .enabled {
+            statusItemView?.setTitle("\(LibboxFormatBytes(status!.uplink))/s\n\(LibboxFormatBytes(status!.downlink))/s")
         } else {
-            button.title = "\(LibboxFormatBytes(status!.uplink + status!.downlink))/s  "
+            statusItemView?.setTitle("\(LibboxFormatBytes(status!.uplink + status!.downlink))/s")
         }
+        updateStatusItemLength()
+    }
+    private func updateStatusItemLength() {
+        guard let statusItem, let statusItemView else { return }
+        let width = statusItemView.fittingWidth()
+        statusItem.length = max(width, NSStatusBar.system.thickness)
     }
 
     private func showAlert(error: Error) {
@@ -600,6 +623,175 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         Task {
             await loadProfiles()
         }
+    }
+}
+
+// MARK: - StatusBarItemView
+
+@MainActor
+private class StatusBarItemView: NSView {
+    private enum Layout {
+        static let horizontalPadding: CGFloat = 8
+        static let verticalPadding: CGFloat = 2
+        static let spacing: CGFloat = 6
+        static let lineHeight: CGFloat = 9
+        static let fontSize: CGFloat = 8.75
+        static let textWidth: CGFloat = 42
+    }
+
+    private let imageView: NSImageView
+    private let textField: NSTextField
+    private let stackView: NSStackView
+    private let textAttributes: [NSAttributedString.Key: Any]
+    private var currentTitle = ""
+    private var isHighlighted = false
+    private weak var statusButton: NSStatusBarButton?
+    private var leadingConstraint: NSLayoutConstraint?
+    private var trailingConstraint: NSLayoutConstraint?
+    private var topConstraint: NSLayoutConstraint?
+    private var bottomConstraint: NSLayoutConstraint?
+    private var textWidthConstraint: NSLayoutConstraint?
+    private var currentHorizontalPadding = Layout.horizontalPadding
+
+    override init(frame frameRect: NSRect) {
+        imageView = NSImageView()
+        textField = NSTextField(labelWithString: "")
+        stackView = NSStackView()
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.maximumLineHeight = Layout.lineHeight
+        paragraphStyle.minimumLineHeight = Layout.lineHeight
+        paragraphStyle.alignment = .right
+        paragraphStyle.lineBreakMode = .byClipping
+        textAttributes = [
+            .paragraphStyle: paragraphStyle,
+            .font: NSFont.systemFont(ofSize: Layout.fontSize),
+            .foregroundColor: NSColor.labelColor,
+        ]
+
+        super.init(frame: frameRect)
+        setupView()
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupView() {
+        imageView.imageScaling = .scaleProportionallyDown
+        imageView.isHidden = true
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        textField.isEditable = false
+        textField.isBezeled = false
+        textField.drawsBackground = false
+        textField.isHidden = true
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.lineBreakMode = .byClipping
+        textField.maximumNumberOfLines = 2
+        textField.usesSingleLineMode = false
+        textField.alignment = .right
+        textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
+        stackView.orientation = .horizontal
+        stackView.distribution = .equalSpacing
+        stackView.alignment = .centerY
+        stackView.spacing = Layout.spacing
+        stackView.detachesHiddenViews = true
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.addArrangedSubview(imageView)
+        stackView.addArrangedSubview(textField)
+        addSubview(stackView)
+
+        leadingConstraint = stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Layout.horizontalPadding)
+        trailingConstraint = stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Layout.horizontalPadding)
+        topConstraint = stackView.topAnchor.constraint(equalTo: topAnchor, constant: Layout.verticalPadding)
+        bottomConstraint = stackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Layout.verticalPadding)
+        textWidthConstraint = textField.widthAnchor.constraint(equalToConstant: Layout.textWidth)
+
+        NSLayoutConstraint.activate([
+            leadingConstraint!,
+            trailingConstraint!,
+            topConstraint!,
+            bottomConstraint!,
+            textWidthConstraint!,
+        ])
+
+        updateLayout(hasTitle: false)
+    }
+
+    func setIcon(_ image: NSImage) {
+        imageView.image = image
+        imageView.isHidden = false
+        updateTintColor()
+    }
+
+    func setTitle(_ title: String) {
+        currentTitle = title
+        updateTitle()
+    }
+
+    func attach(to button: NSStatusBarButton) {
+        statusButton = button
+        updateHighlight(button.isHighlighted)
+    }
+
+    func fittingWidth() -> CGFloat {
+        layoutSubtreeIfNeeded()
+        let width = stackView.fittingSize.width + currentHorizontalPadding * 2
+        return ceil(width)
+    }
+
+    private func updateTitle() {
+        let hasTitle = !currentTitle.isEmpty
+        updateLayout(hasTitle: hasTitle)
+        if !hasTitle {
+            textField.stringValue = ""
+            textField.isHidden = true
+        } else {
+            var attributes = textAttributes
+            attributes[.foregroundColor] = isHighlighted
+                ? NSColor.selectedMenuItemTextColor
+                : NSColor.labelColor
+            textField.attributedStringValue = NSAttributedString(string: currentTitle, attributes: attributes)
+            textField.isHidden = false
+        }
+    }
+
+    private func updateLayout(hasTitle: Bool) {
+        let horizontalPadding = hasTitle ? Layout.horizontalPadding : 0
+        let verticalPadding = hasTitle ? Layout.verticalPadding : 0
+        currentHorizontalPadding = horizontalPadding
+        leadingConstraint?.constant = horizontalPadding
+        trailingConstraint?.constant = -horizontalPadding
+        topConstraint?.constant = verticalPadding
+        bottomConstraint?.constant = -verticalPadding
+        textWidthConstraint?.constant = hasTitle ? Layout.textWidth : 0
+        stackView.spacing = hasTitle ? Layout.spacing : 0
+    }
+
+    private func updateTintColor() {
+        imageView.contentTintColor = isHighlighted
+            ? NSColor.selectedMenuItemTextColor
+            : NSColor.labelColor
+    }
+
+    private func updateHighlight(_ highlighted: Bool) {
+        guard isHighlighted != highlighted else { return }
+        isHighlighted = highlighted
+        updateTitle()
+        updateTintColor()
+    }
+
+    override func viewWillDraw() {
+        super.viewWillDraw()
+        updateHighlight(statusButton?.isHighlighted == true)
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        nil
     }
 }
 

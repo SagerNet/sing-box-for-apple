@@ -4,7 +4,7 @@ import Foundation
     public enum MenuBarExtraSpeedMode: Int, CaseIterable {
         case disabled = 0
         case enabled = 1
-        case separate = 2
+        case unified = 2
 
         public var name: String {
             switch self {
@@ -12,8 +12,8 @@ import Foundation
                 return NSLocalizedString("Disabled", comment: "")
             case .enabled:
                 return NSLocalizedString("Enabled", comment: "")
-            case .separate:
-                return NSLocalizedString("Detailed", comment: "")
+            case .unified:
+                return NSLocalizedString("Unified", comment: "")
             }
         }
     }
@@ -66,7 +66,7 @@ public enum SharedPreferences {
     #if os(macOS)
         public static let showMenuBarExtra = Preference<Bool>("show_menu_bar_extra", defaultValue: true)
         public static let menuBarExtraInBackground = Preference<Bool>("menu_bar_extra_in_background", defaultValue: false)
-        public static let menuBarExtraSpeedMode = Preference<Int>("menu_bar_extra_speed_mode", defaultValue: MenuBarExtraSpeedMode.enabled.rawValue)
+        public static let menuBarExtraSpeedMode = Preference<Int>("menu_bar_extra_speed_mode_1", defaultValue: MenuBarExtraSpeedMode.enabled.rawValue)
         public static let startedByUser = Preference<Bool>("started_by_user", defaultValue: false)
 
         public static func resetMacOS() async {

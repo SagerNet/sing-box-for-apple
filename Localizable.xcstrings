@@ -741,6 +741,7 @@
       }
     },
     "Detailed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -2812,6 +2813,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "意外的消息类型 %lld"
+          }
+        }
+      }
+    },
+    "Unified" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "统一"
           }
         }
       }
