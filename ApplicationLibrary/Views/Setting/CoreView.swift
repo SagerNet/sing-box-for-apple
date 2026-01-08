@@ -218,7 +218,9 @@ public struct CoreView: View {
                 guard let sharedURL = URL(string: "shareddocuments://\(url.path)") else {
                     throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create shared documents URL"])
                 }
-                await UIApplication.shared.open(sharedURL)
+                await MainActor.run {
+                    UIApplication.shared.open(sharedURL)
+                }
             } catch {
                 await MainActor.run {
                     alert = AlertState(error: error)
