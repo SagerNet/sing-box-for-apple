@@ -221,6 +221,7 @@ private struct LogContentInnerView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @ObservedObject var dataModel: LogDataModel
     @ObservedObject var viewModel: LogViewModel
+    @Environment(\.colorScheme) private var colorScheme
     private let logFont = Font.system(.caption2, design: .monospaced)
 
     var body: some View {
@@ -248,7 +249,7 @@ private struct LogContentInnerView: View {
             return ScrollView {
                 LazyVStack(alignment: .leading, spacing: 8) {
                     ForEach(logList.indices, id: \.self) { index in
-                        Text(ANSIColors.parseAnsiString(logList[index]))
+                        Text(contrastAdjustedText(for: logList[index]))
                             .font(logFont)
                             .focusable()
                     }
@@ -321,8 +322,23 @@ private struct LogContentInnerView: View {
     }
 
     #if os(tvOS)
-        private func highlightedText(for message: String) -> AttributedString {
+        private func contrastAdjustedText(for message: String) -> AttributedString {
             var attributedString = ANSIColors.parseAnsiString(message)
+            let backgroundColor: UIColor = colorScheme == .dark ? .black : .white
+
+            for run in attributedString.runs {
+                if let fgColor = run.foregroundColor {
+                    let uiColor = UIColor(fgColor)
+                    let adjusted = uiColor.adjustedForContrast(against: backgroundColor)
+                    attributedString[run.range].foregroundColor = Color(adjusted)
+                }
+            }
+
+            return attributedString
+        }
+
+        private func highlightedText(for message: String) -> AttributedString {
+            var attributedString = contrastAdjustedText(for: message)
 
             if !viewModel.searchText.isEmpty {
                 let searchText = viewModel.searchText

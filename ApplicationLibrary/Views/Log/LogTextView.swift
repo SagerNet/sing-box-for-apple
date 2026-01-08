@@ -28,6 +28,7 @@ class LogCoordinator {
     var lastLogsCount: Int = 0
     var lastLog: LogEntry?
     var lastSearchText: String = ""
+    var lastBackgroundColorHash: Int?
     var buildVersion: Int = 0
     var currentBuildTask: Task<Void, Never>?
 
@@ -35,11 +36,20 @@ class LogCoordinator {
         currentBuildTask?.cancel()
     }
 
-    func shouldUpdate(logs: [LogEntry], searchText: String) -> UpdateStrategy {
+    func shouldUpdate(logs: [LogEntry], searchText: String, backgroundColorHash: Int) -> UpdateStrategy {
         let currentCount = logs.count
         let searchChanged = searchText != lastSearchText
+        let colorSchemeChanged = lastBackgroundColorHash != nil && lastBackgroundColorHash != backgroundColorHash
 
-        // Check if nothing changed
+        lastBackgroundColorHash = backgroundColorHash
+
+        if colorSchemeChanged {
+            lastLogsCount = currentCount
+            lastLog = logs.last
+            lastSearchText = searchText
+            return .fullRebuild
+        }
+
         if currentCount == lastLogsCount, currentCount > 0, !searchChanged {
             if let lastLog = logs.last, let previousLastLog = self.lastLog {
                 if lastLog.id == previousLastLog.id {
@@ -48,16 +58,12 @@ class LogCoordinator {
             }
         }
 
-        // Determine update strategy
         let strategy: UpdateStrategy
         if currentCount == 0 || searchChanged || lastLogsCount > currentCount {
-            // Full rebuild needed
             strategy = .fullRebuild
         } else if currentCount > lastLogsCount {
-            // Incremental update possible
             strategy = .incremental(from: lastLogsCount)
         } else {
-            // Same count but different last log (shouldn't happen normally)
             strategy = .fullRebuild
         }
 
@@ -73,6 +79,7 @@ class LogCoordinator {
             searchText: String,
             monoFont: PlatformFont,
             defaultColor: PlatformColor,
+            backgroundColor: PlatformColor,
             startIndex: Int?,
             isViewValid: @escaping @MainActor () -> Bool,
             applyUpdate: @escaping @MainActor (NSAttributedString, Bool) -> Void
@@ -86,6 +93,7 @@ class LogCoordinator {
                     logs: logs,
                     monoFont: monoFont,
                     defaultColor: defaultColor,
+                    backgroundColor: backgroundColor,
                     searchText: searchText,
                     startIndex: startIndex ?? 0
                 ) else { return }
@@ -107,7 +115,7 @@ class LogCoordinator {
 }
 
 #if os(iOS) || os(macOS)
-    private func buildAttributedString(logs: [LogEntry], monoFont: PlatformFont, defaultColor: PlatformColor, searchText: String, startIndex: Int = 0) async throws -> NSAttributedString {
+    private func buildAttributedString(logs: [LogEntry], monoFont: PlatformFont, defaultColor: PlatformColor, backgroundColor: PlatformColor, searchText: String, startIndex: Int = 0) async throws -> NSAttributedString {
         let result = NSMutableAttributedString()
         let highlightColor: PlatformColor = .systemYellow
         let cancellationCheckInterval = 50
@@ -124,7 +132,8 @@ class LogCoordinator {
 
             for run in attributedString.runs {
                 let range = NSRange(run.range, in: attributedString)
-                let color = run.foregroundColor.map { PlatformColor($0) } ?? defaultColor
+                var color = run.foregroundColor.map { PlatformColor($0) } ?? defaultColor
+                color = color.adjustedForContrast(against: backgroundColor)
 
                 nsAttributedString.addAttribute(.foregroundColor, value: color, range: range)
                 nsAttributedString.addAttribute(.font, value: monoFont, range: range)
@@ -187,7 +196,10 @@ class LogCoordinator {
         }
 
         func updateUIView(_ textView: UITextView, context: Context) {
-            let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText)
+            let backgroundColor = UIColor.systemBackground.resolvedColor(with: textView.traitCollection)
+            let backgroundColorHash = backgroundColor.hash
+
+            let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText, backgroundColorHash: backgroundColorHash)
 
             let startIndex: Int?
             switch updateStrategy {
@@ -205,6 +217,7 @@ class LogCoordinator {
                 searchText: searchText,
                 monoFont: Self.monoFont,
                 defaultColor: Self.defaultColor,
+                backgroundColor: backgroundColor,
                 startIndex: startIndex,
                 isViewValid: { [weak textView] in textView?.window != nil },
                 applyUpdate: { [weak textView] attributedString, isIncremental in
@@ -282,7 +295,10 @@ class LogCoordinator {
             guard let textView = scrollView.documentView as? NSTextView else { return }
             guard let textStorage = textView.textStorage else { return }
 
-            let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText)
+            let backgroundColor = NSColor.textBackgroundColor
+            let backgroundColorHash = backgroundColor.hash
+
+            let updateStrategy = context.coordinator.shouldUpdate(logs: logs, searchText: searchText, backgroundColorHash: backgroundColorHash)
 
             let startIndex: Int?
             switch updateStrategy {
@@ -300,6 +316,7 @@ class LogCoordinator {
                 searchText: searchText,
                 monoFont: Self.monoFont,
                 defaultColor: Self.defaultColor,
+                backgroundColor: backgroundColor,
                 startIndex: startIndex,
                 isViewValid: { [weak textView] in textView?.window != nil },
                 applyUpdate: { [weak textView, weak textStorage] attributedString, isIncremental in
