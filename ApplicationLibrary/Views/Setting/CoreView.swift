@@ -178,14 +178,30 @@ public struct CoreView: View {
                 if Variant.useSystemExtension {
                     try RootHelperClient.shared.cleanWorkingDirectory()
                 } else {
-                    try FileManager.default.removeItem(at: FilePath.workingDirectory)
+                    try clearWorkingDirectoryContents()
                 }
             #else
-                try FileManager.default.removeItem(at: FilePath.workingDirectory)
+                try clearWorkingDirectoryContents()
+                #if os(iOS)
+                    if #available(iOS 16.0, *) {
+                        await notifyFileProviderWorkingDirectoryChanged()
+                    }
+                #endif
             #endif
             isLoading = true
         } catch {
             alert = AlertState(error: error)
+        }
+    }
+
+    private func clearWorkingDirectoryContents() throws {
+        let url = FilePath.workingDirectory
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return
+        }
+        let contents = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+        for item in contents {
+            try FileManager.default.removeItem(at: item)
         }
     }
 
@@ -204,15 +220,34 @@ public struct CoreView: View {
 
     #if os(iOS)
         @available(iOS 16.0, *)
+        private nonisolated func fileProviderManager() async throws -> NSFileProviderManager {
+            let domains = try await NSFileProviderManager.domains()
+            guard let domain = domains.first(where: { $0.identifier.rawValue == AppConfiguration.fileProviderDomainID }) else {
+                throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "File provider domain not found"])
+            }
+            guard let manager = NSFileProviderManager(for: domain) else {
+                throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to get file provider manager"])
+            }
+            return manager
+        }
+
+        @available(iOS 16.0, *)
+        private nonisolated func notifyFileProviderWorkingDirectoryChanged() async {
+            do {
+                let manager = try await fileProviderManager()
+                try await manager.signalEnumerator(for: .rootContainer)
+                try await manager.signalEnumerator(for: .workingSet)
+            } catch {
+                await MainActor.run {
+                    alert = AlertState(error: error)
+                }
+            }
+        }
+
+        @available(iOS 16.0, *)
         private nonisolated func openInFilesApp() async {
             do {
-                let domains = try await NSFileProviderManager.domains()
-                guard let domain = domains.first(where: { $0.identifier.rawValue == AppConfiguration.fileProviderDomainID }) else {
-                    throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "File provider domain not found"])
-                }
-                guard let manager = NSFileProviderManager(for: domain) else {
-                    throw NSError(domain: "CoreView", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to get file provider manager"])
-                }
+                let manager = try await fileProviderManager()
                 try await manager.signalEnumerator(for: .workingSet)
                 let url = try await manager.getUserVisibleURL(for: .rootContainer)
                 guard let sharedURL = URL(string: "shareddocuments://\(url.path)") else {
