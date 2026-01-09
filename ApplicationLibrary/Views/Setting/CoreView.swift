@@ -10,6 +10,7 @@ import SwiftUI
 
 @MainActor
 public struct CoreView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
     @State private var isLoading = true
     @State private var alert: AlertState?
@@ -92,6 +93,22 @@ public struct CoreView: View {
         }
         .navigationTitle("Core")
         .alert($alert)
+        .onAppear {
+            guard !isLoading else {
+                return
+            }
+            Task {
+                await refreshWorkingDirectorySize()
+            }
+        }
+        .onChangeCompat(of: scenePhase) { newValue in
+            guard newValue == .active, !isLoading else {
+                return
+            }
+            Task {
+                await refreshWorkingDirectorySize()
+            }
+        }
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -120,10 +137,25 @@ public struct CoreView: View {
 
     private nonisolated func loadSettingsBackground() async {
         let disableDeprecatedWarnings = await SharedPreferences.disableDeprecatedWarnings.get()
+        await MainActor.run {
+            self.disableDeprecatedWarnings = disableDeprecatedWarnings
+        }
+        await refreshWorkingDirectorySize()
+    }
+
+    private nonisolated func refreshWorkingDirectorySize() async {
+        guard !Variant.screenshotMode else {
+            return
+        }
+        #if os(macOS)
+            let helperUnavailable = Variant.useSystemExtension && HelperServiceManager.rootHelperStatus != .enabled
+        #endif
         let dataSize: String?
         #if os(macOS)
             if Variant.useSystemExtension {
-                if let size = try? RootHelperClient.shared.getWorkingDirectorySize() {
+                if helperUnavailable {
+                    dataSize = nil
+                } else if let size = try? RootHelperClient.shared.getWorkingDirectorySize() {
                     dataSize = LibboxFormatBytes(size)
                 } else {
                     dataSize = nil
@@ -135,7 +167,9 @@ public struct CoreView: View {
             dataSize = (try? FilePath.workingDirectory.formattedSize()) ?? "Unknown"
         #endif
         await MainActor.run {
-            self.disableDeprecatedWarnings = disableDeprecatedWarnings
+            #if os(macOS)
+                self.helperUnavailable = helperUnavailable
+            #endif
             self.dataSize = dataSize
         }
     }
