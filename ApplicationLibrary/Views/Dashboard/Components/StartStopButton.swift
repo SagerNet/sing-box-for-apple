@@ -5,13 +5,17 @@ import SwiftUI
 @MainActor
 public struct StartStopButton: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
+    private let showsRuntimeDuration: Bool
 
-    public init() {}
+    public init(showsRuntimeDuration: Bool = false) {
+        self.showsRuntimeDuration = showsRuntimeDuration
+    }
 
     public var body: some View {
         Group {
             if let profile = environments.extensionProfile {
-                ToggleConnectionButton().environmentObject(profile)
+                ToggleConnectionButton(showsRuntimeDuration: showsRuntimeDuration)
+                    .environmentObject(profile)
             } else {
                 Button {} label: {
                     #if os(tvOS)
@@ -33,6 +37,7 @@ public struct StartStopButton: View {
         @State private var alert: AlertState?
         @State private var currentTime = Date()
         @State private var isStarting = false
+        let showsRuntimeDuration: Bool
 
         private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -44,7 +49,7 @@ public struct StartStopButton: View {
             } label: {
                 #if os(iOS)
                     HStack(spacing: 8) {
-                        if showRuntimeDuration, profile.status.isConnectedStrict, let duration = runtimeDuration {
+                        if showsRuntimeDuration, profile.status.isConnectedStrict, let duration = runtimeDuration {
                             Text(duration)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -120,15 +125,6 @@ public struct StartStopButton: View {
                     }
                 }
         }
-
-        #if os(iOS)
-            private var showRuntimeDuration: Bool {
-                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                    return true
-                }
-                return false
-            }
-        #endif
 
         private var runtimeDuration: String? {
             guard let connectedDate = profile.connectedDate else { return nil }

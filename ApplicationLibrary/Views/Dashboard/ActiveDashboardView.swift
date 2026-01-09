@@ -11,6 +11,8 @@ import SwiftUI
     @StateObject private var cardConfiguration = DashboardCardConfiguration()
     #if os(iOS) || os(tvOS)
         @State private var showCardManagement = false
+    #endif
+    #if os(tvOS)
         @State private var showGroups = false
         @State private var showConnections = false
         @State private var buttonState = ButtonVisibilityState()
@@ -58,22 +60,7 @@ import SwiftUI
 
     @ViewBuilder private var content: some View {
         Group {
-            #if os(iOS)
-                if useLegacyTabView {
-                    if Variant.screenshotMode || profile.status.isConnectedStrict {
-                        VStack {
-                            pageSelector
-                            pageContent
-                        }
-                    } else {
-                        overviewPage
-                    }
-                } else {
-                    overviewPage
-                }
-            #else
-                overviewPage
-            #endif
+            overviewPage
         }
         #if os(iOS) || os(tvOS)
         .toolbar {
@@ -110,19 +97,15 @@ import SwiftUI
             }
         }
             #else
-        .sheet(isPresented: $showGroups) {
-                        groupsSheetContent
-                    }.sheet(isPresented: $showConnections) {
-                        connectionsSheetContent
-                    }.sheet(isPresented: $showCardManagement, onDismiss: {
-                        Task { await cardConfiguration.reload() }
-                    }, content: {
-                        if #available(iOS 16.0, *) {
-                            CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
-                        } else {
-                            CardManagementSheet()
-                        }
-                    })
+        .sheet(isPresented: $showCardManagement, onDismiss: {
+            Task { await cardConfiguration.reload() }
+        }, content: {
+            if #available(iOS 16.0, *) {
+                CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
+            } else {
+                CardManagementSheet()
+            }
+        })
             #endif
         #endif
         .onAppear {
@@ -149,24 +132,14 @@ import SwiftUI
                     }
                 }
             }
-        #if os(iOS) || os(tvOS)
+        #if os(tvOS)
             .onReceive(environments.commandClient.$groups) { _ in
                 Task { @MainActor in
                     updateButtonVisibility()
-                    #if os(iOS)
-                        if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
-                            coordinator.selection = .overview
-                        }
-                    #endif
                 }
             }.onReceive(profile.$status) { _ in
                 Task { @MainActor in
                     updateButtonVisibility()
-                    #if os(iOS)
-                        if useLegacyTabView, coordinator.selection == .groups, !buttonState.showGroupsButton {
-                            coordinator.selection = .overview
-                        }
-                    #endif
                 }
             }.onAppear {
                 updateButtonVisibility()
@@ -189,58 +162,13 @@ import SwiftUI
         )
     }
 
-    #if os(iOS) || os(tvOS)
+    #if os(tvOS)
         private func updateButtonVisibility() {
             buttonState.update(profile: profile, commandClient: environments.commandClient)
         }
+    #endif
 
-        #if os(iOS)
-            private var isTabViewBottomAccessoryAvailable: Bool {
-                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                    return true
-                }
-                return false
-            }
-
-            private var useLegacyTabView: Bool {
-                !isTabViewBottomAccessoryAvailable
-            }
-
-            private var enabledPages: [DashboardPage] {
-                DashboardPage.enabledCases(hasGroups: buttonState.showGroupsButton)
-            }
-
-            @ViewBuilder
-            private var pageSelector: some View {
-                Picker("Page", selection: $coordinator.selection) {
-                    ForEach(enabledPages) { page in
-                        page.label
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding([.leading, .trailing])
-                .navigationBarTitleDisplayMode(.inline)
-            }
-
-            @ViewBuilder
-            private var pageContent: some View {
-                TabView(selection: $coordinator.selection) {
-                    ForEach(enabledPages) { page in
-                        page.contentView(
-                            $coordinator.profileList,
-                            $coordinator.selectedProfileID,
-                            $coordinator.systemProxyAvailable,
-                            $coordinator.systemProxyEnabled,
-                            cardConfiguration
-                        )
-                        .tag(page)
-                    }
-                }
-                .navigationBarTitleDisplayMode(.inline)
-                .tabViewStyle(.page(indexDisplayMode: .never))
-            }
-        #endif
-
+    #if os(iOS) || os(tvOS)
         @ToolbarContentBuilder private var toolbar: some ToolbarContent {
             #if os(tvOS)
                 ToolbarItemGroup(placement: .topBarLeading) {
@@ -249,22 +177,9 @@ import SwiftUI
             #endif
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if #available(iOS 16.0, tvOS 17.0, *) {
-                    #if os(iOS)
-                        if !useLegacyTabView || coordinator.selection == .overview {
-                            cardManagementButton
-                        }
-                    #else
-                        cardManagementButton
-                    #endif
+                    cardManagementButton
                 }
                 #if os(tvOS)
-                    StartStopButton()
-                #elseif os(iOS)
-                    if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                    } else if !useLegacyTabView || coordinator.selection != .connections {
-                        StartStopButton()
-                    }
-                #else
                     StartStopButton()
                 #endif
             }
@@ -289,14 +204,6 @@ import SwiftUI
     #endif
 
     #if os(iOS) || os(tvOS)
-        private var groupsSheetContent: some View {
-            GroupsSheetContent()
-        }
-
-        private var connectionsSheetContent: some View {
-            ConnectionsSheetContent()
-        }
-
         @available(iOS 16.0, *) @ViewBuilder private var cardManagementButton: some View {
             #if os(iOS)
                 Menu {

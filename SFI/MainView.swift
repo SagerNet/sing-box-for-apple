@@ -33,30 +33,17 @@ struct MainView: View {
         return true
     }
 
-    @available(iOS 26.0, *)
     @ViewBuilder
     private var tabViewContent: some View {
         if shouldShowBottomAccessory {
-            baseTabView
-                .tabViewBottomAccessory {
-                    HStack(spacing: 12) {
-                        if let profile = environments.extensionProfile {
-                            StatusText(profile: profile)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        NavigationButtonsView(
-                            showGroupsButton: buttonState.showGroupsButton,
-                            showConnectionsButton: buttonState.showConnectionsButton,
-                            groupsCount: buttonState.groupsCount,
-                            connectionsCount: buttonState.connectionsCount,
-                            onGroupsTap: { showGroups = true },
-                            onConnectionsTap: { showConnections = true }
-                        )
-                        Divider()
-                        StartStopButton()
+            if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                baseTabView
+                    .tabViewBottomAccessory {
+                        bottomAccessoryContent
                     }
-                    .padding(.horizontal)
-                }
+            } else {
+                legacyTabView
+            }
         } else {
             baseTabView
         }
@@ -72,11 +59,19 @@ struct MainView: View {
 
     @ViewBuilder
     private var baseTabView: some View {
+        tabView(showsBottomAccessory: false)
+    }
+
+    private var legacyTabView: some View {
+        tabView(showsBottomAccessory: shouldShowBottomAccessory)
+    }
+
+    @ViewBuilder
+    private func tabView(showsBottomAccessory: Bool) -> some View {
         TabView(selection: $selection) {
             ForEach(NavigationPage.allCases, id: \.self) { page in
                 NavigationStackCompat {
-                    page.contentView
-                        .navigationTitle(page.title)
+                    tabContent(for: page, showsBottomAccessory: showsBottomAccessory)
                 }
                 .tag(page)
                 .tabItem { page.label }
@@ -84,40 +79,78 @@ struct MainView: View {
         }
     }
 
+    @ViewBuilder
+    private func tabContent(for page: NavigationPage, showsBottomAccessory: Bool) -> some View {
+        if showsBottomAccessory {
+            let content = page.contentView
+                .navigationTitle(page.title)
+                .tabViewBottomAccessoryCompat(useSystemAccessory: false) {
+                    bottomAccessoryContent
+                }
+            tabBarBackgroundIfAvailable(content)
+        } else {
+            let content = page.contentView
+                .navigationTitle(page.title)
+            content
+        }
+    }
+
+    @ViewBuilder
+    private func tabBarBackgroundIfAvailable<Content: View>(_ content: Content) -> some View {
+        content
+    }
+
+    private var bottomAccessoryContent: some View {
+        HStack(spacing: 12) {
+            if let profile = environments.extensionProfile {
+                StatusText(profile: profile)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            NavigationButtonsView(
+                showGroupsButton: buttonState.showGroupsButton,
+                showConnectionsButton: buttonState.showConnectionsButton,
+                groupsCount: buttonState.groupsCount,
+                connectionsCount: buttonState.connectionsCount,
+                onGroupsTap: { showGroups = true },
+                onConnectionsTap: { showConnections = true }
+            )
+            Divider()
+            StartStopButton(showsRuntimeDuration: true)
+        }
+        .padding(.horizontal)
+        .tint(.primary)
+    }
+
     private var mainBody: some View {
         Group {
-            if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                tabViewContent
-                    .onAppear {
-                        updateButtonVisibility()
-                    }
-                    .onReceive(environments.commandClient.$groups) { _ in
-                        Task { @MainActor in updateButtonVisibility() }
-                    }
-                    .onReceive(environments.commandClient.$connections) { _ in
-                        Task { @MainActor in updateButtonVisibility() }
-                    }
-                    .onReceive(environments.commandClient.$hasAnyConnection) { _ in
-                        Task { @MainActor in updateButtonVisibility() }
-                    }
-                    .onReceive(NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)) { _ in
-                        Task { @MainActor in updateButtonVisibility() }
-                    }
-                    .onReceive(environments.$extensionProfile) { _ in
-                        Task { @MainActor in updateButtonVisibility() }
-                    }
-                    .onReceive(environments.$emptyProfiles) { _ in
-                        Task { @MainActor in updateButtonVisibility() }
-                    }
-                    .sheet(isPresented: $showGroups) {
-                        GroupsSheetContent()
-                    }
-                    .sheet(isPresented: $showConnections) {
-                        ConnectionsSheetContent()
-                    }
-            } else {
-                baseTabView
-            }
+            tabViewContent
+                .onAppear {
+                    updateButtonVisibility()
+                }
+                .onReceive(environments.commandClient.$groups) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .onReceive(environments.commandClient.$connections) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .onReceive(environments.commandClient.$hasAnyConnection) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .onReceive(environments.$extensionProfile) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .onReceive(environments.$emptyProfiles) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .sheet(isPresented: $showGroups) {
+                    GroupsSheetContent()
+                }
+                .sheet(isPresented: $showConnections) {
+                    ConnectionsSheetContent()
+                }
         }
         .onAppear {
             environments.postReload()

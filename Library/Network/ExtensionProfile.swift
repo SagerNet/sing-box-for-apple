@@ -88,12 +88,6 @@ public class ExtensionProfile: ObservableObject {
         }
     #endif
 
-    private func unregister() {
-        if let observer {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
-
     nonisolated deinit {
         if let observer {
             NotificationCenter.default.removeObserver(observer)
@@ -242,7 +236,9 @@ public class ExtensionProfile: ObservableObject {
             try await manager.saveToPreferences()
         }
         do {
-            try LibboxNewStandaloneCommandClient()!.serviceClose()
+            try await Task.detached(priority: .userInitiated) {
+                try LibboxNewStandaloneCommandClient()!.serviceClose()
+            }.value
         } catch {
             logger.debug("serviceClose error: \(error.localizedDescription)")
         }

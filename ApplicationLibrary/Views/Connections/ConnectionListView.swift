@@ -37,10 +37,6 @@ public struct ConnectionListView: View {
                     connectionSort: $viewModel.connectionSort,
                     closeAllConnections: viewModel.closeAllConnections
                 )
-                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                } else {
-                    StartStopButton()
-                }
             }
         }
         #elseif os(macOS)
@@ -80,16 +76,6 @@ public struct ConnectionListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         #if os(iOS)
             .background(Color(uiColor: .systemGroupedBackground))
-        #endif
-    }
-
-    private var backgroundColor: Color {
-        #if os(iOS)
-            return Color(uiColor: .secondarySystemGroupedBackground)
-        #elseif os(macOS)
-            return Color(nsColor: .textBackgroundColor)
-        #elseif os(tvOS)
-            return Color(uiColor: .black)
         #endif
     }
 }

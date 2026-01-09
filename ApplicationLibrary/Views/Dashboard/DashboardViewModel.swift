@@ -15,7 +15,6 @@ private let logger = Logger(category: "DashboardViewModel")
 public final class DashboardViewModel: BaseViewModel {
     @Published public var profileList: [ProfilePreview] = []
     @Published public var selectedProfileID: Int64 = 0
-    @Published public var selection = DashboardPage.overview
     @Published public var systemProxyAvailable = false
     @Published public var systemProxyEnabled = false
 
