@@ -8,6 +8,8 @@ import Library
 public class StatusBarController: NSObject, NSMenuDelegate {
     private var statusItem: NSStatusItem?
     private var statusItemView: StatusBarItemView?
+    private var menuIcon: NSImage?
+    private var isIconOnlyMode = true
     private let environments: ExtensionEnvironments
     private var commandClient: CommandClient?
     private var cancellables = Set<AnyCancellable>()
@@ -60,27 +62,15 @@ public class StatusBarController: NSObject, NSMenuDelegate {
 
     private func createStatusItem() {
         guard statusItem == nil else { return }
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         let button = statusItem!.button!
-        button.image = nil
-        button.title = ""
-        let itemView = StatusBarItemView()
-        itemView.translatesAutoresizingMaskIntoConstraints = false
-        button.addSubview(itemView)
-        NSLayoutConstraint.activate([
-            itemView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
-            itemView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
-            itemView.topAnchor.constraint(equalTo: button.topAnchor),
-            itemView.bottomAnchor.constraint(equalTo: button.bottomAnchor),
-        ])
-        statusItemView = itemView
-        itemView.attach(to: button)
         if let image = NSImage(named: "MenuIcon") {
             image.isTemplate = true
-            itemView.setIcon(image)
+            menuIcon = image
+            button.image = image
         }
-        updateStatusItemLength()
+        isIconOnlyMode = true
 
         menu = NSMenu()
         menu!.delegate = self
@@ -520,16 +510,47 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func updateSpeedDisplay(status: LibboxStatusMessage?) {
-        guard statusItem != nil else { return }
+        guard let statusItem, let button = statusItem.button else { return }
+        let title: String
         if speedMode == .disabled || status == nil || !status!.trafficAvailable {
-            statusItemView?.setTitle("")
+            title = ""
         } else if speedMode == .enabled {
-            statusItemView?.setTitle("\(LibboxFormatBytes(status!.uplink))/s\n\(LibboxFormatBytes(status!.downlink))/s")
+            title = "\(LibboxFormatBytes(status!.uplink))/s\n\(LibboxFormatBytes(status!.downlink))/s"
         } else {
-            statusItemView?.setTitle("\(LibboxFormatBytes(status!.uplink + status!.downlink))/s")
+            title = "\(LibboxFormatBytes(status!.uplink + status!.downlink))/s"
         }
-        updateStatusItemLength()
+
+        let shouldUseIconOnly = title.isEmpty
+        if shouldUseIconOnly != isIconOnlyMode {
+            isIconOnlyMode = shouldUseIconOnly
+            if shouldUseIconOnly {
+                statusItemView?.removeFromSuperview()
+                statusItemView = nil
+                button.image = menuIcon
+                statusItem.length = NSStatusItem.squareLength
+            } else {
+                button.image = nil
+                let itemView = StatusBarItemView()
+                itemView.translatesAutoresizingMaskIntoConstraints = false
+                button.addSubview(itemView)
+                NSLayoutConstraint.activate([
+                    itemView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+                    itemView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+                    itemView.topAnchor.constraint(equalTo: button.topAnchor),
+                    itemView.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+                ])
+                statusItemView = itemView
+                itemView.attach(to: button)
+                itemView.setIcon(menuIcon!)
+                itemView.setTitle(title)
+                updateStatusItemLength()
+            }
+        } else if !shouldUseIconOnly {
+            statusItemView?.setTitle(title)
+            updateStatusItemLength()
+        }
     }
+
     private func updateStatusItemLength() {
         guard let statusItem, let statusItemView else { return }
         let width = statusItemView.fittingWidth()
@@ -620,9 +641,14 @@ public class StatusBarController: NSObject, NSMenuDelegate {
 
     public func menuWillOpen(_: NSMenu) {
         headerView?.refresh()
+        statusItemView?.setHighlighted(true)
         Task {
             await loadProfiles()
         }
+    }
+
+    public func menuDidClose(_: NSMenu) {
+        statusItemView?.setHighlighted(false)
     }
 }
 
@@ -651,7 +677,6 @@ private class StatusBarItemView: NSView {
     private var topConstraint: NSLayoutConstraint?
     private var bottomConstraint: NSLayoutConstraint?
     private var textWidthConstraint: NSLayoutConstraint?
-    private var currentHorizontalPadding = Layout.horizontalPadding
 
     override init(frame frameRect: NSRect) {
         imageView = NSImageView()
@@ -718,8 +743,6 @@ private class StatusBarItemView: NSView {
             bottomConstraint!,
             textWidthConstraint!,
         ])
-
-        updateLayout(hasTitle: false)
     }
 
     func setIcon(_ image: NSImage) {
@@ -729,6 +752,7 @@ private class StatusBarItemView: NSView {
     }
 
     func setTitle(_ title: String) {
+        guard !title.isEmpty else { return }
         currentTitle = title
         updateTitle()
     }
@@ -738,51 +762,39 @@ private class StatusBarItemView: NSView {
         updateHighlight(button.isHighlighted)
     }
 
+    func setHighlighted(_ highlighted: Bool) {
+        updateHighlight(highlighted)
+    }
+
     func fittingWidth() -> CGFloat {
         layoutSubtreeIfNeeded()
-        let width = stackView.fittingSize.width + currentHorizontalPadding * 2
+        let width = stackView.fittingSize.width + Layout.horizontalPadding * 2
         return ceil(width)
     }
 
     private func updateTitle() {
-        let hasTitle = !currentTitle.isEmpty
-        updateLayout(hasTitle: hasTitle)
-        if !hasTitle {
-            textField.stringValue = ""
-            textField.isHidden = true
-        } else {
-            var attributes = textAttributes
-            attributes[.foregroundColor] = isHighlighted
-                ? NSColor.selectedMenuItemTextColor
-                : NSColor.labelColor
-            textField.attributedStringValue = NSAttributedString(string: currentTitle, attributes: attributes)
-            textField.isHidden = false
-        }
-    }
-
-    private func updateLayout(hasTitle: Bool) {
-        let horizontalPadding = hasTitle ? Layout.horizontalPadding : 0
-        let verticalPadding = hasTitle ? Layout.verticalPadding : 0
-        currentHorizontalPadding = horizontalPadding
-        leadingConstraint?.constant = horizontalPadding
-        trailingConstraint?.constant = -horizontalPadding
-        topConstraint?.constant = verticalPadding
-        bottomConstraint?.constant = -verticalPadding
-        textWidthConstraint?.constant = hasTitle ? Layout.textWidth : 0
-        stackView.spacing = hasTitle ? Layout.spacing : 0
+        guard !currentTitle.isEmpty else { return }
+        var attributes = textAttributes
+        attributes[.foregroundColor] = isHighlighted
+            ? NSColor.unemphasizedSelectedTextColor
+            : NSColor.labelColor
+        textField.attributedStringValue = NSAttributedString(string: currentTitle, attributes: attributes)
+        textField.isHidden = false
     }
 
     private func updateTintColor() {
         imageView.contentTintColor = isHighlighted
-            ? NSColor.selectedMenuItemTextColor
+            ? NSColor.unemphasizedSelectedTextColor
             : NSColor.labelColor
     }
 
     private func updateHighlight(_ highlighted: Bool) {
         guard isHighlighted != highlighted else { return }
         isHighlighted = highlighted
+        statusButton?.highlight(isHighlighted)
         updateTitle()
         updateTintColor()
+        needsDisplay = true
     }
 
     override func viewWillDraw() {
@@ -790,7 +802,7 @@ private class StatusBarItemView: NSView {
         updateHighlight(statusButton?.isHighlighted == true)
     }
 
-    override func hitTest(_ point: NSPoint) -> NSView? {
+    override func hitTest(_: NSPoint) -> NSView? {
         nil
     }
 }
