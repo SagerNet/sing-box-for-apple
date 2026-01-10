@@ -134,7 +134,11 @@ release_macos_dmg: release_macos_dmg_apple release_macos_dmg_intel release_macos
 # PKG commands
 build_macos_pkg_apple: archive_macos_standalone_apple export_macos_standalone_apple
 	rm -f build/SFM-Apple.pkg
-	pkgbuild --component "build/SFM.System-arm64/SFM.app" \
+	rm -rf build/pkgroot-arm64
+	mkdir -p build/pkgroot-arm64
+	ditto "build/SFM.System-arm64/SFM.app" "build/pkgroot-arm64/SFM.app"
+	pkgbuild --root "build/pkgroot-arm64" \
+		--component-plist SFM.System/component.plist \
 		--identifier io.nekohasekai.sfavt.standalone \
 		--install-location /Applications \
 		build/component-arm64.pkg
@@ -143,11 +147,16 @@ build_macos_pkg_apple: archive_macos_standalone_apple export_macos_standalone_ap
 		--resources SFM.System/Resources \
 		--sign "$(INSTALLER_SIGN_IDENTITY)" \
 		build/SFM-Apple.pkg
+	rm -rf build/pkgroot-arm64
 	rm -f build/component-arm64.pkg
 
 build_macos_pkg_intel: archive_macos_standalone_intel export_macos_standalone_intel
 	rm -f build/SFM-Intel.pkg
-	pkgbuild --component "build/SFM.System-x86_64/SFM.app" \
+	rm -rf build/pkgroot-x86_64
+	mkdir -p build/pkgroot-x86_64
+	ditto "build/SFM.System-x86_64/SFM.app" "build/pkgroot-x86_64/SFM.app"
+	pkgbuild --root "build/pkgroot-x86_64" \
+		--component-plist SFM.System/component.plist \
 		--identifier io.nekohasekai.sfavt.standalone \
 		--install-location /Applications \
 		build/component-x86_64.pkg
@@ -156,11 +165,16 @@ build_macos_pkg_intel: archive_macos_standalone_intel export_macos_standalone_in
 		--resources SFM.System/Resources \
 		--sign "$(INSTALLER_SIGN_IDENTITY)" \
 		build/SFM-Intel.pkg
+	rm -rf build/pkgroot-x86_64
 	rm -f build/component-x86_64.pkg
 
 build_macos_pkg_universal: archive_macos_standalone_universal export_macos_standalone_universal
 	rm -f build/SFM-Universal.pkg
-	pkgbuild --component "build/SFM.System-universal/SFM.app" \
+	rm -rf build/pkgroot-universal
+	mkdir -p build/pkgroot-universal
+	ditto "build/SFM.System-universal/SFM.app" "build/pkgroot-universal/SFM.app"
+	pkgbuild --root "build/pkgroot-universal" \
+		--component-plist SFM.System/component.plist \
 		--identifier io.nekohasekai.sfavt.standalone \
 		--install-location /Applications \
 		build/component-universal.pkg
@@ -169,6 +183,7 @@ build_macos_pkg_universal: archive_macos_standalone_universal export_macos_stand
 		--resources SFM.System/Resources \
 		--sign "$(INSTALLER_SIGN_IDENTITY)" \
 		build/SFM-Universal.pkg
+	rm -rf build/pkgroot-universal
 	rm -f build/component-universal.pkg
 
 build_macos_pkg: build_macos_pkg_apple build_macos_pkg_intel build_macos_pkg_universal
