@@ -141,6 +141,8 @@ build_macos_pkg_apple: archive_macos_standalone_apple export_macos_standalone_ap
 		--component-plist SFM.System/component.plist \
 		--identifier io.nekohasekai.sfavt.standalone \
 		--install-location /Applications \
+		--min-os-version 13.0 \
+		--compression latest \
 		build/component-arm64.pkg
 	productbuild --distribution SFM.System/distribution-arm64.xml \
 		--package-path build \
@@ -159,6 +161,8 @@ build_macos_pkg_intel: archive_macos_standalone_intel export_macos_standalone_in
 		--component-plist SFM.System/component.plist \
 		--identifier io.nekohasekai.sfavt.standalone \
 		--install-location /Applications \
+		--min-os-version 13.0 \
+		--compression latest \
 		build/component-x86_64.pkg
 	productbuild --distribution SFM.System/distribution-x86_64.xml \
 		--package-path build \
@@ -177,6 +181,8 @@ build_macos_pkg_universal: archive_macos_standalone_universal export_macos_stand
 		--component-plist SFM.System/component.plist \
 		--identifier io.nekohasekai.sfavt.standalone \
 		--install-location /Applications \
+		--min-os-version 13.0 \
+		--compression latest \
 		build/component-universal.pkg
 	productbuild --distribution SFM.System/distribution-universal.xml \
 		--package-path build \
