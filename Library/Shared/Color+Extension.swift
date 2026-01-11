@@ -93,6 +93,7 @@ public extension Color {
             return bestColor
         }
     }
+
 #elseif canImport(AppKit)
     public extension NSColor {
         var relativeLuminance: CGFloat {

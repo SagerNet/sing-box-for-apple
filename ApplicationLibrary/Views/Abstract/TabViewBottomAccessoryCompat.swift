@@ -5,10 +5,10 @@ import SwiftUI
 
     public extension View {
         @ViewBuilder
-        func tabViewBottomAccessoryCompat<Content: View>(
+        func tabViewBottomAccessoryCompat(
             isEnabled: Bool = true,
             useSystemAccessory: Bool = true,
-            @ViewBuilder content: @escaping () -> Content
+            @ViewBuilder content: @escaping () -> some View
         ) -> some View {
             if isEnabled {
                 if #available(iOS 26.0, *), useSystemAccessory {
@@ -24,7 +24,6 @@ import SwiftUI
                 self
             }
         }
-
     }
 
     private struct TabViewBottomAccessoryContainer<Content: View>: View {
@@ -61,6 +60,5 @@ import SwiftUI
         static let horizontalPadding: CGFloat = 20
         static let topPadding: CGFloat = 8
         static let bottomPadding: CGFloat = 12
-
     }
 #endif

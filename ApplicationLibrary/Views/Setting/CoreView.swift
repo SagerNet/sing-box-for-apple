@@ -110,7 +110,7 @@ public struct CoreView: View {
             }
         }
         #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.inline)
         #endif
     }
 

@@ -96,7 +96,7 @@ struct MainView: View {
     }
 
     @ViewBuilder
-    private func tabBarBackgroundIfAvailable<Content: View>(_ content: Content) -> some View {
+    private func tabBarBackgroundIfAvailable(_ content: some View) -> some View {
         content
     }
 

@@ -98,14 +98,14 @@ import SwiftUI
         }
             #else
         .sheet(isPresented: $showCardManagement, onDismiss: {
-            Task { await cardConfiguration.reload() }
-        }, content: {
-            if #available(iOS 16.0, *) {
-                CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
-            } else {
-                CardManagementSheet()
-            }
-        })
+                        Task { await cardConfiguration.reload() }
+                    }, content: {
+                        if #available(iOS 16.0, *) {
+                            CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
+                        } else {
+                            CardManagementSheet()
+                        }
+                    })
             #endif
         #endif
         .onAppear {
