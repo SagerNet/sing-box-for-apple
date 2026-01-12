@@ -13,7 +13,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private static let logger = Logger(category: "ExtensionProvider")
 
     public private(set) var commandServer: LibboxCommandServer?
-    private var platformInterface: ExtensionPlatformInterface!
+    private lazy var platformInterface = ExtensionPlatformInterface(self)
     public var tunnelOptions: [String: NSObject]?
     private var startOptionsURL: URL?
 
@@ -29,13 +29,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     private func applyStartOptions(_ options: [String: NSObject]) {
         tunnelOptions = options
-        var prefs = OverridePreferences()
-        prefs.includeAllNetworks = (options["includeAllNetworks"] as? NSNumber)?.boolValue ?? false
-        prefs.systemProxyEnabled = (options["systemProxyEnabled"] as? NSNumber)?.boolValue ?? true
-        prefs.excludeDefaultRoute = (options["excludeDefaultRoute"] as? NSNumber)?.boolValue ?? false
-        prefs.autoRouteUseSubRangesByDefault = (options["autoRouteUseSubRangesByDefault"] as? NSNumber)?.boolValue ?? false
-        prefs.excludeAPNsRoute = (options["excludeAPNsRoute"] as? NSNumber)?.boolValue ?? false
-        overridePreferences = prefs
+        overridePreferences = OverridePreferences(
+            includeAllNetworks: (options["includeAllNetworks"] as? NSNumber)?.boolValue ?? false,
+            systemProxyEnabled: (options["systemProxyEnabled"] as? NSNumber)?.boolValue ?? true,
+            excludeDefaultRoute: (options["excludeDefaultRoute"] as? NSNumber)?.boolValue ?? false,
+            autoRouteUseSubRangesByDefault: (options["autoRouteUseSubRangesByDefault"] as? NSNumber)?.boolValue ?? false,
+            excludeAPNsRoute: (options["excludeAPNsRoute"] as? NSNumber)?.boolValue ?? false
+        )
     }
 
     private func persistStartOptions(_ options: [String: NSObject]) throws {
@@ -46,9 +46,36 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         try data.write(to: startOptionsURL, options: .atomic)
     }
 
+    private func loadPersistedStartOptions() throws -> [String: NSObject]? {
+        guard let startOptionsURL, FileManager.default.fileExists(atPath: startOptionsURL.path) else {
+            return nil
+        }
+        let data = try Data(contentsOf: startOptionsURL)
+        return try ExtensionStartOptions.decode(data)
+    }
+
+    private func resolveStartOptions(_ startOptions: [String: NSObject]?) throws -> [String: NSObject] {
+        if let startOptions, startOptions["configContent"] as? String != nil {
+            return startOptions
+        }
+        let persistedOptions: [String: NSObject]?
+        do {
+            persistedOptions = try loadPersistedStartOptions()
+        } catch {
+            throw ExtensionStartupError("(packet-tunnel) error: load start options: \(error.localizedDescription)")
+        }
+        if let persistedOptions {
+            if let startOptions {
+                return persistedOptions.merging(startOptions) { _, new in new }
+            }
+            return persistedOptions
+        }
+        throw ExtensionStartupError("(packet-tunnel) error: missing start options")
+    }
+
     #if os(macOS)
-        private var xpcListener: NSXPCListener?
-        private var xpcService: CommandXPCService?
+        private var xpcListener: NSXPCListener!
+        private var xpcService: CommandXPCService!
         private var locationManager: CLLocationManager?
         private var locationDelegate: stubLocationDelegate?
     #endif
@@ -76,27 +103,28 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #endif
 
         startOptionsURL = URL(fileURLWithPath: basePath).appendingPathComponent(ExtensionStartOptions.snapshotFileName)
-        var effectiveOptions = startOptions
-        if let startOptions {
-            do {
-                try persistStartOptions(startOptions)
-            } catch {
-                throw ExtensionStartupError("(packet-tunnel) error: persist start options: \(error.localizedDescription)")
+
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                let socketPath = basePath + "/command.sock"
+                let machServiceName = AppConfiguration.appGroupID + ".system"
+                xpcService = CommandXPCService(socketPath: socketPath)
+                xpcListener = NSXPCListener(machServiceName: machServiceName)
+                xpcListener.delegate = xpcService
             }
-        } else if let startOptionsURL, FileManager.default.fileExists(atPath: startOptionsURL.path) {
-            do {
-                let data = try Data(contentsOf: startOptionsURL)
-                effectiveOptions = try ExtensionStartOptions.decode(data)
-            } catch {
-                throw ExtensionStartupError("(packet-tunnel) error: load start options: \(error.localizedDescription)")
-            }
-        } else {
-            throw ExtensionStartupError("(packet-tunnel) error: missing start options")
+        #endif
+
+        let effectiveOptions = try resolveStartOptions(startOptions)
+        if effectiveOptions["configContent"] == nil {
+            throw ExtensionStartupError("(packet-tunnel) error: missing configContent in tunnel options")
+        }
+        do {
+            try persistStartOptions(effectiveOptions)
+        } catch {
+            throw ExtensionStartupError("(packet-tunnel) error: persist start options: \(error.localizedDescription)")
         }
 
-        if let effectiveOptions {
-            applyStartOptions(effectiveOptions)
-        }
+        applyStartOptions(effectiveOptions)
 
         let options = LibboxSetupOptions()
         options.basePath = basePath
@@ -106,10 +134,10 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         options.logMaxLines = 3000
 
         #if os(tvOS)
-            if let port = effectiveOptions?["commandServerPort"] as? NSNumber {
+            if let port = effectiveOptions["commandServerPort"] as? NSNumber {
                 options.commandServerListenPort = port.int32Value
             }
-            if let secret = effectiveOptions?["commandServerSecret"] as? String {
+            if let secret = effectiveOptions["commandServerSecret"] as? String {
                 options.commandServerSecret = secret
             }
         #endif
@@ -120,12 +148,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             throw ExtensionStartupError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
         }
 
-        let ignoreMemoryLimit = (effectiveOptions?["ignoreMemoryLimit"] as? NSNumber)?.boolValue ?? false
+        let ignoreMemoryLimit = (effectiveOptions["ignoreMemoryLimit"] as? NSNumber)?.boolValue ?? false
         LibboxSetMemoryLimit(!ignoreMemoryLimit)
 
-        if platformInterface == nil {
-            platformInterface = ExtensionPlatformInterface(self)
-        }
         var error: NSError?
         commandServer = LibboxNewCommandServer(platformInterface, platformInterface, &error)
         if let error {
@@ -139,14 +164,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
         #if os(macOS)
             if Variant.useSystemExtension {
-                let socketPath = options.basePath + "/command.sock"
-                xpcService = CommandXPCService(socketPath: socketPath)
-                let machServiceName = AppConfiguration.appGroupID + ".system"
-                xpcListener = NSXPCListener(machServiceName: machServiceName)
-                xpcListener!.delegate = xpcService
-                xpcListener!.resume()
+                xpcListener.resume()
                 Self.logger.info("set Command Server")
-                xpcService!.commandServer = commandServer
+                xpcService.commandServer = commandServer
             }
         #endif
 
@@ -154,7 +174,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         try await startService()
         #if os(macOS)
             if Variant.useSystemExtension {
-                xpcService!.markServiceReady()
+                xpcService.markServiceReady()
             }
         #endif
         #if os(iOS)
@@ -185,8 +205,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             if !Variant.useSystemExtension, commandServer!.needWIFIState() {
                 locationManager = CLLocationManager()
                 locationDelegate = stubLocationDelegate()
-                locationManager?.delegate = locationDelegate
-                locationManager?.requestLocation()
+                locationManager!.delegate = locationDelegate
+                locationManager!.requestLocation()
             }
         #endif
     }
@@ -209,9 +229,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         } catch {
             writeMessage("(packet-tunnel) stop service: \(error.localizedDescription)")
         }
-        if let platformInterface {
-            platformInterface.reset()
-        }
+        platformInterface.reset()
     }
 
     func reloadService() async throws {
@@ -233,9 +251,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         #if os(macOS)
             if Variant.useSystemExtension {
-                xpcListener?.invalidate()
+                xpcListener.invalidate()
                 xpcListener = nil
-                xpcService?.commandServer = nil
+                xpcService.commandServer = nil
                 xpcService = nil
                 UserServiceEndpointRegistry.shared.clear()
             }
