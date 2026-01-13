@@ -7,7 +7,12 @@ public extension Profile {
     func toContent() throws -> LibboxProfileContent {
         let content = LibboxProfileContent()
         content.name = name
-        content.type = Int32(type.rawValue)
+        switch type {
+        case .local, .icloud:
+            content.type = LibboxProfileTypeLocal
+        case .remote:
+            content.type = LibboxProfileTypeRemote
+        }
         content.config = try read()
         if type == .remote {
             content.remotePath = remoteURL!
