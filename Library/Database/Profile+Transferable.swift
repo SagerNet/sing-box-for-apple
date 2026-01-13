@@ -115,7 +115,7 @@ public struct TypedProfile: Transferable, Codable {
 }
 
 public extension UTType {
-    static var profile: UTType { .init(exportedAs: AppConfiguration.profileUTType) }
+    static let profile = UTType(exportedAs: AppConfiguration.profileUTType)
 }
 
 #if !os(tvOS)
@@ -175,6 +175,39 @@ public extension UTType {
                 throw CocoaError(.fileWriteInapplicableStringEncoding)
             }
             return FileWrapper(regularFileWithContents: data)
+        }
+    }
+
+    public struct ProfileAnyExportDocument: FileDocument {
+        public static var readableContentTypes: [UTType] { [.data, .json] }
+
+        public let data: Data
+        public let filename: String
+        public let contentType: UTType
+
+        public init(profile: ProfileExportDocument) {
+            data = profile.data
+            filename = profile.filename
+            contentType = .data
+        }
+
+        public init(json: ProfileJSONExportDocument) {
+            data = json.content.data(using: .utf8) ?? Data()
+            filename = json.filename
+            contentType = .json
+        }
+
+        public init(configuration: ReadConfiguration) throws {
+            guard let data = configuration.file.regularFileContents else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            self.data = data
+            filename = "profile"
+            contentType = .data
+        }
+
+        public func fileWrapper(configuration _: WriteConfiguration) throws -> FileWrapper {
+            FileWrapper(regularFileWithContents: data)
         }
     }
 #endif

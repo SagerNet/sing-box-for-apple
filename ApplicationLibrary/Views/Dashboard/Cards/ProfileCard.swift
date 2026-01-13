@@ -104,23 +104,12 @@ public struct ProfileCard: View {
                     }
                 }
                 .fileExporter(
-                    isPresented: $viewModel.showProfileExporter,
-                    document: viewModel.profileExportDocument,
-                    contentType: .profile,
-                    defaultFilename: viewModel.profileExportDocument?.filename
+                    isPresented: $viewModel.showExporter,
+                    document: viewModel.exportDocument,
+                    contentType: viewModel.exportDocument?.contentType ?? .data,
+                    defaultFilename: viewModel.exportDocument?.filename
                 ) { result in
-                    viewModel.profileExportDocument = nil
-                    if case let .failure(error) = result {
-                        viewModel.alert = AlertState(error: error)
-                    }
-                }
-                .fileExporter(
-                    isPresented: $viewModel.showJSONExporter,
-                    document: viewModel.profileJSONExportDocument,
-                    contentType: .json,
-                    defaultFilename: viewModel.profileJSONExportDocument?.filename
-                ) { result in
-                    viewModel.profileJSONExportDocument = nil
+                    viewModel.exportDocument = nil
                     if case let .failure(error) = result {
                         viewModel.alert = AlertState(error: error)
                     }
@@ -371,18 +360,13 @@ public struct ProfileCard: View {
             do {
                 switch type {
                 case .file:
-                    viewModel.profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
+                    let doc = try ProfileExportDocument(content: profile.origin.toContent())
+                    viewModel.exportDocument = ProfileAnyExportDocument(profile: doc)
                 case .json:
-                    viewModel.profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                    let doc = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                    viewModel.exportDocument = ProfileAnyExportDocument(json: doc)
                 }
-                DispatchQueue.main.async {
-                    switch type {
-                    case .file:
-                        viewModel.showProfileExporter = true
-                    case .json:
-                        viewModel.showJSONExporter = true
-                    }
-                }
+                viewModel.showExporter = true
             } catch {
                 viewModel.alert = AlertState(error: error)
             }
@@ -495,10 +479,8 @@ extension ProfileCard {
         @Published var profileToEdit: Profile?
         @Published var shareItemType: ShareItemType?
         #if !os(tvOS)
-            @Published var profileExportDocument: ProfileExportDocument?
-            @Published var showProfileExporter = false
-            @Published var profileJSONExportDocument: ProfileJSONExportDocument?
-            @Published var showJSONExporter = false
+            @Published var exportDocument: ProfileAnyExportDocument?
+            @Published var showExporter = false
         #endif
         #if os(macOS)
             var shareButtonView: NSView?

@@ -532,17 +532,11 @@ private struct ProfilePickerRow: View {
     #if os(macOS)
         @State private var shareItemType: ShareItemType?
         @State private var exportItemType: ExportItemType?
-        @State private var profileExportDocument: ProfileExportDocument?
-        @State private var showProfileExporter = false
-        @State private var profileJSONExportDocument: ProfileJSONExportDocument?
-        @State private var showJSONExporter = false
         @State private var menuAnchorView: NSView?
     #endif
-    #if os(iOS)
-        @State private var profileExportDocument: ProfileExportDocument?
-        @State private var showProfileExporter = false
-        @State private var profileJSONExportDocument: ProfileJSONExportDocument?
-        @State private var showJSONExporter = false
+    #if !os(tvOS)
+        @State private var exportDocument: ProfileAnyExportDocument?
+        @State private var showExporter = false
     #endif
 
     var body: some View {
@@ -722,23 +716,12 @@ private struct ProfilePickerRow: View {
                     }
                 }
                 .fileExporter(
-                    isPresented: $showProfileExporter,
-                    document: profileExportDocument,
-                    contentType: .profile,
-                    defaultFilename: profileExportDocument?.filename
+                    isPresented: $showExporter,
+                    document: exportDocument,
+                    contentType: exportDocument?.contentType ?? .data,
+                    defaultFilename: exportDocument?.filename
                 ) { result in
-                    profileExportDocument = nil
-                    if case let .failure(error) = result {
-                        alert = AlertState(error: error)
-                    }
-                }
-                .fileExporter(
-                    isPresented: $showJSONExporter,
-                    document: profileJSONExportDocument,
-                    contentType: .json,
-                    defaultFilename: profileJSONExportDocument?.filename
-                ) { result in
-                    profileJSONExportDocument = nil
+                    exportDocument = nil
                     if case let .failure(error) = result {
                         alert = AlertState(error: error)
                     }
@@ -772,23 +755,12 @@ private struct ProfilePickerRow: View {
                     }
                 }
                 .fileExporter(
-                    isPresented: $showProfileExporter,
-                    document: profileExportDocument,
-                    contentType: .profile,
-                    defaultFilename: profileExportDocument?.filename
+                    isPresented: $showExporter,
+                    document: exportDocument,
+                    contentType: exportDocument?.contentType ?? .data,
+                    defaultFilename: exportDocument?.filename
                 ) { result in
-                    profileExportDocument = nil
-                    if case let .failure(error) = result {
-                        alert = AlertState(error: error)
-                    }
-                }
-                .fileExporter(
-                    isPresented: $showJSONExporter,
-                    document: profileJSONExportDocument,
-                    contentType: .json,
-                    defaultFilename: profileJSONExportDocument?.filename
-                ) { result in
-                    profileJSONExportDocument = nil
+                    exportDocument = nil
                     if case let .failure(error) = result {
                         alert = AlertState(error: error)
                     }
@@ -985,18 +957,13 @@ private struct ProfilePickerRow: View {
             do {
                 switch type {
                 case .file:
-                    profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
+                    let doc = try ProfileExportDocument(content: profile.origin.toContent())
+                    exportDocument = ProfileAnyExportDocument(profile: doc)
                 case .json:
-                    profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                    let doc = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                    exportDocument = ProfileAnyExportDocument(json: doc)
                 }
-                DispatchQueue.main.async {
-                    switch type {
-                    case .file:
-                        showProfileExporter = true
-                    case .json:
-                        showJSONExporter = true
-                    }
-                }
+                showExporter = true
             } catch {
                 alert = AlertState(error: error)
             }
@@ -1052,12 +1019,13 @@ private struct ProfilePickerRow: View {
             do {
                 switch type {
                 case .file:
-                    profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
-                    showProfileExporter = true
+                    let doc = try ProfileExportDocument(content: profile.origin.toContent())
+                    exportDocument = ProfileAnyExportDocument(profile: doc)
                 case .json:
-                    profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
-                    showJSONExporter = true
+                    let doc = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                    exportDocument = ProfileAnyExportDocument(json: doc)
                 }
+                showExporter = true
             } catch {
                 alert = AlertState(error: error)
             }
@@ -1167,10 +1135,8 @@ private struct ProfilePickerRow: View {
         @State private var isUpdating = false
         @State private var showQRCode = false
         @State private var showQRSShare = false
-        @State private var profileExportDocument: ProfileExportDocument?
-        @State private var showProfileExporter = false
-        @State private var profileJSONExportDocument: ProfileJSONExportDocument?
-        @State private var showJSONExporter = false
+        @State private var exportDocument: ProfileAnyExportDocument?
+        @State private var showExporter = false
 
         var body: some View {
             Group {
@@ -1234,23 +1200,12 @@ private struct ProfilePickerRow: View {
                 }
             }
             .fileExporter(
-                isPresented: $showProfileExporter,
-                document: profileExportDocument,
-                contentType: .profile,
-                defaultFilename: profileExportDocument?.filename
+                isPresented: $showExporter,
+                document: exportDocument,
+                contentType: exportDocument?.contentType ?? .data,
+                defaultFilename: exportDocument?.filename
             ) { result in
-                profileExportDocument = nil
-                if case let .failure(error) = result {
-                    alert = AlertState(error: error)
-                }
-            }
-            .fileExporter(
-                isPresented: $showJSONExporter,
-                document: profileJSONExportDocument,
-                contentType: .json,
-                defaultFilename: profileJSONExportDocument?.filename
-            ) { result in
-                profileJSONExportDocument = nil
+                exportDocument = nil
                 if case let .failure(error) = result {
                     alert = AlertState(error: error)
                 }
@@ -1344,18 +1299,13 @@ private struct ProfilePickerRow: View {
             do {
                 switch type {
                 case .file:
-                    profileExportDocument = try ProfileExportDocument(content: profile.origin.toContent())
+                    let doc = try ProfileExportDocument(content: profile.origin.toContent())
+                    exportDocument = ProfileAnyExportDocument(profile: doc)
                 case .json:
-                    profileJSONExportDocument = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                    let doc = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
+                    exportDocument = ProfileAnyExportDocument(json: doc)
                 }
-                DispatchQueue.main.async {
-                    switch type {
-                    case .file:
-                        showProfileExporter = true
-                    case .json:
-                        showJSONExporter = true
-                    }
-                }
+                showExporter = true
             } catch {
                 alert = AlertState(error: error)
             }
