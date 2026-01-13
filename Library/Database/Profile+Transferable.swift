@@ -9,7 +9,7 @@ public extension Profile {
         content.name = name
         content.type = Int32(type.rawValue)
         content.config = try read()
-        if type != .local {
+        if type == .remote {
             content.remotePath = remoteURL!
         }
         if type == .remote {
