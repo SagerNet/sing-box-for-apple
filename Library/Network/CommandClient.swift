@@ -68,7 +68,7 @@ public class CommandClient: ObservableObject {
     @Published public var connectionSort = ConnectionSort.byDate
     @Published public var connections: [LibboxConnection]?
     @Published public var hasAnyConnection: Bool = false
-    public var rawConnections: LibboxConnections?
+    private var connectionsStore: LibboxConnections?
 
     @Published public var uplinkHistory: [CGFloat] = Array(repeating: 0, count: 30)
     @Published public var downlinkHistory: [CGFloat] = Array(repeating: 0, count: 30)
@@ -144,10 +144,10 @@ public class CommandClient: ObservableObject {
     }
 
     public func filterConnectionsNow() {
-        guard let message = rawConnections else {
+        guard let store = connectionsStore else {
             return
         }
-        let result = filterConnections(message)
+        let result = filterConnections(store)
         connections = result.connections
         hasAnyConnection = result.hasAny
     }
@@ -327,13 +327,16 @@ public class CommandClient: ObservableObject {
             }
         }
 
-        func write(_ message: LibboxConnections?) {
-            guard let message else {
+        func write(_ events: LibboxConnectionEvents?) {
+            guard let events else {
                 return
             }
-            let result = commandClient.filterConnections(message)
             DispatchQueue.main.async { [self] in
-                commandClient.rawConnections = message
+                if commandClient.connectionsStore == nil {
+                    commandClient.connectionsStore = LibboxNewConnections()
+                }
+                commandClient.connectionsStore?.apply(events)
+                let result = commandClient.filterConnections(commandClient.connectionsStore!)
                 commandClient.connections = result.connections
                 commandClient.hasAnyConnection = result.hasAny
             }
