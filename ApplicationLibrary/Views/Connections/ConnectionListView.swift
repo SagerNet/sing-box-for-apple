@@ -8,8 +8,10 @@ import SwiftUI
 public struct ConnectionListView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var viewModel = ConnectionListViewModel()
+    @StateObject private var commandClient = CommandClient([.connections])
 
     public init() {}
+
     public var body: some View {
         VStack {
             if viewModel.isLoading {
@@ -59,19 +61,24 @@ public struct ConnectionListView: View {
         .alert($viewModel.alert)
         .onAppear {
             viewModel.connect()
+            commandClient.connect()
         }
-        .onReceive(environments.commandClient.$connections) { connections in
+        .onDisappear {
+            viewModel.disconnect()
+            commandClient.disconnect()
+        }
+        .onReceive(commandClient.$connections) { connections in
             Task { @MainActor in
                 viewModel.setConnections(connections)
             }
         }
         .onChangeCompat(of: viewModel.connectionStateFilter) { filter in
-            environments.commandClient.connectionStateFilter = filter
-            environments.commandClient.filterConnectionsNow()
+            commandClient.connectionStateFilter = filter
+            commandClient.filterConnectionsNow()
         }
         .onChangeCompat(of: viewModel.connectionSort) { sort in
-            environments.commandClient.connectionSort = sort
-            environments.commandClient.filterConnectionsNow()
+            commandClient.connectionSort = sort
+            commandClient.filterConnectionsNow()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         #if os(iOS)

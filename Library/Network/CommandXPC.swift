@@ -15,41 +15,62 @@
         let socketPath: String
         var commandServer: LibboxCommandServer?
 
+        private enum ServiceReadyState {
+            case pending
+            case ready
+            case failed(Error)
+        }
+
         private let serviceReadyLock = NSLock()
-        private var _serviceReady = false
-        private var serviceReadyContinuations: [CheckedContinuation<Void, Never>] = []
+        private var serviceReadyState = ServiceReadyState.pending
+        private var serviceReadyContinuations: [CheckedContinuation<Void, Error>] = []
+        private static let defaultNotReadyError = NSError(domain: "CommandXPC", code: -1, userInfo: [
+            NSLocalizedDescriptionKey: "Command server not ready",
+        ])
 
         init(socketPath: String) {
             self.socketPath = socketPath
         }
 
-        func waitForServiceReady() async {
+        func waitForServiceReady() async throws {
             serviceReadyLock.lock()
-            if _serviceReady {
+            switch serviceReadyState {
+            case .ready:
                 serviceReadyLock.unlock()
                 return
-            }
-            await withCheckedContinuation { continuation in
-                serviceReadyContinuations.append(continuation)
+            case let .failed(error):
                 serviceReadyLock.unlock()
+                throw error
+            case .pending:
+                return try await withCheckedThrowingContinuation { continuation in
+                    serviceReadyContinuations.append(continuation)
+                    serviceReadyLock.unlock()
+                }
             }
         }
 
         func markServiceReady() {
+            resolveServiceReady(.success(()))
+        }
+
+        func markServiceNotReady(_ error: Error? = nil) {
+            resolveServiceReady(.failure(error ?? Self.defaultNotReadyError))
+        }
+
+        private func resolveServiceReady(_ result: Result<Void, Error>) {
             serviceReadyLock.lock()
-            _serviceReady = true
+            switch result {
+            case .success:
+                serviceReadyState = .ready
+            case let .failure(error):
+                serviceReadyState = .failed(error)
+            }
             let continuations = serviceReadyContinuations
             serviceReadyContinuations.removeAll()
             serviceReadyLock.unlock()
             for continuation in continuations {
-                continuation.resume()
+                continuation.resume(with: result)
             }
-        }
-
-        func markServiceNotReady() {
-            serviceReadyLock.lock()
-            _serviceReady = false
-            serviceReadyLock.unlock()
         }
 
         func listener(_: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
@@ -98,7 +119,12 @@
 
         func extensionRequirements(reply: @escaping (Bool, Bool, NSError?) -> Void) {
             Task {
-                await service.waitForServiceReady()
+                do {
+                    try await service.waitForServiceReady()
+                } catch {
+                    reply(false, false, error as NSError)
+                    return
+                }
                 guard let commandServer = service.commandServer else {
                     reply(false, false, NSError(domain: "CommandXPC", code: -1, userInfo: [
                         NSLocalizedDescriptionKey: "Command server not available",

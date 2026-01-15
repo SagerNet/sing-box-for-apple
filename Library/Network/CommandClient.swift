@@ -203,20 +203,12 @@ public class CommandClient: ObservableObject {
         clientOptions.statusInterval = Int64(NSEC_PER_SEC)
         let client = LibboxNewCommandClient(clientHandler(self), clientOptions)!
         do {
-            for i in 0 ..< 10 {
-                try await Task.sleep(nanoseconds: UInt64(Double(100 + (i * 50)) * Double(NSEC_PER_MSEC)))
-                try Task.checkCancellation()
-                do {
-                    try client.connect()
-                    await MainActor.run {
-                        commandClient = client
-                    }
-                    return
-                } catch {}
-                try Task.checkCancellation()
-            }
+            try client.connect()
         } catch {
-            try? client.disconnect()
+            return
+        }
+        await MainActor.run {
+            commandClient = client
         }
     }
 

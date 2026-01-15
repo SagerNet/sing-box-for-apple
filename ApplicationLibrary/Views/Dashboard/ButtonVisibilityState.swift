@@ -24,7 +24,7 @@ public struct ButtonVisibilityState {
         groupsCount = Variant.screenshotMode && actualGroupsCount == 0
             ? screenshotFallbackGroupsCount
             : actualGroupsCount
-        connectionsCount = commandClient.connections?.count ?? 0
+        connectionsCount = Int(commandClient.status?.connectionsIn ?? 0)
 
         let isConnected = Variant.screenshotMode || profile.status.isConnectedStrict
 

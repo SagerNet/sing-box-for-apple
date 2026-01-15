@@ -131,7 +131,7 @@ public struct ImportRemoteProfileRequest: Hashable, Identifiable {
 
 @MainActor
 public class ExtensionEnvironments: ObservableObject {
-    @Published public var commandClient = CommandClient([.log, .status, .groups, .clashMode, .connections])
+    @Published public var commandClient = CommandClient([.log, .status, .groups, .clashMode])
     @Published public var extensionProfileLoading = true
     @Published public var extensionProfile: ExtensionProfile?
     @Published public var emptyProfiles = false

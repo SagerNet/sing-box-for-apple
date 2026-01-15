@@ -171,7 +171,16 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #endif
 
         writeMessage("(packet-tunnel): Here I stand")
-        try await startService()
+        do {
+            try await startService()
+        } catch {
+            #if os(macOS)
+                if Variant.useSystemExtension {
+                    xpcService.markServiceNotReady(error)
+                }
+            #endif
+            throw error
+        }
         #if os(macOS)
             if Variant.useSystemExtension {
                 xpcService.markServiceReady()
@@ -251,6 +260,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         #if os(macOS)
             if Variant.useSystemExtension {
+                xpcService.markServiceNotReady(NSError(domain: "CommandXPC", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "Command server stopped",
+                ]))
                 xpcListener.invalidate()
                 xpcListener = nil
                 xpcService.commandServer = nil
