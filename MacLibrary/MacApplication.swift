@@ -5,6 +5,7 @@ import NetworkExtension
 import SwiftUI
 
 public struct MacApplication: Scene {
+    @State private var isInitialized = false
     @State private var showMenuBarExtra = false
     @State private var menuBarExtraSpeedMode = MenuBarExtraSpeedMode.enabled.rawValue
     @StateObject private var environments = ExtensionEnvironments()
@@ -73,6 +74,8 @@ public struct MacApplication: Scene {
     }
 
     private func initialize() async {
+        guard !isInitialized else { return }
+        isInitialized = true
         showMenuBarExtra = await SharedPreferences.showMenuBarExtra.get()
         menuBarExtraSpeedMode = await SharedPreferences.menuBarExtraSpeedMode.get()
         statusBarController = StatusBarController(environments: environments)
