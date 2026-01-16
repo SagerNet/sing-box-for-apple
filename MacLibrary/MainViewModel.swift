@@ -76,11 +76,38 @@ public class MainViewModel: BaseViewModel {
             alert = AlertState(
                 title: String(localized: "Wrong application location"),
                 message: String(localized: "This app needs to be placed under the Applications folder to work."),
-                dismissButton: .default(String(localized: "Ok")) {
+                primaryButton: .default(String(localized: "Move to Applications")) { [self] in
+                    moveToApplications()
+                },
+                secondaryButton: .cancel(String(localized: "Quit")) {
                     NSWorkspace.shared.selectFile(Bundle.main.bundlePath, inFileViewerRootedAtPath: "")
                     NSApp.terminate(nil)
                 }
             )
         }
+    }
+
+    private func moveToApplications() {
+        let source = Bundle.main.bundlePath
+        let appName = URL(filePath: source).lastPathComponent
+        let dest = "/Applications/\(appName)"
+
+        let script = """
+        do shell script "rm -rf '\(dest)'; mv '\(source)' '\(dest)'" with administrator privileges
+        """
+
+        var error: NSDictionary?
+        guard let appleScript = NSAppleScript(source: script) else { return }
+        appleScript.executeAndReturnError(&error)
+
+        if let error {
+            let msg = error[NSAppleScript.errorMessage] as? String ?? "Unknown error"
+            alert = AlertState(errorMessage: msg)
+            return
+        }
+
+        let url = URL(filePath: dest)
+        NSWorkspace.shared.openApplication(at: url, configuration: .init())
+        NSApp.terminate(nil)
     }
 }
