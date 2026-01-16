@@ -495,7 +495,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         if shouldConnect {
             if commandClient == nil {
                 commandClient = CommandClient(.status)
-                commandClient!.$status
+                commandClient!.statusPublisher
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] status in
                         self?.updateSpeedDisplay(status: status)
