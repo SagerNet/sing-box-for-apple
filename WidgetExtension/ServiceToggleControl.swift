@@ -15,7 +15,7 @@ struct ServiceToggleControl: ControlWidget {
                 action: ToggleServiceIntent()
             ) { isOn in
                 Label(isOn ? "Running" : "Stopped", systemImage: "shippingbox.fill")
-                    .controlWidgetActionHint(isOn ? "Stop" : "Start")
+//                    .controlWidgetActionHint(isOn ? "Stop" : "Start")
             }
             .tint(.init(red: CGFloat(Double(69) / 255), green: CGFloat(Double(90) / 255), blue: CGFloat(Double(100) / 255)))
         }
