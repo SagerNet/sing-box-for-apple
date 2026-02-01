@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import CoreText
 import Foundation
 import Libbox
 import Library
@@ -7,7 +8,6 @@ import Library
 @MainActor
 public class StatusBarController: NSObject, NSMenuDelegate {
     private var statusItem: NSStatusItem?
-    private var statusItemView: StatusBarItemView?
     private var menuIcon: NSImage?
     private var isIconOnlyMode = true
     private let environments: ExtensionEnvironments
@@ -15,6 +15,20 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private var cancellables = Set<AnyCancellable>()
     private var statusCancellable: AnyCancellable?
     private var speedMode: MenuBarExtraSpeedMode = .enabled
+    private var statusItemTitle: String?
+    private var statusItemIsHighlighted = false
+    private var statusItemTextModeSize: NSSize?
+
+    private enum StatusItemLayout {
+        static let horizontalPadding: CGFloat = 8
+        static let verticalPadding: CGFloat = 2
+        static let spacing: CGFloat = 6
+        static let lineHeight: CGFloat = 9
+        static let fontSize: CGFloat = 8.75
+        static let textWidth: CGFloat = 42
+        static let unifiedLineHeight: CGFloat = 11
+        static let unifiedFontSize: CGFloat = 10.5
+    }
 
     private var menu: NSMenu?
     private var headerItem: NSMenuItem?
@@ -65,6 +79,8 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         let button = statusItem!.button!
+        button.title = ""
+        button.imagePosition = .imageOnly
         if let image = NSImage(named: "MenuIcon") {
             image.isTemplate = true
             menuIcon = image
@@ -85,7 +101,6 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             NSStatusBar.system.removeStatusItem(statusItem)
             self.statusItem = nil
         }
-        statusItemView = nil
         menu = nil
         headerView = nil
         urlTestAllView = nil
@@ -98,6 +113,9 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         currentGroups = []
         isURLTestingAll = false
         urlTestingGroups.removeAll()
+        statusItemTitle = nil
+        statusItemIsHighlighted = false
+        statusItemTextModeSize = nil
         commandClient?.disconnect()
         commandClient = nil
     }
@@ -524,37 +542,145 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         if shouldUseIconOnly != isIconOnlyMode {
             isIconOnlyMode = shouldUseIconOnly
             if shouldUseIconOnly {
-                statusItemView?.removeFromSuperview()
-                statusItemView = nil
+                statusItemTitle = nil
+                statusItemTextModeSize = nil
                 button.image = menuIcon
                 statusItem.length = NSStatusItem.squareLength
             } else {
-                button.image = nil
-                let itemView = StatusBarItemView()
-                itemView.translatesAutoresizingMaskIntoConstraints = false
-                button.addSubview(itemView)
-                NSLayoutConstraint.activate([
-                    itemView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
-                    itemView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
-                    itemView.topAnchor.constraint(equalTo: button.topAnchor),
-                    itemView.bottomAnchor.constraint(equalTo: button.bottomAnchor),
-                ])
-                statusItemView = itemView
-                itemView.attach(to: button)
-                itemView.setIcon(menuIcon!)
-                itemView.setTitle(title)
-                updateStatusItemLength()
+                statusItemTitle = title
+                let image = renderStatusItemImage(
+                    title: title,
+                    highlighted: statusItemIsHighlighted,
+                    unified: speedMode == .unified
+                )
+                button.image = image
+                if let image {
+                    statusItemTextModeSize = image.size
+                    statusItem.length = max(image.size.width, NSStatusBar.system.thickness)
+                }
             }
         } else if !shouldUseIconOnly {
-            statusItemView?.setTitle(title)
-            updateStatusItemLength()
+            if title != statusItemTitle {
+                statusItemTitle = title
+                button.image = renderStatusItemImage(
+                    title: title,
+                    highlighted: statusItemIsHighlighted,
+                    unified: speedMode == .unified
+                )
+            }
         }
     }
 
-    private func updateStatusItemLength() {
-        guard let statusItem, let statusItemView else { return }
-        let width = statusItemView.fittingWidth()
-        statusItem.length = max(width, NSStatusBar.system.thickness)
+    private func setStatusItemHighlighted(_ highlighted: Bool) {
+        guard statusItemIsHighlighted != highlighted else { return }
+        statusItemIsHighlighted = highlighted
+        guard !isIconOnlyMode, let title = statusItemTitle, let button = statusItem?.button else { return }
+        button.image = renderStatusItemImage(
+            title: title,
+            highlighted: highlighted,
+            unified: speedMode == .unified
+        )
+    }
+
+    private func renderStatusItemImage(title: String, highlighted: Bool, unified: Bool) -> NSImage? {
+        let size = statusItemTextModeSize ?? statusItemImageSize()
+        let textColor = highlighted ? NSColor.unemphasizedSelectedTextColor : NSColor.labelColor
+        let iconColor = textColor
+        let icon = menuIcon
+        let iconSize = statusItemIconSize(forHeight: size.height)
+        let lineHeight = unified ? StatusItemLayout.unifiedLineHeight : StatusItemLayout.lineHeight
+        let fontSize = unified ? StatusItemLayout.unifiedFontSize : StatusItemLayout.fontSize
+        let textX = StatusItemLayout.horizontalPadding + iconSize.width + (iconSize.width > 0 ? StatusItemLayout.spacing : 0)
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.maximumLineHeight = lineHeight
+        paragraphStyle.minimumLineHeight = lineHeight
+        paragraphStyle.alignment = .right
+        paragraphStyle.lineBreakMode = .byClipping
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .paragraphStyle: paragraphStyle,
+            .font: NSFont.systemFont(ofSize: fontSize),
+            .foregroundColor: textColor,
+        ]
+        let attributedTitle = NSAttributedString(string: title, attributes: attributes)
+        let textRect: NSRect
+        if unified {
+            textRect = NSRect(x: textX, y: 0, width: StatusItemLayout.textWidth, height: size.height)
+        } else {
+            let textBounds = attributedTitle.boundingRect(
+                with: NSSize(width: StatusItemLayout.textWidth, height: size.height),
+                options: [.usesLineFragmentOrigin, .usesFontLeading]
+            )
+            let textHeight = min(ceil(textBounds.height), size.height)
+            let textY = (size.height - textHeight) / 2
+            textRect = NSRect(x: textX, y: textY, width: StatusItemLayout.textWidth, height: textHeight)
+        }
+
+        let image = NSImage(size: size, flipped: false) { _ in
+            if let icon, iconSize.width > 0 {
+                let iconY = (size.height - iconSize.height) / 2
+                let iconRect = NSRect(
+                    x: StatusItemLayout.horizontalPadding,
+                    y: iconY,
+                    width: iconSize.width,
+                    height: iconSize.height
+                )
+                NSGraphicsContext.saveGraphicsState()
+                iconColor.setFill()
+                iconRect.fill()
+                icon.draw(
+                    in: iconRect,
+                    from: .zero,
+                    operation: .destinationIn,
+                    fraction: 1,
+                    respectFlipped: true,
+                    hints: nil
+                )
+                NSGraphicsContext.restoreGraphicsState()
+            }
+
+            if unified, let context = NSGraphicsContext.current?.cgContext {
+                let line = CTLineCreateWithAttributedString(attributedTitle)
+                var ascent: CGFloat = 0
+                var descent: CGFloat = 0
+                var leading: CGFloat = 0
+                CTLineGetTypographicBounds(line, &ascent, &descent, &leading)
+                let textHeight = ascent + descent
+                let baselineY = (size.height - textHeight) / 2 + descent
+                context.saveGState()
+                context.textPosition = CGPoint(x: textRect.minX, y: baselineY)
+                CTLineDraw(line, context)
+                context.restoreGState()
+            } else {
+                attributedTitle.draw(
+                    with: textRect,
+                    options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine],
+                    context: nil
+                )
+            }
+            return true
+        }
+        image.isTemplate = false
+        return image
+    }
+
+    private func statusItemImageSize() -> NSSize {
+        let height = NSStatusBar.system.thickness
+        let iconSize = statusItemIconSize(forHeight: height)
+        let spacing = iconSize.width > 0 ? StatusItemLayout.spacing : 0
+        let width = StatusItemLayout.horizontalPadding * 2 + iconSize.width + spacing + StatusItemLayout.textWidth
+        let size = NSSize(width: ceil(width), height: ceil(height))
+        statusItemTextModeSize = size
+        return size
+    }
+
+    private func statusItemIconSize(forHeight height: CGFloat) -> NSSize {
+        guard let menuIcon else { return .zero }
+        let maxIconHeight = height - StatusItemLayout.verticalPadding * 2
+        guard maxIconHeight > 0 else { return .zero }
+        let scale = min(1, maxIconHeight / menuIcon.size.height)
+        return NSSize(width: menuIcon.size.width * scale, height: menuIcon.size.height * scale)
     }
 
     private func showAlert(error: Error) {
@@ -641,169 +767,14 @@ public class StatusBarController: NSObject, NSMenuDelegate {
 
     public func menuWillOpen(_: NSMenu) {
         headerView?.refresh()
-        statusItemView?.setHighlighted(true)
+        setStatusItemHighlighted(true)
         Task {
             await loadProfiles()
         }
     }
 
     public func menuDidClose(_: NSMenu) {
-        statusItemView?.setHighlighted(false)
-    }
-}
-
-// MARK: - StatusBarItemView
-
-@MainActor
-private class StatusBarItemView: NSView {
-    private enum Layout {
-        static let horizontalPadding: CGFloat = 8
-        static let verticalPadding: CGFloat = 2
-        static let spacing: CGFloat = 6
-        static let lineHeight: CGFloat = 9
-        static let fontSize: CGFloat = 8.75
-        static let textWidth: CGFloat = 42
-    }
-
-    private let imageView: NSImageView
-    private let textField: NSTextField
-    private let stackView: NSStackView
-    private let textAttributes: [NSAttributedString.Key: Any]
-    private var currentTitle = ""
-    private var isHighlighted = false
-    private weak var statusButton: NSStatusBarButton?
-    private var leadingConstraint: NSLayoutConstraint?
-    private var trailingConstraint: NSLayoutConstraint?
-    private var topConstraint: NSLayoutConstraint?
-    private var bottomConstraint: NSLayoutConstraint?
-    private var textWidthConstraint: NSLayoutConstraint?
-
-    override init(frame frameRect: NSRect) {
-        imageView = NSImageView()
-        textField = NSTextField(labelWithString: "")
-        stackView = NSStackView()
-
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.maximumLineHeight = Layout.lineHeight
-        paragraphStyle.minimumLineHeight = Layout.lineHeight
-        paragraphStyle.alignment = .right
-        paragraphStyle.lineBreakMode = .byClipping
-        textAttributes = [
-            .paragraphStyle: paragraphStyle,
-            .font: NSFont.systemFont(ofSize: Layout.fontSize),
-            .foregroundColor: NSColor.labelColor,
-        ]
-
-        super.init(frame: frameRect)
-        setupView()
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    private func setupView() {
-        imageView.imageScaling = .scaleProportionallyDown
-        imageView.isHidden = true
-        imageView.setContentHuggingPriority(.required, for: .horizontal)
-        imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
-
-        textField.isEditable = false
-        textField.isBezeled = false
-        textField.drawsBackground = false
-        textField.isHidden = true
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.lineBreakMode = .byClipping
-        textField.maximumNumberOfLines = 2
-        textField.usesSingleLineMode = false
-        textField.alignment = .right
-        textField.setContentHuggingPriority(.defaultLow, for: .horizontal)
-
-        stackView.orientation = .horizontal
-        stackView.distribution = .equalSpacing
-        stackView.alignment = .centerY
-        stackView.spacing = Layout.spacing
-        stackView.detachesHiddenViews = true
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.addArrangedSubview(imageView)
-        stackView.addArrangedSubview(textField)
-        addSubview(stackView)
-
-        leadingConstraint = stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Layout.horizontalPadding)
-        trailingConstraint = stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Layout.horizontalPadding)
-        topConstraint = stackView.topAnchor.constraint(equalTo: topAnchor, constant: Layout.verticalPadding)
-        bottomConstraint = stackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -Layout.verticalPadding)
-        textWidthConstraint = textField.widthAnchor.constraint(equalToConstant: Layout.textWidth)
-
-        NSLayoutConstraint.activate([
-            leadingConstraint!,
-            trailingConstraint!,
-            topConstraint!,
-            bottomConstraint!,
-            textWidthConstraint!,
-        ])
-    }
-
-    func setIcon(_ image: NSImage) {
-        imageView.image = image
-        imageView.isHidden = false
-        updateTintColor()
-    }
-
-    func setTitle(_ title: String) {
-        guard !title.isEmpty else { return }
-        currentTitle = title
-        updateTitle()
-    }
-
-    func attach(to button: NSStatusBarButton) {
-        statusButton = button
-        updateHighlight(button.isHighlighted)
-    }
-
-    func setHighlighted(_ highlighted: Bool) {
-        updateHighlight(highlighted)
-    }
-
-    func fittingWidth() -> CGFloat {
-        layoutSubtreeIfNeeded()
-        let width = stackView.fittingSize.width + Layout.horizontalPadding * 2
-        return ceil(width)
-    }
-
-    private func updateTitle() {
-        guard !currentTitle.isEmpty else { return }
-        var attributes = textAttributes
-        attributes[.foregroundColor] = isHighlighted
-            ? NSColor.unemphasizedSelectedTextColor
-            : NSColor.labelColor
-        textField.attributedStringValue = NSAttributedString(string: currentTitle, attributes: attributes)
-        textField.isHidden = false
-    }
-
-    private func updateTintColor() {
-        imageView.contentTintColor = isHighlighted
-            ? NSColor.unemphasizedSelectedTextColor
-            : NSColor.labelColor
-    }
-
-    private func updateHighlight(_ highlighted: Bool) {
-        guard isHighlighted != highlighted else { return }
-        isHighlighted = highlighted
-        statusButton?.highlight(isHighlighted)
-        updateTitle()
-        updateTintColor()
-        needsDisplay = true
-    }
-
-    override func viewWillDraw() {
-        super.viewWillDraw()
-        updateHighlight(statusButton?.isHighlighted == true)
-    }
-
-    override func hitTest(_: NSPoint) -> NSView? {
-        nil
+        setStatusItemHighlighted(false)
     }
 }
 
