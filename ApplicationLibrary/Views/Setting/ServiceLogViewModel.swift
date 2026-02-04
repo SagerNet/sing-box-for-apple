@@ -16,14 +16,13 @@ final class ServiceLogViewModel: BaseViewModel {
     }
 
     nonisolated func loadContent() async {
-        var content = ""
-        do {
-            content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log"))
-        } catch {}
-        if content.isEmpty {
-            do {
-                content = try String(contentsOf: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
-            } catch {}
+        let primaryLogURL = FilePath.cacheDirectory.appendingPathComponent("stderr.log")
+        let secondaryLogURL = FilePath.cacheDirectory.appendingPathComponent("stderr.log.old")
+        var content = await BlockingIO.run {
+            if let primaryContent = try? String(contentsOf: primaryLogURL), !primaryContent.isEmpty {
+                return primaryContent
+            }
+            return (try? String(contentsOf: secondaryLogURL)) ?? ""
         }
         #if DEBUG
             if content.isEmpty {
@@ -53,8 +52,12 @@ final class ServiceLogViewModel: BaseViewModel {
     }
 
     nonisolated func deleteContent(dismiss: DismissAction) async {
-        try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log"))
-        try? FileManager.default.removeItem(at: FilePath.cacheDirectory.appendingPathComponent("stderr.log.old"))
+        let primaryLogURL = FilePath.cacheDirectory.appendingPathComponent("stderr.log")
+        let secondaryLogURL = FilePath.cacheDirectory.appendingPathComponent("stderr.log.old")
+        await BlockingIO.run {
+            try? FileManager.default.removeItem(at: primaryLogURL)
+            try? FileManager.default.removeItem(at: secondaryLogURL)
+        }
         await MainActor.run {
             dismiss()
             isLoading = true
@@ -63,5 +66,12 @@ final class ServiceLogViewModel: BaseViewModel {
 
     func generateShareFile() throws -> URL {
         try content.generateShareFile(name: "service.log")
+    }
+
+    func generateShareFileAsync() async throws -> URL {
+        let content = content
+        return try await BlockingIO.run {
+            try content.generateShareFile(name: "service.log")
+        }
     }
 }

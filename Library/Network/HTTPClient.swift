@@ -24,12 +24,25 @@ public class HTTPClient {
     }
 
     public func getString(_ url: String?) throws -> String {
+        #if DEBUG
+            precondition(!Thread.isMainThread, "HTTPClient.getString(...) must not be called on the main thread")
+        #endif
         let request = client.newRequest()!
         request.setUserAgent(HTTPClient.userAgent)
         try request.setURL(url)
         let response = try request.execute()
         let content = try response.getContent()
         return content.value
+    }
+
+    public func getStringAsync(_ url: String?) async throws -> String {
+        try await Self.getStringAsync(url)
+    }
+
+    public static func getStringAsync(_ url: String?) async throws -> String {
+        try await BlockingIO.run {
+            try HTTPClient().getString(url)
+        }
     }
 
     deinit {

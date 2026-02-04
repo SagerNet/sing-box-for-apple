@@ -193,7 +193,7 @@ public class ExtensionProfile: ObservableObject {
             ])
         }
 
-        let configContent = try profile.read()
+        let configContent = try await profile.readAsync()
         options["configContent"] = NSString(string: configContent)
 
         options["ignoreMemoryLimit"] = await NSNumber(value: SharedPreferences.ignoreMemoryLimit.get())
@@ -215,10 +215,9 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func fetchProfile() async throws {
-        if let profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get())) {
-            if profile.type == .icloud {
-                _ = try profile.read()
-            }
+        let profileID = await SharedPreferences.selectedProfileID.get()
+        if let profile = try await ProfileManager.get(profileID), profile.type == .icloud {
+            _ = try await profile.readAsync()
         }
     }
 

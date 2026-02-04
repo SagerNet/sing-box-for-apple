@@ -529,6 +529,7 @@ private struct ProfilePickerRow: View {
     @State private var isUpdating = false
     @State private var showQRCode = false
     @State private var showQRSShare = false
+    @State private var qrsShareData: Data?
     #if os(macOS)
         @State private var shareItemType: ShareItemType?
         @State private var exportItemType: ExportItemType?
@@ -561,6 +562,19 @@ private struct ProfilePickerRow: View {
                     QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                 }
             }
+            .sheet(
+                isPresented: $showQRSShare,
+                onDismiss: {
+                    qrsShareData = nil
+                },
+                content: {
+                    if let data = qrsShareData {
+                        QRSSheet(profileName: profile.name, profileData: data)
+                    } else {
+                        ProgressView()
+                    }
+                }
+            )
         }
 
         private var tvOSNormalBody: some View {
@@ -618,12 +632,10 @@ private struct ProfilePickerRow: View {
                             }
                         }
 
-                        if let data = try? profile.origin.toContent().encode() {
-                            FormNavigationLink {
-                                QRSSheet(profileName: profile.name, profileData: data)
-                            } label: {
-                                Label("Share as QRS Code", systemImage: "barcode")
-                            }
+                        Button {
+                            prepareQRSShare()
+                        } label: {
+                            Label("Share as QRS Code", systemImage: "barcode")
                         }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
@@ -710,11 +722,19 @@ private struct ProfilePickerRow: View {
                         QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                     }
                 }
-                .sheet(isPresented: $showQRSShare) {
-                    if let data = try? profile.origin.toContent().encode() {
-                        QRSSheet(profileName: profile.name, profileData: data)
+                .sheet(
+                    isPresented: $showQRSShare,
+                    onDismiss: {
+                        qrsShareData = nil
+                    },
+                    content: {
+                        if let data = qrsShareData {
+                            QRSSheet(profileName: profile.name, profileData: data)
+                        } else {
+                            ProgressView()
+                        }
                     }
-                }
+                )
                 .fileExporter(
                     isPresented: $showExporter,
                     document: exportDocument,
@@ -749,11 +769,19 @@ private struct ProfilePickerRow: View {
                         QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                     }
                 }
-                .sheet(isPresented: $showQRSShare) {
-                    if let data = try? profile.origin.toContent().encode() {
-                        QRSSheet(profileName: profile.name, profileData: data)
+                .sheet(
+                    isPresented: $showQRSShare,
+                    onDismiss: {
+                        qrsShareData = nil
+                    },
+                    content: {
+                        if let data = qrsShareData {
+                            QRSSheet(profileName: profile.name, profileData: data)
+                        } else {
+                            ProgressView()
+                        }
                     }
-                }
+                )
                 .fileExporter(
                     isPresented: $showExporter,
                     document: exportDocument,
@@ -881,6 +909,24 @@ private struct ProfilePickerRow: View {
         #endif
     }
 
+    private func prepareQRSShare() {
+        qrsShareData = nil
+        showQRSShare = true
+        Task {
+            do {
+                let data = try await profile.origin.encodedContentDataAsync()
+                await MainActor.run {
+                    qrsShareData = data
+                }
+            } catch {
+                await MainActor.run {
+                    alert = AlertState(error: error)
+                    showQRSShare = false
+                }
+            }
+        }
+    }
+
     #if !os(tvOS)
         @ViewBuilder
         private var shareMenu: some View {
@@ -919,7 +965,7 @@ private struct ProfilePickerRow: View {
                     ShareButtonCompat($alert) {
                         Label("Share File", systemImage: "doc")
                     } itemURL: {
-                        try profile.origin.toContent().generateShareFile()
+                        try await profile.origin.generateShareFileAsync()
                     }
 
                     Button {
@@ -931,7 +977,7 @@ private struct ProfilePickerRow: View {
                     ShareButtonCompat($alert) {
                         Label("Share Content JSON File", systemImage: "curlybraces")
                     } itemURL: {
-                        try profile.origin.read().generateShareFile(name: "\(profile.name).json")
+                        try await profile.origin.generateJSONShareFileAsync(name: "\(profile.name).json")
                     }
                 #endif
 
@@ -944,7 +990,7 @@ private struct ProfilePickerRow: View {
                 }
 
                 Button {
-                    showQRSShare = true
+                    prepareQRSShare()
                 } label: {
                     Label("Share as QRS Code", systemImage: "barcode")
                 }
@@ -954,18 +1000,26 @@ private struct ProfilePickerRow: View {
         }
 
         private func exportProfile(type: ExportItemType) {
-            do {
-                switch type {
-                case .file:
-                    let doc = try ProfileExportDocument(content: profile.origin.toContent())
-                    exportDocument = ProfileAnyExportDocument(profile: doc)
-                case .json:
-                    let doc = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
-                    exportDocument = ProfileAnyExportDocument(json: doc)
+            Task {
+                do {
+                    let document: ProfileAnyExportDocument
+                    switch type {
+                    case .file:
+                        let data = try await profile.origin.encodedContentDataAsync()
+                        document = ProfileAnyExportDocument(data: data, filename: "\(profile.name).bpf", contentType: .data)
+                    case .json:
+                        let content = try await profile.origin.readAsync()
+                        document = ProfileAnyExportDocument(data: Data(content.utf8), filename: "\(profile.name).json", contentType: .json)
+                    }
+                    await MainActor.run {
+                        exportDocument = document
+                        showExporter = true
+                    }
+                } catch {
+                    await MainActor.run {
+                        alert = AlertState(error: error)
+                    }
                 }
-                showExporter = true
-            } catch {
-                alert = AlertState(error: error)
             }
         }
     #endif
@@ -996,38 +1050,52 @@ private struct ProfilePickerRow: View {
 
     #if os(macOS)
         private func shareProfile(type: ShareItemType) {
-            do {
-                let url: URL
-                switch type {
-                case .file:
-                    url = try profile.origin.toContent().generateShareFile()
-                case .json:
-                    url = try profile.origin.read().generateShareFile(name: "\(profile.name).json")
+            Task {
+                do {
+                    let url: URL
+                    switch type {
+                    case .file:
+                        url = try await profile.origin.generateShareFileAsync()
+                    case .json:
+                        url = try await profile.origin.generateJSONShareFileAsync(name: "\(profile.name).json")
+                    }
+                    await MainActor.run {
+                        let anchorView = menuAnchorView ?? NSApp.keyWindow?.contentView ?? NSView()
+                        NSSharingServicePicker(items: [url]).show(
+                            relativeTo: .zero,
+                            of: anchorView,
+                            preferredEdge: .minY
+                        )
+                    }
+                } catch {
+                    await MainActor.run {
+                        alert = AlertState(error: error)
+                    }
                 }
-                let anchorView = menuAnchorView ?? NSApp.keyWindow?.contentView ?? NSView()
-                NSSharingServicePicker(items: [url]).show(
-                    relativeTo: .zero,
-                    of: anchorView,
-                    preferredEdge: .minY
-                )
-            } catch {
-                alert = AlertState(error: error)
             }
         }
 
         private func exportProfileMacOS(type: ExportItemType) {
-            do {
-                switch type {
-                case .file:
-                    let doc = try ProfileExportDocument(content: profile.origin.toContent())
-                    exportDocument = ProfileAnyExportDocument(profile: doc)
-                case .json:
-                    let doc = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
-                    exportDocument = ProfileAnyExportDocument(json: doc)
+            Task {
+                do {
+                    let document: ProfileAnyExportDocument
+                    switch type {
+                    case .file:
+                        let data = try await profile.origin.encodedContentDataAsync()
+                        document = ProfileAnyExportDocument(data: data, filename: "\(profile.name).bpf", contentType: .data)
+                    case .json:
+                        let content = try await profile.origin.readAsync()
+                        document = ProfileAnyExportDocument(data: Data(content.utf8), filename: "\(profile.name).json", contentType: .json)
+                    }
+                    await MainActor.run {
+                        exportDocument = document
+                        showExporter = true
+                    }
+                } catch {
+                    await MainActor.run {
+                        alert = AlertState(error: error)
+                    }
                 }
-                showExporter = true
-            } catch {
-                alert = AlertState(error: error)
             }
         }
 
@@ -1135,6 +1203,7 @@ private struct ProfilePickerRow: View {
         @State private var isUpdating = false
         @State private var showQRCode = false
         @State private var showQRSShare = false
+        @State private var qrsShareData: Data?
         @State private var exportDocument: ProfileAnyExportDocument?
         @State private var showExporter = false
 
@@ -1194,11 +1263,19 @@ private struct ProfilePickerRow: View {
                     QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                 }
             }
-            .sheet(isPresented: $showQRSShare) {
-                if let data = try? profile.origin.toContent().encode() {
-                    QRSSheet(profileName: profile.name, profileData: data)
+            .sheet(
+                isPresented: $showQRSShare,
+                onDismiss: {
+                    qrsShareData = nil
+                },
+                content: {
+                    if let data = qrsShareData {
+                        QRSSheet(profileName: profile.name, profileData: data)
+                    } else {
+                        ProgressView()
+                    }
                 }
-            }
+            )
             .fileExporter(
                 isPresented: $showExporter,
                 document: exportDocument,
@@ -1250,6 +1327,24 @@ private struct ProfilePickerRow: View {
             .buttonStyle(.plain)
         }
 
+        private func prepareQRSShare() {
+            qrsShareData = nil
+            showQRSShare = true
+            Task {
+                do {
+                    let data = try await profile.origin.encodedContentDataAsync()
+                    await MainActor.run {
+                        qrsShareData = data
+                    }
+                } catch {
+                    await MainActor.run {
+                        alert = AlertState(error: error)
+                        showQRSShare = false
+                    }
+                }
+            }
+        }
+
         @ViewBuilder
         private var shareMenu: some View {
             Menu {
@@ -1262,7 +1357,7 @@ private struct ProfilePickerRow: View {
                 ShareButtonCompat($alert) {
                     Label("Share File", systemImage: "doc")
                 } itemURL: {
-                    try profile.origin.toContent().generateShareFile()
+                    try await profile.origin.generateShareFileAsync()
                 }
 
                 Button {
@@ -1274,7 +1369,7 @@ private struct ProfilePickerRow: View {
                 ShareButtonCompat($alert) {
                     Label("Share Content JSON File", systemImage: "curlybraces")
                 } itemURL: {
-                    try profile.origin.read().generateShareFile(name: "\(profile.name).json")
+                    try await profile.origin.generateJSONShareFileAsync(name: "\(profile.name).json")
                 }
 
                 if profile.type == .remote {
@@ -1286,7 +1381,7 @@ private struct ProfilePickerRow: View {
                 }
 
                 Button {
-                    showQRSShare = true
+                    prepareQRSShare()
                 } label: {
                     Label("Share as QRS Code", systemImage: "barcode")
                 }
@@ -1296,18 +1391,26 @@ private struct ProfilePickerRow: View {
         }
 
         private func exportProfile(type: ExportItemType) {
-            do {
-                switch type {
-                case .file:
-                    let doc = try ProfileExportDocument(content: profile.origin.toContent())
-                    exportDocument = ProfileAnyExportDocument(profile: doc)
-                case .json:
-                    let doc = try ProfileJSONExportDocument(jsonContent: profile.origin.read(), name: profile.name)
-                    exportDocument = ProfileAnyExportDocument(json: doc)
+            Task {
+                do {
+                    let document: ProfileAnyExportDocument
+                    switch type {
+                    case .file:
+                        let data = try await profile.origin.encodedContentDataAsync()
+                        document = ProfileAnyExportDocument(data: data, filename: "\(profile.name).bpf", contentType: .data)
+                    case .json:
+                        let content = try await profile.origin.readAsync()
+                        document = ProfileAnyExportDocument(data: Data(content.utf8), filename: "\(profile.name).json", contentType: .json)
+                    }
+                    await MainActor.run {
+                        exportDocument = document
+                        showExporter = true
+                    }
+                } catch {
+                    await MainActor.run {
+                        alert = AlertState(error: error)
+                    }
                 }
-                showExporter = true
-            } catch {
-                alert = AlertState(error: error)
             }
         }
 

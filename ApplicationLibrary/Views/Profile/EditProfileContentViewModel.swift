@@ -48,27 +48,32 @@ public final class EditProfileContentViewModel: BaseViewModel {
     private func checkConfiguration() async {
         let content = profileContent
         if content.isEmpty { return }
-        var error: NSError?
-        LibboxCheckConfig(content, &error)
-        if let error {
-            configurationError = error.localizedDescription
-        } else {
-            configurationError = nil
+        let errorDescription: String? = await BlockingIO.run {
+            var error: NSError?
+            LibboxCheckConfig(content, &error)
+            return error?.localizedDescription
         }
+        configurationError = errorDescription
     }
 
     public func formatConfiguration() async {
         let content = profileContent
         if content.isEmpty { return }
-        var error: NSError?
-        let result = LibboxFormatConfig(content, &error)
-        if let error {
+        do {
+            let formatted: String? = try await BlockingIO.run {
+                var error: NSError?
+                let result = LibboxFormatConfig(content, &error)
+                if let error {
+                    throw error
+                }
+                return result?.value
+            }
+            if let formatted, formatted != content {
+                profileContent = formatted
+                isChanged = true
+            }
+        } catch {
             configurationError = error.localizedDescription
-            return
-        }
-        if let formatted = result?.value, formatted != content {
-            profileContent = formatted
-            isChanged = true
         }
     }
 
@@ -92,7 +97,7 @@ public final class EditProfileContentViewModel: BaseViewModel {
         guard let profile = try await ProfileManager.get(profileID) else {
             throw NSError(domain: "EditProfileContentViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Profile missing")])
         }
-        let profileContent = try profile.read()
+        let profileContent = try await profile.readAsync()
         await MainActor.run {
             self.profile = profile
             self.profileContent = profileContent
@@ -114,6 +119,6 @@ public final class EditProfileContentViewModel: BaseViewModel {
 
     private nonisolated func saveContentBackground(_ profile: Profile) async throws {
         let profileContent = await profileContent
-        try profile.write(profileContent)
+        try await profile.writeAsync(profileContent)
     }
 }

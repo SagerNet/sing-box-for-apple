@@ -193,19 +193,25 @@ public struct NewProfileMenuView: View {
 
     #if !os(tvOS)
         private func handleFileImport(_ result: Result<[URL], Error>) {
-            do {
-                let urls = try result.get()
-                guard let url = urls.first else { return }
+            Task { @MainActor in
+                do {
+                    let urls = try result.get()
+                    guard let url = urls.first else { return }
 
-                if url.pathExtension.lowercased() == "json" {
-                    let fileName = url.deletingPathExtension().lastPathComponent
-                    localImportRequest = NewProfileView.LocalImportRequest(name: fileName, fileURL: url)
-                } else {
-                    let content = try url.withRequiredSecurityScopedAccess(
-                        or: NSError(domain: "NewProfileMenuView", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Missing access to selected file")])
-                    ) {
-                        try LibboxProfileContent.from(Data(contentsOf: url))
+                    if url.pathExtension.lowercased() == "json" {
+                        let fileName = url.deletingPathExtension().lastPathComponent
+                        localImportRequest = NewProfileView.LocalImportRequest(name: fileName, fileURL: url)
+                        return
                     }
+
+                    let data = try await BlockingIO.run {
+                        try url.withRequiredSecurityScopedAccess(
+                            or: NSError(domain: "NewProfileMenuView", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Missing access to selected file")])
+                        ) {
+                            try Data(contentsOf: url)
+                        }
+                    }
+                    let content = try LibboxProfileContent.from(data)
 
                     alert = AlertState(
                         title: String(localized: "Import Profile"),
@@ -223,9 +229,9 @@ public struct NewProfileMenuView: View {
                         },
                         secondaryButton: .cancel()
                     )
+                } catch {
+                    alert = AlertState(error: error)
                 }
-            } catch {
-                alert = AlertState(error: error)
             }
         }
     #endif

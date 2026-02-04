@@ -57,7 +57,7 @@
         }
     }
 
-    public class RootHelperClient {
+    public class RootHelperClient: @unchecked Sendable {
         public static let shared = RootHelperClient()
 
         private var connection: NSXPCConnection?

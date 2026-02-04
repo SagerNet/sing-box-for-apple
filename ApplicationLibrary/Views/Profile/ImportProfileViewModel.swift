@@ -139,17 +139,32 @@
             default:
                 break
             }
+            let profileName = content.name
+            let profileConfigContent = content.config
+            let remotePath = content.remotePath
+            let autoUpdate = content.autoUpdate
+            let autoUpdateInterval = content.autoUpdateInterval
             let nextProfileID = try await ProfileManager.nextID()
             let profileConfigDirectory = FilePath.sharedDirectory.appendingPathComponent("configs", isDirectory: true)
-            try FileManager.default.createDirectory(at: profileConfigDirectory, withIntermediateDirectories: true)
             let profileConfig = profileConfigDirectory.appendingPathComponent("config_\(nextProfileID).json")
-            try content.config.write(to: profileConfig, atomically: true, encoding: .utf8)
+            try await BlockingIO.run {
+                try FileManager.default.createDirectory(at: profileConfigDirectory, withIntermediateDirectories: true)
+                try profileConfigContent.write(to: profileConfig, atomically: true, encoding: .utf8)
+            }
             var lastUpdated: Date?
             if content.lastUpdated > 0 {
                 lastUpdated = dateFromTimestamp(content.lastUpdated)
             }
-            let uniqueProfileName = try await ProfileManager.uniqueName(content.name)
-            let profile = Profile(name: uniqueProfileName, type: type, path: profileConfig.relativePath, remoteURL: content.remotePath, autoUpdate: content.autoUpdate, lastUpdated: lastUpdated)
+            let uniqueProfileName = try await ProfileManager.uniqueName(profileName)
+            let profile = Profile(
+                name: uniqueProfileName,
+                type: type,
+                path: profileConfig.relativePath,
+                remoteURL: remotePath,
+                autoUpdate: autoUpdate,
+                autoUpdateInterval: autoUpdateInterval,
+                lastUpdated: lastUpdated
+            )
             try await ProfileManager.create(profile)
             await SharedPreferences.selectedProfileID.set(profile.mustID)
             await reset()

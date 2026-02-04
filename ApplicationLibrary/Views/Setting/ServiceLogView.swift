@@ -38,7 +38,7 @@ public struct ServiceLogView: View {
                     ShareButtonCompat($viewModel.alert) {
                         Label("Export", systemImage: "square.and.arrow.up.fill")
                     } itemURL: {
-                        try viewModel.generateShareFile()
+                        try await viewModel.generateShareFileAsync()
                     }
                 #endif
                 Button(role: .destructive) {
