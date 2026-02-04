@@ -1,7 +1,7 @@
+import Combine
 import Foundation
 import Libbox
 import os
-import Combine
 
 private let logger = Logger(category: "CommandClient")
 
@@ -83,6 +83,7 @@ public class CommandClient: ObservableObject {
             .map(\.status)
             .eraseToAnyPublisher()
     }
+
     @Published public var groups: [LibboxOutboundGroup]?
     @Published public var logList: [LogEntry]
     @Published public var defaultLogLevel = 0

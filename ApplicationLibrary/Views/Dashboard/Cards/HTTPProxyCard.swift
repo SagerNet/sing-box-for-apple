@@ -24,9 +24,9 @@ public struct HTTPProxyCard: View {
                 Spacer()
                 Toggle("", isOn: $systemProxyEnabled)
                     .labelsHidden()
-                    #if os(macOS)
-                        .toggleStyle(.switch)
-                    #endif
+                #if os(macOS)
+                    .toggleStyle(.switch)
+                #endif
                     .onChangeCompat(of: systemProxyEnabled) { newValue in
                         Task {
                             await onToggle(newValue)

@@ -222,9 +222,9 @@ struct MainView: View {
             }
         } else if url.pathExtension == "bpf" {
             do {
-                _ = url.startAccessingSecurityScopedResource()
-                importProfile = try .from(Data(contentsOf: url))
-                url.stopAccessingSecurityScopedResource()
+                importProfile = try url.withSecurityScopedAccess {
+                    try .from(Data(contentsOf: url))
+                }
             } catch {
                 alert = AlertState(error: error)
             }

@@ -201,10 +201,11 @@ public struct NewProfileMenuView: View {
                     let fileName = url.deletingPathExtension().lastPathComponent
                     localImportRequest = NewProfileView.LocalImportRequest(name: fileName, fileURL: url)
                 } else {
-                    _ = url.startAccessingSecurityScopedResource()
-                    defer { url.stopAccessingSecurityScopedResource() }
-
-                    let content = try LibboxProfileContent.from(Data(contentsOf: url))
+                    let content = try url.withRequiredSecurityScopedAccess(
+                        or: NSError(domain: "NewProfileMenuView", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Missing access to selected file")])
+                    ) {
+                        try LibboxProfileContent.from(Data(contentsOf: url))
+                    }
 
                     alert = AlertState(
                         title: String(localized: "Import Profile"),

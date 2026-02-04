@@ -113,13 +113,11 @@ public final class NewProfileViewModel: BaseViewModel {
                 guard let fileURL else {
                     throw NSError(domain: "NewProfileViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Missing file")])
                 }
-                if !fileURL.startAccessingSecurityScopedResource() {
-                    throw NSError(domain: "NewProfileViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Missing access to selected file")])
+                try fileURL.withRequiredSecurityScopedAccess(
+                    or: NSError(domain: "NewProfileViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Missing access to selected file")])
+                ) {
+                    try String(contentsOf: fileURL).write(to: profileConfig, atomically: true, encoding: .utf8)
                 }
-                defer {
-                    fileURL.stopAccessingSecurityScopedResource()
-                }
-                try String(contentsOf: fileURL).write(to: profileConfig, atomically: true, encoding: .utf8)
             } else {
                 try "{}".write(to: profileConfig, atomically: true, encoding: .utf8)
             }
@@ -129,10 +127,6 @@ public final class NewProfileViewModel: BaseViewModel {
                 try FileManager.default.createDirectory(at: FilePath.iCloudDirectory, withIntermediateDirectories: true)
             }
             let saveURL = FilePath.iCloudDirectory.appendingPathComponent(remotePath, isDirectory: false)
-            _ = saveURL.startAccessingSecurityScopedResource()
-            defer {
-                saveURL.stopAccessingSecurityScopedResource()
-            }
             do {
                 _ = try String(contentsOf: saveURL)
             } catch {

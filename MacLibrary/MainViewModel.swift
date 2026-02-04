@@ -58,9 +58,9 @@ public class MainViewModel: BaseViewModel {
 
     private func importURLProfile(_ url: URL) async {
         do {
-            _ = url.startAccessingSecurityScopedResource()
-            importProfile = try await .from(readURL(url))
-            url.stopAccessingSecurityScopedResource()
+            importProfile = try await url.withSecurityScopedAccess {
+                try await .from(readURL(url))
+            }
         } catch {
             alert = AlertState(error: error)
         }
