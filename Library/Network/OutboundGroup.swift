@@ -27,7 +27,7 @@ public struct OutboundGroup: Codable, Hashable {
     }
 
     public static func == (lhs: OutboundGroup, rhs: OutboundGroup) -> Bool {
-        lhs.hashValue == rhs.hashValue
+        lhs.tag == rhs.tag && lhs.selected == rhs.selected && lhs.items.map(\.urlTestTime) == rhs.items.map(\.urlTestTime)
     }
 
     public var displayType: String {

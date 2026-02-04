@@ -6,7 +6,7 @@ struct StartServiceIntent: AppIntent {
     static var title: LocalizedStringResource = "Start sing-box"
 
     static var description =
-        IntentDescription("Start or reload sing-box servie with specified profile")
+        IntentDescription("Start or reload sing-box service with specified profile")
 
     static var parameterSummary: some ParameterSummary {
         Summary("Start sing-box service with profile \(\.$profile).")
