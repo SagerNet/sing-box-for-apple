@@ -11,17 +11,17 @@ private enum OnDemandMode: String, CaseIterable, Identifiable {
 
     var name: String {
         switch self {
-        case .disabled: "Disabled"
-        case .alwaysOn: "Always On"
-        case .enabled: "Enabled"
+        case .disabled: String(localized: "Disabled")
+        case .alwaysOn: String(localized: "Always On")
+        case .enabled: String(localized: "Enabled")
         }
     }
 
     var description: String {
         switch self {
-        case .disabled: "VPN will not connect automatically."
-        case .alwaysOn: "Automatically connect VPN on any network."
-        case .enabled: "Automatically connect or disconnect VPN based on rules."
+        case .disabled: String(localized: "VPN will not connect automatically.")
+        case .alwaysOn: String(localized: "Automatically connect VPN on any network.")
+        case .enabled: String(localized: "Automatically connect or disconnect VPN based on rules.")
         }
     }
 }

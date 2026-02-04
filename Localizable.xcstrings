@@ -287,6 +287,26 @@
         }
       }
     },
+    "Automatically connect or disconnect VPN based on rules." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "根据规则自动连接或断开 VPN 连接。"
+          }
+        }
+      }
+    },
+    "Automatically connect VPN on any network." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何网络上自动连接 VPN。"
+          }
+        }
+      }
+    },
     "Browse" : {
       "localizations" : {
         "zh-Hans" : {
@@ -2794,6 +2814,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看内容"
+          }
+        }
+      }
+    },
+    "VPN will not connect automatically." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN 不会自动连接。"
           }
         }
       }
