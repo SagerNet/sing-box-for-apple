@@ -59,9 +59,12 @@
             var message: Data
             while true {
                 do {
-                    message = try socket.read()
+                    message = try await socket.read()
                 } catch {
                     throw NSError(domain: "ImportProfileViewModel", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Read from connection: \(error.localizedDescription)")])
+                }
+                if message.isEmpty {
+                    continue
                 }
                 var error: NSError?
                 switch Int64(message[0]) {
@@ -112,12 +115,15 @@
             connection.stateUpdateHandler = nil
             let request = LibboxProfileContentRequest()
             request.profileID = profileID
-            do {
-                try socket.write(request.encode())
-                isImporting = true
-            } catch {
-                alert = AlertState(error: error)
-                reset()
+            isImporting = true
+            Task {
+                do {
+                    try await socket.write(request.encode())
+                } catch {
+                    isImporting = false
+                    alert = AlertState(error: error)
+                    reset()
+                }
             }
         }
 

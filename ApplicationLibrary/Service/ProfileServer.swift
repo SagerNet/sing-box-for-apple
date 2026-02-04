@@ -55,17 +55,17 @@ public class ProfileServer {
                 try await writeProfilePreviewList()
             } catch {
                 NSLog("profile server: write profile list: \(error.localizedDescription)")
-                writeError(error.localizedDescription)
+                await writeError(error.localizedDescription)
                 return
             }
             do {
                 while true {
-                    let message = try connection.read()
-                    try processMessage(message)
+                    let message = try await connection.read()
+                    try await processMessage(message)
                 }
             } catch {
                 NSLog("profile server: process connection: \(error.localizedDescription)")
-                writeError(error.localizedDescription)
+                await writeError(error.localizedDescription)
             }
         }
 
@@ -89,16 +89,14 @@ public class ProfileServer {
             }
         #endif
 
-        private func processMessage(_ data: Data) throws {
+        private func processMessage(_ data: Data) async throws {
             if data.count == 0 {
                 return
             }
             let messageType = Int64(data[0])
             switch messageType {
             case LibboxMessageTypeProfileContentRequest:
-                Task {
-                    try await processProfileContentRequest(data)
-                }
+                try await processProfileContentRequest(data)
             default:
                 throw NSError(domain: "ProfileServer", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Unexpected message type \(messageType)")])
             }
@@ -136,7 +134,7 @@ public class ProfileServer {
                     content.lastUpdated = Int64(lastUpdated.timeIntervalSince1970)
                 }
             }
-            try connection.write(content.encode())
+            try await connection.write(content.encode())
         }
 
         private func writeProfilePreviewList() async throws {
@@ -156,13 +154,13 @@ public class ProfileServer {
                 }
                 encoder.append(preview)
             }
-            try connection.write(encoder.encode())
+            try await connection.write(encoder.encode())
         }
 
-        private func writeError(_ message: String) {
+        private func writeError(_ message: String) async {
             let errorMessage = LibboxErrorMessage()
             errorMessage.message = message
-            try? connection.write(errorMessage.encode())
+            try? await connection.write(errorMessage.encode())
         }
     }
 }
