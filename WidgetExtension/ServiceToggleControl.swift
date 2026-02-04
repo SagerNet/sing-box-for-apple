@@ -12,7 +12,7 @@ struct ServiceToggleControl: ControlWidget {
             ControlWidgetToggle(
                 "sing-box",
                 isOn: value,
-                action: ToggleServiceIntent()
+                action: ToggleServiceControlIntent()
             ) { isOn in
                 Label(isOn ? "Running" : "Stopped", systemImage: "shippingbox.fill")
 //                    .controlWidgetActionHint(isOn ? "Stop" : "Start")
@@ -39,7 +39,7 @@ extension ServiceToggleControl {
     }
 }
 
-struct ToggleServiceIntent: SetValueIntent {
+struct ToggleServiceControlIntent: SetValueIntent {
     static var title: LocalizedStringResource = "Toggle sing-box"
 
     @Parameter(title: "Running")
