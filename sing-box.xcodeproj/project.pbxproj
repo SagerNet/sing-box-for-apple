@@ -39,7 +39,6 @@
 		3AE395F42C21A5CA00647718 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AE395F32C21A5CA00647718 /* WidgetKit.framework */; };
 		3AE395F62C21A5CA00647718 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AE395F52C21A5CA00647718 /* SwiftUI.framework */; };
 		3AE396032C21A5CC00647718 /* WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3AE395F22C21A5CA00647718 /* WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		3AE396072C21A60C00647718 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3AE4D0BD2A6E2DDC009FEA9E /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3AE4D0BE2A6E2DDC009FEA9E /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3AE595822F08C3D400C13426 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
@@ -191,13 +190,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 3AE395F12C21A5CA00647718;
 			remoteInfo = WidgetExtensionExtension;
-		};
-		3AE396092C21A60C00647718 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3AEC20BD2A45991900A63465 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 3AEC211C2A459B4700A63465;
-			remoteInfo = Library;
 		};
 		3AE4D0BA2A6E2C55009FEA9E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -707,7 +699,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3AE396072C21A60C00647718 /* Library.framework in Frameworks */,
 				3AE395F62C21A5CA00647718 /* SwiftUI.framework in Frameworks */,
 				3AE395F42C21A5CA00647718 /* WidgetKit.framework in Frameworks */,
 			);
@@ -1098,7 +1089,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				3AE3960A2C21A60C00647718 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				3ADDCFD52E8B72BC009ACE1D /* WidgetExtension */,
@@ -1721,11 +1711,6 @@
 			isa = PBXTargetDependency;
 			target = 3AE395F12C21A5CA00647718 /* WidgetExtension */;
 			targetProxy = 3AE396012C21A5CC00647718 /* PBXContainerItemProxy */;
-		};
-		3AE3960A2C21A60C00647718 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 3AEC211C2A459B4700A63465 /* Library */;
-			targetProxy = 3AE396092C21A60C00647718 /* PBXContainerItemProxy */;
 		};
 		3AE4D0BB2A6E2C55009FEA9E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
