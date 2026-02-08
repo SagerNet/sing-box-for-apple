@@ -25,8 +25,13 @@ public class LogDataModel: ObservableObject {
 
     private static let maxVisibleLogs = 1000
 
-    public var isEmpty: Bool { commandClient.logList.isEmpty }
-    public var isConnected: Bool { commandClient.isConnected }
+    public var isEmpty: Bool {
+        commandClient.logList.isEmpty
+    }
+
+    public var isConnected: Bool {
+        commandClient.isConnected
+    }
 
     private func updateVisibleLogs() {
         if filteredLogs.count <= Self.maxVisibleLogs {

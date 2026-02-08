@@ -10,7 +10,7 @@ final class SnapshotTests: XCTestCase {
         app.launch()
     }
 
-    func test01Dashboard() throws {
+    func test01Dashboard() {
         #if os(macOS)
             if app.outlines.staticTexts["Dashboard"].exists {
                 app.outlines.staticTexts["Dashboard"].click()
@@ -20,7 +20,7 @@ final class SnapshotTests: XCTestCase {
         snapshot("01_Dashboard")
     }
 
-    func test02Logs() throws {
+    func test02Logs() {
         #if os(iOS)
             if app.tabBars.buttons["Logs"].exists {
                 app.tabBars.buttons["Logs"].firstMatch.tap()
@@ -47,7 +47,7 @@ final class SnapshotTests: XCTestCase {
         snapshot("02_Logs")
     }
 
-    func test03Settings() throws {
+    func test03Settings() {
         #if os(iOS)
             if app.tabBars.buttons["Settings"].exists {
                 app.tabBars.buttons["Settings"].firstMatch.tap()

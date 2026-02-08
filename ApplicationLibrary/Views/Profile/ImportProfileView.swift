@@ -28,8 +28,8 @@
                         }
 
                         DevicePicker(
-                            .applicationService(name: "sing-box:profile"))
-                        { endpoint in
+                            .applicationService(name: "sing-box:profile")
+                        ) { endpoint in
                             viewModel.selected = true
                             Task {
                                 await viewModel.handleEndpoint(endpoint, environments: environments)

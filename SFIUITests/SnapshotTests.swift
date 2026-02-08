@@ -10,11 +10,11 @@ final class SnapshotTests: XCTestCase {
         app.launch()
     }
 
-    func test01Dashboard() throws {
+    func test01Dashboard() {
         snapshot("01_Dashboard")
     }
 
-    func test02Logs() throws {
+    func test02Logs() {
         if app.tabBars.buttons["Logs"].exists {
             app.tabBars.buttons["Logs"].firstMatch.tap()
         } else if app.buttons["Logs"].exists {
@@ -24,7 +24,7 @@ final class SnapshotTests: XCTestCase {
         snapshot("02_Logs")
     }
 
-    func test03Settings() throws {
+    func test03Settings() {
         // iPad on iOS 18+ uses floating tab bar which creates nested elements
         // Use firstMatch to handle multiple matching elements
         if app.tabBars.buttons["Settings"].exists {

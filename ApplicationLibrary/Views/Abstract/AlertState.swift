@@ -3,7 +3,6 @@ import Library
 import SwiftUI
 
 public extension View {
-    @ViewBuilder
     func alert(_ binding: Binding<AlertState?>, isLoading: Binding<Bool>) -> some View {
         alert(
             binding.wrappedValue?.title ?? "",

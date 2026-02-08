@@ -22,16 +22,41 @@ public enum AppConfiguration {
         return String(appGroupID[..<dotIndex])
     }
 
-    public static var extensionBundleID: String { "\(packageName).extension" }
-    public static var systemExtensionBundleID: String { "\(packageName).system" }
-    public static var fileProviderDomainID: String { "\(packageName).workingdir" }
-    public static var widgetControlKind: String { "\(packageName).widget.ServiceToggle" }
-    public static var profileUTType: String { "\(packageName).profile" }
-    public static var backgroundTaskID: String { "\(packageName).update_profiles" }
-    public static var iCloudContainerID: String { "iCloud.\(packageName)" }
+    public static var extensionBundleID: String {
+        "\(packageName).extension"
+    }
+
+    public static var systemExtensionBundleID: String {
+        "\(packageName).system"
+    }
+
+    public static var fileProviderDomainID: String {
+        "\(packageName).workingdir"
+    }
+
+    public static var widgetControlKind: String {
+        "\(packageName).widget.ServiceToggle"
+    }
+
+    public static var profileUTType: String {
+        "\(packageName).profile"
+    }
+
+    public static var backgroundTaskID: String {
+        "\(packageName).update_profiles"
+    }
+
+    public static var iCloudContainerID: String {
+        "iCloud.\(packageName)"
+    }
 
     #if os(macOS)
-        public static var rootHelperBundleID: String { "\(packageName).helper" }
-        public static var rootHelperMachService: String { "\(appGroupID).helper" }
+        public static var rootHelperBundleID: String {
+            "\(packageName).helper"
+        }
+
+        public static var rootHelperMachService: String {
+            "\(appGroupID).helper"
+        }
     #endif
 }

@@ -242,8 +242,7 @@
         let controller: QRScannerController
 
         func makeUIViewController(context _: Context) -> UIViewController {
-            let viewController = QRScannerViewController(controller: controller)
-            return viewController
+            QRScannerViewController(controller: controller)
         }
 
         func updateUIViewController(_: UIViewController, context _: Context) {}

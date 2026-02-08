@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct DeleteButton<Label>: View where Label: View {
+public struct DeleteButton<Label: View>: View {
     private let action: () async -> Void
     private let label: Label
 

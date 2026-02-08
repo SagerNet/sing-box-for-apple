@@ -79,7 +79,6 @@ public struct AlertState: Equatable {
 }
 
 public extension View {
-    @ViewBuilder
     func alert(_ binding: Binding<AlertState?>) -> some View {
         alert(
             binding.wrappedValue?.title ?? "",
@@ -119,7 +118,10 @@ public extension View {
 }
 
 public struct ImportRemoteProfileRequest: Hashable, Identifiable {
-    public var id: String { url }
+    public var id: String {
+        url
+    }
+
     public let name: String
     public let url: String
 

@@ -437,7 +437,6 @@ struct ProfilePickerSheet: View {
     }
 
     #if os(macOS)
-        @ViewBuilder
         private func macOSProfileRow(_ profile: ProfilePreview) -> some View {
             ProfilePickerRow(
                 profile: profile,
@@ -928,7 +927,6 @@ private struct ProfilePickerRow: View {
     }
 
     #if !os(tvOS)
-        @ViewBuilder
         private var shareMenu: some View {
             Menu {
                 #if os(macOS)
@@ -1345,7 +1343,6 @@ private struct ProfilePickerRow: View {
             }
         }
 
-        @ViewBuilder
         private var shareMenu: some View {
             Menu {
                 Button {

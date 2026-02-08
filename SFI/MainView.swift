@@ -57,7 +57,6 @@ struct MainView: View {
         }
     }
 
-    @ViewBuilder
     private var baseTabView: some View {
         tabView(showsBottomAccessory: false)
     }
@@ -66,7 +65,6 @@ struct MainView: View {
         tabView(showsBottomAccessory: shouldShowBottomAccessory)
     }
 
-    @ViewBuilder
     private func tabView(showsBottomAccessory: Bool) -> some View {
         TabView(selection: $selection) {
             ForEach(NavigationPage.allCases, id: \.self) { page in
@@ -95,7 +93,6 @@ struct MainView: View {
         }
     }
 
-    @ViewBuilder
     private func tabBarBackgroundIfAvailable(_ content: some View) -> some View {
         content
     }

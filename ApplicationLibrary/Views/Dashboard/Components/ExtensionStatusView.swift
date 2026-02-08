@@ -103,7 +103,7 @@ public struct ExtensionStatusView: View {
         }
     }
 
-    private struct StatusItem<T>: View where T: View {
+    private struct StatusItem<T: View>: View {
         @Environment(\.colorScheme) private var colorScheme
 
         private let title: String

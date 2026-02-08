@@ -19,8 +19,14 @@ extension ExtensionStartupError: LocalizedError {
 }
 
 extension ExtensionStartupError: CustomNSError {
-    public static var errorDomain: String { "ExtensionStartupError" }
-    public var errorCode: Int { 1 }
+    public static var errorDomain: String {
+        "ExtensionStartupError"
+    }
+
+    public var errorCode: Int {
+        1
+    }
+
     public var errorUserInfo: [String: Any] {
         [NSLocalizedDescriptionKey: message]
     }

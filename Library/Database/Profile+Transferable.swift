@@ -218,7 +218,9 @@ public extension UTType {
     // MARK: - FileDocument for Export
 
     public struct ProfileExportDocument: FileDocument {
-        public static var readableContentTypes: [UTType] { [.profile] }
+        public static var readableContentTypes: [UTType] {
+            [.profile]
+        }
 
         public let data: Data
         public let filename: String
@@ -245,7 +247,9 @@ public extension UTType {
     }
 
     public struct ProfileJSONExportDocument: FileDocument {
-        public static var readableContentTypes: [UTType] { [.json] }
+        public static var readableContentTypes: [UTType] {
+            [.json]
+        }
 
         public let content: String
         public let filename: String
@@ -274,7 +278,9 @@ public extension UTType {
     }
 
     public struct ProfileAnyExportDocument: FileDocument {
-        public static var readableContentTypes: [UTType] { [.data, .json] }
+        public static var readableContentTypes: [UTType] {
+            [.data, .json]
+        }
 
         public let data: Data
         public let filename: String

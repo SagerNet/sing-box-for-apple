@@ -152,7 +152,7 @@ import SwiftUI
         #endif
     }
 
-    @ViewBuilder private var overviewPage: some View {
+    private var overviewPage: some View {
         OverviewView(
             $coordinator.profileList,
             $coordinator.selectedProfileID,

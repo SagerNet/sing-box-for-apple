@@ -7,7 +7,9 @@ private enum OnDemandMode: String, CaseIterable, Identifiable {
     case alwaysOn
     case enabled
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var name: String {
         switch self {
@@ -114,7 +116,6 @@ public struct OnDemandRulesView: View {
         }
     }
 
-    @ViewBuilder
     private var rulesSection: some View {
         Section {
             if rules.isEmpty {
@@ -463,7 +464,6 @@ private struct OnDemandRuleEditView: View {
         #endif
     }
 
-    @ViewBuilder
     private var connectionRulesSection: some View {
         Section {
             if rule.connectionRules.isEmpty {

@@ -122,7 +122,6 @@ struct EditProfileContentWindow: View {
         }
     }
 
-    @ViewBuilder
     private var defaultEditorView: some View {
         Group {
             if readOnly {

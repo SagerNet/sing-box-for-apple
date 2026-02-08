@@ -147,7 +147,6 @@ public extension View {
 #endif
 
 public extension View {
-    @ViewBuilder
     func cardStyle() -> some View {
         modifier(CardStyleModifier())
     }

@@ -91,7 +91,6 @@ public struct SidebarView: View {
         }
     }
 
-    @ViewBuilder
     private var disconnectedContent: some View {
         List(selection: $localSelection) {
             ForEach(NavigationPage.allCases.filter { $0.visible(nil) }, id: \.self) { it in

@@ -12,19 +12,26 @@ final class LubyTransformDecoder {
     private var disposedEncodedBlocks: [Int: [() -> Void]] = [:]
     private(set) var meta: EncodedBlock?
 
-    var k: Int { meta?.k ?? 0 }
+    var k: Int {
+        meta?.k ?? 0
+    }
+
     var progress: Double {
         guard k > 0 else { return 0 }
         return Double(decodedCount) / Double(k)
     }
 
-    var isComplete: Bool { meta != nil && decodedCount == k }
+    var isComplete: Bool {
+        meta != nil && decodedCount == k
+    }
 
     private class BlockWrapper: Hashable {
         var block: EncodedBlock
         let id = UUID()
 
-        init(_ block: EncodedBlock) { self.block = block }
+        init(_ block: EncodedBlock) {
+            self.block = block
+        }
 
         static func == (lhs: BlockWrapper, rhs: BlockWrapper) -> Bool {
             lhs.id == rhs.id

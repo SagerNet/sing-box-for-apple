@@ -29,8 +29,7 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
                 ],
                 intentIdentifiers: []
             ),
-        ]
-        )
+        ])
         notificationCenter.delegate = self
         setup()
         return true

@@ -25,8 +25,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
                 ],
                 intentIdentifiers: []
             ),
-        ]
-        )
+        ])
         notificationCenter.delegate = self
         let event = NSAppleEventManager.shared().currentAppleEvent
         let launchedAsLogInItem =

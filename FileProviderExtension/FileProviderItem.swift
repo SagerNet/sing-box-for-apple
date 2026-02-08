@@ -95,11 +95,25 @@ class FileProviderItem: NSObject, NSFileProviderItem {
 
     // MARK: - Local File Status
 
-    var isUploaded: Bool { true }
-    var isUploading: Bool { false }
-    var isDownloaded: Bool { true }
-    var isDownloading: Bool { false }
-    var isMostRecentVersionDownloaded: Bool { true }
+    var isUploaded: Bool {
+        true
+    }
+
+    var isUploading: Bool {
+        false
+    }
+
+    var isDownloaded: Bool {
+        true
+    }
+
+    var isDownloading: Bool {
+        false
+    }
+
+    var isMostRecentVersionDownloaded: Bool {
+        true
+    }
 
     private var isDirectory: Bool {
         var isDir: ObjCBool = false

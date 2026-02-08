@@ -8,7 +8,7 @@ struct EncodedBlock {
     let bytes: Int
     let checksum: UInt32
 
-    // Binary format: degree(4) + indices(4*n) + k(4) + bytes(4) + checksum(4) + data
+    /// Binary format: degree(4) + indices(4*n) + k(4) + bytes(4) + checksum(4) + data
     func toBinary() -> Data {
         var result = Data()
 

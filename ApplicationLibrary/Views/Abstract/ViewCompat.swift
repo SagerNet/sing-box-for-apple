@@ -7,7 +7,7 @@ public extension View {
         }
     }
 
-    func onChangeCompat<V>(of value: V, _ action: @escaping (_ newValue: V) -> Void) -> some View where V: Equatable {
+    func onChangeCompat<V: Equatable>(of value: V, _ action: @escaping (_ newValue: V) -> Void) -> some View {
         onChange(of: value, perform: action)
     }
 }

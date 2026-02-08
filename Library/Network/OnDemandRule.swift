@@ -7,7 +7,9 @@ public enum OnDemandRuleAction: Int, Codable, CaseIterable, Identifiable {
     case evaluateConnection = 3
     case ignore = 4
 
-    public var id: Int { rawValue }
+    public var id: Int {
+        rawValue
+    }
 
     public var name: String {
         switch self {
@@ -46,7 +48,9 @@ public enum OnDemandRuleInterfaceType: Int, Codable, Identifiable {
         case cellular = 3
     #endif
 
-    public var id: Int { rawValue }
+    public var id: Int {
+        rawValue
+    }
 
     public var name: String {
         switch self {
@@ -80,7 +84,9 @@ public enum EvaluateConnectionRuleAction: Int, Codable, CaseIterable, Identifiab
     case connectIfNeeded = 1
     case neverConnect = 2
 
-    public var id: Int { rawValue }
+    public var id: Int {
+        rawValue
+    }
 
     public var name: String {
         switch self {

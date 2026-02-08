@@ -272,7 +272,6 @@ private struct LogContentInnerView: View {
         #endif
     }
 
-    @ViewBuilder
     private var emptyContent: some View {
         Group {
             if dataModel.isConnected {
@@ -427,7 +426,9 @@ private struct LogContentInnerView: View {
     }
 
     private struct LogTextDocument: FileDocument {
-        static var readableContentTypes: [UTType] { [.plainText] }
+        static var readableContentTypes: [UTType] {
+            [.plainText]
+        }
 
         private let url: URL
 
@@ -466,8 +467,7 @@ private struct LogContentInnerView: View {
             @Binding var alert: AlertState?
 
             func makeNSView(context _: Context) -> NSView {
-                let view = NSView()
-                return view
+                NSView()
             }
 
             func updateNSView(_ nsView: NSView, context _: Context) {

@@ -188,7 +188,6 @@ public struct ProfileCard: View {
         #endif
     }
 
-    @ViewBuilder
     private func actionButtonsRow(for profile: ProfilePreview) -> some View {
         HStack(spacing: actionButtonSpacing) {
             editButton(for: profile)
@@ -201,7 +200,6 @@ public struct ProfileCard: View {
         }
     }
 
-    @ViewBuilder
     private func editButton(for profile: ProfilePreview) -> some View {
         Button {
             viewModel.profileToEdit = profile.origin
@@ -213,7 +211,6 @@ public struct ProfileCard: View {
         .actionButtonStyle()
     }
 
-    @ViewBuilder
     private func updateButton(for profile: ProfilePreview) -> some View {
         Button {
             viewModel.isUpdating = true
@@ -436,7 +433,6 @@ public struct ProfileCard: View {
         }
     }
 
-    @ViewBuilder
     private func profileInfo(for profile: ProfilePreview) -> some View {
         HStack(spacing: 8) {
             HStack(spacing: 4) {

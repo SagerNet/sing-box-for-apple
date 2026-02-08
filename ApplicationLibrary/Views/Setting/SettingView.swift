@@ -128,7 +128,6 @@ public struct SettingView: View {
 
     #if os(macOS)
         @MainActor
-        @ViewBuilder
         private static func destinationView(for page: SettingsPage) -> some View {
             Group {
                 switch page {

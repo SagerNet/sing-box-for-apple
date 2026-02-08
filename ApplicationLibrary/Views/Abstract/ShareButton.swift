@@ -8,7 +8,7 @@ import SwiftUI
 #endif
 
 @MainActor
-public struct ProfileShareButton<Label>: View where Label: View {
+public struct ProfileShareButton<Label: View>: View {
     private let alert: Binding<AlertState?>
     private let profile: Profile
     private let label: () -> Label
@@ -40,7 +40,7 @@ public struct ProfileShareButton<Label>: View where Label: View {
     }
 }
 
-public struct ShareButtonCompat<Label>: View where Label: View {
+public struct ShareButtonCompat<Label: View>: View {
     private let label: () -> Label
     private let itemURL: () async throws -> URL
 
@@ -137,8 +137,7 @@ public struct ShareButtonCompat<Label>: View where Label: View {
         }
 
         func makeNSView(context _: Context) -> NSView {
-            let view = NSView()
-            return view
+            NSView()
         }
 
         func updateNSView(_ nsView: NSView, context: Context) {

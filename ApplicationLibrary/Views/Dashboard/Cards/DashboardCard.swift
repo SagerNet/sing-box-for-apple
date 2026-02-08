@@ -10,7 +10,9 @@ public enum DashboardCard: String, CaseIterable, Identifiable, Codable, Hashable
     case clashMode
     case profile
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 
     public var title: LocalizedStringKey {
         switch self {

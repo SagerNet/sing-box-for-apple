@@ -262,8 +262,7 @@ public class ExtensionProfile: ObservableObject {
         if managers.isEmpty {
             return nil
         }
-        let profile = ExtensionProfile(managers[0])
-        return profile
+        return ExtensionProfile(managers[0])
     }
 
     public static func install() async throws {

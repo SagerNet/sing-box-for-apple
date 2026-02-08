@@ -61,17 +61,17 @@ final class SnapshotTests: XCTestCase {
         return nil
     }
 
-    func test01Dashboard() throws {
+    func test01Dashboard() {
         sleep(1)
         snapshot("01_Dashboard")
     }
 
-    func test02Logs() throws {
+    func test02Logs() {
         sleep(1)
         snapshot("02_Logs")
     }
 
-    func test03Settings() throws {
+    func test03Settings() {
         sleep(1)
         snapshot("03_Settings")
     }

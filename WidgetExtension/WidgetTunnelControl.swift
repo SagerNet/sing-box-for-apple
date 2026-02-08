@@ -16,7 +16,9 @@ enum WidgetAppConfiguration {
         return value
     }()
 
-    static var widgetControlKind: String { "\(packageName).widget.ServiceToggle" }
+    static var widgetControlKind: String {
+        "\(packageName).widget.ServiceToggle"
+    }
 }
 
 extension NEVPNStatus {
@@ -67,4 +69,3 @@ enum WidgetTunnelControl {
         return managers.first
     }
 }
-

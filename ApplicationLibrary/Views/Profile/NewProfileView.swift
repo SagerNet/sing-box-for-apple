@@ -11,13 +11,19 @@ public struct NewProfileView: View {
     private var onSuccess: ((Profile) async -> Void)?
 
     public struct ImportRequest: Codable, Hashable, Identifiable {
-        public var id: String { url }
+        public var id: String {
+            url
+        }
+
         public let name: String
         public let url: String
     }
 
     public struct LocalImportRequest: Hashable, Identifiable {
-        public var id: String { fileURL.absoluteString }
+        public var id: String {
+            fileURL.absoluteString
+        }
+
         public let name: String
         public let fileURL: URL
 

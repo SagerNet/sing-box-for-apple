@@ -48,7 +48,6 @@ public struct DashboardView: View {
         #endif
     }
 
-    @ViewBuilder
     private func importRemoteProfileSheet(for request: ImportRemoteProfileRequest) -> some View {
         NavigationSheet(title: "Import Profile", onDismiss: {
             environments.profileUpdate.send()
@@ -99,7 +98,6 @@ public struct DashboardView: View {
         }
     }
 
-    @ViewBuilder
     private var activeDashboardView: some View {
         ActiveDashboardView(coordinator: coordinator)
     }
