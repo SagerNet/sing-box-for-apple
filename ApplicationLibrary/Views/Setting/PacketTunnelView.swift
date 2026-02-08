@@ -111,7 +111,7 @@ struct PacketTunnelView: View {
         do {
             try await profile.restart()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "restart service", error: error)
         }
     }
 

@@ -7,24 +7,24 @@ open class BaseViewModel: ObservableObject {
 
     public init() {}
 
-    public func showError(_ error: Error) {
-        alert = AlertState(error: error)
+    public func showError(_ error: Error, action: String) {
+        alert = AlertState(action: action, error: error)
     }
 
-    public func execute(_ operation: () async throws -> Void) async {
+    public func execute(_ operation: () async throws -> Void, action: String) async {
         do {
             try await operation()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: action, error: error)
         }
     }
 
-    public func executeOnBackground(_ operation: @escaping @Sendable () async throws -> Void) async {
+    public func executeOnBackground(_ operation: @escaping @Sendable () async throws -> Void, action: String) async {
         do {
             try await operation()
         } catch {
             await MainActor.run {
-                alert = AlertState(error: error)
+                alert = AlertState(action: action, error: error)
             }
         }
     }

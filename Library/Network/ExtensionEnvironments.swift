@@ -1,5 +1,10 @@
 import Foundation
 import SwiftUI
+#if canImport(UIKit)
+    import UIKit
+#elseif canImport(AppKit)
+    import AppKit
+#endif
 
 public struct AlertState: Equatable {
     public var title: String
@@ -36,15 +41,45 @@ public struct AlertState: Equatable {
         }
     }
 
-    public init(error: Error, dismiss: (() -> Void)? = nil) {
-        self.init(errorMessage: error.localizedDescription, dismiss: dismiss)
+    private static func formatErrorMessage(action: String, error: Error) -> String {
+        let normalizedAction = action.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedDescription = error.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let actionText = normalizedAction.isEmpty ? "complete operation" : normalizedAction
+        if normalizedDescription.isEmpty {
+            return "Failed to \(actionText)"
+        }
+        return "Failed to \(actionText)\n\(normalizedDescription)"
     }
 
-    public init(errorMessage: String, dismiss: (() -> Void)? = nil) {
+    private static func copyErrorMessage(_ text: String) {
+        #if canImport(UIKit)
+            UIPasteboard.general.string = text
+        #elseif canImport(AppKit)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+        #endif
+    }
+
+    public init(action: String, error: Error, dismiss: (() -> Void)? = nil) {
+        self.init(
+            errorMessage: Self.formatErrorMessage(action: action, error: error),
+            dismiss: dismiss,
+            allowsCopy: true
+        )
+    }
+
+    public init(errorMessage: String, dismiss: (() -> Void)? = nil, allowsCopy: Bool = false) {
         title = String(localized: "Error")
         message = errorMessage
-        primaryButton = .default(String(localized: "Ok"), action: dismiss)
-        secondaryButton = nil
+        if allowsCopy {
+            primaryButton = .default(String(localized: "Copy")) {
+                Self.copyErrorMessage(errorMessage)
+            }
+            secondaryButton = .default(String(localized: "Ok"), action: dismiss)
+        } else {
+            primaryButton = .default(String(localized: "Ok"), action: dismiss)
+            secondaryButton = nil
+        }
         onDismiss = nil
     }
 

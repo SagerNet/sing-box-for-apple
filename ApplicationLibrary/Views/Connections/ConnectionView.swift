@@ -118,7 +118,7 @@ public struct ConnectionView: View {
             try await LibboxNewStandaloneCommandClient()!.closeConnection(connection.id)
         } catch {
             await MainActor.run {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "close connection", error: error)
             }
         }
     }

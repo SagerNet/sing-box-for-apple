@@ -148,6 +148,13 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             throw ExtensionStartupError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
         }
 
+        let stderrPath = URL(fileURLWithPath: tempPath, isDirectory: true).appendingPathComponent("stderr.log").path
+        var stderrError: NSError?
+        LibboxRedirectStderr(stderrPath, &stderrError)
+        if let stderrError {
+            throw ExtensionStartupError("(packet-tunnel) redirect stderr error: \(stderrError.localizedDescription)")
+        }
+
         let ignoreMemoryLimit = (effectiveOptions["ignoreMemoryLimit"] as? NSNumber)?.boolValue ?? false
         LibboxSetMemoryLimit(!ignoreMemoryLimit)
 

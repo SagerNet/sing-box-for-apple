@@ -38,7 +38,7 @@
                 case let .failed(error):
                     DispatchQueue.main.async { [self] in
                         reset()
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "connect to import source", error: error)
                     }
                 default: break
                 }
@@ -47,7 +47,7 @@
             do {
                 try await loopMessages(environments: environments)
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "import profile from device", error: error)
                 reset()
             }
         }
@@ -121,7 +121,7 @@
                     try await socket.write(request.encode())
                 } catch {
                     isImporting = false
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "request profile content from device", error: error)
                     reset()
                 }
             }

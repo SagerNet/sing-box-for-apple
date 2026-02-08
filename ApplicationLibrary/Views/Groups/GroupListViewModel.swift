@@ -90,7 +90,7 @@ public class GroupListViewModel: BaseViewModel {
             try await LibboxNewStandaloneCommandClient()!.selectOutbound(groupTag, outboundTag: outboundTag)
         } catch {
             await MainActor.run {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "select outbound", error: error)
             }
         }
     }
@@ -109,7 +109,7 @@ public class GroupListViewModel: BaseViewModel {
             try await LibboxNewStandaloneCommandClient()!.setGroupExpand(tag, isExpand: isExpand)
         } catch {
             await MainActor.run {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "update group expansion", error: error)
             }
         }
     }
@@ -125,7 +125,7 @@ public class GroupListViewModel: BaseViewModel {
             try await LibboxNewStandaloneCommandClient()!.urlTest(tag)
         } catch {
             await MainActor.run {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "run URL test", error: error)
             }
         }
     }

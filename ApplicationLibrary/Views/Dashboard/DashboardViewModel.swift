@@ -69,7 +69,7 @@ public final class DashboardViewModel: BaseViewModel {
                     await SharedPreferences.selectedProfileID.set(selectedProfileID)
                 }
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "load profile list", error: error)
                 return
             }
         }
@@ -109,7 +109,7 @@ extension ExtensionProfile {
                     )
                 }
             #endif
-            return AlertState(error: nsError)
+            return AlertState(action: "fetch last disconnect error", error: nsError)
         }
     }
 

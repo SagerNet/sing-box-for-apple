@@ -135,7 +135,7 @@ public class LogDataModel: ObservableObject {
                 try text.write(to: fileURL, atomically: true, encoding: .utf8)
                 logFileURL = fileURL
             } catch {
-                viewModel?.alert = AlertState(error: error)
+                viewModel?.alert = AlertState(action: "prepare log file", error: error)
             }
         }
     #endif

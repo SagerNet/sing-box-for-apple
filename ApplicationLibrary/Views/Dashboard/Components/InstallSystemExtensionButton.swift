@@ -31,7 +31,7 @@
                 }
                 await callback()
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "install system extension", error: error)
             }
         }
     }

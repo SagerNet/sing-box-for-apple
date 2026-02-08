@@ -215,7 +215,7 @@ struct MainView: View {
             var error: NSError?
             importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
             if let error {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "parse remote profile import link", error: error)
             }
         } else if url.pathExtension == "bpf" {
             do {
@@ -223,7 +223,7 @@ struct MainView: View {
                     try .from(Data(contentsOf: url))
                 }
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "import profile from URL", error: error)
             }
         } else {
             alert = AlertState(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))

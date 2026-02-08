@@ -399,7 +399,7 @@ private struct LogContentInnerView: View {
                     cleanup()
                     logFileURL = nil
                     if case let .failure(error) = result {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "export log file", error: error)
                     }
                 }
                 .sheet(isPresented: $showShareSheet) {

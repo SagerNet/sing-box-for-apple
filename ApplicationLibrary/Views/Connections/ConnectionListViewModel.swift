@@ -90,7 +90,7 @@ public class ConnectionListViewModel: BaseViewModel {
         do {
             try LibboxNewStandaloneCommandClient()!.closeConnections()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "close all connections", error: error)
         }
     }
 

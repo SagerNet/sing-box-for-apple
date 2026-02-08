@@ -165,7 +165,8 @@ public struct StartStopButton: View {
             } catch {
                 await MainActor.run {
                     isStarting = false
-                    alert = AlertState(error: error)
+                    let action = isEnabled ? "start service" : "stop service"
+                    alert = AlertState(action: action, error: error)
                 }
             }
         }

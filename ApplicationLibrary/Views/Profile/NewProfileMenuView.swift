@@ -223,14 +223,14 @@ public struct NewProfileMenuView: View {
                                     environments.profileUpdate.send()
                                     dismiss()
                                 } catch {
-                                    alert = AlertState(error: error)
+                                    alert = AlertState(action: "import profile", error: error)
                                 }
                             }
                         },
                         secondaryButton: .cancel()
                     )
                 } catch {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "read imported profile file", error: error)
                 }
             }
         }
@@ -250,7 +250,7 @@ public struct NewProfileMenuView: View {
             var error: NSError?
             let remoteProfile = LibboxParseRemoteProfileImportLink(string, &error)
             if let error {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "parse QR code profile link", error: error)
                 return
             }
             guard let remoteProfile else {
@@ -274,14 +274,14 @@ public struct NewProfileMenuView: View {
                                 environments.profileUpdate.send()
                                 dismiss()
                             } catch {
-                                alert = AlertState(error: error)
+                                alert = AlertState(action: "import profile", error: error)
                             }
                         }
                     },
                     secondaryButton: .cancel()
                 )
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "decode QRS profile data", error: error)
             }
         }
     #endif

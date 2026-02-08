@@ -402,7 +402,7 @@ struct ProfilePickerSheet: View {
             try await profile.origin.updateRemoteProfile()
             environments.profileUpdate.send()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "update remote profile", error: error)
         }
     }
 
@@ -742,7 +742,7 @@ private struct ProfilePickerRow: View {
                 ) { result in
                     exportDocument = nil
                     if case let .failure(error) = result {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "export profile", error: error)
                     }
                 }
             }
@@ -789,7 +789,7 @@ private struct ProfilePickerRow: View {
                 ) { result in
                     exportDocument = nil
                     if case let .failure(error) = result {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "export profile", error: error)
                     }
                 }
             }
@@ -919,7 +919,7 @@ private struct ProfilePickerRow: View {
                 }
             } catch {
                 await MainActor.run {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "prepare QRS share", error: error)
                     showQRSShare = false
                 }
             }
@@ -1015,7 +1015,7 @@ private struct ProfilePickerRow: View {
                     }
                 } catch {
                     await MainActor.run {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "export profile", error: error)
                     }
                 }
             }
@@ -1067,7 +1067,7 @@ private struct ProfilePickerRow: View {
                     }
                 } catch {
                     await MainActor.run {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "share profile", error: error)
                     }
                 }
             }
@@ -1091,7 +1091,7 @@ private struct ProfilePickerRow: View {
                     }
                 } catch {
                     await MainActor.run {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "export profile", error: error)
                     }
                 }
             }
@@ -1282,7 +1282,7 @@ private struct ProfilePickerRow: View {
             ) { result in
                 exportDocument = nil
                 if case let .failure(error) = result {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "export profile", error: error)
                 }
             }
         }
@@ -1336,7 +1336,7 @@ private struct ProfilePickerRow: View {
                     }
                 } catch {
                     await MainActor.run {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "prepare QRS share", error: error)
                         showQRSShare = false
                     }
                 }
@@ -1405,7 +1405,7 @@ private struct ProfilePickerRow: View {
                     }
                 } catch {
                     await MainActor.run {
-                        alert = AlertState(error: error)
+                        alert = AlertState(action: "export profile", error: error)
                     }
                 }
             }

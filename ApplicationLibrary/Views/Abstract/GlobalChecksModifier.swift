@@ -105,7 +105,7 @@ public struct GlobalChecksModifier: ViewModifier {
                         try await profile.importProfile()
                     } catch {
                         await MainActor.run {
-                            alert = AlertState(error: error)
+                            alert = AlertState(action: "import profile", error: error)
                         }
                         return
                     }
@@ -174,7 +174,7 @@ public struct GlobalChecksModifier: ViewModifier {
             }
         } catch {
             await MainActor.run {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "check deprecated notes", error: error)
             }
         }
     }

@@ -204,7 +204,7 @@ public struct CoreView: View {
             try await environments.extensionProfile!.stop()
             await destroyWorkingDirectory()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "stop service before destroying working directory", error: error)
         }
     }
 
@@ -233,7 +233,7 @@ public struct CoreView: View {
             #endif
             isLoading = true
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "destroy working directory", error: error)
         }
     }
 
@@ -281,7 +281,7 @@ public struct CoreView: View {
                 try await manager.signalEnumerator(for: .workingSet)
             } catch {
                 await MainActor.run {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "notify Files app about working directory changes", error: error)
                 }
             }
         }
@@ -300,7 +300,7 @@ public struct CoreView: View {
                 }
             } catch {
                 await MainActor.run {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "open working directory in Files", error: error)
                 }
             }
         }

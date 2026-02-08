@@ -264,7 +264,7 @@ public struct OnDemandRulesView: View {
                     await updateService()
                     isLoading = true
                 } catch {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "reset on-demand rules", error: error)
                 }
             }
         } label: {
@@ -289,7 +289,7 @@ public struct OnDemandRulesView: View {
             let enabled = mode != .disabled
             try await profile.updateOnDemand(enabled: enabled, useDefaultRules: mode == .alwaysOn)
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "update on-demand rules", error: error)
         }
     }
 

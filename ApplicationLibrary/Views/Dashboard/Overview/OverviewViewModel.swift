@@ -15,7 +15,7 @@ public final class OverviewViewModel: BaseViewModel {
             do {
                 try await profile.reloadService()
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "reload service", error: error)
             }
         }
         reasserting = false
@@ -32,7 +32,7 @@ public final class OverviewViewModel: BaseViewModel {
                 await MainActor.run { reasserting = false }
             }
         } catch {
-            await MainActor.run { alert = AlertState(error: error) }
+            await MainActor.run { alert = AlertState(action: "update system proxy settings", error: error) }
         }
     }
 }

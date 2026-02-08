@@ -185,7 +185,7 @@ public struct NewProfileView: View {
                         viewModel.fileURL = urls[0]
                     }
                 } catch {
-                    viewModel.alert = AlertState(error: error)
+                    viewModel.alert = AlertState(action: "read imported profile file", error: error)
                     return
                 }
             }
@@ -213,7 +213,7 @@ public struct NewProfileView: View {
                             viewModel.fileURL = urls[0]
                         }
                     } catch {
-                        viewModel.alert = AlertState(error: error)
+                        viewModel.alert = AlertState(action: "read imported profile file", error: error)
                         return
                     }
                 }

@@ -109,14 +109,14 @@ public struct AppView: View {
                                                 try HelperServiceManager.registerRootHelper()
                                                 refreshHelperStatus()
                                             } catch {
-                                                alert = AlertState(error: error)
+                                                alert = AlertState(action: "update helper service", error: error)
                                             }
                                         }
                                     } label: {
                                         Label("Update", systemImage: "arrow.down.doc.fill")
                                     }
                                     FormButton(role: .destructive) {
-                                        performHelperAction {
+                                        performHelperAction(actionName: "uninstall helper service") {
                                             try HelperServiceManager.unregisterRootHelper()
                                         }
                                     } label: {
@@ -130,7 +130,7 @@ public struct AppView: View {
                                     }
                                 } else {
                                     FormButton {
-                                        performHelperAction {
+                                        performHelperAction(actionName: "install helper service") {
                                             try HelperServiceManager.registerRootHelper()
                                         }
                                     } label: {
@@ -210,7 +210,7 @@ public struct AppView: View {
                     try SMAppService.mainApp.unregister()
                 }
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "update login items", error: error)
             }
         }
 
@@ -231,7 +231,7 @@ public struct AppView: View {
                     }
                 }
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "update system extension", error: error)
             }
         }
 
@@ -252,16 +252,16 @@ public struct AppView: View {
                     }
                 }
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "uninstall system extension", error: error)
             }
         }
 
-        private func performHelperAction(_ action: () throws -> Void) {
+        private func performHelperAction(actionName: String, _ action: () throws -> Void) {
             do {
                 try action()
                 refreshHelperStatus()
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: actionName, error: error)
             }
         }
 

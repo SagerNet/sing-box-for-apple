@@ -195,7 +195,7 @@ public struct ClashModeCard: View {
             try LibboxNewStandaloneCommandClient()!.setClashMode(newMode)
         } catch {
             await MainActor.run {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "set clash mode", error: error)
             }
         }
     }

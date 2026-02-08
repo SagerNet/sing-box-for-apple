@@ -65,7 +65,7 @@ public struct ProfileOverrideView: View {
         do {
             try await profile.reloadService()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "reload service", error: error)
         }
     }
 

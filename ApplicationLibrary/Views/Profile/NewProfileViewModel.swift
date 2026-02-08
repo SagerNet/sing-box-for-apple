@@ -72,7 +72,7 @@ public final class NewProfileViewModel: BaseViewModel {
         do {
             createdProfile = try await createProfileBackground()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "create profile", error: error)
             return
         }
 

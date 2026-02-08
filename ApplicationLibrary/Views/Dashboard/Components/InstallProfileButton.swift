@@ -26,7 +26,7 @@ public struct InstallProfileButton: View {
             try await ExtensionProfile.install()
             await callback()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "install network extension", error: error)
         }
     }
 }

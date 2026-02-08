@@ -134,7 +134,7 @@ public struct ProfileCard: View {
                 ) { result in
                     viewModel.exportDocument = nil
                     if case let .failure(error) = result {
-                        viewModel.alert = AlertState(error: error)
+                        viewModel.alert = AlertState(action: "export profile", error: error)
                     }
                 }
         #endif
@@ -371,7 +371,7 @@ public struct ProfileCard: View {
                         )
                     #endif
                 } catch {
-                    viewModel.alert = AlertState(error: error)
+                    viewModel.alert = AlertState(action: "share profile", error: error)
                 }
             }
         }
@@ -394,7 +394,7 @@ public struct ProfileCard: View {
                     }
                 } catch {
                     await MainActor.run {
-                        viewModel.alert = AlertState(error: error)
+                        viewModel.alert = AlertState(action: "export profile", error: error)
                     }
                 }
             }
@@ -427,7 +427,7 @@ public struct ProfileCard: View {
             do {
                 viewModel.qrsShareData = try await profile.origin.encodedContentDataAsync()
             } catch {
-                viewModel.alert = AlertState(error: error)
+                viewModel.alert = AlertState(action: "prepare QRS share", error: error)
                 viewModel.showQRSShare = false
             }
         }
@@ -536,7 +536,7 @@ extension ProfileCard {
                 try await profile.updateRemoteProfile()
                 environments.profileUpdate.send()
             } catch {
-                alert = AlertState(error: error)
+                alert = AlertState(action: "update remote profile", error: error)
             }
         }
     }

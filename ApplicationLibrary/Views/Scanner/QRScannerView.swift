@@ -160,7 +160,7 @@
                         )
                     #endif
                 default:
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "scan QR code", error: error)
                 }
             }
         }

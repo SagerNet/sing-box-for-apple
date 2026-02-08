@@ -86,7 +86,7 @@ public struct ShareButtonCompat<Label: View>: View {
                 }
             } catch {
                 await MainActor.run {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "prepare share file", error: error)
                 }
             }
         }
@@ -117,7 +117,7 @@ public struct ShareButtonCompat<Label: View>: View {
                 }
             } catch {
                 await MainActor.run {
-                    alert = AlertState(error: error)
+                    alert = AlertState(action: "prepare share file", error: error)
                 }
             }
         }

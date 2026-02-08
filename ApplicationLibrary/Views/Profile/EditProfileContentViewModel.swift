@@ -85,7 +85,7 @@ public final class EditProfileContentViewModel: BaseViewModel {
         do {
             try await loadContentBackground()
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "load profile content", error: error)
         }
         isLoading = false
     }
@@ -111,7 +111,7 @@ public final class EditProfileContentViewModel: BaseViewModel {
         do {
             try await saveContentBackground(profile)
         } catch {
-            alert = AlertState(error: error)
+            alert = AlertState(action: "save profile content", error: error)
             return
         }
         isChanged = false
