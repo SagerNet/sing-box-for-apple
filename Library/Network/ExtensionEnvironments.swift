@@ -52,7 +52,7 @@ public struct AlertState: Equatable {
     }
 
     private static func copyErrorMessage(_ text: String) {
-        #if canImport(UIKit)
+        #if canImport(UIKit) && !os(tvOS)
             UIPasteboard.general.string = text
         #elseif canImport(AppKit)
             NSPasteboard.general.clearContents()
@@ -60,26 +60,32 @@ public struct AlertState: Equatable {
         #endif
     }
 
-    public init(action: String, error: Error, dismiss: (() -> Void)? = nil) {
-        self.init(
-            errorMessage: Self.formatErrorMessage(action: action, error: error),
-            dismiss: dismiss,
-            allowsCopy: true
-        )
+    private static var supportsErrorCopy: Bool {
+        #if canImport(UIKit) && !os(tvOS)
+            true
+        #elseif canImport(AppKit)
+            true
+        #else
+            false
+        #endif
     }
 
-    public init(errorMessage: String, dismiss: (() -> Void)? = nil, allowsCopy: Bool = false) {
-        title = String(localized: "Error")
-        message = errorMessage
-        if allowsCopy {
+    public init(action: String, error: Error, dismiss: (() -> Void)? = nil) {
+        let errorMessage = Self.formatErrorMessage(action: action, error: error)
+        self.init(errorMessage: errorMessage, dismiss: dismiss)
+        if Self.supportsErrorCopy {
             primaryButton = .default(String(localized: "Copy")) {
                 Self.copyErrorMessage(errorMessage)
             }
             secondaryButton = .default(String(localized: "Ok"), action: dismiss)
-        } else {
-            primaryButton = .default(String(localized: "Ok"), action: dismiss)
-            secondaryButton = nil
         }
+    }
+
+    public init(errorMessage: String, dismiss: (() -> Void)? = nil) {
+        title = String(localized: "Error")
+        message = errorMessage
+        primaryButton = .default(String(localized: "Ok"), action: dismiss)
+        secondaryButton = nil
         onDismiss = nil
     }
 
