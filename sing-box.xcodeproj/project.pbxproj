@@ -1356,6 +1356,9 @@
 				en,
 				Base,
 				"zh-Hans",
+				"zh-Hant",
+				ru,
+				fa,
 			);
 			mainGroup = 3AEC20BC2A45991900A63465;
 			packageReferences = (
