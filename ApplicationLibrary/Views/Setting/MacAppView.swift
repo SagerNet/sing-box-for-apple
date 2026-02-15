@@ -7,11 +7,19 @@ import SwiftUI
 #endif
 
 public struct AppView: View {
-    private static let supportedLanguages: [(code: String?, name: String)] = [
-        (nil, String(localized: "System Default")),
-        ("en", "English"),
-        ("zh-Hans", "简体中文"),
-    ]
+    private struct LanguageOption: Hashable {
+        let code: String?
+        let name: String
+    }
+
+    private static var supportedLanguages: [LanguageOption] {
+        var options = [LanguageOption(code: nil, name: String(localized: "System Default"))]
+        options.append(contentsOf: configuredLanguageCodes().map { code in
+            let name = Locale(identifier: code).localizedString(forIdentifier: code) ?? code
+            return LanguageOption(code: code, name: name)
+        })
+        return options
+    }
 
     @State private var isLoading = true
     @State private var selectedLanguage: String?
@@ -176,8 +184,12 @@ public struct AppView: View {
         else {
             return nil
         }
+        let current = canonicalLanguageCode(first)
         for language in supportedLanguages {
-            if let code = language.code, first.hasPrefix(code) {
+            guard let code = language.code else {
+                continue
+            }
+            if current == code || current.hasPrefix("\(code)-") || current.hasPrefix("\(code)_") {
                 return code
             }
         }
@@ -186,7 +198,7 @@ public struct AppView: View {
 
     private func updateLanguage(_ language: String?) {
         if let language {
-            UserDefaults.standard.set([language], forKey: "AppleLanguages")
+            UserDefaults.standard.set([Self.canonicalLanguageCode(language)], forKey: "AppleLanguages")
         } else {
             UserDefaults.standard.removeObject(forKey: "AppleLanguages")
         }
@@ -194,6 +206,38 @@ public struct AppView: View {
             title: String(localized: "Restart Required"),
             message: String(localized: "Language will be changed after restarting the app.")
         )
+    }
+
+    private static func configuredLanguageCodes() -> [String] {
+        let rawCodes: [String]
+        if let configured = Bundle.main.object(forInfoDictionaryKey: "CFBundleLocalizations") as? [String],
+           !configured.isEmpty
+        {
+            rawCodes = configured
+        } else if let development = Bundle.main.developmentLocalization, !development.isEmpty {
+            rawCodes = [development]
+        } else {
+            rawCodes = []
+        }
+
+        var seen = Set<String>()
+        var codes: [String] = []
+        for rawCode in rawCodes {
+            let trimmed = rawCode.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else {
+                continue
+            }
+            let canonical = canonicalLanguageCode(trimmed)
+            guard !canonical.isEmpty, seen.insert(canonical).inserted else {
+                continue
+            }
+            codes.append(canonical)
+        }
+        return codes
+    }
+
+    private static func canonicalLanguageCode(_ code: String) -> String {
+        Locale.canonicalLanguageIdentifier(from: code)
     }
 
     #if os(macOS)

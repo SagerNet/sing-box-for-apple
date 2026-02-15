@@ -106,6 +106,9 @@
 	<array>
 		<string>en</string>
 		<string>zh-Hans</string>
+		<string>zh-Hant</string>
+		<string>ru</string>
+		<string>fa</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
