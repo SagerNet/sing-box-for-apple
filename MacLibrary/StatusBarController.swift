@@ -84,8 +84,9 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         if let image = NSImage(named: "MenuIcon") {
             image.isTemplate = true
             menuIcon = image
-            button.image = image
         }
+        button.image = renderStatusItemIconOnlyImage(highlighted: statusItemIsHighlighted)
+        statusItem!.length = statusItemIconOnlyImageSize().width
         isIconOnlyMode = true
 
         menu = NSMenu()
@@ -544,8 +545,8 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             if shouldUseIconOnly {
                 statusItemTitle = nil
                 statusItemTextModeSize = nil
-                button.image = menuIcon
-                statusItem.length = NSStatusItem.squareLength
+                button.image = renderStatusItemIconOnlyImage(highlighted: statusItemIsHighlighted)
+                statusItem.length = statusItemIconOnlyImageSize().width
             } else {
                 statusItemTitle = title
                 let image = renderStatusItemImage(
@@ -574,12 +575,49 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private func setStatusItemHighlighted(_ highlighted: Bool) {
         guard statusItemIsHighlighted != highlighted else { return }
         statusItemIsHighlighted = highlighted
-        guard !isIconOnlyMode, let title = statusItemTitle, let button = statusItem?.button else { return }
+        guard let button = statusItem?.button else { return }
+        if isIconOnlyMode {
+            button.image = renderStatusItemIconOnlyImage(highlighted: highlighted)
+            return
+        }
+        guard let title = statusItemTitle else { return }
         button.image = renderStatusItemImage(
             title: title,
             highlighted: highlighted,
             unified: speedMode == .unified
         )
+    }
+
+    private func renderStatusItemIconOnlyImage(highlighted: Bool) -> NSImage? {
+        guard let icon = menuIcon else { return nil }
+        let size = statusItemIconOnlyImageSize()
+        let iconSize = statusItemIconSize(forHeight: size.height)
+        guard iconSize.width > 0, iconSize.height > 0 else { return nil }
+        let iconColor = highlighted ? NSColor.unemphasizedSelectedTextColor : NSColor.labelColor
+
+        let image = NSImage(size: size, flipped: false) { _ in
+            let iconRect = NSRect(
+                x: (size.width - iconSize.width) / 2,
+                y: (size.height - iconSize.height) / 2,
+                width: iconSize.width,
+                height: iconSize.height
+            )
+            NSGraphicsContext.saveGraphicsState()
+            iconColor.setFill()
+            iconRect.fill()
+            icon.draw(
+                in: iconRect,
+                from: .zero,
+                operation: .destinationIn,
+                fraction: 1,
+                respectFlipped: true,
+                hints: nil
+            )
+            NSGraphicsContext.restoreGraphicsState()
+            return true
+        }
+        image.isTemplate = false
+        return image
     }
 
     private func renderStatusItemImage(title: String, highlighted: Bool, unified: Bool) -> NSImage? {
@@ -673,6 +711,14 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         let size = NSSize(width: ceil(width), height: ceil(height))
         statusItemTextModeSize = size
         return size
+    }
+
+    private func statusItemIconOnlyImageSize() -> NSSize {
+        let height = NSStatusBar.system.thickness
+        let iconSize = statusItemIconSize(forHeight: height)
+        let contentWidth = StatusItemLayout.horizontalPadding * 2 + iconSize.width
+        let width = max(ceil(contentWidth), NSStatusBar.system.thickness)
+        return NSSize(width: width, height: ceil(height))
     }
 
     private func statusItemIconSize(forHeight height: CGFloat) -> NSSize {
