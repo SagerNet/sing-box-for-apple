@@ -52,67 +52,74 @@ public struct NewProfileView: View {
 
     private var formContent: some View {
         FormView {
-            FormItem(String(localized: "Name")) {
-                TextField("Name", text: $viewModel.profileName, prompt: Text("Required"))
-                    .multilineTextAlignment(.trailing)
-            }
-            Picker(selection: $viewModel.profileType) {
-                Text("Local").tag(ProfileType.local)
-                #if !os(tvOS)
-                    Text("iCloud").tag(ProfileType.icloud)
-                #endif
-                Text("Remote").tag(ProfileType.remote)
-            } label: {
-                Text("Type")
-            }
-            if viewModel.profileType == .local {
-                Picker(selection: $viewModel.fileImport) {
-                    Text("Create New").tag(false)
-                    Text("Import").tag(true)
-                } label: {
-                    Text("File")
+            Section {
+                FormItem(String(localized: "Name")) {
+                    TextField("Name", text: $viewModel.profileName, prompt: Text("Required"))
+                        .multilineTextAlignment(.trailing)
                 }
-                #if os(tvOS)
-                .disabled(true)
-                #endif
-                Group {
-                    if viewModel.fileImport {
-                        HStack {
-                            Text("File Path")
-                            Spacer()
-                            Spacer()
-                            if let fileURL = viewModel.fileURL {
-                                Button(fileURL.fileName) {
-                                    viewModel.pickerPresented = true
-                                }
-                            } else {
-                                Button("Choose") {
-                                    viewModel.pickerPresented = true
+                Picker(selection: $viewModel.profileType) {
+                    Text("Local").tag(ProfileType.local)
+                    #if !os(tvOS)
+                        Text("iCloud").tag(ProfileType.icloud)
+                    #endif
+                    Text("Remote").tag(ProfileType.remote)
+                } label: {
+                    Text("Type")
+                }
+                if viewModel.profileType == .local {
+                    Picker(selection: $viewModel.fileImport) {
+                        Text("Create New").tag(false)
+                        Text("Import").tag(true)
+                    } label: {
+                        Text("File")
+                    }
+                    #if os(tvOS)
+                    .disabled(true)
+                    #endif
+                    Group {
+                        if viewModel.fileImport {
+                            HStack {
+                                Text("File Path")
+                                Spacer()
+                                Spacer()
+                                if let fileURL = viewModel.fileURL {
+                                    Button(fileURL.fileName) {
+                                        viewModel.pickerPresented = true
+                                    }
+                                } else {
+                                    Button("Choose") {
+                                        viewModel.pickerPresented = true
+                                    }
                                 }
                             }
                         }
                     }
+                } else if viewModel.profileType == .icloud {
+                    FormItem(String(localized: "Path")) {
+                        TextField("Path", text: $viewModel.remotePath, prompt: Text("Required"))
+                            .multilineTextAlignment(.trailing)
+                    }
+                } else if viewModel.profileType == .remote {
+                    FormItem(String(localized: "URL")) {
+                        TextField("URL", text: $viewModel.remotePath, prompt: Text("Required"))
+                            .multilineTextAlignment(.trailing)
+                        #if !os(macOS)
+                            .keyboardType(.URL)
+                        #endif
+                    }
+                    Toggle("Auto Update", isOn: $viewModel.autoUpdate)
+                    FormItem(String(localized: "Auto Update Interval")) {
+                        TextField("Auto Update Interval", text: $viewModel.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
+                            .multilineTextAlignment(.trailing)
+                        #if !os(macOS)
+                            .keyboardType(.numberPad)
+                        #endif
+                    }
                 }
-            } else if viewModel.profileType == .icloud {
-                FormItem(String(localized: "Path")) {
-                    TextField("Path", text: $viewModel.remotePath, prompt: Text("Required"))
-                        .multilineTextAlignment(.trailing)
-                }
-            } else if viewModel.profileType == .remote {
-                FormItem(String(localized: "URL")) {
-                    TextField("URL", text: $viewModel.remotePath, prompt: Text("Required"))
-                        .multilineTextAlignment(.trailing)
-                    #if !os(macOS)
-                        .keyboardType(.URL)
-                    #endif
-                }
-                Toggle("Auto Update", isOn: $viewModel.autoUpdate)
-                FormItem(String(localized: "Auto Update Interval")) {
-                    TextField("Auto Update Interval", text: $viewModel.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
-                        .multilineTextAlignment(.trailing)
-                    #if !os(macOS)
-                        .keyboardType(.numberPad)
-                    #endif
+            } footer: {
+                if viewModel.profileType == .icloud {
+                    let fileName = viewModel.remotePath.isEmpty ? String(localized: "FileName") : viewModel.remotePath
+                    Text("File will be located at iCloud Drive/sing-box/\(fileName)")
                 }
             }
             #if os(iOS) || os(tvOS)

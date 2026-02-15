@@ -3481,6 +3481,62 @@
         }
       }
     },
+    "File will be located at iCloud Drive/sing-box/%@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件将位于 iCloud 云盘/sing-box/%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此檔案將位於 iCloud 雲碟/sing-box/%@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл будет расположен в iCloud Drive/sing-box/%@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل در iCloud Drive/sing-box/%@ قرار خواهد گرفت"
+          }
+        }
+      }
+    },
+    "FileName" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案名稱"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ИмяФайла"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نام فایل"
+          }
+        }
+      }
+    },
     "Filter" : {
       "localizations" : {
         "zh-Hans" : {

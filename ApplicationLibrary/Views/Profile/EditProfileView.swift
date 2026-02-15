@@ -21,39 +21,45 @@ public struct EditProfileView: View {
 
     private var formContent: some View {
         FormView {
-            FormItem(String(localized: "Name")) {
-                TextField("Name", text: $profile.name, prompt: Text("Required"))
-                    .multilineTextAlignment(.trailing)
-            }
-
-            Picker(selection: $profile.type) {
-                Text("Local").tag(ProfileType.local)
-                Text("iCloud").tag(ProfileType.icloud)
-                Text("Remote").tag(ProfileType.remote)
-            } label: {
-                Text("Type")
-            }
-            .disabled(true)
-            if profile.type == .icloud {
-                FormItem(String(localized: "Path")) {
-                    TextField("Path", text: $profile.path, prompt: Text("Required"))
+            Section {
+                FormItem(String(localized: "Name")) {
+                    TextField("Name", text: $profile.name, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
                 }
-            } else if profile.type == .remote {
-                FormItem(String(localized: "URL")) {
-                    TextField("URL", text: $profile.remoteURL.unwrapped(""), prompt: Text("Required"))
-                        .multilineTextAlignment(.trailing)
-                    #if !os(macOS)
-                        .keyboardType(.URL)
-                    #endif
+                Picker(selection: $profile.type) {
+                    Text("Local").tag(ProfileType.local)
+                    Text("iCloud").tag(ProfileType.icloud)
+                    Text("Remote").tag(ProfileType.remote)
+                } label: {
+                    Text("Type")
                 }
-                Toggle("Auto Update", isOn: $profile.autoUpdate)
-                FormItem(String(localized: "Auto Update Interval")) {
-                    TextField("Auto Update Interval", text: $profile.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
-                        .multilineTextAlignment(.trailing)
-                    #if !os(macOS)
-                        .keyboardType(.numberPad)
-                    #endif
+                .disabled(true)
+                if profile.type == .icloud {
+                    FormItem(String(localized: "Path")) {
+                        TextField("Path", text: $profile.path, prompt: Text("Required"))
+                            .multilineTextAlignment(.trailing)
+                    }
+                } else if profile.type == .remote {
+                    FormItem(String(localized: "URL")) {
+                        TextField("URL", text: $profile.remoteURL.unwrapped(""), prompt: Text("Required"))
+                            .multilineTextAlignment(.trailing)
+                        #if !os(macOS)
+                            .keyboardType(.URL)
+                        #endif
+                    }
+                    Toggle("Auto Update", isOn: $profile.autoUpdate)
+                    FormItem(String(localized: "Auto Update Interval")) {
+                        TextField("Auto Update Interval", text: $profile.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
+                            .multilineTextAlignment(.trailing)
+                        #if !os(macOS)
+                            .keyboardType(.numberPad)
+                        #endif
+                    }
+                }
+            } footer: {
+                if profile.type == .icloud {
+                    let fileName = profile.path.isEmpty ? String(localized: "FileName") : profile.path
+                    Text("File will be located at iCloud Drive/sing-box/\(fileName)")
                 }
             }
             if profile.type == .remote {
