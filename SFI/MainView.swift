@@ -85,11 +85,23 @@ struct MainView: View {
                 .tabViewBottomAccessoryCompat(useSystemAccessory: false) {
                     bottomAccessoryContent
                 }
-            tabBarBackgroundIfAvailable(content)
+            if page == .logs {
+                tabBarBackgroundIfAvailable(
+                    content
+                        .navigationBarTitleDisplayMode(.inline)
+                )
+            } else {
+                tabBarBackgroundIfAvailable(content)
+            }
         } else {
             let content = page.contentView
                 .navigationTitle(page.title)
-            content
+            if page == .logs {
+                content
+                    .navigationBarTitleDisplayMode(.inline)
+            } else {
+                content
+            }
         }
     }
 
