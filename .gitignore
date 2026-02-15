@@ -5,8 +5,10 @@ xcuserdata/
 /build/
 /sing-box.xcodeproj/project.pbxproj.back
 CLAUDE.md
-.claude
-.mcp.json
+/.claude/
+/.mcp.json
+AGENTS.md
+/.codex/
 /screenshots/
 /fastlane/report.xml
 /fastlane/test_output/
