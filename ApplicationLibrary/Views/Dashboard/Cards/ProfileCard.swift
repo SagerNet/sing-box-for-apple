@@ -436,10 +436,10 @@ public struct ProfileCard: View {
     private func profileInfo(for profile: ProfilePreview) -> some View {
         HStack(spacing: 8) {
             HStack(spacing: 4) {
-                Image(systemName: profile.type == .remote ? "cloud.fill" : "doc.fill")
+                Image(systemName: profile.type.presentationSymbol)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
-                Text(profile.type == .remote ? "Remote" : "Local")
+                Text(profile.type.presentationLabel)
                     .font(.caption)
                     .foregroundColor(.primary)
             }

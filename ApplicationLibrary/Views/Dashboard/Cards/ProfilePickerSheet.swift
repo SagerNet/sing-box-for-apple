@@ -1025,10 +1025,10 @@ private struct ProfilePickerRow: View {
     private var profileInfo: some View {
         HStack(spacing: 8) {
             HStack(spacing: 4) {
-                Image(systemName: profile.type == .remote ? "cloud.fill" : "doc.fill")
+                Image(systemName: profile.type.presentationSymbol)
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
-                Text(profile.type == .remote ? "Remote" : "Local")
+                Text(profile.type.presentationLabel)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -1110,10 +1110,10 @@ private struct ProfilePickerRow: View {
 
                     HStack(spacing: 8) {
                         HStack(spacing: 4) {
-                            Image(systemName: profile.type == .remote ? "cloud.fill" : "doc.fill")
+                            Image(systemName: profile.type.presentationSymbol)
                                 .font(.system(size: 12))
                                 .foregroundStyle(.secondary)
-                            Text(profile.type == .remote ? "Remote" : "Local")
+                            Text(profile.type.presentationLabel)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -1414,10 +1414,10 @@ private struct ProfilePickerRow: View {
         private var profileInfo: some View {
             HStack(spacing: 8) {
                 HStack(spacing: 4) {
-                    Image(systemName: profile.type == .remote ? "cloud.fill" : "doc.fill")
+                    Image(systemName: profile.type.presentationSymbol)
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
-                    Text(profile.type == .remote ? "Remote" : "Local")
+                    Text(profile.type.presentationLabel)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
