@@ -2925,7 +2925,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.13.0-rc.4";
+				MARKETING_VERSION = "1.13.0-rc.5";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfavt.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2973,7 +2973,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.13.0-rc.4";
+				MARKETING_VERSION = "1.13.0-rc.5";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfavt.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3016,7 +3016,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.13.0-rc.4";
+				MARKETING_VERSION = "1.13.0-rc.5";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfavt.standalone;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3058,7 +3058,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.13.0-rc.4";
+				MARKETING_VERSION = "1.13.0-rc.5";
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfavt.standalone;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
