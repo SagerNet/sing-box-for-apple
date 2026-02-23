@@ -128,6 +128,9 @@ struct CodeEditTextView: NSViewRepresentable {
         guard let controller = context.coordinator.controller else { return }
         if controller.text != text {
             controller.text = text
+            // setText() creates a new Highlighter but doesn't trigger initial highlighting.
+            // Re-setting the language forces the highlighter to invalidate and re-highlight.
+            controller.language = .json
         }
         if controller.configuration.behavior.isEditable != isEditable {
             controller.configuration = makeConfiguration(isEditable: isEditable)
