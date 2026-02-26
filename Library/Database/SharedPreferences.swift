@@ -22,13 +22,9 @@ import Foundation
 public enum SharedPreferences {
     public static let selectedProfileID = Preference<Int64>("selected_profile_id", defaultValue: -1)
 
-    #if os(macOS)
-        private static let ignoreMemoryLimitByDefault = true
-    #else
-        private static let ignoreMemoryLimitByDefault = false
+    #if !os(macOS)
+        public static let ignoreMemoryLimit = Preference<Bool>("ignore_memory_limit", defaultValue: false)
     #endif
-
-    public static let ignoreMemoryLimit = Preference<Bool>("ignore_memory_limit", defaultValue: ignoreMemoryLimitByDefault)
 
     #if os(iOS)
         private static let excludeLocalNetworksByDefault = true
@@ -46,7 +42,17 @@ public enum SharedPreferences {
     #endif
 
     public static func resetPacketTunnel() async {
-        #if !os(tvOS)
+        #if os(macOS)
+            let names = [
+                includeAllNetworks.name,
+                excludeAPNs.name,
+                excludeLocalNetworks.name,
+                excludeCellularServices.name,
+                enforceRoutes.name,
+            ]
+        #elseif os(tvOS)
+            let names = [ignoreMemoryLimit.name]
+        #else
             let names = [
                 ignoreMemoryLimit.name,
                 includeAllNetworks.name,
@@ -55,8 +61,6 @@ public enum SharedPreferences {
                 excludeCellularServices.name,
                 enforceRoutes.name,
             ]
-        #else
-            let names = [ignoreMemoryLimit.name]
         #endif
         try? await batchDelete(names)
     }

@@ -6,7 +6,9 @@ struct PacketTunnelView: View {
     @State private var isLoading = true
     @State private var alert: AlertState?
 
-    @State private var ignoreMemoryLimit = false
+    #if !os(macOS)
+        @State private var ignoreMemoryLimit = false
+    #endif
 
     @State private var includeAllNetworks = false
     @State private var excludeAPNs = false
@@ -25,12 +27,14 @@ struct PacketTunnelView: View {
                 }
             } else {
                 FormView {
-                    FormToggle("Ignore Memory Limit", """
-                    Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken iOS and tvOS devices.
-                    """, $ignoreMemoryLimit) { newValue in
-                        await SharedPreferences.ignoreMemoryLimit.set(newValue)
-                        await restartService()
-                    }
+                    #if !os(macOS)
+                        FormToggle("Ignore Memory Limit", """
+                        Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken devices.
+                        """, $ignoreMemoryLimit) { newValue in
+                            await SharedPreferences.ignoreMemoryLimit.set(newValue)
+                            await restartService()
+                        }
+                    #endif
 
                     #if !os(tvOS)
                         FormToggle("includeAllNetworks", """
@@ -117,7 +121,9 @@ struct PacketTunnelView: View {
 
     @MainActor
     private func loadSettings() async {
-        ignoreMemoryLimit = await SharedPreferences.ignoreMemoryLimit.get()
+        #if !os(macOS)
+            ignoreMemoryLimit = await SharedPreferences.ignoreMemoryLimit.get()
+        #endif
         #if !os(tvOS)
             includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
             excludeAPNs = await SharedPreferences.excludeAPNs.get()

@@ -155,8 +155,10 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             throw ExtensionStartupError("(packet-tunnel) redirect stderr error: \(stderrError.localizedDescription)")
         }
 
-        let ignoreMemoryLimit = (effectiveOptions["ignoreMemoryLimit"] as? NSNumber)?.boolValue ?? false
-        LibboxSetMemoryLimit(!ignoreMemoryLimit)
+        #if !os(macOS)
+            let ignoreMemoryLimit = (effectiveOptions["ignoreMemoryLimit"] as? NSNumber)?.boolValue ?? false
+            LibboxSetMemoryLimit(!ignoreMemoryLimit)
+        #endif
 
         var error: NSError?
         commandServer = LibboxNewCommandServer(platformInterface, platformInterface, &error)
