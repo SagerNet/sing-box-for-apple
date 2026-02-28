@@ -71,7 +71,7 @@ public class MainViewModel: BaseViewModel {
     }
 
     private func checkApplicationPath() {
-        let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.first
+        let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.last
         if directoryName != "Applications" {
             alert = AlertState(
                 title: String(localized: "Wrong application location"),
