@@ -2,7 +2,7 @@ import Library
 import SwiftUI
 
 extension ProfileType {
-    // UI presentation intentionally keeps iCloud distinct from Local/Remote export semantics.
+    /// UI presentation intentionally keeps iCloud distinct from Local/Remote export semantics.
     var presentationLabel: LocalizedStringKey {
         switch self {
         case .local:
