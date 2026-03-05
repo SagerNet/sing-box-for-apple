@@ -716,8 +716,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private func statusItemIconOnlyImageSize() -> NSSize {
         let height = NSStatusBar.system.thickness
         let iconSize = statusItemIconSize(forHeight: height)
-        let contentWidth = StatusItemLayout.horizontalPadding * 2 + iconSize.width
-        let width = max(ceil(contentWidth), NSStatusBar.system.thickness)
+        let width = max(ceil(iconSize.width), NSStatusBar.system.thickness)
         return NSSize(width: width, height: ceil(height))
     }
 
