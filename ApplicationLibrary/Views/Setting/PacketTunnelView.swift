@@ -15,6 +15,7 @@ struct PacketTunnelView: View {
     @State private var excludeCellularServices = false
     @State private var excludeLocalNetworks = false
     @State private var enforceRoutes = false
+    @State private var excludeDeviceCommunication = false
 
     init() {}
     var body: some View {
@@ -48,22 +49,24 @@ struct PacketTunnelView: View {
                             await restartService()
                         }
 
-                        FormToggle("excludeAPNs", """
-                        If this property is true, the system excludes Apple Push Notification services (APNs) traffic, but only when the **includeAllNetworks** property is also true.
+                        if #available(iOS 16.4, macOS 13.3, *) {
+                            FormToggle("excludeAPNs", """
+                            If this property is true, the system excludes Apple Push Notification services (APNs) traffic, but only when the **includeAllNetworks** property is also true.
 
-                        [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140516-excludeapns)
-                        """, $excludeAPNs) { newValue in
-                            await SharedPreferences.excludeAPNs.set(newValue)
-                            await restartService()
-                        }
+                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140516-excludeapns)
+                            """, $excludeAPNs) { newValue in
+                                await SharedPreferences.excludeAPNs.set(newValue)
+                                await restartService()
+                            }
 
-                        FormToggle("excludeCellularServices", """
-                        If this property is true, the system excludes cellular services — such as Wi-Fi Calling, MMS, SMS, and Visual Voicemail — but only when the **includeAllNetworks** property is also true. This property doesn't impact services that use the cellular network only — such as VoLTE — which the system automatically excludes.
+                            FormToggle("excludeCellularServices", """
+                            If this property is true, the system excludes cellular services — such as Wi-Fi Calling, MMS, SMS, and Visual Voicemail — but only when the **includeAllNetworks** property is also true. This property doesn't impact services that use the cellular network only — such as VoLTE — which the system automatically excludes.
 
-                        [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140517-excludecellularservices)
-                        """, $excludeCellularServices) { newValue in
-                            await SharedPreferences.excludeCellularServices.set(newValue)
-                            await restartService()
+                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140517-excludecellularservices)
+                            """, $excludeCellularServices) { newValue in
+                                await SharedPreferences.excludeCellularServices.set(newValue)
+                                await restartService()
+                            }
                         }
 
                         FormToggle("excludeLocalNetworks", """
@@ -84,6 +87,17 @@ struct PacketTunnelView: View {
                         """, $enforceRoutes) { newValue in
                             await SharedPreferences.enforceRoutes.set(newValue)
                             await restartService()
+                        }
+
+                        if #available(iOS 17.4, macOS 14.4, *) {
+                            FormToggle("excludeDeviceCommunication", """
+                            No documentation.
+
+                            [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/excludedevicecommunication)
+                            """, $excludeDeviceCommunication) { newValue in
+                                await SharedPreferences.excludeDeviceCommunication.set(newValue)
+                                await restartService()
+                            }
                         }
 
                     #endif
@@ -126,10 +140,15 @@ struct PacketTunnelView: View {
         #endif
         #if !os(tvOS)
             includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
-            excludeAPNs = await SharedPreferences.excludeAPNs.get()
-            excludeCellularServices = await SharedPreferences.excludeCellularServices.get()
             excludeLocalNetworks = await SharedPreferences.excludeLocalNetworks.get()
             enforceRoutes = await SharedPreferences.enforceRoutes.get()
+            if #available(iOS 16.4, macOS 13.3, *) {
+                excludeAPNs = await SharedPreferences.excludeAPNs.get()
+                excludeCellularServices = await SharedPreferences.excludeCellularServices.get()
+            }
+            if #available(iOS 17.4, macOS 14.4, *) {
+                excludeDeviceCommunication = await SharedPreferences.excludeDeviceCommunication.get()
+            }
         #endif
         isLoading = false
     }

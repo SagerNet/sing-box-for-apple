@@ -145,8 +145,14 @@ public class ExtensionProfile: ObservableObject {
             if let protocolConfiguration = manager.protocolConfiguration {
                 let includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
                 protocolConfiguration.includeAllNetworks = includeAllNetworks
+                protocolConfiguration.excludeLocalNetworks = await SharedPreferences.excludeLocalNetworks.get()
+                protocolConfiguration.enforceRoutes = await SharedPreferences.enforceRoutes.get()
                 if #available(iOS 16.4, macOS 13.3, *) {
-                    protocolConfiguration.excludeCellularServices = !includeAllNetworks
+                    protocolConfiguration.excludeAPNs = await SharedPreferences.excludeAPNs.get()
+                    protocolConfiguration.excludeCellularServices = await SharedPreferences.excludeCellularServices.get()
+                }
+                if #available(iOS 17.4, macOS 14.4, *) {
+                    protocolConfiguration.excludeDeviceCommunication = await SharedPreferences.excludeDeviceCommunication.get()
                 }
             }
         #endif

@@ -38,6 +38,7 @@ public enum SharedPreferences {
         public static let excludeLocalNetworks = Preference<Bool>("exclude_local_networks", defaultValue: excludeLocalNetworksByDefault)
         public static let excludeCellularServices = Preference<Bool>("exclude_cellular_services", defaultValue: true)
         public static let enforceRoutes = Preference<Bool>("enforce_routes", defaultValue: false)
+        public static let excludeDeviceCommunication = Preference<Bool>("exclude_device_communication", defaultValue: true)
 
     #endif
 
@@ -49,6 +50,7 @@ public enum SharedPreferences {
                 excludeLocalNetworks.name,
                 excludeCellularServices.name,
                 enforceRoutes.name,
+                excludeDeviceCommunication.name,
             ]
         #elseif os(tvOS)
             let names = [ignoreMemoryLimit.name]
@@ -60,6 +62,7 @@ public enum SharedPreferences {
                 excludeLocalNetworks.name,
                 excludeCellularServices.name,
                 enforceRoutes.name,
+                excludeDeviceCommunication.name,
             ]
         #endif
         try? await batchDelete(names)

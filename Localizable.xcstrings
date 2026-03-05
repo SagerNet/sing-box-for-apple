@@ -3290,6 +3290,9 @@
       },
       "shouldTranslate" : false
     },
+    "excludeDeviceCommunication" : {
+      "shouldTranslate" : false
+    },
     "excludeLocalNetworks" : {
       "localizations" : {
         "fa" : {
@@ -5549,6 +5552,9 @@
           }
         }
       }
+    },
+    "No documentation.\n\n[Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/excludedevicecommunication)" : {
+      "shouldTranslate" : false
     },
     "Ok" : {
       "localizations" : {
