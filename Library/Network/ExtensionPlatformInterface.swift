@@ -40,8 +40,6 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
             let dnsServer = try options.getDNSServerAddress()
             let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
-            dnsSettings.matchDomains = [""]
-            dnsSettings.matchDomainsNoSearch = true
             settings.dnsSettings = dnsSettings
 
             var ipv4Address: [String] = []
