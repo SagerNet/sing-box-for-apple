@@ -29,6 +29,7 @@ public struct AppView: View {
         @Environment(\.showMenuBarExtra) private var showMenuBarExtra
         @Environment(\.menuBarExtraSpeedMode) private var menuBarExtraSpeedMode
         @State private var menuBarExtraInBackground = false
+        @State private var helperStatusLoaded = false
         @State private var rootHelperRegistrationStatus: SMAppService.Status = .notRegistered
     #endif
 
@@ -108,7 +109,9 @@ public struct AppView: View {
                             }
 
                             Section {
-                                if rootHelperRegistrationStatus == .enabled {
+                                if !helperStatusLoaded {
+                                    ProgressView()
+                                } else if rootHelperRegistrationStatus == .enabled {
                                     FormButton {
                                         Task {
                                             do {
@@ -171,11 +174,14 @@ public struct AppView: View {
         #if os(macOS)
             startAtLogin = SMAppService.mainApp.status == .enabled
             menuBarExtraInBackground = await SharedPreferences.menuBarExtraInBackground.get()
-            if Variant.useSystemExtension {
-                refreshHelperStatus()
-            }
         #endif
         isLoading = false
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                refreshHelperStatus()
+                helperStatusLoaded = true
+            }
+        #endif
     }
 
     private static func currentLanguage() -> String? {

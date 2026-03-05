@@ -19,6 +19,7 @@ public struct CoreView: View {
 
     @State private var version = ""
     @State private var dataSize: String?
+    @State private var dataSizeLoaded = false
 
     #if os(macOS)
         @State private var helperUnavailable = false
@@ -38,6 +39,12 @@ public struct CoreView: View {
                     FormTextItem("Version", version)
                     if let dataSize {
                         FormTextItem("Data Size", dataSize)
+                    } else if !dataSizeLoaded {
+                        HStack {
+                            Text("Data Size")
+                            Spacer()
+                            ProgressView()
+                        }
                     } else {
                         #if os(macOS)
                             HStack {
@@ -124,11 +131,6 @@ public struct CoreView: View {
         } else {
             await MainActor.run {
                 version = LibboxVersion()
-                #if os(macOS)
-                    if Variant.useSystemExtension {
-                        helperUnavailable = HelperServiceManager.rootHelperStatus != .enabled
-                    }
-                #endif
                 isLoading = false
             }
             await loadSettingsBackground()
@@ -173,6 +175,7 @@ public struct CoreView: View {
                 self.helperUnavailable = helperUnavailable
             #endif
             self.dataSize = dataSize
+            self.dataSizeLoaded = true
         }
     }
 
