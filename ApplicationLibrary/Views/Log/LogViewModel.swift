@@ -18,6 +18,8 @@ public class LogDataModel: ObservableObject {
 
     private let commandClient: CommandClient
     private weak var viewModel: LogViewModel?
+    private var pausedLogSnapshot: [LogEntry]?
+    private var lastPaused = false
     private var lastProcessedLogCount = 0
     private var lastEffectiveLevel: Int?
     private var lastSearchText = ""
@@ -48,38 +50,59 @@ public class LogDataModel: ObservableObject {
         let debouncedSearchText = viewModel.$searchText
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
 
-        Publishers.CombineLatest4(
-            commandClient.$logList,
-            commandClient.$defaultLogLevel,
-            viewModel.$selectedLogLevel,
-            debouncedSearchText
+        Publishers.CombineLatest(
+            Publishers.CombineLatest4(
+                commandClient.$logList,
+                commandClient.$defaultLogLevel,
+                viewModel.$selectedLogLevel,
+                debouncedSearchText
+            ),
+            viewModel.$isPaused
         )
         .receive(on: DispatchQueue.main)
-        .sink { [weak self] logList, defaultLogLevel, selectedLogLevel, searchText in
+        .sink { [weak self] combined, isPaused in
             guard let self else { return }
+            let (logList, defaultLogLevel, selectedLogLevel, searchText) = combined
             let effectiveLevel = selectedLogLevel ?? defaultLogLevel
 
+            if isPaused, !self.lastPaused {
+                self.pausedLogSnapshot = logList
+                self.lastProcessedLogCount = 0
+            } else if !isPaused, self.lastPaused {
+                self.pausedLogSnapshot = nil
+                self.lastProcessedLogCount = 0
+            }
+            self.lastPaused = isPaused
+
+            let sourceList = self.pausedLogSnapshot ?? logList
+
+            if isPaused, effectiveLevel == self.lastEffectiveLevel, searchText == self.lastSearchText,
+               self.lastProcessedLogCount > 0
+            {
+                return
+            }
+
             let canIncrement = self.lastProcessedLogCount > 0 &&
-                logList.count > self.lastProcessedLogCount &&
+                sourceList.count > self.lastProcessedLogCount &&
                 effectiveLevel == self.lastEffectiveLevel &&
                 searchText == self.lastSearchText
 
             if canIncrement {
-                let newLogs = logList[self.lastProcessedLogCount...]
+                let newLogs = sourceList[self.lastProcessedLogCount...]
                 let newFilteredLogs = newLogs.filter { log in
                     log.level <= effectiveLevel &&
                         (searchText.isEmpty || log.message.contains(searchText))
                 }
                 self.filteredLogs.append(contentsOf: newFilteredLogs)
             } else {
-                self.filteredLogs = logList.filter { log in
+                self.filteredLogs = sourceList.filter { log in
                     log.level <= effectiveLevel &&
                         (searchText.isEmpty || log.message.contains(searchText))
                 }
             }
 
             self.updateVisibleLogs()
-            self.lastProcessedLogCount = logList.count
+            self.lastProcessedLogCount = sourceList.count
             self.lastEffectiveLevel = effectiveLevel
             self.lastSearchText = searchText
         }
@@ -88,6 +111,8 @@ public class LogDataModel: ObservableObject {
 
     public func clearLogs() {
         viewModel?.isPaused = false
+        pausedLogSnapshot = nil
+        lastPaused = false
         lastProcessedLogCount = 0
         lastEffectiveLevel = nil
         lastSearchText = ""
