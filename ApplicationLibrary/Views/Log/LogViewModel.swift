@@ -176,8 +176,10 @@ public class LogViewModel: BaseViewModel {
     public let commandClient: CommandClient
     public private(set) var dataModel: LogDataModel!
 
-    public init(commandClient: CommandClient) {
+    public init(commandClient: CommandClient, searchText: String = "") {
         self.commandClient = commandClient
+        self.searchText = searchText
+        self.isSearching = !searchText.isEmpty
         super.init()
         dataModel = LogDataModel(commandClient: commandClient, viewModel: self)
     }

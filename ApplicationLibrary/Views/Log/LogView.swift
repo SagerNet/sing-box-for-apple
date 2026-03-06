@@ -15,15 +15,16 @@ public struct LogView: View {
     public init() {}
 
     public var body: some View {
-        LogViewContent(commandClient: environments.commandClient)
+        LogViewContent(commandClient: environments.commandClient, initialSearchText: environments.logSearchText)
     }
 }
 
 private struct LogViewContent: View {
+    @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var viewModel: LogViewModel
 
-    init(commandClient: CommandClient) {
-        _viewModel = StateObject(wrappedValue: LogViewModel(commandClient: commandClient))
+    init(commandClient: CommandClient, initialSearchText: String = "") {
+        _viewModel = StateObject(wrappedValue: LogViewModel(commandClient: commandClient, searchText: initialSearchText))
     }
 
     var body: some View {
@@ -34,6 +35,9 @@ private struct LogViewContent: View {
                 ToolbarItemGroup {
                     toolbarButtons
                 }
+            }
+            .onDisappear {
+                environments.logSearchText = viewModel.searchText
             }
             .alert($viewModel.alert)
             .background(

@@ -60,10 +60,15 @@ public struct ConnectionListView: View {
         #endif
         .alert($viewModel.alert)
         .onAppear {
+            if !environments.connectionSearchText.isEmpty {
+                viewModel.searchText = environments.connectionSearchText
+                viewModel.isSearching = true
+            }
             viewModel.connect()
             commandClient.connect()
         }
         .onDisappear {
+            environments.connectionSearchText = viewModel.searchText
             viewModel.disconnect()
             commandClient.disconnect()
         }

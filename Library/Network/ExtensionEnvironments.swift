@@ -180,6 +180,9 @@ public class ExtensionEnvironments: ObservableObject {
     @Published public var emptyProfiles = false
     @Published public var pendingImportRemoteProfile: ImportRemoteProfileRequest?
 
+    public var logSearchText = ""
+    public var connectionSearchText = ""
+
     public let profileUpdate = ObjectWillChangePublisher()
     public let selectedProfileUpdate = ObjectWillChangePublisher()
     public let openSettings = ObjectWillChangePublisher()
