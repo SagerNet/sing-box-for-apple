@@ -4,6 +4,36 @@
 
     private let logger = Logger(category: "RootHelperXPC")
 
+    @objc(NeighborEntryResult) public class NeighborEntryResult: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var address: String
+        @objc public var macAddress: String
+        @objc public var hostname: String
+
+        public init(address: String, macAddress: String, hostname: String) {
+            self.address = address
+            self.macAddress = macAddress
+            self.hostname = hostname
+        }
+
+        public required init?(coder: NSCoder) {
+            address = coder.decodeObject(of: NSString.self, forKey: "address") as? String ?? ""
+            macAddress = coder.decodeObject(of: NSString.self, forKey: "macAddress") as? String ?? ""
+            hostname = coder.decodeObject(of: NSString.self, forKey: "hostname") as? String ?? ""
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(address as NSString, forKey: "address")
+            coder.encode(macAddress as NSString, forKey: "macAddress")
+            coder.encode(hostname as NSString, forKey: "hostname")
+        }
+    }
+
+    @objc public protocol NeighborTableListenerProtocol {
+        func updateNeighborTable(entries: NSArray)
+    }
+
     @objc public class ConnectionOwnerResult: NSObject, NSSecureCoding {
         public static let supportsSecureCoding = true
 
@@ -43,6 +73,9 @@
         func getWorkingDirectorySize(reply: @escaping (Int64, NSError?) -> Void)
         func cleanWorkingDirectory(reply: @escaping (NSError?) -> Void)
         func getVersion(reply: @escaping (String) -> Void)
+        func startNeighborMonitor(callbackEndpoint: NSXPCListenerEndpoint, reply: @escaping (NSError?) -> Void)
+        func closeNeighborMonitor(reply: @escaping (NSError?) -> Void)
+        func registerMyInterface(name: String, reply: @escaping (NSError?) -> Void)
     }
 
     public enum RootHelperXPC {
@@ -53,6 +86,23 @@
                 for: #selector(RootHelperProtocol.findConnectionOwner(ipProtocol:sourceAddress:sourcePort:destinationAddress:destinationPort:reply:)),
                 argumentIndex: 0,
                 ofReply: true
+            )
+            let endpointClasses = NSSet(array: [NSXPCListenerEndpoint.self]) as! Set<AnyHashable>
+            interface.setClasses(
+                endpointClasses,
+                for: #selector(RootHelperProtocol.startNeighborMonitor(callbackEndpoint:reply:)),
+                argumentIndex: 0,
+                ofReply: false
+            )
+        }
+
+        public static func configureListenerInterface(_ interface: NSXPCInterface) {
+            let entryClasses = NSSet(array: [NSArray.self, NeighborEntryResult.self]) as! Set<AnyHashable>
+            interface.setClasses(
+                entryClasses,
+                for: #selector(NeighborTableListenerProtocol.updateNeighborTable(entries:)),
+                argumentIndex: 0,
+                ofReply: false
             )
         }
     }
@@ -216,6 +266,24 @@
         public func cleanWorkingDirectory() throws {
             try performXPCCallVoid("cleanWorkingDirectory") { proxy, reply in
                 proxy.cleanWorkingDirectory(reply: reply)
+            }
+        }
+
+        public func startNeighborMonitor(callbackEndpoint: NSXPCListenerEndpoint) throws {
+            try performXPCCallVoid("startNeighborMonitor") { proxy, reply in
+                proxy.startNeighborMonitor(callbackEndpoint: callbackEndpoint, reply: reply)
+            }
+        }
+
+        public func closeNeighborMonitor() throws {
+            try performXPCCallVoid("closeNeighborMonitor") { proxy, reply in
+                proxy.closeNeighborMonitor(reply: reply)
+            }
+        }
+
+        public func registerMyInterface(name: String) throws {
+            try performXPCCallVoid("registerMyInterface") { proxy, reply in
+                proxy.registerMyInterface(name: name, reply: reply)
             }
         }
 
