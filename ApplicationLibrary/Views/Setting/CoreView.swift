@@ -175,7 +175,7 @@ public struct CoreView: View {
                 self.helperUnavailable = helperUnavailable
             #endif
             self.dataSize = dataSize
-            self.dataSizeLoaded = true
+            dataSizeLoaded = true
         }
     }
 
