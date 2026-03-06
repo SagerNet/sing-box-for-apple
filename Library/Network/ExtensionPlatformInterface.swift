@@ -460,6 +460,11 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         networkSettings = nil
         nwMonitor?.cancel()
         nwMonitor = nil
+        #if os(macOS)
+            neighborCallbackListener?.invalidate()
+            neighborCallbackListener = nil
+            neighborCallbackHandler = nil
+        #endif
     }
 
     public func send(_ notification: LibboxNotification?) throws {
@@ -492,6 +497,50 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
+    #if os(macOS)
+        private var neighborCallbackListener: NSXPCListener?
+        private var neighborCallbackHandler: NeighborCallbackHandler?
+    #endif
+
+    public func startNeighborMonitor(_ listener: LibboxNeighborUpdateListenerProtocol?) throws {
+        #if os(macOS)
+            guard let listener else { return }
+            if Variant.useSystemExtension {
+                let handler = NeighborCallbackHandler(listener)
+                let xpcListener = NSXPCListener.anonymous()
+                xpcListener.delegate = handler
+                xpcListener.resume()
+                try RootHelperClient.shared.startNeighborMonitor(
+                    callbackEndpoint: xpcListener.endpoint
+                )
+                neighborCallbackListener = xpcListener
+                neighborCallbackHandler = handler
+                return
+            }
+        #endif
+    }
+
+    public func registerMyInterface(_ name: String?) {
+        #if os(macOS)
+            guard let name, !name.isEmpty else { return }
+            if Variant.useSystemExtension {
+                try? RootHelperClient.shared.registerMyInterface(name: name)
+            }
+        #endif
+    }
+
+    public func closeNeighborMonitor(_: LibboxNeighborUpdateListenerProtocol?) throws {
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                try? RootHelperClient.shared.closeNeighborMonitor()
+                neighborCallbackListener?.invalidate()
+                neighborCallbackListener = nil
+                neighborCallbackHandler = nil
+                return
+            }
+        #endif
+    }
+
     public func localDNSTransport() -> (any LibboxLocalDNSTransportProtocol)? {
         nil
     }
@@ -500,3 +549,51 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         nil
     }
 }
+
+#if os(macOS)
+    private class NeighborCallbackHandler: NSObject, NSXPCListenerDelegate, NeighborTableListenerProtocol {
+        private let listener: LibboxNeighborUpdateListenerProtocol
+
+        init(_ listener: LibboxNeighborUpdateListenerProtocol) {
+            self.listener = listener
+        }
+
+        func listener(_: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
+            let exportedInterface = NSXPCInterface(with: NeighborTableListenerProtocol.self)
+            RootHelperXPC.configureListenerInterface(exportedInterface)
+            newConnection.exportedInterface = exportedInterface
+            newConnection.exportedObject = self
+            newConnection.resume()
+            return true
+        }
+
+        func updateNeighborTable(entries: NSArray) {
+            let iterator = NeighborEntryArrayIterator(entries)
+            listener.updateNeighborTable(iterator)
+        }
+    }
+
+    private class NeighborEntryArrayIterator: NSObject, LibboxNeighborEntryIteratorProtocol {
+        private var entries: [NeighborEntryResult]
+        private var index = 0
+
+        init(_ array: NSArray) {
+            entries = array.compactMap { $0 as? NeighborEntryResult }
+        }
+
+        func hasNext() -> Bool {
+            index < entries.count
+        }
+
+        func next() -> LibboxNeighborEntry? {
+            guard index < entries.count else { return nil }
+            let result = entries[index]
+            index += 1
+            let entry = LibboxNeighborEntry()
+            entry.address = result.address
+            entry.macAddress = result.macAddress
+            entry.hostname = result.hostname
+            return entry
+        }
+    }
+#endif
