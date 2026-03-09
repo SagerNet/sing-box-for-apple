@@ -51,8 +51,17 @@ enum WidgetTunnelControl {
         if started {
             if manager.isEnabled == false {
                 manager.isEnabled = true
-                try await manager.saveToPreferences()
             }
+            if let proto = manager.protocolConfiguration as? NETunnelProviderProtocol,
+               let config = proto.providerConfiguration,
+               config["wasOnDemandEnabled"] as? Bool == true
+            {
+                var newConfig = config
+                newConfig.removeValue(forKey: "wasOnDemandEnabled")
+                proto.providerConfiguration = newConfig
+                manager.isOnDemandEnabled = true
+            }
+            try await manager.saveToPreferences()
             do {
                 try manager.connection.startVPNTunnel()
             } catch {
@@ -60,6 +69,15 @@ enum WidgetTunnelControl {
                 throw error
             }
         } else {
+            if manager.isOnDemandEnabled {
+                if let proto = manager.protocolConfiguration as? NETunnelProviderProtocol {
+                    var config = proto.providerConfiguration ?? [:]
+                    config["wasOnDemandEnabled"] = true
+                    proto.providerConfiguration = config
+                }
+                manager.isOnDemandEnabled = false
+                try await manager.saveToPreferences()
+            }
             manager.connection.stopVPNTunnel()
         }
     }

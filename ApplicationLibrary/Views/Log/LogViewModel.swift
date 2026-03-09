@@ -179,7 +179,7 @@ public class LogViewModel: BaseViewModel {
     public init(commandClient: CommandClient, searchText: String = "") {
         self.commandClient = commandClient
         self.searchText = searchText
-        self.isSearching = !searchText.isEmpty
+        isSearching = !searchText.isEmpty
         super.init()
         dataModel = LogDataModel(commandClient: commandClient, viewModel: self)
     }

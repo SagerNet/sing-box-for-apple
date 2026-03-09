@@ -114,6 +114,14 @@ public class ExtensionProfile: ObservableObject {
     public func updateOnDemand(enabled: Bool, useDefaultRules: Bool) async throws {
         guard let manager else { return }
         manager.isOnDemandEnabled = enabled
+        if !enabled {
+            if let proto = manager.protocolConfiguration as? NETunnelProviderProtocol {
+                var config = proto.providerConfiguration ?? [:]
+                if config.removeValue(forKey: "wasOnDemandEnabled") != nil {
+                    proto.providerConfiguration = config
+                }
+            }
+        }
         await setOnDemandRules(useDefaultRules: useDefaultRules)
         try await manager.saveToPreferences()
     }
@@ -140,6 +148,12 @@ public class ExtensionProfile: ObservableObject {
         if alwaysOn || onDemandEnabled {
             manager.isOnDemandEnabled = true
             await setOnDemandRules(useDefaultRules: alwaysOn)
+        }
+        if let proto = manager.protocolConfiguration as? NETunnelProviderProtocol {
+            var config = proto.providerConfiguration ?? [:]
+            if config.removeValue(forKey: "wasOnDemandEnabled") != nil {
+                proto.providerConfiguration = config
+            }
         }
         #if !os(tvOS)
             if let protocolConfiguration = manager.protocolConfiguration {
@@ -239,6 +253,11 @@ public class ExtensionProfile: ObservableObject {
         }
         guard let manager else { return }
         if manager.isOnDemandEnabled {
+            if let proto = manager.protocolConfiguration as? NETunnelProviderProtocol {
+                var config = proto.providerConfiguration ?? [:]
+                config["wasOnDemandEnabled"] = true
+                proto.providerConfiguration = config
+            }
             manager.isOnDemandEnabled = false
             try await manager.saveToPreferences()
         }
