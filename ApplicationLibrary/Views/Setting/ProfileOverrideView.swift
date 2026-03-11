@@ -28,6 +28,7 @@ public struct ProfileOverrideView: View {
                     FormToggle("No Default Route", """
                     By default, segment routing is used in `auto_route` instead of global routing.
                     If `<route_address/route_exclude_address>` exists in the configuration, this item will not take effect on the corresponding network (commonly used to resolve HomeKit compatibility issues).
+                    On macOS, enabling this option will cause Internet Sharing to not work properly.
                     """, $autoRouteUseSubRangesByDefault) { newValue in
                         await SharedPreferences.autoRouteUseSubRangesByDefault.set(newValue)
                         await reloadService()

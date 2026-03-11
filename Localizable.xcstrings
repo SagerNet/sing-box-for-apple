@@ -1063,30 +1063,30 @@
         }
       }
     },
-    "By default, segment routing is used in `auto_route` instead of global routing.\nIf `<route_address/route_exclude_address>` exists in the configuration, this item will not take effect on the corresponding network (commonly used to resolve HomeKit compatibility issues)." : {
+    "By default, segment routing is used in `auto_route` instead of global routing.\nIf `<route_address/route_exclude_address>` exists in the configuration, this item will not take effect on the corresponding network (commonly used to resolve HomeKit compatibility issues).\nOn macOS, enabling this option will cause Internet Sharing to not work properly." : {
       "localizations" : {
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "به‌صورت پیش‌فرض در `auto_route` از مسیریابی بخشی استفاده می‌شود، نه مسیریابی سراسری.\nاگر `<route_address/route_exclude_address>` در پیکربندی وجود داشته باشد، این گزینه در شبکه مربوطه اعمال نمی‌شود (معمولاً برای حل مشکلات سازگاری HomeKit استفاده می‌شود)."
+            "value" : "به‌صورت پیش‌فرض در `auto_route` از مسیریابی بخشی استفاده می‌شود، نه مسیریابی سراسری.\nاگر `<route_address/route_exclude_address>` در پیکربندی وجود داشته باشد، این گزینه در شبکه مربوطه اعمال نمی‌شود (معمولاً برای حل مشکلات سازگاری HomeKit استفاده می‌شود).\nدر macOS، فعال کردن این گزینه باعث می‌شود Internet Sharing به درستی کار نکند."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "По умолчанию в `auto_route` используется сегментная маршрутизация, а не глобальная.\nЕсли в конфигурации есть `<route_address/route_exclude_address>`, этот пункт не вступит в силу в соответствующей сети (обычно используется для решения проблем совместимости с HomeKit)."
+            "value" : "По умолчанию в `auto_route` используется сегментная маршрутизация, а не глобальная.\nЕсли в конфигурации есть `<route_address/route_exclude_address>`, этот пункт не вступит в силу в соответствующей сети (обычно используется для решения проблем совместимости с HomeKit).\nНа macOS включение этой опции приведёт к неработоспособности Общего интернета (Internet Sharing)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在默认情况下，`auto_route` 中使用分段路由，而非全局路由。\n若配置中存在 `<route_address/route_exclude_address>`，则此项不会在对应网络上生效（常用于解决 HomeKit 兼容性问题）。"
+            "value" : "在默认情况下，`auto_route` 中使用分段路由，而非全局路由。\n若配置中存在 `<route_address/route_exclude_address>`，则此项不会在对应网络上生效（常用于解决 HomeKit 兼容性问题）。\n在 macOS 上，启用此选项将导致互联网共享无法正常工作。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在默認情況下，`auto_route` 中使用分段路由，而非全局路由。\n若配置中存在 `<route_address/route_exclude_address>`，則此項不會在對應網絡上生效（常用於解決 HomeKit 兼容性問題）。"
+            "value" : "在默認情況下，`auto_route` 中使用分段路由，而非全局路由。\n若配置中存在 `<route_address/route_exclude_address>`，則此項不會在對應網絡上生效（常用於解決 HomeKit 兼容性問題）。\n在 macOS 上，啟用此選項將導致網際網路共享無法正常工作。"
           }
         }
       }

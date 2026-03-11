@@ -146,6 +146,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             ipv6Settings.includedRoutes = ipv6Routes
             ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
             settings.ipv6Settings = ipv6Settings
+
+            let hasDefaultRoute = ipv4Routes.contains(where: {
+                $0.destinationAddress == "0.0.0.0" && $0.destinationSubnetMask == "0.0.0.0"
+            })
+            if !hasDefaultRoute {
+                dnsSettings.matchDomains = [""]
+                dnsSettings.matchDomainsNoSearch = true
+            }
         }
 
         if options.isHTTPProxyEnabled() {
