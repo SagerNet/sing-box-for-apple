@@ -31,6 +31,12 @@ public struct AppView: View {
         @State private var menuBarExtraInBackground = false
         @State private var helperStatusLoaded = false
         @State private var rootHelperRegistrationStatus: SMAppService.Status = .notRegistered
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @EnvironmentObject private var updateManager: UpdateManager
+        @State private var updateTrack: UpdateTrack = .stable
+        @State private var checkUpdateEnabled = false
+        @State private var cacheSize: Int64 = 0
+        @State private var cacheSizeText = ""
     #endif
 
     @State private var alert: AlertState?
@@ -91,6 +97,111 @@ public struct AppView: View {
                         }
 
                         if Variant.useSystemExtension {
+                            FormTextItem("Cache Size", cacheSizeText)
+                            if cacheSize > 0 {
+                                // Safe: System Extension's working directory is in its own container
+                                // (/var/root/Library/Containers/…), not under the app's cacheDirectory.
+                                FormButton(role: .destructive) {
+                                    Task.detached {
+                                        let cacheDir = FilePath.cacheDirectory
+                                        if let contents = try? FileManager.default.contentsOfDirectory(
+                                            at: cacheDir,
+                                            includingPropertiesForKeys: nil
+                                        ) {
+                                            for item in contents {
+                                                try? FileManager.default.removeItem(at: item)
+                                            }
+                                        }
+                                        await MainActor.run {
+                                            cacheSize = 0
+                                            cacheSizeText = ByteCountFormatter.string(fromByteCount: 0, countStyle: .file)
+                                        }
+                                    }
+                                } label: {
+                                    Label("Clear Cache", systemImage: "trash")
+                                        .foregroundColor(.red)
+                                }
+                            }
+                        }
+
+                        if Variant.useSystemExtension {
+                            Section("Update Settings") {
+                                Picker("Update Track", selection: $updateTrack) {
+                                    Text("Stable").tag(UpdateTrack.stable)
+                                    Text("Beta").tag(UpdateTrack.beta)
+                                }
+                                .onChangeCompat(of: updateTrack) { newValue in
+                                    Task {
+                                        await updateManager.updateTrackChanged(to: newValue)
+                                    }
+                                }
+
+                                Toggle("Automatic Update Check", isOn: $checkUpdateEnabled)
+                                    .onChangeCompat(of: checkUpdateEnabled) { newValue in
+                                        Task {
+                                            await SharedPreferences.checkUpdateEnabled.set(newValue)
+                                        }
+                                    }
+
+                                FormButton {
+                                    Task {
+                                        do {
+                                            if try await updateManager.refreshUpdateInfo() != nil {
+                                                await updateManager.showUpdateSheet()
+                                            } else {
+                                                alert = AlertState(
+                                                    title: String(localized: "Check Update"),
+                                                    message: String(localized: "No updates available")
+                                                )
+                                            }
+                                        } catch {}
+                                    }
+                                } label: {
+                                    if updateManager.isChecking {
+                                        HStack(spacing: 6) {
+                                            ProgressView()
+                                                .controlSize(.small)
+                                            Text("Checking...")
+                                        }
+                                    } else {
+                                        Label("Check Update", systemImage: "arrow.triangle.2.circlepath")
+                                    }
+                                }
+                                .disabled(updateManager.isChecking)
+                                .contextMenu {
+                                    Button("Force Show Latest Version as Update") {
+                                        Task {
+                                            do {
+                                                if try await updateManager.refreshUpdateInfo(force: true) != nil {
+                                                    await updateManager.showUpdateSheet()
+                                                } else {
+                                                    alert = AlertState(
+                                                        title: String(localized: "Check Update"),
+                                                        message: String(localized: "No updates available")
+                                                    )
+                                                }
+                                            } catch {}
+                                        }
+                                    }
+                                    .disabled(updateManager.isChecking)
+                                }
+
+                                if let info = updateManager.updateInfo {
+                                    FormButton {
+                                        Task {
+                                            await updateManager.showUpdateSheet()
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Label("Update", systemImage: "arrow.down.circle")
+                                            Spacer()
+                                            Text("v\(info.versionName)")
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
+                            }
+
                             Section("System Extension") {
                                 FormButton {
                                     Task {
@@ -163,7 +274,10 @@ public struct AppView: View {
             }
         }
         .alert($alert)
-        .navigationTitle("App")
+        #if os(macOS)
+            .alert($updateManager.alert)
+        #endif
+            .navigationTitle("App")
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -174,12 +288,18 @@ public struct AppView: View {
         #if os(macOS)
             startAtLogin = SMAppService.mainApp.status == .enabled
             menuBarExtraInBackground = await SharedPreferences.menuBarExtraInBackground.get()
+            if Variant.useSystemExtension {
+                let trackString = await SharedPreferences.updateTrack.get()
+                updateTrack = UpdateTrack.resolved(from: trackString)
+                checkUpdateEnabled = await SharedPreferences.checkUpdateEnabled.get()
+            }
         #endif
         isLoading = false
         #if os(macOS)
             if Variant.useSystemExtension {
                 refreshHelperStatus()
                 helperStatusLoaded = true
+                refreshCacheSize()
             }
         #endif
     }
@@ -330,6 +450,33 @@ public struct AppView: View {
                 return
             }
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Preferences.app"))
+        }
+
+        private func refreshCacheSize() {
+            Task.detached {
+                let size = Self.calculateDirSize(FilePath.cacheDirectory)
+                await MainActor.run {
+                    cacheSize = size
+                    cacheSizeText = ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+                }
+            }
+        }
+
+        private static func calculateDirSize(_ dir: URL) -> Int64 {
+            guard let enumerator = FileManager.default.enumerator(
+                at: dir,
+                includingPropertiesForKeys: [.fileSizeKey],
+                options: [.skipsHiddenFiles]
+            ) else {
+                return 0
+            }
+            var size: Int64 = 0
+            for case let fileURL as URL in enumerator {
+                if let fileSize = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                    size += Int64(fileSize)
+                }
+            }
+            return size
         }
 
     #endif

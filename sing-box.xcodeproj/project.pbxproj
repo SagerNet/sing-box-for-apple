@@ -15,6 +15,7 @@
 		3A3AA7FF2A4EFDB3002F78AB /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A3DEBEB2A4FFE2D00373BF4 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A3DEBE62A4FFA6000373BF4 /* AppIntents.framework */; };
 		3A4A020D2B53E3DC004EFB87 /* QRCode in Frameworks */ = {isa = PBXBuildFile; productRef = 3A4A020C2B53E3DC004EFB87 /* QRCode */; };
+		3A4CA8CC2F75381F009C36CA /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3A4CA8CB2F75381F009C36CA /* MarkdownUI */; };
 		3A4EAD1B2A4FEB02005435B3 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A4EAD372A4FEC20005435B3 /* ApplicationLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */; };
 		3A4FB1572A73467F007012B9 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
@@ -634,6 +635,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A4CA8CC2F75381F009C36CA /* MarkdownUI in Frameworks */,
 				3A4EAD1B2A4FEB02005435B3 /* Library.framework in Frameworks */,
 				3A4A020D2B53E3DC004EFB87 /* QRCode in Frameworks */,
 			);
@@ -922,6 +924,7 @@
 			name = ApplicationLibrary;
 			packageProductDependencies = (
 				3A4A020C2B53E3DC004EFB87 /* QRCode */,
+				3A4CA8CB2F75381F009C36CA /* MarkdownUI */,
 			);
 			productName = ApplicationLibrary;
 			productReference = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */;
@@ -1368,6 +1371,7 @@
 				3A2E87F02ED5A91100644195 /* XCLocalSwiftPackageReference "Frameworks/Runestone" */,
 				3A2E87F92ED5ABCF00644195 /* XCLocalSwiftPackageReference "Frameworks/TreeSitterJSON5" */,
 				3ACE5E012EE1A91100644196 /* XCRemoteSwiftPackageReference "CodeEditSourceEditor" */,
+				3A4CA8CA2F75381F009C36CA /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 			);
 			productRefGroup = 3AEC20C72A45991900A63465 /* Products */;
 			projectDirPath = "";
@@ -3342,6 +3346,14 @@
 				minimumVersion = 17.0.0;
 			};
 		};
+		3A4CA8CA2F75381F009C36CA /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.1;
+			};
+		};
 		3A7E90362A46778E00D53052 /* XCRemoteSwiftPackageReference "BinaryCodable" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/christophhagen/BinaryCodable";
@@ -3380,6 +3392,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A4A020B2B53E3DC004EFB87 /* XCRemoteSwiftPackageReference "qrcode" */;
 			productName = QRCode;
+		};
+		3A4CA8CB2F75381F009C36CA /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A4CA8CA2F75381F009C36CA /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
 		};
 		3A7E90372A46778E00D53052 /* BinaryCodable */ = {
 			isa = XCSwiftPackageProductDependency;

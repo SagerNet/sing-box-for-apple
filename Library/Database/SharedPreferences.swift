@@ -121,6 +121,16 @@ public enum SharedPreferences {
         try await batchDelete([alwaysOn.name, onDemandEnabled.name, onDemandRules.name])
     }
 
+    // Update (macOS standalone)
+
+    #if os(macOS)
+        public static let checkUpdateEnabled = Preference<Bool>("check_update_enabled", defaultValue: false)
+        public static let updateCheckPrompted = Preference<Bool>("update_check_prompted", defaultValue: false)
+        public static let updateTrack = Preference<String>("update_track", defaultValue: "")
+        public static let cachedUpdateInfo = Preference<String>("cached_update_info", defaultValue: "")
+        public static let lastShownUpdateVersion = Preference<String>("last_shown_update_version", defaultValue: "")
+    #endif
+
     // Core
 
     public static let disableDeprecatedWarnings = Preference<Bool>("disable_deprecated_warnings", defaultValue: false)
