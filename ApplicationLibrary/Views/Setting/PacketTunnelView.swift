@@ -6,10 +6,6 @@ struct PacketTunnelView: View {
     @State private var isLoading = true
     @State private var alert: AlertState?
 
-    #if !os(macOS)
-        @State private var ignoreMemoryLimit = false
-    #endif
-
     @State private var includeAllNetworks = false
     @State private var excludeAPNs = false
     @State private var excludeCellularServices = false
@@ -28,15 +24,6 @@ struct PacketTunnelView: View {
                 }
             } else {
                 FormView {
-                    #if !os(macOS)
-                        FormToggle("Ignore Memory Limit", """
-                        Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken devices.
-                        """, $ignoreMemoryLimit) { newValue in
-                            await SharedPreferences.ignoreMemoryLimit.set(newValue)
-                            await restartService()
-                        }
-                    #endif
-
                     #if !os(tvOS)
                         FormToggle("includeAllNetworks", """
                         If this property is true, the system routes network traffic through the tunnel except traffic for designated system services necessary for maintaining expected device functionality. You can exclude some types of traffic using the **excludeAPNs**, **excludeLocalNetworks**, and **excludeCellularServices** properties in combination with this property.
@@ -135,9 +122,6 @@ struct PacketTunnelView: View {
 
     @MainActor
     private func loadSettings() async {
-        #if !os(macOS)
-            ignoreMemoryLimit = await SharedPreferences.ignoreMemoryLimit.get()
-        #endif
         #if !os(tvOS)
             includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
             excludeLocalNetworks = await SharedPreferences.excludeLocalNetworks.get()
