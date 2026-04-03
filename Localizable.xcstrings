@@ -75,6 +75,9 @@
         }
       }
     },
+    "%@ (%lld)" : {
+      "shouldTranslate" : false
+    },
     "%@ %@" : {
       "localizations" : {
         "en" : {
@@ -832,6 +835,37 @@
           }
         }
       }
+    },
+    "Apple TV" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple TV"
+          }
+        }
+      }
+    },
+    "Application" : {
+      "shouldTranslate" : false
     },
     "Are you sure to import profile %@?" : {
       "localizations" : {
@@ -2044,6 +2078,37 @@
         }
       }
     },
+    "Crash Report" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گزارش خرابی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчёт о сбое"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "崩溃报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當機報告"
+          }
+        }
+      }
+    },
+    "Crash Trigger" : {
+      "shouldTranslate" : false
+    },
     "Create" : {
       "localizations" : {
         "fa" : {
@@ -2353,6 +2418,34 @@
         }
       }
     },
+    "Delete All" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حذف همه"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить все"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部删除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部刪除"
+          }
+        }
+      }
+    },
     "Deprecated Warning" : {
       "localizations" : {
         "fa" : {
@@ -2629,34 +2722,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用於解析目標的 DNS 伺服器。如果解析失敗，則啟動 VPN。"
-          }
-        }
-      }
-    },
-    "Do not enforce memory limits on sing-box. Will cause OOM on non-jailbroken devices." : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "برای sing-box محدودیت اجباری حافظه اعمال نکنید. این کار در دستگاه‌های بدون جیلبریک باعث OOM می‌شود."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не применять к sing-box принудительное ограничение памяти. На невзломанных устройствах это приведет к OOM."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不要对 sing-box 强制执行内存限制。这将导致未越狱设备出现 OOM。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不要對 sing-box 強制執行內存限制。這將導致未越獄設備出現 OOM。"
           }
         }
       }
@@ -3025,6 +3090,34 @@
         }
       }
     },
+    "Empty" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خالی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пусто"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空"
+          }
+        }
+      }
+    },
     "Empty connections" : {
       "localizations" : {
         "fa" : {
@@ -3049,34 +3142,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無連接"
-          }
-        }
-      }
-    },
-    "Empty content" : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بدون محتوا"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нет содержимого"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无内容"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無內容"
           }
         }
       }
@@ -3217,6 +3282,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟用"
+          }
+        }
+      }
+    },
+    "Enable Memory Limit" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فعال‌سازی محدودیت حافظه"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить ограничение памяти"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用内存限制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用記憶體限制"
           }
         }
       }
@@ -3484,30 +3577,58 @@
       },
       "shouldTranslate" : false
     },
-    "Export" : {
+    "Export Complete" : {
       "localizations" : {
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "خروجی"
+            "value" : "صادرات کامل شد"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Экспорт"
+            "value" : "Экспорт завершён"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "导出"
+            "value" : "导出完成"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "導出"
+            "value" : "匯出完成"
+          }
+        }
+      }
+    },
+    "Export Report" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صادرات گزارش"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт отчёта"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出報告"
           }
         }
       }
@@ -3592,6 +3713,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "否"
+          }
+        }
+      }
+    },
+    "Fetch Memory Report" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دریافت گزارش حافظه"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получить отчёт о памяти"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "获取内存报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取得記憶體報告"
           }
         }
       }
@@ -3704,6 +3853,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檔案名稱"
+          }
+        }
+      }
+    },
+    "Files" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل‌ها"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файлы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案"
           }
         }
       }
@@ -3898,6 +4075,9 @@
           }
         }
       }
+    },
+    "Go Crash" : {
+      "shouldTranslate" : false
     },
     "Goroutines" : {
       "localizations" : {
@@ -4391,34 +4571,6 @@
         }
       }
     },
-    "Ignore Memory Limit" : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نادیده‌گرفتن محدودیت حافظه"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Игнорировать ограничение памяти"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "忽略内存限制"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "忽略內存限制"
-          }
-        }
-      }
-    },
     "Import" : {
       "localizations" : {
         "fa" : {
@@ -4890,6 +5042,62 @@
         }
       }
     },
+    "Kill all connections to free memory when the service memory exceeds the limit." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنگام تجاوز حافظه سرویس از حد مجاز، تمام اتصالات را برای آزادسازی حافظه قطع کنید."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить все соединения для освобождения памяти при превышении лимита памяти сервиса."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当服务内存超出限制时，终止所有连接以释放内存。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當服務記憶體超出限制時，終止所有連線以釋放記憶體。"
+          }
+        }
+      }
+    },
+    "Kill Connections" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قطع اتصالات"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить соединения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "终止连接"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終止連線"
+          }
+        }
+      }
+    },
     "Language" : {
       "localizations" : {
         "fa" : {
@@ -5143,29 +5351,6 @@
         }
       }
     },
-    "Machine: " : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Machine: "
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Machine: "
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Machine: "
-          }
-        }
-      },
-      "shouldTranslate" : false
-    },
     "Managing working directory requires Helper Service." : {
       "localizations" : {
         "fa" : {
@@ -5269,6 +5454,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "內存"
+          }
+        }
+      }
+    },
+    "Memory Limit" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "محدودیت حافظه"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ограничение памяти"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内存限制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記憶體限制"
           }
         }
       }
@@ -5525,6 +5738,9 @@
         }
       }
     },
+    "Native Crash" : {
+      "shouldTranslate" : false
+    },
     "Need Reboot" : {
       "localizations" : {
         "fa" : {
@@ -5580,6 +5796,9 @@
           }
         }
       }
+    },
+    "NetworkExtension" : {
+      "shouldTranslate" : false
     },
     "Never Connect" : {
       "localizations" : {
@@ -5916,6 +6135,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "只允許 HTTP 和 HTTPS URL"
+          }
+        }
+      }
+    },
+    "OOM Report" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گزارش کمبود حافظه"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчёт о нехватке памяти"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内存不足报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記憶體不足報告"
           }
         }
       }
@@ -6453,6 +6700,34 @@
         }
       }
     },
+    "Provide a soft memory limit for the service. The service will perform multiple processes to try to stay within this memory limit." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "یک محدودیت نرم حافظه برای سرویس تعیین کنید. سرویس چندین فرآیند را انجام خواهد داد تا سعی کند در محدوده این محدودیت حافظه باقی بماند."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Задайте мягкое ограничение памяти для сервиса. Сервис будет выполнять различные процессы, чтобы оставаться в пределах этого ограничения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为服务提供软内存限制。服务将执行多个进程以尝试保持在此内存限制范围内。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為服務提供軟記憶體限制。服務將執行多個程序以嘗試保持在此記憶體限制範圍內。"
+          }
+        }
+      }
+    },
     "QRS" : {
       "localizations" : {
         "fa" : {
@@ -6556,6 +6831,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 App Store 上評分"
+          }
+        }
+      }
+    },
+    "Read from connection: %@" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خواندن از اتصال: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтение из соединения: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取连接：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取連線：%@"
           }
         }
       }
@@ -6723,6 +7026,62 @@
         }
       }
     },
+    "Remote error: %@" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خطای راه دور: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ошибка удалённого подключения: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "远程错误：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "遠端錯誤：%@"
+          }
+        }
+      }
+    },
+    "Reports" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گزارش‌ها"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчёты"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "報告"
+          }
+        }
+      }
+    },
     "Required" : {
       "localizations" : {
         "fa" : {
@@ -6835,6 +7194,9 @@
           }
         }
       }
+    },
+    "RootHelper" : {
+      "shouldTranslate" : false
     },
     "Rules" : {
       "localizations" : {
@@ -7088,6 +7450,34 @@
         }
       }
     },
+    "Sending..." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در حال ارسال..."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправка..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送中..."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳送中..."
+          }
+        }
+      }
+    },
     "Service is Running" : {
       "localizations" : {
         "fa" : {
@@ -7112,34 +7502,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "服務正在運行"
-          }
-        }
-      }
-    },
-    "Service Log" : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "گزارش سرویس"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Журнал службы"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "服务日志"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "服務日誌"
           }
         }
       }
@@ -7364,6 +7726,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通過二維碼分享 URL"
+          }
+        }
+      }
+    },
+    "Share With Configuration" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اشتراک‌گذاری با پیکربندی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделиться с конфигурацией"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附带配置分享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附帶配置分享"
           }
         }
       }
@@ -7979,29 +8369,6 @@
         }
       }
     },
-    "System: " : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System: "
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System: "
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System: "
-          }
-        }
-      },
-      "shouldTranslate" : false
-    },
     "Taiwan Flag Available" : {
       "localizations" : {
         "fa" : {
@@ -8198,6 +8565,34 @@
         }
       }
     },
+    "To export this report to your iPhone or iPad, make sure sing-box is the **same version** on both devices and **VPN is disabled**." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "برای صادرات این گزارش به iPhone یا iPad، مطمئن شوید که sing-box در هر دو دستگاه **نسخه یکسان** است و **VPN غیرفعال** است."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чтобы экспортировать этот отчёт на iPhone или iPad, убедитесь, что sing-box на обоих устройствах **одной версии** и **VPN отключён**."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要将此报告导出到 iPhone 或 iPad，请确保两台设备上的 sing-box 为**相同版本**且**已关闭 VPN**。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要將此報告匯出至 iPhone 或 iPad，請確認兩部裝置上的 sing-box 為**相同版本**且**已關閉 VPN**。"
+          }
+        }
+      }
+    },
     "To File" : {
       "localizations" : {
         "fa" : {
@@ -8254,6 +8649,34 @@
         }
       }
     },
+    "Tools" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ابزارها"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструменты"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工具"
+          }
+        }
+      }
+    },
     "Traffic" : {
       "localizations" : {
         "fa" : {
@@ -8306,6 +8729,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "流量"
+          }
+        }
+      }
+    },
+    "Trigger OOM Report" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایجاد گزارش کمبود حافظه"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вызвать отчёт о нехватке памяти"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "触发内存不足报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "觸發記憶體不足報告"
           }
         }
       }
@@ -8502,6 +8954,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "卸載"
+          }
+        }
+      }
+    },
+    "Unknown message type %u" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نوع پیام ناشناخته %u"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неизвестный тип сообщения %u"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知消息类型 %u"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知訊息類型 %u"
           }
         }
       }
@@ -8919,6 +9399,34 @@
         }
       }
     },
+    "When memory limit is enabled, you will receive a report if the service memory exceeds the limit. You can also manually trigger report collection." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنگامی که محدودیت حافظه فعال است، در صورت تجاوز حافظه سرویس از حد مجاز، گزارشی دریافت خواهید کرد. همچنین می‌توانید جمع‌آوری گزارش را به صورت دستی فعال کنید."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При включённом ограничении памяти вы получите отчёт, если память сервиса превысит лимит. Вы также можете вручную запросить сбор отчёта."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用内存限制后，当服务内存超出限制时，您将会收到报告。您也可以手动触发收集报告。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用記憶體限制後，當服務記憶體超出限制時，您將會收到報告。您也可以手動觸發收集報告。"
+          }
+        }
+      }
+    },
     "Wi-Fi" : {
       "localizations" : {
         "fa" : {
@@ -9055,6 +9563,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "應用程序位置錯誤"
+          }
+        }
+      }
+    },
+    "You will receive a report when a crash occurs." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنگام وقوع خرابی، گزارشی دریافت خواهید کرد."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При сбое приложения вы получите отчёт."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当遇到崩溃时，您将会收到报告。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當遇到崩潰時，您將會收到報告。"
+          }
+        }
+      }
+    },
+    "You will receive a report when the service runs out of memory. You can also manually trigger report collection." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنگام کمبود حافظه سرویس، گزارشی دریافت خواهید کرد. همچنین می‌توانید جمع‌آوری گزارش را به صورت دستی فعال کنید."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При нехватке памяти сервиса вы получите отчёт. Вы также можете вручную запросить сбор отчёта."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当服务内存不足时，您将会收到报告。您也可以手动触发收集报告。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "當服務記憶體不足時，您將會收到報告。您也可以手動觸發收集報告。"
           }
         }
       }

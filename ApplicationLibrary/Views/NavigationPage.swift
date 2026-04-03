@@ -13,6 +13,7 @@ public enum NavigationPage: Int, CaseIterable, Identifiable {
         case connections
     #endif
     case logs
+    case tools
     case settings
 }
 
@@ -23,6 +24,8 @@ public extension NavigationPage {
             self = .dashboard
         case "logs":
             self = .logs
+        case "tools":
+            self = .tools
         case "settings":
             self = .settings
         #if os(macOS)
@@ -38,7 +41,7 @@ public extension NavigationPage {
 
     #if os(macOS)
         static var macosDefaultPages: [NavigationPage] {
-            [.logs, .settings]
+            [.logs, .tools, .settings]
         }
     #endif
 
@@ -59,6 +62,8 @@ public extension NavigationPage {
         #endif
         case .logs:
             return String(localized: "Logs")
+        case .tools:
+            return String(localized: "Tools")
         case .settings:
             return String(localized: "Settings")
         }
@@ -76,6 +81,8 @@ public extension NavigationPage {
         #endif
         case .logs:
             return "list.bullet.rectangle"
+        case .tools:
+            return "terminal.fill"
         case .settings:
             return "gear.circle.fill"
         }
@@ -95,6 +102,8 @@ public extension NavigationPage {
             #endif
             case .logs:
                 LogView()
+            case .tools:
+                ToolsView()
             case .settings:
                 SettingView()
             }

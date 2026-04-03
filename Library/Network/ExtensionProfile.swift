@@ -216,8 +216,10 @@ public class ExtensionProfile: ObservableObject {
         let configContent = try await profile.readAsync()
         options["configContent"] = NSString(string: configContent)
 
-        #if !os(macOS)
-            options["ignoreMemoryLimit"] = await NSNumber(value: SharedPreferences.ignoreMemoryLimit.get())
+        #if os(macOS)
+            options["oomKillerEnabled"] = await NSNumber(value: SharedPreferences.oomKillerEnabled.get())
+            options["oomMemoryLimitMB"] = await NSNumber(value: SharedPreferences.oomMemoryLimitMB.get())
+            options["oomKillerKillConnections"] = await NSNumber(value: SharedPreferences.oomKillerKillConnections.get())
         #endif
         options["systemProxyEnabled"] = await NSNumber(value: SharedPreferences.systemProxyEnabled.get())
         options["excludeDefaultRoute"] = await NSNumber(value: SharedPreferences.excludeDefaultRoute.get())

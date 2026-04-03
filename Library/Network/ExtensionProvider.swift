@@ -80,6 +80,22 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         private var locationDelegate: stubLocationDelegate?
     #endif
 
+    override public init() {
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                NativeCrashReporter.installForCurrentProcess(
+                    basePath: FileManager.default.homeDirectoryForCurrentUser
+                        .appendingPathComponent("NativeCrash")
+                )
+            } else {
+                NativeCrashReporter.installForCurrentProcess()
+            }
+        #else
+            NativeCrashReporter.installForCurrentProcess()
+        #endif
+        super.init()
+    }
+
     override open func startTunnel(options startOptions: [String: NSObject]?) async throws {
         let basePath: String
         let workingPath: String
@@ -132,6 +148,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         options.tempPath = tempPath
 
         options.logMaxLines = 3000
+        options.debug = SharedPreferences.inDebug
+        options.crashReportSource = "NetworkExtension"
 
         #if os(tvOS)
             if let port = effectiveOptions["commandServerPort"] as? NSNumber {
@@ -142,23 +160,20 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             }
         #endif
 
+        #if os(macOS)
+            options.oomKillerEnabled = (effectiveOptions["oomKillerEnabled"] as? NSNumber)?.boolValue ?? false
+            let oomMemoryLimitMB = (effectiveOptions["oomMemoryLimitMB"] as? NSNumber)?.int64Value ?? 0
+            options.oomMemoryLimit = oomMemoryLimitMB * 1024 * 1024
+            options.oomKillerDisabled = !((effectiveOptions["oomKillerKillConnections"] as? NSNumber)?.boolValue ?? false)
+        #else
+            options.oomKillerEnabled = true
+        #endif
+
         var setupError: NSError?
         LibboxSetup(options, &setupError)
         if let setupError {
             throw ExtensionStartupError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
         }
-
-        let stderrPath = URL(fileURLWithPath: tempPath, isDirectory: true).appendingPathComponent("stderr.log").path
-        var stderrError: NSError?
-        LibboxRedirectStderr(stderrPath, &stderrError)
-        if let stderrError {
-            throw ExtensionStartupError("(packet-tunnel) redirect stderr error: \(stderrError.localizedDescription)")
-        }
-
-        #if !os(macOS)
-            let ignoreMemoryLimit = (effectiveOptions["ignoreMemoryLimit"] as? NSNumber)?.boolValue ?? false
-            LibboxSetMemoryLimit(!ignoreMemoryLimit)
-        #endif
 
         var error: NSError?
         commandServer = LibboxNewCommandServer(platformInterface, platformInterface, &error)
@@ -179,7 +194,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             }
         #endif
 
-        writeMessage("(packet-tunnel): Here I stand")
         do {
             try await startService()
         } catch {
@@ -190,6 +204,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             #endif
             throw error
         }
+        writeMessage("(packet-tunnel): Here I stand")
         #if os(macOS)
             if Variant.useSystemExtension {
                 xpcService.markServiceReady()

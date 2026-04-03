@@ -60,6 +60,121 @@
         }
     }
 
+    @objc(CrashLogFileResult) public class CrashLogFileResult: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var fileName: String
+        @objc public var content: String
+        @objc public var modificationDate: Date
+
+        public init(fileName: String, content: String, modificationDate: Date) {
+            self.fileName = fileName
+            self.content = content
+            self.modificationDate = modificationDate
+        }
+
+        public required init?(coder: NSCoder) {
+            fileName = coder.decodeObject(of: NSString.self, forKey: "fileName") as? String ?? ""
+            content = coder.decodeObject(of: NSString.self, forKey: "content") as? String ?? ""
+            modificationDate = coder.decodeObject(of: NSDate.self, forKey: "modificationDate") as? Date ?? Date()
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(fileName as NSString, forKey: "fileName")
+            coder.encode(content as NSString, forKey: "content")
+            coder.encode(modificationDate as NSDate, forKey: "modificationDate")
+        }
+    }
+
+    @objc(CrashArtifactsResult) public class CrashArtifactsResult: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var crashLogs: [CrashLogFileResult] = []
+        @objc public var helperNativeCrashData: Data?
+        @objc public var extensionNativeCrashData: Data?
+
+        override public init() {
+            super.init()
+        }
+
+        public required init?(coder: NSCoder) {
+            let logClasses = [NSArray.self, CrashLogFileResult.self] as [AnyClass]
+            crashLogs = coder.decodeObject(of: logClasses, forKey: "crashLogs") as? [CrashLogFileResult] ?? []
+            helperNativeCrashData = coder.decodeObject(of: NSData.self, forKey: "helperNativeCrashData") as? Data
+            extensionNativeCrashData = coder.decodeObject(of: NSData.self, forKey: "extensionNativeCrashData") as? Data
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(crashLogs as NSArray, forKey: "crashLogs")
+            coder.encode(helperNativeCrashData as NSData?, forKey: "helperNativeCrashData")
+            coder.encode(extensionNativeCrashData as NSData?, forKey: "extensionNativeCrashData")
+        }
+    }
+
+    @objc(OOMReportFileResult) public class OOMReportFileResult: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var name: String
+        @objc public var data: Data
+
+        public init(name: String, data: Data) {
+            self.name = name
+            self.data = data
+        }
+
+        public required init?(coder: NSCoder) {
+            name = coder.decodeObject(of: NSString.self, forKey: "name") as? String ?? ""
+            data = coder.decodeObject(of: NSData.self, forKey: "data") as? Data ?? Data()
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(name as NSString, forKey: "name")
+            coder.encode(data as NSData, forKey: "data")
+        }
+    }
+
+    @objc(OOMReportDirectoryResult) public class OOMReportDirectoryResult: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var directoryName: String
+        @objc public var files: [OOMReportFileResult] = []
+
+        public init(directoryName: String, files: [OOMReportFileResult]) {
+            self.directoryName = directoryName
+            self.files = files
+        }
+
+        public required init?(coder: NSCoder) {
+            directoryName = coder.decodeObject(of: NSString.self, forKey: "directoryName") as? String ?? ""
+            let fileClasses = [NSArray.self, OOMReportFileResult.self] as [AnyClass]
+            files = coder.decodeObject(of: fileClasses, forKey: "files") as? [OOMReportFileResult] ?? []
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(directoryName as NSString, forKey: "directoryName")
+            coder.encode(files as NSArray, forKey: "files")
+        }
+    }
+
+    @objc(OOMReportArtifactsResult) public class OOMReportArtifactsResult: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var reports: [OOMReportDirectoryResult] = []
+
+        override public init() {
+            super.init()
+        }
+
+        public required init?(coder: NSCoder) {
+            let reportClasses = [NSArray.self, OOMReportDirectoryResult.self] as [AnyClass]
+            reports = coder.decodeObject(of: reportClasses, forKey: "reports") as? [OOMReportDirectoryResult] ?? []
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(reports as NSArray, forKey: "reports")
+        }
+    }
+
     @objc public protocol RootHelperProtocol {
         func findConnectionOwner(
             ipProtocol: Int32,
@@ -76,6 +191,10 @@
         func startNeighborMonitor(callbackEndpoint: NSXPCListenerEndpoint, reply: @escaping (NSError?) -> Void)
         func closeNeighborMonitor(reply: @escaping (NSError?) -> Void)
         func registerMyInterface(name: String, reply: @escaping (NSError?) -> Void)
+        func collectAllCrashArtifacts(reply: @escaping (CrashArtifactsResult?, NSError?) -> Void)
+        func collectOOMReportArtifacts(reply: @escaping (OOMReportArtifactsResult?, NSError?) -> Void)
+        func triggerGoCrash(reply: @escaping (NSError?) -> Void)
+        func triggerNativeCrash(reply: @escaping (NSError?) -> Void)
     }
 
     public enum RootHelperXPC {
@@ -84,6 +203,24 @@
             interface.setClasses(
                 resultClasses,
                 for: #selector(RootHelperProtocol.findConnectionOwner(ipProtocol:sourceAddress:sourcePort:destinationAddress:destinationPort:reply:)),
+                argumentIndex: 0,
+                ofReply: true
+            )
+            let crashArtifactClasses = NSSet(array: [
+                CrashArtifactsResult.self, NSArray.self, CrashLogFileResult.self, NSData.self,
+            ]) as! Set<AnyHashable>
+            interface.setClasses(
+                crashArtifactClasses,
+                for: #selector(RootHelperProtocol.collectAllCrashArtifacts(reply:)),
+                argumentIndex: 0,
+                ofReply: true
+            )
+            let oomArtifactClasses = NSSet(array: [
+                OOMReportArtifactsResult.self, NSArray.self, OOMReportDirectoryResult.self, OOMReportFileResult.self, NSData.self,
+            ]) as! Set<AnyHashable>
+            interface.setClasses(
+                oomArtifactClasses,
+                for: #selector(RootHelperProtocol.collectOOMReportArtifacts(reply:)),
                 argumentIndex: 0,
                 ofReply: true
             )
@@ -141,10 +278,10 @@
             return newConnection
         }
 
-        private func performXPCCall<T>(
+        private func performXPCCallOptional<T>(
             _ operation: String,
             call: (RootHelperProtocol, @escaping (T?, NSError?) -> Void) -> Void
-        ) throws -> T {
+        ) throws -> T? {
             let semaphore = DispatchSemaphore(value: 0)
             var result: T?
             var resultError: NSError?
@@ -184,13 +321,18 @@
                 throw error
             }
 
-            guard let value = result else {
-                let error = NSError(domain: "RootHelper", code: -1, userInfo: [
+            return result
+        }
+
+        private func performXPCCall<T>(
+            _ operation: String,
+            call: (RootHelperProtocol, @escaping (T?, NSError?) -> Void) -> Void
+        ) throws -> T {
+            guard let value: T = try performXPCCallOptional(operation, call: call) else {
+                throw NSError(domain: "RootHelper", code: -1, userInfo: [
                     NSLocalizedDescriptionKey: "\(operation) returned nil",
                 ])
-                throw error
             }
-
             return value
         }
 
@@ -287,51 +429,36 @@
             }
         }
 
+        public func collectAllCrashArtifacts() throws -> CrashArtifactsResult {
+            try performXPCCall("collectAllCrashArtifacts") { proxy, reply in
+                proxy.collectAllCrashArtifacts(reply: reply)
+            }
+        }
+
+        public func collectOOMReportArtifacts() throws -> OOMReportArtifactsResult {
+            try performXPCCall("collectOOMReportArtifacts") { proxy, reply in
+                proxy.collectOOMReportArtifacts(reply: reply)
+            }
+        }
+
+        public func triggerGoCrash() throws {
+            try performXPCCallVoid("triggerGoCrash") { proxy, reply in
+                proxy.triggerGoCrash(reply: reply)
+            }
+        }
+
+        public func triggerNativeCrash() throws {
+            try performXPCCallVoid("triggerNativeCrash") { proxy, reply in
+                proxy.triggerNativeCrash(reply: reply)
+            }
+        }
+
         public func getVersion() throws -> String {
-            let semaphore = DispatchSemaphore(value: 0)
-            var result: String?
-            var resultError: NSError?
-
-            let conn = getConnection()
-            guard let proxy = conn.remoteObjectProxyWithErrorHandler({ error in
-                logger.error("getVersion XPC error: \(error.localizedDescription)")
-                resultError = error as NSError
-                semaphore.signal()
-            }) as? RootHelperProtocol else {
-                connectionLock.lock()
-                connection = nil
-                connectionLock.unlock()
-                conn.invalidate()
-                throw NSError(domain: "RootHelper", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: "Failed to get RootHelper proxy",
-                ])
+            try performXPCCall("getVersion") { proxy, reply in
+                proxy.getVersion { version in
+                    reply(version as String?, nil)
+                }
             }
-
-            proxy.getVersion { version in
-                result = version
-                semaphore.signal()
-            }
-
-            let timeout = DispatchTime.now() + .seconds(5)
-            if semaphore.wait(timeout: timeout) == .timedOut {
-                let error = NSError(domain: "RootHelper", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: "getVersion request timeout",
-                ])
-                logger.error("getVersion: timeout")
-                throw error
-            }
-
-            if let error = resultError {
-                throw error
-            }
-
-            guard let value = result else {
-                throw NSError(domain: "RootHelper", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey: "getVersion returned nil",
-                ])
-            }
-
-            return value
         }
     }
 #endif

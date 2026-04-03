@@ -30,6 +30,13 @@ public enum AppConfiguration {
         "\(packageName).system"
     }
 
+    public static var packetTunnelBundleIDs: [String] {
+        if extensionBundleID == systemExtensionBundleID {
+            return [extensionBundleID]
+        }
+        return [extensionBundleID, systemExtensionBundleID]
+    }
+
     public static var fileProviderDomainID: String {
         "\(packageName).workingdir"
     }

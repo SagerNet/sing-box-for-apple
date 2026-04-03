@@ -22,10 +22,6 @@ import Foundation
 public enum SharedPreferences {
     public static let selectedProfileID = Preference<Int64>("selected_profile_id", defaultValue: -1)
 
-    #if !os(macOS)
-        public static let ignoreMemoryLimit = Preference<Bool>("ignore_memory_limit", defaultValue: false)
-    #endif
-
     #if os(iOS)
         private static let excludeLocalNetworksByDefault = true
     #elseif os(macOS)
@@ -43,7 +39,7 @@ public enum SharedPreferences {
     #endif
 
     public static func resetPacketTunnel() async {
-        #if os(macOS)
+        #if !os(tvOS)
             let names = [
                 includeAllNetworks.name,
                 excludeAPNs.name,
@@ -52,23 +48,17 @@ public enum SharedPreferences {
                 enforceRoutes.name,
                 excludeDeviceCommunication.name,
             ]
-        #elseif os(tvOS)
-            let names = [ignoreMemoryLimit.name]
-        #else
-            let names = [
-                ignoreMemoryLimit.name,
-                includeAllNetworks.name,
-                excludeAPNs.name,
-                excludeLocalNetworks.name,
-                excludeCellularServices.name,
-                enforceRoutes.name,
-                excludeDeviceCommunication.name,
-            ]
+            try? await batchDelete(names)
         #endif
-        try? await batchDelete(names)
     }
 
     public static let maxLogLines = Preference<Int>("max_log_lines", defaultValue: 300)
+
+    #if os(macOS)
+        public static let oomKillerEnabled = Preference<Bool>("oom_killer_enabled", defaultValue: false)
+        public static let oomMemoryLimitMB = Preference<Int>("oom_memory_limit_mb", defaultValue: 50)
+        public static let oomKillerKillConnections = Preference<Bool>("oom_killer_kill_connections", defaultValue: false)
+    #endif
 
     #if os(macOS)
         public static let showMenuBarExtra = Preference<Bool>("show_menu_bar_extra", defaultValue: true)

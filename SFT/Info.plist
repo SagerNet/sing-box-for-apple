@@ -42,6 +42,17 @@
 				<key>NSApplicationServiceUsageDescription</key>
 				<string>Import sing-box profile from other devices</string>
 			</dict>
+			<dict>
+				<key>NSApplicationServiceIdentifier</key>
+				<string>sing-box:report-transfer</string>
+				<key>NSApplicationServicePlatformSupport</key>
+				<array>
+					<string>iOS</string>
+					<string>iPadOS</string>
+				</array>
+				<key>NSApplicationServiceUsageDescription</key>
+				<string>Export crash reports to other devices</string>
+			</dict>
 		</array>
 	</dict>
 	<key>UIBackgroundModes</key>

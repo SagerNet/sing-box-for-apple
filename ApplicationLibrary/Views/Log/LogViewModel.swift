@@ -155,7 +155,7 @@ public class LogDataModel: ObservableObject {
             do {
                 let text = getLogsText()
                 let dateString = Self.dateFormatter.string(from: Date())
-                let tempDirectory = FileManager.default.temporaryDirectory
+                let tempDirectory = FilePath.cacheDirectory
                 let fileURL = tempDirectory.appendingPathComponent("logs-\(dateString).txt")
                 try text.write(to: fileURL, atomically: true, encoding: .utf8)
                 logFileURL = fileURL
