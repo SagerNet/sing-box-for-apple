@@ -27,6 +27,7 @@ class RootHelperService: NSObject {
     private var pathMonitor: NWPathMonitor?
     private var pendingNATFlush: DispatchWorkItem?
     private var tunInterfaceName: String?
+    var pendingCrashLogs: [CrashLogFileResult] = []
 
     func start() {
         listener = NSXPCListener(machServiceName: AppConfiguration.rootHelperMachService)
@@ -140,6 +141,128 @@ extension RootHelperService: RootHelperProtocol {
         tunInterfaceName = name
         flushInternetSharingNAT()
         reply(nil)
+    }
+
+    static func readCrashLogFiles() -> [CrashLogFileResult] {
+        var results: [CrashLogFileResult] = []
+
+        let crashLogSearchPaths: [(directory: String, fileNames: [String])] = [
+            (WorkingDirectoryManager.extensionWorkingDirectoryPath, [
+                "CrashReport-NetworkExtension.log",
+                "CrashReport-NetworkExtension.log.old",
+            ]),
+            (WorkingDirectoryManager.helperWorkingDirectoryPath, [
+                "CrashReport-RootHelper.log",
+                "CrashReport-RootHelper.log.old",
+            ]),
+            (WorkingDirectoryManager.extensionBasePath, [
+                "configuration.json",
+            ]),
+            (WorkingDirectoryManager.helperBasePath, [
+                "configuration.json",
+            ]),
+        ]
+
+        for searchPath in crashLogSearchPaths {
+            for fileName in searchPath.fileNames {
+                let filePath = (searchPath.directory as NSString).appendingPathComponent(fileName)
+                guard FileManager.default.fileExists(atPath: filePath),
+                      let content = try? String(contentsOfFile: filePath, encoding: .utf8),
+                      !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                else {
+                    continue
+                }
+
+                let attrs = try? FileManager.default.attributesOfItem(atPath: filePath)
+                let modificationDate = (attrs?[.modificationDate] as? Date) ?? Date()
+
+                results.append(CrashLogFileResult(
+                    fileName: fileName,
+                    content: content,
+                    modificationDate: modificationDate
+                ))
+
+                try? FileManager.default.removeItem(atPath: filePath)
+            }
+        }
+
+        return results
+    }
+
+    func collectAllCrashArtifacts(reply: @escaping (CrashArtifactsResult?, NSError?) -> Void) {
+        let result = CrashArtifactsResult()
+
+        var crashLogs = pendingCrashLogs
+        pendingCrashLogs.removeAll()
+        crashLogs.append(contentsOf: Self.readCrashLogFiles())
+        result.crashLogs = crashLogs
+
+        result.helperNativeCrashData = NativeCrashReporter.loadAndPurgePendingCrashReportData()
+
+        let extensionReportURL = CrashReportArchive.pendingNativeCrashReportURL(
+            basePath: URL(fileURLWithPath: WorkingDirectoryManager.extensionNativeCrashBasePath, isDirectory: true),
+            bundleIdentifier: AppConfiguration.systemExtensionBundleID
+        )
+        if let data = try? Data(contentsOf: extensionReportURL), !data.isEmpty {
+            result.extensionNativeCrashData = data
+            try? FileManager.default.removeItem(at: extensionReportURL)
+        }
+
+        reply(result, nil)
+    }
+
+    func collectOOMReportArtifacts(reply: @escaping (OOMReportArtifactsResult?, NSError?) -> Void) {
+        let result = OOMReportArtifactsResult()
+        let oomReportsPath = WorkingDirectoryManager.extensionOOMReportsPath
+        let fm = FileManager.default
+
+        guard fm.fileExists(atPath: oomReportsPath),
+              let entries = try? fm.contentsOfDirectory(atPath: oomReportsPath)
+        else {
+            reply(result, nil)
+            return
+        }
+
+        for entry in entries {
+            let dirPath = (oomReportsPath as NSString).appendingPathComponent(entry)
+            var isDir: ObjCBool = false
+            guard fm.fileExists(atPath: dirPath, isDirectory: &isDir), isDir.boolValue else {
+                continue
+            }
+
+            guard let fileNames = try? fm.contentsOfDirectory(atPath: dirPath) else {
+                continue
+            }
+
+            var files: [OOMReportFileResult] = []
+            for fileName in fileNames {
+                let filePath = (dirPath as NSString).appendingPathComponent(fileName)
+                guard let data = fm.contents(atPath: filePath) else {
+                    continue
+                }
+                files.append(OOMReportFileResult(name: fileName, data: data))
+            }
+
+            if !files.isEmpty {
+                result.reports.append(OOMReportDirectoryResult(directoryName: entry, files: files))
+            }
+
+            try? fm.removeItem(atPath: dirPath)
+        }
+
+        reply(result, nil)
+    }
+
+    func triggerGoCrash(reply: @escaping (NSError?) -> Void) {
+        reply(nil)
+        LibboxTriggerGoPanic()
+    }
+
+    func triggerNativeCrash(reply: @escaping (NSError?) -> Void) {
+        reply(nil)
+        DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(200)) {
+            fatalError("debug native crash")
+        }
     }
 
     func closeNeighborMonitor(reply: @escaping (NSError?) -> Void) {

@@ -73,6 +73,7 @@ struct MainView: View {
                 }
                 .tag(page)
                 .tabItem { page.label }
+                .badge(page == .tools ? environments.totalUnreadReportCount : 0)
             }
         }
     }
@@ -174,6 +175,13 @@ struct MainView: View {
         .onChangeCompat(of: selection) { newValue in
             if newValue == .logs {
                 environments.connect()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .reportReceived)) { _ in
+            Task {
+                await environments.crashReportManager.refresh()
+                await environments.oomReportManager.refresh()
+                selection = .tools
             }
         }
         .environment(\.selection, $selection)

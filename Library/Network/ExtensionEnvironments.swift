@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import SwiftUI
 #if canImport(UIKit)
@@ -182,6 +183,12 @@ public struct ImportRemoteProfileRequest: Hashable, Identifiable {
 @MainActor
 public class ExtensionEnvironments: ObservableObject {
     @Published public var commandClient = CommandClient([.log, .status, .groups, .clashMode])
+    public let crashReportManager = CrashReportManager()
+    public let oomReportManager = OOMReportManager()
+    public var totalUnreadReportCount: Int {
+        crashReportManager.unreadCount + oomReportManager.unreadCount
+    }
+
     @Published public var extensionProfileLoading = true
     @Published public var extensionProfile: ExtensionProfile?
     @Published public var emptyProfiles = false
@@ -193,8 +200,19 @@ public class ExtensionEnvironments: ObservableObject {
     public let profileUpdate = ObjectWillChangePublisher()
     public let selectedProfileUpdate = ObjectWillChangePublisher()
     public let openSettings = ObjectWillChangePublisher()
+    private var cancellables = Set<AnyCancellable>()
 
     public init() {
+        crashReportManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        oomReportManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
         if Variant.screenshotMode {
             extensionProfileLoading = false
             extensionProfile = .mock
@@ -205,6 +223,8 @@ public class ExtensionEnvironments: ObservableObject {
     public func postReload() {
         Task {
             await reload()
+            await crashReportManager.refresh()
+            await oomReportManager.refresh()
         }
     }
 
