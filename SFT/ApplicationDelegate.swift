@@ -6,6 +6,7 @@ import UIKit
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        NativeCrashReporter.installForCurrentProcess()
         NSLog("Here I stand")
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
@@ -28,6 +29,7 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         }
         options.commandServerListenPort = port
         options.commandServerSecret = secret
+        options.crashReportSource = "Application"
         var error: NSError?
         LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)

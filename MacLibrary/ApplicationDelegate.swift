@@ -7,11 +7,13 @@ import UserNotifications
 
 open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     public func applicationDidFinishLaunching(_: Notification) {
+        NativeCrashReporter.installForCurrentProcess()
         NSLog("Here I stand")
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
+        options.crashReportSource = "Application"
         var error: NSError?
         LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)
