@@ -361,7 +361,7 @@ public struct ProfileCard: View {
                         url = try await profile.origin.generateJSONShareFileAsync(name: "\(profile.name).json")
                     }
                     #if os(iOS)
-                        presentShareController(url)
+                        presentShareSheet(url)
                     #elseif os(macOS)
                         let anchorView = viewModel.shareButtonView ?? NSApp.keyWindow?.contentView ?? NSView()
                         NSSharingServicePicker(items: [url]).show(
@@ -400,23 +400,6 @@ public struct ProfileCard: View {
             }
         }
 
-        #if os(iOS)
-            private func presentShareController(_ item: URL) {
-                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                      let rootViewController = windowScene.keyWindow?.rootViewController
-                else {
-                    return
-                }
-                var topViewController = rootViewController
-                while let presented = topViewController.presentedViewController {
-                    topViewController = presented
-                }
-                topViewController.present(
-                    UIActivityViewController(activityItems: [item], applicationActivities: nil),
-                    animated: true
-                )
-            }
-        #endif
     #endif
 
     private func prepareQRSShare(_ profile: ProfilePreview) {

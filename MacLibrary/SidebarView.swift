@@ -26,10 +26,12 @@ private struct SidebarContentView: View {
                 }
                 ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
                     it.label
+                        .badge(it == .tools ? environments.totalUnreadReportCount : 0)
                 }
             } else {
                 ForEach(NavigationPage.allCases.filter { $0.visible(profile) }, id: \.self) { it in
                     it.label
+                        .badge(it == .tools ? environments.totalUnreadReportCount : 0)
                 }
             }
         }
@@ -95,6 +97,7 @@ public struct SidebarView: View {
         List(selection: $localSelection) {
             ForEach(NavigationPage.allCases.filter { $0.visible(nil) }, id: \.self) { it in
                 it.label
+                    .badge(it == .tools ? environments.totalUnreadReportCount : 0)
             }
         }
         .listStyle(.sidebar)

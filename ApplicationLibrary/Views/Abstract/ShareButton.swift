@@ -82,29 +82,13 @@ public struct ShareButtonCompat<Label: View>: View {
             do {
                 let shareItem = try await itemURL()
                 await MainActor.run {
-                    presentShareController(shareItem)
+                    presentShareSheet(shareItem)
                 }
             } catch {
                 await MainActor.run {
                     alert = AlertState(action: "prepare share file", error: error)
                 }
             }
-        }
-
-        private func presentShareController(_ item: URL) {
-            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                  let rootViewController = windowScene.keyWindow?.rootViewController
-            else {
-                return
-            }
-            var topViewController = rootViewController
-            while let presented = topViewController.presentedViewController {
-                topViewController = presented
-            }
-            topViewController.present(
-                UIActivityViewController(activityItems: [item], applicationActivities: nil),
-                animated: true
-            )
         }
 
     #elseif os(macOS)
@@ -125,7 +109,7 @@ public struct ShareButtonCompat<Label: View>: View {
 }
 
 #if os(macOS)
-    private struct SharingServicePicker: NSViewRepresentable {
+    struct SharingServicePicker: NSViewRepresentable {
         @Binding private var isPresented: Bool
         @Binding private var alert: AlertState?
         @Binding private var item: URL?

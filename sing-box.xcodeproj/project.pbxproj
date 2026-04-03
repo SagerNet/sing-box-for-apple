@@ -21,6 +21,7 @@
 		3A4FB1572A73467F007012B9 /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A4FB1582A73467F007012B9 /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3A4FB15C2A73468C007012B9 /* ApplicationLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */; };
+		3A5AA1BA2F7DB10900BA2A0D /* CrashReporter in Frameworks */ = {isa = PBXBuildFile; productRef = 3A5AA1B92F7DB10900BA2A0D /* CrashReporter */; };
 		3A5F26C82A503D4A00C27EDF /* Library.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; };
 		3A5F26C92A503D4A00C27EDF /* Library.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEC211D2A459B4700A63465 /* Library.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3A648D542A4EF4C700D95A12 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF342B12A4AA520002B34AC /* NetworkExtension.framework */; };
@@ -743,6 +744,7 @@
 				3A017F922A4AB2E4009149FA /* GRDB in Frameworks */,
 				3AFE19402EF5677100F61E06 /* SystemConfiguration.framework in Frameworks */,
 				3A76504C2A4F08BA003945C5 /* Libbox.xcframework in Frameworks */,
+				3A5AA1BA2F7DB10900BA2A0D /* CrashReporter in Frameworks */,
 				3A7E90382A46778E00D53052 /* BinaryCodable in Frameworks */,
 				3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */,
 			);
@@ -1205,6 +1207,7 @@
 			packageProductDependencies = (
 				3A7E90372A46778E00D53052 /* BinaryCodable */,
 				3A017F912A4AB2E4009149FA /* GRDB */,
+				3A5AA1B92F7DB10900BA2A0D /* CrashReporter */,
 			);
 			productName = Library;
 			productReference = 3AEC211D2A459B4700A63465 /* Library.framework */;
@@ -1372,6 +1375,7 @@
 				3A2E87F92ED5ABCF00644195 /* XCLocalSwiftPackageReference "Frameworks/TreeSitterJSON5" */,
 				3ACE5E012EE1A91100644196 /* XCRemoteSwiftPackageReference "CodeEditSourceEditor" */,
 				3A4CA8CA2F75381F009C36CA /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+				3A5AA1B82F7DB10900BA2A0D /* XCRemoteSwiftPackageReference "plcrashreporter" */,
 			);
 			productRefGroup = 3AEC20C72A45991900A63465 /* Products */;
 			projectDirPath = "";
@@ -3354,6 +3358,14 @@
 				minimumVersion = 2.4.1;
 			};
 		};
+		3A5AA1B82F7DB10900BA2A0D /* XCRemoteSwiftPackageReference "plcrashreporter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/plcrashreporter.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.12.2;
+			};
+		};
 		3A7E90362A46778E00D53052 /* XCRemoteSwiftPackageReference "BinaryCodable" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/christophhagen/BinaryCodable";
@@ -3397,6 +3409,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A4CA8CA2F75381F009C36CA /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
 			productName = MarkdownUI;
+		};
+		3A5AA1B92F7DB10900BA2A0D /* CrashReporter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A5AA1B82F7DB10900BA2A0D /* XCRemoteSwiftPackageReference "plcrashreporter" */;
+			productName = CrashReporter;
 		};
 		3A7E90372A46778E00D53052 /* BinaryCodable */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -58,6 +58,10 @@
 				<key>NSApplicationServiceIdentifier</key>
 				<string>sing-box:profile</string>
 			</dict>
+			<dict>
+				<key>NSApplicationServiceIdentifier</key>
+				<string>sing-box:report-transfer</string>
+			</dict>
 		</array>
 	</dict>
 	<key>NSUbiquitousContainers</key>
