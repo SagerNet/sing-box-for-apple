@@ -1,12 +1,14 @@
 import Foundation
 import Libbox
 import NetworkExtension
+import os
 import UserNotifications
 #if os(macOS)
     import CoreWLAN
 #endif
 
 public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol, LibboxCommandServerHandlerProtocol {
+    private static let logger = Logger(category: "ExtensionPlatformInterface")
     private let tunnel: ExtensionProvider
     private var networkSettings: NEPacketTunnelNetworkSettings?
 
@@ -449,11 +451,17 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         }
     }
 
+    public func triggerNativeCrash() throws {
+        DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(200)) {
+            fatalError("debug native crash")
+        }
+    }
+
     public func writeDebugMessage(_ message: String?) {
         guard let message else {
             return
         }
-        tunnel.writeMessage(message)
+        Self.logger.debug("\(message, privacy: .public)")
     }
 
     func reset() {

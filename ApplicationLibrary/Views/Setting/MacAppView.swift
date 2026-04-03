@@ -23,20 +23,21 @@ public struct AppView: View {
 
     @State private var isLoading = true
     @State private var selectedLanguage: String?
+    @State private var cacheSize: Int64 = 0
+    @State private var cacheSizeText = ""
 
     #if os(macOS)
         @State private var startAtLogin = false
         @Environment(\.showMenuBarExtra) private var showMenuBarExtra
         @Environment(\.menuBarExtraSpeedMode) private var menuBarExtraSpeedMode
         @State private var menuBarExtraInBackground = false
+        @State private var systemExtensionInstalled = false
         @State private var helperStatusLoaded = false
         @State private var rootHelperRegistrationStatus: SMAppService.Status = .notRegistered
         @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var updateManager: UpdateManager
         @State private var updateTrack: UpdateTrack = .stable
         @State private var checkUpdateEnabled = false
-        @State private var cacheSize: Int64 = 0
-        @State private var cacheSizeText = ""
     #endif
 
     @State private var alert: AlertState?
@@ -96,34 +97,37 @@ public struct AppView: View {
                                 }
                         }
 
-                        if Variant.useSystemExtension {
-                            FormTextItem("Cache Size", cacheSizeText)
-                            if cacheSize > 0 {
-                                // Safe: System Extension's working directory is in its own container
-                                // (/var/root/Library/Containers/…), not under the app's cacheDirectory.
-                                FormButton(role: .destructive) {
-                                    Task.detached {
-                                        let cacheDir = FilePath.cacheDirectory
-                                        if let contents = try? FileManager.default.contentsOfDirectory(
-                                            at: cacheDir,
-                                            includingPropertiesForKeys: nil
-                                        ) {
-                                            for item in contents {
-                                                try? FileManager.default.removeItem(at: item)
-                                            }
+                    #endif
+
+                    FormTextItem("Cache Size", cacheSizeText)
+                    if cacheSize > 0 {
+                        FormButton(role: .destructive) {
+                            Task.detached {
+                                let cacheDir = FilePath.cacheDirectory
+                                let workingDir = FilePath.workingDirectory
+                                if let contents = try? FileManager.default.contentsOfDirectory(
+                                    at: cacheDir,
+                                    includingPropertiesForKeys: nil
+                                ) {
+                                    for item in contents {
+                                        if item.lastPathComponent == workingDir.lastPathComponent {
+                                            continue
                                         }
-                                        await MainActor.run {
-                                            cacheSize = 0
-                                            cacheSizeText = ByteCountFormatter.string(fromByteCount: 0, countStyle: .file)
-                                        }
+                                        try? FileManager.default.removeItem(at: item)
                                     }
-                                } label: {
-                                    Label("Clear Cache", systemImage: "trash")
-                                        .foregroundColor(.red)
+                                }
+                                await MainActor.run {
+                                    cacheSize = 0
+                                    cacheSizeText = ByteCountFormatter.string(fromByteCount: 0, countStyle: .file)
                                 }
                             }
+                        } label: {
+                            Label("Clear Cache", systemImage: "trash")
+                                .foregroundColor(.red)
                         }
+                    }
 
+                    #if os(macOS)
                         if Variant.useSystemExtension {
                             Section("Update Settings") {
                                 Picker("Update Track", selection: $updateTrack) {
@@ -203,19 +207,29 @@ public struct AppView: View {
                             }
 
                             Section("System Extension") {
-                                FormButton {
-                                    Task {
-                                        await updateSystemExtension()
+                                if systemExtensionInstalled {
+                                    FormButton {
+                                        Task {
+                                            await updateSystemExtension()
+                                        }
+                                    } label: {
+                                        Label("Update", systemImage: "arrow.down.doc.fill")
                                     }
-                                } label: {
-                                    Label("Update", systemImage: "arrow.down.doc.fill")
-                                }
-                                FormButton(role: .destructive) {
-                                    Task {
-                                        await uninstallSystemExtension()
+                                    FormButton(role: .destructive) {
+                                        Task {
+                                            await uninstallSystemExtension()
+                                        }
+                                    } label: {
+                                        Label("Uninstall", systemImage: "trash.fill").foregroundColor(.red)
                                     }
-                                } label: {
-                                    Label("Uninstall", systemImage: "trash.fill").foregroundColor(.red)
+                                } else {
+                                    FormButton {
+                                        Task {
+                                            await installSystemExtension()
+                                        }
+                                    } label: {
+                                        Label("Install", systemImage: "lock.doc.fill")
+                                    }
                                 }
                             }
 
@@ -289,6 +303,7 @@ public struct AppView: View {
             startAtLogin = SMAppService.mainApp.status == .enabled
             menuBarExtraInBackground = await SharedPreferences.menuBarExtraInBackground.get()
             if Variant.useSystemExtension {
+                systemExtensionInstalled = await SystemExtension.isInstalled()
                 let trackString = await SharedPreferences.updateTrack.get()
                 updateTrack = UpdateTrack.resolved(from: trackString)
                 checkUpdateEnabled = await SharedPreferences.checkUpdateEnabled.get()
@@ -299,9 +314,9 @@ public struct AppView: View {
             if Variant.useSystemExtension {
                 refreshHelperStatus()
                 helperStatusLoaded = true
-                refreshCacheSize()
             }
         #endif
+        refreshCacheSize()
     }
 
     private static func currentLanguage() -> String? {
@@ -384,6 +399,20 @@ public struct AppView: View {
             }
         }
 
+        private func installSystemExtension() async {
+            do {
+                if let result = try await SystemExtension.install() {
+                    if result == .willCompleteAfterReboot {
+                        alert = AlertState(errorMessage: String(localized: "Need Reboot"))
+                        return
+                    }
+                }
+                systemExtensionInstalled = true
+            } catch {
+                alert = AlertState(action: "install system extension", error: error)
+            }
+        }
+
         private func updateSystemExtension() async {
             do {
                 if let result = try await SystemExtension.install(forceUpdate: true) {
@@ -410,6 +439,7 @@ public struct AppView: View {
                 if let result = try await SystemExtension.uninstall() {
                     switch result {
                     case .completed:
+                        systemExtensionInstalled = false
                         alert = AlertState(
                             title: String(localized: "Uninstall"),
                             message: String(localized: "System Extension removed.")
@@ -452,32 +482,34 @@ public struct AppView: View {
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Preferences.app"))
         }
 
-        private func refreshCacheSize() {
-            Task.detached {
-                let size = Self.calculateDirSize(FilePath.cacheDirectory)
-                await MainActor.run {
-                    cacheSize = size
-                    cacheSizeText = ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
-                }
-            }
-        }
-
-        private static func calculateDirSize(_ dir: URL) -> Int64 {
-            guard let enumerator = FileManager.default.enumerator(
-                at: dir,
-                includingPropertiesForKeys: [.fileSizeKey],
-                options: [.skipsHiddenFiles]
-            ) else {
-                return 0
-            }
-            var size: Int64 = 0
-            for case let fileURL as URL in enumerator {
-                if let fileSize = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
-                    size += Int64(fileSize)
-                }
-            }
-            return size
-        }
-
     #endif
+
+    private func refreshCacheSize() {
+        Task.detached {
+            let total = Self.calculateDirSize(FilePath.cacheDirectory)
+            let working = Self.calculateDirSize(FilePath.workingDirectory)
+            let size = max(total - working, 0)
+            await MainActor.run {
+                cacheSize = size
+                cacheSizeText = ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+            }
+        }
+    }
+
+    private static func calculateDirSize(_ dir: URL) -> Int64 {
+        guard let enumerator = FileManager.default.enumerator(
+            at: dir,
+            includingPropertiesForKeys: [.fileSizeKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return 0
+        }
+        var size: Int64 = 0
+        for case let fileURL as URL in enumerator {
+            if let fileSize = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                size += Int64(fileSize)
+            }
+        }
+        return size
+    }
 }
