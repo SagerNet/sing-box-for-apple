@@ -32,7 +32,14 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         options.crashReportSource = "Application"
         var error: NSError?
         LibboxSetup(options, &error)
-        LibboxSetLocale(Locale.current.identifier)
+        if let error {
+            NSLog("setup service error: \(error.localizedDescription)")
+        }
+        var localeError: NSError?
+        LibboxSetLocale(Locale.current.identifier, &localeError)
+        if let localeError {
+            NSLog("failed to set locale: \(localeError)")
+        }
         setup()
         return true
     }
