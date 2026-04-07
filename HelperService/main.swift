@@ -15,6 +15,9 @@ setupOptions.tempPath = WorkingDirectoryManager.helperTempDirectoryPath
 setupOptions.crashReportSource = "RootHelper"
 var setupError: NSError?
 LibboxSetup(setupOptions, &setupError)
+if let setupError {
+    NSLog("setup service error: \(setupError.localizedDescription)")
+}
 
 let service = RootHelperService()
 service.pendingCrashLogs = pendingCrashLogs
