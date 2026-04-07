@@ -16,7 +16,14 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
         options.crashReportSource = "Application"
         var error: NSError?
         LibboxSetup(options, &error)
-        LibboxSetLocale(Locale.current.identifier)
+        if let error {
+            NSLog("setup service error: \(error.localizedDescription)")
+        }
+        var localeError: NSError?
+        LibboxSetLocale(Locale.current.identifier, &localeError)
+        if let localeError {
+            NSLog("failed to set locale: \(localeError)")
+        }
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.setNotificationCategories([
             UNNotificationCategory(
