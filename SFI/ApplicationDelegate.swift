@@ -19,9 +19,16 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
         options.crashReportSource = "Application"
-        var error: NSError?
-        LibboxSetup(options, &error)
-        LibboxSetLocale(Locale.current.identifier)
+        var setupError: NSError?
+        LibboxSetup(options, &setupError)
+        if let setupError {
+            NSLog("setup service error: \(setupError.localizedDescription)")
+        }
+        var localeError: NSError?
+        LibboxSetLocale(Locale.current.identifier, &localeError)
+        if let localeError {
+            NSLog("failed to set locale: \(localeError)")
+        }
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.setNotificationCategories([
             UNNotificationCategory(
