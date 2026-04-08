@@ -14,6 +14,19 @@ public struct ToolsView: View {
 
     public var body: some View {
         FormView {
+            Section("Network") {
+                FormNavigationLink {
+                    NetworkQualityView()
+                } label: {
+                    Label("Network Quality", systemImage: "network")
+                }
+                FormNavigationLink {
+                    STUNTestView()
+                } label: {
+                    Label("STUN Test", systemImage: "arrow.triangle.swap")
+                }
+            }
+
             Section("Debug") {
                 #if os(iOS)
                     NavigationLink(isActive: $showCrashReportList) {
@@ -50,7 +63,7 @@ public struct ToolsView: View {
                                 Label("Crash Report", systemImage: "ladybug.fill")
                                 Spacer()
                                 if environments.crashReportManager.unreadCount > 0 {
-                                    Text("\(environments.crashReportManager.unreadCount)")
+                                    Text(verbatim: "\(environments.crashReportManager.unreadCount)")
                                         .foregroundStyle(.secondary)
                                 }
                             }
@@ -69,7 +82,7 @@ public struct ToolsView: View {
                                 Label("OOM Report", systemImage: "memorychip")
                                 Spacer()
                                 if environments.oomReportManager.unreadCount > 0 {
-                                    Text("\(environments.oomReportManager.unreadCount)")
+                                    Text(verbatim: "\(environments.oomReportManager.unreadCount)")
                                         .foregroundStyle(.secondary)
                                 }
                             }

@@ -48,6 +48,15 @@ public struct OutboundGroupItem: Codable, Hashable {
         self.urlTestDelay = urlTestDelay
     }
 
+    public init(_ item: LibboxOutboundGroupItem) {
+        self.init(
+            tag: item.tag,
+            type: item.type,
+            urlTestTime: Date(timeIntervalSince1970: Double(item.urlTestTime)),
+            urlTestDelay: UInt16(item.urlTestDelay)
+        )
+    }
+
     public var displayType: String {
         LibboxProxyDisplayType(type)
     }
