@@ -199,7 +199,7 @@ public struct AppView: View {
                                         HStack {
                                             Label("Update", systemImage: "arrow.down.circle")
                                             Spacer()
-                                            Text("v\(info.versionName)")
+                                            Text(verbatim: "v\(info.versionName)")
                                                 .foregroundStyle(.secondary)
                                         }
                                     }

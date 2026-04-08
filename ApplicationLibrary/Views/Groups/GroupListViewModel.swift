@@ -41,13 +41,7 @@ public class GroupListViewModel: BaseViewModel {
             var items = [OutboundGroupItem]()
             let itemIterator = goGroup.getItems()!
             while itemIterator.hasNext() {
-                let goItem = itemIterator.next()!
-                items.append(OutboundGroupItem(
-                    tag: goItem.tag,
-                    type: goItem.type,
-                    urlTestTime: Date(timeIntervalSince1970: Double(goItem.urlTestTime)),
-                    urlTestDelay: UInt16(goItem.urlTestDelay)
-                ))
+                items.append(OutboundGroupItem(itemIterator.next()!))
             }
 
             var selected = goGroup.selected

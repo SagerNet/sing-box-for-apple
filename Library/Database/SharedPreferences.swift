@@ -125,6 +125,14 @@ public enum SharedPreferences {
 
     public static let disableDeprecatedWarnings = Preference<Bool>("disable_deprecated_warnings", defaultValue: false)
 
+    // Tools
+
+    public static let nqConfigURL = Preference<String>("nq_config_url", defaultValue: "")
+    public static let nqSerial = Preference<Bool>("nq_serial", defaultValue: false)
+    public static let nqHttp3 = Preference<Bool>("nq_http3", defaultValue: false)
+    public static let nqMaxRuntime = Preference<Int>("nq_max_runtime", defaultValue: 30)
+    public static let stunServer = Preference<String>("stun_server", defaultValue: "")
+
     // Dashboard
 
     public static let enabledDashboardCards = Preference<[String]>("enabled_dashboard_cards", defaultValue: [])
