@@ -66,6 +66,7 @@ public class CommandClient: ObservableObject {
         case log
         case clashMode
         case connections
+        case outbounds
     }
 
     private let connectionTypes: [ConnectionType]
@@ -88,6 +89,7 @@ public class CommandClient: ObservableObject {
     }
 
     @Published public var groups: [LibboxOutboundGroup]?
+    @Published public var outbounds: [LibboxOutboundGroupItem]?
     @Published public var logList: [LogEntry]
     @Published public var defaultLogLevel = 0
     @Published public var selectedLogLevel: Int?
@@ -246,6 +248,8 @@ public class CommandClient: ObservableObject {
                 clientOptions.addCommand(LibboxCommandClashMode)
             case .connections:
                 clientOptions.addCommand(LibboxCommandConnections)
+            case .outbounds:
+                clientOptions.addCommand(LibboxCommandOutbounds)
             }
         }
         clientOptions.statusInterval = Int64(NSEC_PER_SEC)
@@ -381,6 +385,19 @@ public class CommandClient: ObservableObject {
             DispatchQueue.main.async { [self] in
                 guard isActiveConnection() else { return }
                 commandClient.groups = newGroups
+            }
+        }
+
+        func writeOutbounds(_ message: (any LibboxOutboundGroupItemIteratorProtocol)?) {
+            guard let message else { return }
+            guard isActiveConnection() else { return }
+            var newOutbounds: [LibboxOutboundGroupItem] = []
+            while message.hasNext() {
+                newOutbounds.append(message.next()!)
+            }
+            DispatchQueue.main.async { [self] in
+                guard isActiveConnection() else { return }
+                commandClient.outbounds = newOutbounds
             }
         }
 

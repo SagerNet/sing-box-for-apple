@@ -117,7 +117,7 @@ public struct EditProfileContentView: View {
     private var defaultEditorView: some View {
         #if os(tvOS)
             ScrollView {
-                TextField("", text: readOnly ? .constant(viewModel.profileContent) : $viewModel.profileContent, axis: .vertical)
+                TextField(text: readOnly ? .constant(viewModel.profileContent) : $viewModel.profileContent, axis: .vertical) {}
                     .lineLimit(1000)
                     .font(Font.system(.caption2, design: .monospaced))
                     .autocorrectionDisabled(true)

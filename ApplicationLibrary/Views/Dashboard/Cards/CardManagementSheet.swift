@@ -199,11 +199,11 @@ import SwiftUI
                 Spacer()
 
                 if !isProfileCard {
-                    Toggle("", isOn: Binding(
+                    Toggle(isOn: Binding(
                         get: { isEnabled },
                         set: { _ in onToggle() }
-                    ))
-                    .labelsHidden()
+                    )) {}
+                        .labelsHidden()
                 }
 
                 Button {

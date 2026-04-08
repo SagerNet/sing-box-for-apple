@@ -195,7 +195,7 @@
                     .animation(.easeInOut(duration: 0.2), value: progress)
 
                 if total > 0 {
-                    Text("\(min(99, Int(progress * 100)))%")
+                    Text(verbatim: "\(min(99, Int(progress * 100)))%")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(.white)
                 }
