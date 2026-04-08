@@ -80,7 +80,7 @@ public struct QRSDisplayView: View {
                         } label: {
                             Image(systemName: "minus")
                         }
-                        Text("\(Int(sliceSize))")
+                        Text(verbatim: "\(Int(sliceSize))")
                             .foregroundStyle(.secondary)
                             .frame(minWidth: 50)
                         Button {
@@ -89,7 +89,7 @@ public struct QRSDisplayView: View {
                             Image(systemName: "plus")
                         }
                     #else
-                        Text("\(Int(sliceSize))")
+                        Text(verbatim: "\(Int(sliceSize))")
                             .foregroundStyle(.secondary)
                     #endif
                 }

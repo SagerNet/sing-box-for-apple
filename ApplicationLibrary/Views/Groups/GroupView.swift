@@ -18,7 +18,7 @@ public struct GroupView: View {
             Text(group.displayType)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-            Text("\(group.items.count)")
+            Text(verbatim: "\(group.items.count)")
                 .font(.subheadline)
                 .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
                 .background(Color.gray.opacity(0.5))
