@@ -30,7 +30,11 @@ struct MainView: View {
                 .tag(page)
                 .tabItem {
                     if page == .tools, environments.totalUnreadReportCount > 0 {
-                        Label("\(page.title) (\(environments.totalUnreadReportCount))", systemImage: "terminal.fill")
+                        Label {
+                            Text(verbatim: "\(page.title) (\(environments.totalUnreadReportCount))")
+                        } icon: {
+                            Image(systemName: "terminal.fill")
+                        }
                     } else {
                         page.label
                     }
