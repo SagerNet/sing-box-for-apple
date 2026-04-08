@@ -793,7 +793,7 @@ private struct StringListSection: View {
                     Text(title)
                     Spacer()
                     if !items.isEmpty {
-                        Text("\(items.count)")
+                        Text(verbatim: "\(items.count)")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -806,7 +806,7 @@ private struct StringListSection: View {
                     Text(title)
                     Spacer()
                     if !items.isEmpty {
-                        Text("\(items.count)")
+                        Text(verbatim: "\(items.count)")
                             .foregroundStyle(.secondary)
                     }
                 }

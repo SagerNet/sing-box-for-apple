@@ -22,7 +22,7 @@ public struct HTTPProxyCard: View {
             HStack {
                 DashboardCardHeader(icon: "network", title: "System HTTP Proxy")
                 Spacer()
-                Toggle("", isOn: $systemProxyEnabled)
+                Toggle(isOn: $systemProxyEnabled) {}
                     .labelsHidden()
                 #if os(macOS)
                     .toggleStyle(.switch)
