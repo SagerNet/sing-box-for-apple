@@ -7,7 +7,9 @@ import UserNotifications
 
 open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     public func applicationDidFinishLaunching(_: Notification) {
+        LibboxPrepareCrashSignalHandlers()
         NativeCrashReporter.installForCurrentProcess()
+        LibboxReinstallCrashSignalHandlers()
         NSLog("Here I stand")
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
