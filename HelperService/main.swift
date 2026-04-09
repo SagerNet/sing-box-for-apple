@@ -2,9 +2,11 @@ import Foundation
 import Libbox
 import Library
 
+LibboxPrepareCrashSignalHandlers()
 NativeCrashReporter.installForCurrentProcess(
     basePath: URL(fileURLWithPath: WorkingDirectoryManager.helperNativeCrashBasePath, isDirectory: true)
 )
+LibboxReinstallCrashSignalHandlers()
 
 let pendingCrashLogs = RootHelperService.readCrashLogFiles()
 
