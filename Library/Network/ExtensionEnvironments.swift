@@ -84,8 +84,15 @@ public struct AlertState: Equatable {
     public init(errorMessage: String, dismiss: (() -> Void)? = nil) {
         title = String(localized: "Error")
         message = errorMessage
-        primaryButton = .default(String(localized: "Ok"), action: dismiss)
-        secondaryButton = nil
+        if Self.supportsErrorCopy {
+            primaryButton = .default(String(localized: "Copy")) {
+                Self.copyErrorMessage(errorMessage)
+            }
+            secondaryButton = .default(String(localized: "Ok"), action: dismiss)
+        } else {
+            primaryButton = .default(String(localized: "Ok"), action: dismiss)
+            secondaryButton = nil
+        }
         onDismiss = nil
     }
 
