@@ -81,6 +81,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     #endif
 
     override public init() {
+        LibboxPrepareCrashSignalHandlers()
         #if os(macOS)
             if Variant.useSystemExtension {
                 NativeCrashReporter.installForCurrentProcess(
@@ -93,6 +94,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #else
             NativeCrashReporter.installForCurrentProcess()
         #endif
+        LibboxReinstallCrashSignalHandlers()
         super.init()
     }
 
