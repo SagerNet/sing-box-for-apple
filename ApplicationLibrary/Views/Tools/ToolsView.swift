@@ -1,10 +1,12 @@
 import Library
+import NetworkExtension
 import SwiftUI
 
 @MainActor
 public struct ToolsView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @StateObject private var viewModel = SettingViewModel()
+    @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
     #if os(iOS)
         @State private var showCrashReportList = false
         @State private var showOOMReportList = false
@@ -14,6 +16,22 @@ public struct ToolsView: View {
 
     public var body: some View {
         FormView {
+            if !tailscaleViewModel.endpoints.isEmpty {
+                Section("Endpoints") {
+                    ForEach(tailscaleViewModel.endpoints) { endpoint in
+                        FormNavigationLink {
+                            TailscaleEndpointView(viewModel: tailscaleViewModel, endpointTag: endpoint.endpointTag)
+                        } label: {
+                            if tailscaleViewModel.endpoints.count == 1 {
+                                Label("Tailscale", systemImage: "point.3.filled.connected.trianglepath.dotted")
+                            } else {
+                                Label("Tailscale: \(endpoint.endpointTag)", systemImage: "point.3.filled.connected.trianglepath.dotted")
+                            }
+                        }
+                    }
+                }
+            }
+
             Section("Network") {
                 FormNavigationLink {
                     NetworkQualityView()
@@ -105,6 +123,43 @@ public struct ToolsView: View {
                     }
                 }
             }
+        }
+        .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, viewModel: tailscaleViewModel))
+        .alert($tailscaleViewModel.alert)
+    }
+}
+
+private struct TailscaleStatusObserver: ViewModifier {
+    var profile: ExtensionProfile?
+    var viewModel: TailscaleStatusViewModel
+
+    func body(content: Content) -> some View {
+        if let profile {
+            content
+                .modifier(ActiveObserver(profile: profile, viewModel: viewModel))
+        } else {
+            content
+        }
+    }
+
+    private struct ActiveObserver: ViewModifier {
+        @ObservedObject var profile: ExtensionProfile
+        var viewModel: TailscaleStatusViewModel
+
+        func body(content: Content) -> some View {
+            content
+                .onChangeCompat(of: profile.status) { status in
+                    if status.isConnectedStrict {
+                        viewModel.subscribe()
+                    } else {
+                        viewModel.cancel()
+                    }
+                }
+                .onAppear {
+                    if profile.status.isConnectedStrict {
+                        viewModel.subscribe()
+                    }
+                }
         }
     }
 }
