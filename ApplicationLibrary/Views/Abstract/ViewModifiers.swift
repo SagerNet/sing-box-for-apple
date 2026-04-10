@@ -146,6 +146,33 @@ public extension View {
     }
 #endif
 
+public struct ActionIconButton: View {
+    let systemImage: String
+    let action: () -> Void
+
+    public init(_ systemImage: String, action: @escaping () -> Void) {
+        self.systemImage = systemImage
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 12))
+            #if !os(tvOS)
+                .frame(width: 44, height: 32)
+                .background(Color.secondary.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            #endif
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        #if os(tvOS)
+            .actionButtonStyle()
+        #endif
+    }
+}
+
 public extension View {
     func cardStyle() -> some View {
         modifier(CardStyleModifier())
