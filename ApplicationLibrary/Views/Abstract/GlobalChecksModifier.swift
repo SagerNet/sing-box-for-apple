@@ -165,16 +165,10 @@ public struct GlobalChecksModifier: ViewModifier {
         let disableWarnings = await SharedPreferences.disableDeprecatedWarnings.get()
         guard !disableWarnings else { return }
 
-        do {
-            let reports = try LibboxNewStandaloneCommandClient()!.getDeprecatedNotes()
-            if reports.hasNext() {
-                await MainActor.run {
-                    showNextDeprecatedNote(reports)
-                }
-            }
-        } catch {
+        guard let reports = try? LibboxNewStandaloneCommandClient()!.getDeprecatedNotes() else { return }
+        if reports.hasNext() {
             await MainActor.run {
-                alert = AlertState(action: "check deprecated notes", error: error)
+                showNextDeprecatedNote(reports)
             }
         }
     }
