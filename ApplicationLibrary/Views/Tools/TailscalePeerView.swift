@@ -182,20 +182,20 @@ public struct TailscalePeerView: View {
             }
             Spacer()
             #if !os(tvOS)
-            Button {
-                copyToClipboard(address)
-            } label: {
-                if copiedAddress == address {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Image(systemName: "doc.on.doc")
-                        .foregroundStyle(.blue)
+                Button {
+                    copyToClipboard(address)
+                } label: {
+                    if copiedAddress == address {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Image(systemName: "doc.on.doc")
+                            .foregroundStyle(.blue)
+                    }
                 }
-            }
-            #if os(macOS)
-            .buttonStyle(.plain)
-            #endif
+                #if os(macOS)
+                .buttonStyle(.plain)
+                #endif
             #endif
         }
     }
