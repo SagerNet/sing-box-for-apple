@@ -81,6 +81,14 @@ public final class NWSocket {
         try await sendAndAwait(content: LibboxEncodeChunkedMessage(data), timeout: timeout, phase: "write")
     }
 
+    public func readRaw(count: Int, timeout: TimeInterval = 60) async throws -> Data {
+        try await receiveExactly(count: count, timeout: timeout, phase: "read raw body")
+    }
+
+    public func writeRaw(_ data: Data, timeout: TimeInterval = 30) async throws {
+        try await sendAndAwait(content: data, timeout: timeout, phase: "write raw body")
+    }
+
     public func send(_ data: Data?) {
         guard let data else {
             return
