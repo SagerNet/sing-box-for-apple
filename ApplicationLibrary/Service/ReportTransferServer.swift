@@ -52,37 +52,25 @@
                 beginBackgroundTask()
                 defer { endBackgroundTask() }
 
-                var receivedCount = 0
-                var lastReportType: ReportType?
                 do {
-                    while true {
-                        let message = try await connection.read()
-                        guard let type = ReportTransferMessage.decodeType(message) else {
-                            continue
+                    let message = try await connection.read()
+                    guard let type = ReportTransferMessage.decodeType(message) else {
+                        throw ReportTransferError("Invalid report transfer message")
+                    }
+                    switch type {
+                    case .report:
+                        let manifest = try ReportTransferMessage.decodeReport(message)
+                        try await importReport(manifest)
+                        logger.info("report transfer server: received report")
+                        await MainActor.run {
+                            NotificationCenter.default.post(name: .reportReceived, object: manifest.reportType)
                         }
-                        switch type {
-                        case .report:
-                            let payload = try ReportTransferMessage.decodeReport(message)
-                            try importReport(payload)
-                            lastReportType = payload.reportType
-                            receivedCount += 1
-                        case .complete:
-                            logger.info("report transfer server: received \(receivedCount) report(s)")
-                            if receivedCount > 0 {
-                                let reportType = lastReportType
-                                await MainActor.run {
-                                    NotificationCenter.default.post(name: .reportReceived, object: reportType)
-                                }
-                            }
-                            try await connection.write(ReportTransferMessage.encodeAck())
-                            return
-                        case .error:
-                            let errorMsg = ReportTransferMessage.decodeError(message)
-                            logger.warning("report transfer server: client error: \(errorMsg)")
-                            return
-                        case .ack:
-                            return
-                        }
+                        try await connection.write(ReportTransferMessage.encodeAck())
+                    case .error:
+                        let errorMsg = ReportTransferMessage.decodeError(message)
+                        logger.warning("report transfer server: client error: \(errorMsg)")
+                    case .complete, .ack:
+                        throw ReportTransferError("Unexpected report transfer message")
                     }
                 } catch {
                     logger.warning("report transfer server: \(error.localizedDescription)")
@@ -90,21 +78,83 @@
                 }
             }
 
-            private func importReport(_ payload: ReportTransferPayload) throws {
-                let reportsDir = FilePath.workingDirectory.appendingPathComponent(payload.reportType.directoryName, isDirectory: true)
+            private func importReport(_ manifest: ReportTransferManifest) async throws {
+                guard !manifest.files.isEmpty else {
+                    throw ReportTransferError("Report is empty")
+                }
+
+                let expectedBytes = manifest.files.reduce(0) { $0 + $1.size }
+                guard expectedBytes == manifest.totalBytes else {
+                    throw ReportTransferError("Invalid report manifest")
+                }
+
+                let reportsDir = FilePath.workingDirectory.appendingPathComponent(manifest.reportType.directoryName, isDirectory: true)
                 try FileManager.default.createDirectory(at: reportsDir, withIntermediateDirectories: true)
 
-                let date = Date(timeIntervalSince1970: payload.timestamp)
+                let date = Date(timeIntervalSince1970: manifest.timestamp)
                 let artifactURL = ReportArchive.nextAvailableArtifactURL(in: reportsDir, for: date)
-                try FileManager.default.createDirectory(at: artifactURL, withIntermediateDirectories: true)
+                let stagingURL = nextAvailableStagingArtifactURL(in: reportsDir, for: artifactURL.lastPathComponent)
+                try FileManager.default.createDirectory(at: stagingURL, withIntermediateDirectories: true)
 
-                for file in payload.files {
-                    let fileURL = artifactURL.appendingPathComponent(file.name)
-                    if file.name == ReportArchive.metadataFileName {
-                        try writeMetadataWithDeviceOrigin(file.data, to: fileURL)
-                    } else {
-                        try file.data.write(to: fileURL, options: .atomic)
+                do {
+                    var receivedBytes: UInt64 = 0
+                    for file in manifest.files {
+                        let fileURL = stagingURL.appendingPathComponent(file.name)
+                        FileManager.default.createFile(atPath: fileURL.path, contents: nil)
+                        do {
+                            let handle = try FileHandle(forWritingTo: fileURL)
+                            defer { try? handle.close() }
+
+                            var remaining = file.size
+                            while remaining > 0 {
+                                let chunkSize = Int(min(UInt64(ReportTransferService.fileChunkSize), remaining))
+                                let data = try await connection.readRaw(count: chunkSize)
+                                try handle.write(contentsOf: data)
+                                remaining -= UInt64(data.count)
+                                receivedBytes += UInt64(data.count)
+                            }
+                        }
                     }
+
+                    guard receivedBytes == manifest.totalBytes else {
+                        throw ReportTransferError("Report transfer was incomplete")
+                    }
+
+                    let completion = try await connection.read()
+                    guard let completionType = ReportTransferMessage.decodeType(completion) else {
+                        throw ReportTransferError("Invalid report transfer message")
+                    }
+                    switch completionType {
+                    case .complete:
+                        break
+                    case .error:
+                        throw ReportTransferError(ReportTransferMessage.decodeError(completion))
+                    case .report, .ack:
+                        throw ReportTransferError("Unexpected report transfer message")
+                    }
+
+                    let metadataURL = stagingURL.appendingPathComponent(ReportArchive.metadataFileName)
+                    if FileManager.default.fileExists(atPath: metadataURL.path) {
+                        let metadataData = try Data(contentsOf: metadataURL)
+                        try writeMetadataWithDeviceOrigin(metadataData, to: metadataURL)
+                    }
+
+                    try FileManager.default.moveItem(at: stagingURL, to: artifactURL)
+                } catch {
+                    try? FileManager.default.removeItem(at: stagingURL)
+                    throw error
+                }
+            }
+
+            private func nextAvailableStagingArtifactURL(in directory: URL, for artifactName: String) -> URL {
+                var index = 0
+                while true {
+                    let suffix = index == 0 ? "" : "-\(index)"
+                    let candidate = directory.appendingPathComponent(".\(artifactName).partial\(suffix)", isDirectory: true)
+                    if !FileManager.default.fileExists(atPath: candidate.path) {
+                        return candidate
+                    }
+                    index += 1
                 }
             }
 

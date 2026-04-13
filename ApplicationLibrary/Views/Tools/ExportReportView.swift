@@ -5,6 +5,12 @@
     import Network
     import SwiftUI
 
+    private struct StreamedReportFile: Sendable {
+        let name: String
+        let fileURL: URL
+        let size: UInt64
+    }
+
     @MainActor
     public struct ExportReportView: View {
         @Environment(\.dismiss) private var dismiss
@@ -128,31 +134,23 @@
         }
 
         private nonisolated func sendReport(reportType: ReportType, reportURL: URL, reportDate: Date, via socket: NWSocket) async throws {
-            let fm = FileManager.default
-            guard let fileURLs = try? fm.contentsOfDirectory(
-                at: reportURL,
-                includingPropertiesForKeys: nil,
-                options: .skipsHiddenFiles
-            ) else {
-                throw ReportTransferError("Report is empty")
-            }
-
-            var files: [ReportTransferFile] = []
-            for fileURL in fileURLs {
-                guard let data = try? Data(contentsOf: fileURL) else { continue }
-                files.append(ReportTransferFile(name: fileURL.lastPathComponent, data: data))
-            }
-
+            let files = try collectFiles(in: reportURL)
             guard !files.isEmpty else {
                 throw ReportTransferError("Report is empty")
             }
 
-            let payload = ReportTransferPayload(
+            let totalBytes = files.reduce(0) { $0 + $1.size }
+            let manifest = ReportTransferManifest(
                 reportType: reportType,
                 timestamp: reportDate.timeIntervalSince1970,
-                files: files
+                totalBytes: totalBytes,
+                files: files.map { ReportTransferManifestFile(name: $0.name, size: $0.size) }
             )
-            try await socket.write(ReportTransferMessage.encodeReport(payload))
+            try await socket.write(ReportTransferMessage.encodeReport(manifest))
+
+            for file in files {
+                try await streamFile(file, via: socket)
+            }
             try await socket.write(ReportTransferMessage.encodeComplete())
 
             let response = try await socket.read()
@@ -166,6 +164,40 @@
                 throw ReportTransferError(ReportTransferMessage.decodeError(response))
             default:
                 throw NWSocketError.connectionClosed
+            }
+        }
+
+        private nonisolated func collectFiles(in reportURL: URL) throws -> [StreamedReportFile] {
+            let fm = FileManager.default
+            let fileURLs = try fm.contentsOfDirectory(
+                at: reportURL,
+                includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+                options: .skipsHiddenFiles
+            )
+            var files: [StreamedReportFile] = []
+            for fileURL in fileURLs.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+                let values = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+                guard values.isRegularFile == true else {
+                    continue
+                }
+                let size = UInt64(values.fileSize ?? 0)
+                files.append(StreamedReportFile(name: fileURL.lastPathComponent, fileURL: fileURL, size: size))
+            }
+            return files
+        }
+
+        private nonisolated func streamFile(_ file: StreamedReportFile, via socket: NWSocket) async throws {
+            let handle = try FileHandle(forReadingFrom: file.fileURL)
+            defer { try? handle.close() }
+
+            var remaining = file.size
+            while remaining > 0 {
+                let chunkSize = Int(min(UInt64(ReportTransferService.fileChunkSize), remaining))
+                guard let data = try handle.read(upToCount: chunkSize), !data.isEmpty else {
+                    throw ReportTransferError("Failed to read report file")
+                }
+                try await socket.writeRaw(data)
+                remaining -= UInt64(data.count)
             }
         }
     }
