@@ -21,25 +21,27 @@ public enum ReportTransferMessageType: UInt8 {
     case ack = 3
 }
 
-public struct ReportTransferPayload: Codable {
+public struct ReportTransferManifest: Codable {
     public var reportType: ReportType
     public var timestamp: TimeInterval
-    public var files: [ReportTransferFile]
+    public var totalBytes: UInt64
+    public var files: [ReportTransferManifestFile]
 
-    public init(reportType: ReportType, timestamp: TimeInterval, files: [ReportTransferFile]) {
+    public init(reportType: ReportType, timestamp: TimeInterval, totalBytes: UInt64, files: [ReportTransferManifestFile]) {
         self.reportType = reportType
         self.timestamp = timestamp
+        self.totalBytes = totalBytes
         self.files = files
     }
 }
 
-public struct ReportTransferFile: Codable {
+public struct ReportTransferManifestFile: Codable {
     public var name: String
-    public var data: Data
+    public var size: UInt64
 
-    public init(name: String, data: Data) {
+    public init(name: String, size: UInt64) {
         self.name = name
-        self.data = data
+        self.size = size
     }
 }
 
@@ -53,12 +55,13 @@ public struct ReportTransferError: LocalizedError {
 
 public enum ReportTransferService {
     public static let applicationServiceName = "sing-box:report-transfer"
+    public static let fileChunkSize = 64 * 1024
 }
 
 public enum ReportTransferMessage {
-    public static func encodeReport(_ payload: ReportTransferPayload) throws -> Data {
+    public static func encodeReport(_ manifest: ReportTransferManifest) throws -> Data {
         var data = Data([ReportTransferMessageType.report.rawValue])
-        try data.append(BinaryEncoder().encode(payload))
+        try data.append(BinaryEncoder().encode(manifest))
         return data
     }
 
@@ -81,8 +84,8 @@ public enum ReportTransferMessage {
         return ReportTransferMessageType(rawValue: data[0])
     }
 
-    public static func decodeReport(_ data: Data) throws -> ReportTransferPayload {
-        try BinaryDecoder().decode(ReportTransferPayload.self, from: data.dropFirst())
+    public static func decodeReport(_ data: Data) throws -> ReportTransferManifest {
+        try BinaryDecoder().decode(ReportTransferManifest.self, from: data.dropFirst())
     }
 
     public static func decodeError(_ data: Data) -> String {
