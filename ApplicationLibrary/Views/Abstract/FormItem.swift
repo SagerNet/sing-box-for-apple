@@ -80,7 +80,9 @@ public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> 
                 .layoutPriority(1)
         }
     #elseif os(macOS)
-        content()
+        LabeledContent(title) {
+            content()
+        }
     #endif
 }
 
