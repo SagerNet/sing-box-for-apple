@@ -82,6 +82,7 @@ public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> 
     #elseif os(macOS)
         LabeledContent(title) {
             content()
+                .labelsHidden()
         }
     #endif
 }
