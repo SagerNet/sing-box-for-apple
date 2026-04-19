@@ -40,31 +40,40 @@ private extension NSColor {
     }
 }
 
-private func makeTheme() -> EditorTheme {
-    EditorTheme(
-        text: .init(color: NSColor.labelColor.forEditor),
-        insertionPoint: NSColor.labelColor.forEditor,
-        invisibles: .init(color: NSColor.tertiaryLabelColor.forEditor),
-        background: NSColor.textBackgroundColor.forEditor,
-        lineHighlight: NSColor.quaternaryLabelColor.forEditor,
-        selection: NSColor.selectedTextBackgroundColor.forEditor,
-        keywords: .init(color: NSColor.systemPurple.forEditor),
-        commands: .init(color: NSColor.systemCyan.forEditor),
-        types: .init(color: NSColor.systemCyan.forEditor),
-        attributes: .init(color: NSColor.systemCyan.forEditor),
-        variables: .init(color: NSColor.labelColor.forEditor),
-        values: .init(color: NSColor.systemOrange.forEditor),
-        numbers: .init(color: NSColor.systemOrange.forEditor),
-        strings: .init(color: NSColor.systemGreen.forEditor),
-        characters: .init(color: NSColor.systemGreen.forEditor),
-        comments: .init(color: NSColor.secondaryLabelColor.forEditor)
-    )
+private func makeTheme(for colorScheme: ColorScheme) -> EditorTheme {
+    var theme: EditorTheme!
+    let build = {
+        theme = EditorTheme(
+            text: .init(color: NSColor.labelColor.forEditor),
+            insertionPoint: NSColor.labelColor.forEditor,
+            invisibles: .init(color: NSColor.tertiaryLabelColor.forEditor),
+            background: NSColor.textBackgroundColor.forEditor,
+            lineHighlight: NSColor.quaternaryLabelColor.forEditor,
+            selection: NSColor.selectedTextBackgroundColor.forEditor,
+            keywords: .init(color: NSColor.systemPurple.forEditor),
+            commands: .init(color: NSColor.systemCyan.forEditor),
+            types: .init(color: NSColor.systemCyan.forEditor),
+            attributes: .init(color: NSColor.systemCyan.forEditor),
+            variables: .init(color: NSColor.labelColor.forEditor),
+            values: .init(color: NSColor.systemOrange.forEditor),
+            numbers: .init(color: NSColor.systemOrange.forEditor),
+            strings: .init(color: NSColor.systemGreen.forEditor),
+            characters: .init(color: NSColor.systemGreen.forEditor),
+            comments: .init(color: NSColor.secondaryLabelColor.forEditor)
+        )
+    }
+    if let appearance = NSAppearance(named: colorScheme == .dark ? .darkAqua : .aqua) {
+        appearance.performAsCurrentDrawingAppearance(build)
+    } else {
+        build()
+    }
+    return theme
 }
 
-private func makeConfiguration(isEditable: Bool) -> SourceEditorConfiguration {
+private func makeConfiguration(isEditable: Bool, colorScheme: ColorScheme) -> SourceEditorConfiguration {
     SourceEditorConfiguration(
         appearance: .init(
-            theme: makeTheme(),
+            theme: makeTheme(for: colorScheme),
             font: .monospacedSystemFont(ofSize: 14, weight: .regular),
             lineHeightMultiple: 1.3,
             wrapLines: false
@@ -85,6 +94,8 @@ struct CodeEditTextView: NSViewRepresentable {
     let isEditable: Bool
     let editorController: CodeEditEditorController?
 
+    @Environment(\.colorScheme) private var colorScheme
+
     init(text: Binding<String>, isEditable: Bool, editorController: CodeEditEditorController? = nil) {
         _text = text
         self.isEditable = isEditable
@@ -95,7 +106,7 @@ struct CodeEditTextView: NSViewRepresentable {
         let controller = TextViewController(
             string: text,
             language: .json,
-            configuration: makeConfiguration(isEditable: isEditable),
+            configuration: makeConfiguration(isEditable: isEditable, colorScheme: colorScheme),
             cursorPositions: []
         )
         controller.loadView()
@@ -115,6 +126,7 @@ struct CodeEditTextView: NSViewRepresentable {
         ])
 
         context.coordinator.controller = controller
+        context.coordinator.lastColorScheme = colorScheme
         context.coordinator.setupObservation()
         editorController?.controller = controller
         Task { @MainActor in
@@ -133,7 +145,11 @@ struct CodeEditTextView: NSViewRepresentable {
             controller.language = .json
         }
         if controller.configuration.behavior.isEditable != isEditable {
-            controller.configuration = makeConfiguration(isEditable: isEditable)
+            controller.configuration.behavior.isEditable = isEditable
+        }
+        if context.coordinator.lastColorScheme != colorScheme {
+            context.coordinator.lastColorScheme = colorScheme
+            controller.configuration.appearance.theme = makeTheme(for: colorScheme)
         }
         editorController?.controller = controller
     }
@@ -144,6 +160,7 @@ struct CodeEditTextView: NSViewRepresentable {
 
     class Coordinator: NSObject {
         var controller: TextViewController?
+        var lastColorScheme: ColorScheme?
         @Binding var text: String
         private var observation: NSObjectProtocol?
         private weak var editorController: CodeEditEditorController?
