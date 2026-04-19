@@ -77,7 +77,7 @@ public struct CrashReportListView: View {
             CrashTriggerView()
         }
         .toolbar {
-            if SharedPreferences.inDebug {
+            if Variant.inDebug {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
                         showCrashTrigger = true
@@ -101,9 +101,9 @@ public struct CrashReportListView: View {
         }
         #else
         .toolbar {
-                    if !manager.reports.isEmpty || SharedPreferences.inDebug {
+                    if !manager.reports.isEmpty || Variant.inDebug {
                         Menu {
-                            if SharedPreferences.inDebug {
+                            if Variant.inDebug {
                                 Menu {
                                     Menu("Application") {
                                         Button("Go Crash") {
