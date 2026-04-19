@@ -79,10 +79,14 @@ public struct ConnectionView: View {
                 }
             }
             .foregroundColor(.textColor)
+            #if !os(tvOS)
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            #endif
         }
         #if !os(tvOS)
         .buttonStyle(.plain)
-        .padding(16)
         .cardStyle()
         #endif
         .alert($alert)
