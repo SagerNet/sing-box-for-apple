@@ -32,7 +32,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
             event?.eventID == kAEOpenApplication &&
             event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
         let shouldShowWindow = Variant.screenshotMode ||
-            SharedPreferences.inDebug ||
+            Variant.inDebug ||
             !launchedAsLogInItem ||
             !SharedPreferences.showMenuBarExtra.getBlocking() ||
             !SharedPreferences.menuBarExtraInBackground.getBlocking()
@@ -74,7 +74,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
     }
 
     public func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
-        SharedPreferences.inDebug || !SharedPreferences.menuBarExtraInBackground.getBlocking()
+        Variant.inDebug || !SharedPreferences.menuBarExtraInBackground.getBlocking()
     }
 
     public func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

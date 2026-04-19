@@ -87,20 +87,26 @@ public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> 
     #endif
 }
 
-public func FormToggle(_ titleKey: LocalizedStringKey, _ subtitleKey: LocalizedStringKey, _ isOn: Binding<Bool>, _ action: @escaping (_ newValue: Bool) async -> Void) -> some View {
+public func FormToggle(_ titleKey: LocalizedStringKey, _ subtitleKey: LocalizedStringKey, _ isOn: Binding<Bool>, header: LocalizedStringKey? = nil, _ action: @escaping (_ newValue: Bool) async -> Void) -> some View {
     #if os(macOS)
-        Toggle(isOn: isOn) {
-            VStack(alignment: .leading) {
-                Text(titleKey)
-                Spacer()
-                Text(subtitleKey)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        Section {
+            Toggle(isOn: isOn) {
+                VStack(alignment: .leading) {
+                    Text(titleKey)
+                    Spacer()
+                    Text(subtitleKey)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
-        }
-        .onChangeCompat(of: isOn.wrappedValue) { newValue in
-            Task {
-                await action(newValue)
+            .onChangeCompat(of: isOn.wrappedValue) { newValue in
+                Task {
+                    await action(newValue)
+                }
+            }
+        } header: {
+            if let header {
+                Text(header)
             }
         }
     #else
@@ -111,6 +117,10 @@ public func FormToggle(_ titleKey: LocalizedStringKey, _ subtitleKey: LocalizedS
                         await action(newValue)
                     }
                 }
+        } header: {
+            if let header {
+                Text(header)
+            }
         } footer: {
             Text(subtitleKey)
                 .frame(maxWidth: .infinity, alignment: .leading)

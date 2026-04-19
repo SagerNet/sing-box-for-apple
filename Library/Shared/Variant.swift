@@ -16,7 +16,13 @@ public enum Variant {
         public static let applicationName = "SFT"
     #endif
 
-    public static var isBeta = LibboxVersion().contains("-")
+    public static let isBeta = LibboxVersion().contains("-")
+
+    #if DEBUG
+        public static let inDebug = true
+    #else
+        public static let inDebug = false
+    #endif
 
     #if os(iOS)
         public static var debugNoIOS26 = false

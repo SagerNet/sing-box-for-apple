@@ -3,10 +3,10 @@ import SwiftUI
 
 @MainActor
 public struct SheetContent<Content: View>: View {
-    private let title: String
+    private let title: LocalizedStringKey
     private let content: Content
 
-    public init(_ title: String, @ViewBuilder content: () -> Content) {
+    public init(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
     }

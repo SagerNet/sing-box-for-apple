@@ -7,7 +7,6 @@ import MacLibrary
 class StandaloneApplicationDelegate: ApplicationDelegate {
     func applicationWillFinishLaunching(_: Notification) {
         Variant.useSystemExtension = true
-        Variant.isBeta = false
         LibboxSetXPCDialer(CommandXPCDialer.shared)
         UserServiceEndpointPublisher.shared.start()
         Task {

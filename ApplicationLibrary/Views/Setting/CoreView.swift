@@ -60,8 +60,8 @@ public struct CoreView: View {
                     }
 
                     if Variant.isBeta {
-                        Section {}
-                        FormToggle("Disable Deprecated Warnings", "Do not show warnings about usages of deprecated features.", $disableDeprecatedWarnings) { newValue in
+                        FormToggle("Disable Deprecated Warnings", "Do not show warnings about usages of deprecated features.", $disableDeprecatedWarnings, header: "Beta Settings") {
+                            newValue in
                             await SharedPreferences.disableDeprecatedWarnings.set(newValue)
                         }
                     }

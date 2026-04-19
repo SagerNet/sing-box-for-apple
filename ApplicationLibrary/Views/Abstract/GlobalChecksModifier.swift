@@ -193,15 +193,6 @@ public struct GlobalChecksModifier: ViewModifier {
         }
 
         #if os(tvOS)
-        var state = AlertState(
-            title: String(localized: "Deprecated Warning"),
-            message: report.message(),
-            dismissButton: .cancel(String(localized: "Ok"))
-        )
-        state.onDismiss = continueChain
-        alert = state
-        #else
-        if report.migrationLink.isEmpty {
             var state = AlertState(
                 title: String(localized: "Deprecated Warning"),
                 message: report.message(),
@@ -209,17 +200,26 @@ public struct GlobalChecksModifier: ViewModifier {
             )
             state.onDismiss = continueChain
             alert = state
-        } else {
-            alert = AlertState(
-                title: String(localized: "Deprecated Warning"),
-                message: report.message(),
-                primaryButton: .default(String(localized: "Documentation")) {
-                    openURL(URL(string: report.migrationLink)!)
-                },
-                secondaryButton: .cancel(String(localized: "Ok")),
-                onDismiss: continueChain
-            )
-        }
+        #else
+            if report.migrationLink.isEmpty {
+                var state = AlertState(
+                    title: String(localized: "Deprecated Warning"),
+                    message: report.message(),
+                    dismissButton: .cancel(String(localized: "Ok"))
+                )
+                state.onDismiss = continueChain
+                alert = state
+            } else {
+                alert = AlertState(
+                    title: String(localized: "Deprecated Warning"),
+                    message: report.message(),
+                    primaryButton: .default(String(localized: "Documentation")) {
+                        openURL(URL(string: report.migrationLink)!)
+                    },
+                    secondaryButton: .cancel(String(localized: "Ok")),
+                    onDismiss: continueChain
+                )
+            }
         #endif
     }
 

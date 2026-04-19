@@ -195,29 +195,28 @@ struct MainView: View {
         @ObservedObject var profile: ExtensionProfile
 
         var body: some View {
-            Text(statusText)
+            statusText
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .fixedSize()
         }
 
-        private var statusText: String {
+        private var statusText: Text {
             switch profile.status {
-            case .invalid:
-                return String(localized: "Invalid")
             case .disconnected:
-                return String(localized: "Stopped")
+                return Text("Stopped")
             case .connecting:
-                return String(localized: "Starting")
+                return Text("Starting")
             case .connected:
-                return String(localized: "Started")
+                return Text("Started")
             case .reasserting:
-                return String(localized: "Reasserting")
+                return Text("Reasserting")
             case .disconnecting:
-                return String(localized: "Stopping")
-            @unknown default:
-                return String(localized: "Unknown")
+                return Text("Stopping")
+            default:
+                return Text("Unknown")
+                    .foregroundColor(.red)
             }
         }
     }
