@@ -7,7 +7,8 @@ public extension Profile {
         if type != .remote {
             return
         }
-        let remoteContent = try await HTTPClient.getStringAsync(remoteURL)
+        let url = remoteURL
+        let remoteContent = try await HTTPClient.getStringAsync(url)
         try await BlockingIO.run {
             var error: NSError?
             LibboxCheckConfig(remoteContent, &error)
@@ -15,7 +16,9 @@ public extension Profile {
                 throw error
             }
         }
-        lastUpdated = Date()
+        await MainActor.run {
+            lastUpdated = Date()
+        }
         try await ProfileManager.update(self)
         do {
             let oldContent = try await readAsync()
