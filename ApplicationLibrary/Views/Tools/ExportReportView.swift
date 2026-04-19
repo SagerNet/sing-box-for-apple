@@ -5,7 +5,7 @@
     import Network
     import SwiftUI
 
-    private struct StreamedReportFile: Sendable {
+    private struct StreamedReportFile {
         let name: String
         let fileURL: URL
         let size: UInt64
