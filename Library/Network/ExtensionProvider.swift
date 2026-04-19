@@ -150,7 +150,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         options.tempPath = tempPath
 
         options.logMaxLines = 3000
-        options.debug = SharedPreferences.inDebug
+        options.debug = Variant.inDebug
         options.crashReportSource = "NetworkExtension"
 
         #if os(tvOS)
