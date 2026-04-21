@@ -62,6 +62,9 @@ public class ExtensionProfile: ObservableObject {
                 self.connection = connection
                 self.status = connection.status
                 self.connectedDate = connection.connectedDate
+                if connection.status == .disconnected {
+                    Self.schedulePromoteOOMDraft()
+                }
                 #if os(iOS)
                     if #available(iOS 16.0, *) {
                         if connection.status == .connected || connection.status == .disconnected {
@@ -70,6 +73,26 @@ public class ExtensionProfile: ObservableObject {
                     }
                 #endif
             }
+        }
+    }
+
+    private static func schedulePromoteOOMDraft() {
+        Task.detached {
+            try? await Task.sleep(nanoseconds: 2 * NSEC_PER_SEC)
+            #if os(macOS)
+                if Variant.useSystemExtension {
+                    guard HelperServiceManager.rootHelperStatus == .enabled else {
+                        return
+                    }
+                    do {
+                        try RootHelperClient.shared.promoteOOMDraft()
+                    } catch {
+                        logger.warning("promote OOM draft: \(error.localizedDescription)")
+                    }
+                    return
+                }
+            #endif
+            LibboxPromoteOOMDraft()
         }
     }
 
@@ -291,7 +314,11 @@ public class ExtensionProfile: ObservableObject {
         if managers.isEmpty {
             return nil
         }
-        return ExtensionProfile(managers[0])
+        let profile = ExtensionProfile(managers[0])
+        if profile.status == .disconnected {
+            schedulePromoteOOMDraft()
+        }
+        return profile
     }
 
     public static func install() async throws {

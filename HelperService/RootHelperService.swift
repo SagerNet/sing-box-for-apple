@@ -253,6 +253,11 @@ extension RootHelperService: RootHelperProtocol {
         reply(result, nil)
     }
 
+    func promoteOOMDraft(reply: @escaping (NSError?) -> Void) {
+        LibboxPromoteOOMDraftAt(WorkingDirectoryManager.extensionWorkingDirectoryPath)
+        reply(nil)
+    }
+
     func triggerGoCrash(reply: @escaping (NSError?) -> Void) {
         reply(nil)
         LibboxTriggerGoPanic()
