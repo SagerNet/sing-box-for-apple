@@ -176,6 +176,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let setupError {
             throw ExtensionStartupError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
         }
+        LibboxPromoteOOMDraft()
 
         var error: NSError?
         commandServer = LibboxNewCommandServer(platformInterface, platformInterface, &error)
