@@ -193,6 +193,7 @@
         func registerMyInterface(name: String, reply: @escaping (NSError?) -> Void)
         func collectAllCrashArtifacts(reply: @escaping (CrashArtifactsResult?, NSError?) -> Void)
         func collectOOMReportArtifacts(reply: @escaping (OOMReportArtifactsResult?, NSError?) -> Void)
+        func promoteOOMDraft(reply: @escaping (NSError?) -> Void)
         func triggerGoCrash(reply: @escaping (NSError?) -> Void)
         func triggerNativeCrash(reply: @escaping (NSError?) -> Void)
     }
@@ -438,6 +439,12 @@
         public func collectOOMReportArtifacts() throws -> OOMReportArtifactsResult {
             try performXPCCall("collectOOMReportArtifacts") { proxy, reply in
                 proxy.collectOOMReportArtifacts(reply: reply)
+            }
+        }
+
+        public func promoteOOMDraft() throws {
+            try performXPCCallVoid("promoteOOMDraft") { proxy, reply in
+                proxy.promoteOOMDraft(reply: reply)
             }
         }
 
