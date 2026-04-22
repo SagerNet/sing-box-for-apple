@@ -8,10 +8,10 @@ class StandaloneApplicationDelegate: ApplicationDelegate {
     func applicationWillFinishLaunching(_: Notification) {
         Variant.useSystemExtension = true
         LibboxSetXPCDialer(CommandXPCDialer.shared)
-        UserServiceEndpointPublisher.shared.start()
         Task {
             await setupSystemExtension()
             await HelperServiceManager.updateRootHelperIfNeeded()
+            UserServiceEndpointPublisher.shared.start()
         }
     }
 
