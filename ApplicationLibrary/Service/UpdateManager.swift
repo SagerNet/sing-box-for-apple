@@ -93,9 +93,6 @@
                 }
 
                 let authRef = try PKGInstaller.authorize()
-                try await Task.detached {
-                    try PKGInstaller.install(pkgPath: pkgURL.path, authorization: authRef)
-                }.value
 
                 var profile = environments.extensionProfile
                 if profile == nil {
@@ -110,6 +107,10 @@
                         waitCount += 1
                     }
                 }
+
+                try await Task.detached {
+                    try PKGInstaller.install(pkgPath: pkgURL.path, authorization: authRef)
+                }.value
 
                 do {
                     try PKGInstaller.scheduleInstalledApplicationRelaunch()
