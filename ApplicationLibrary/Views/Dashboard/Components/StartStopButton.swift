@@ -63,6 +63,7 @@ public struct StartStopButton: View {
 
                         if !profile.status.isConnected {
                             Label("Start", systemImage: "play.fill")
+                            .padding(.horizontal, 12)
                         } else {
                             Label("Stop", systemImage: "stop.fill")
                         }
