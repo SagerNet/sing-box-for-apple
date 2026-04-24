@@ -15,37 +15,22 @@ struct MainView: View {
     @State private var showGroups = false
     @State private var showConnections = false
     @State private var buttonState = ButtonVisibilityState()
+    @State private var initializedTabs: Set<NavigationPage> = []
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
         AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
     }
 
-    private var shouldShowBottomAccessory: Bool {
-        guard !environments.extensionProfileLoading else {
-            return false
-        }
-        guard !environments.emptyProfiles else {
-            return false
-        }
-        guard environments.extensionProfile != nil else {
-            return false
-        }
-        return true
-    }
-
-    @ViewBuilder
     private var tabViewContent: some View {
-        if shouldShowBottomAccessory {
-            if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
-                baseTabView
-                    .tabViewBottomAccessory {
-                        bottomAccessoryContent
-                    }
-            } else {
-                legacyTabView
+        TabView(selection: $selection) {
+            ForEach(NavigationPage.allCases, id: \.self) { page in
+                NavigationStackCompat {
+                    tabContent(for: page)
+                }
+                .tag(page)
+                .tabItem { page.label }
+                .badge(page == .tools ? environments.totalUnreadReportCount : 0)
             }
-        } else {
-            baseTabView
         }
     }
 
@@ -57,64 +42,80 @@ struct MainView: View {
         }
     }
 
-    private var baseTabView: some View {
-        tabView(showsBottomAccessory: false)
-    }
-
-    private var legacyTabView: some View {
-        tabView(showsBottomAccessory: shouldShowBottomAccessory)
-    }
-
-    private func tabView(showsBottomAccessory: Bool) -> some View {
-        TabView(selection: $selection) {
-            ForEach(NavigationPage.allCases, id: \.self) { page in
-                NavigationStackCompat {
-                    tabContent(for: page, showsBottomAccessory: showsBottomAccessory)
-                }
-                .tag(page)
-                .tabItem { page.label }
-                .badge(page == .tools ? environments.totalUnreadReportCount : 0)
+    @ViewBuilder
+    private func tabContent(for page: NavigationPage) -> some View {
+        let content = page.contentView
+            .navigationTitle(page.title)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                accessoryInset
+                    .transaction { transaction in
+                        if !initializedTabs.contains(page) {
+                            transaction.disablesAnimations = true
+                        }
+                    }
             }
+            .onAppear {
+                if !initializedTabs.contains(page) {
+                    DispatchQueue.main.async {
+                        initializedTabs.insert(page)
+                    }
+                }
+            }
+        if page == .logs {
+            content.navigationBarTitleDisplayMode(.inline)
+        } else {
+            content
         }
     }
 
     @ViewBuilder
-    private func tabContent(for page: NavigationPage, showsBottomAccessory: Bool) -> some View {
-        if showsBottomAccessory {
-            let content = page.contentView
-                .navigationTitle(page.title)
-                .tabViewBottomAccessoryCompat(useSystemAccessory: false) {
-                    bottomAccessoryContent
-                }
-            if page == .logs {
-                tabBarBackgroundIfAvailable(
-                    content
-                        .navigationBarTitleDisplayMode(.inline)
-                )
-            } else {
-                tabBarBackgroundIfAvailable(content)
-            }
-        } else {
-            let content = page.contentView
-                .navigationTitle(page.title)
-            if page == .logs {
-                content
-                    .navigationBarTitleDisplayMode(.inline)
-            } else {
-                content
+    private var accessoryInset: some View {
+        if let profile = environments.extensionProfile, !environments.extensionProfileLoading, !environments.emptyProfiles {
+            AccessoryInset(profile: profile) {
+                statusBarPill
+            } fab: {
+                fabInset
             }
         }
     }
 
-    private func tabBarBackgroundIfAvailable(_ content: some View) -> some View {
-        content
+    private var fabInset: some View {
+        HStack {
+            Spacer()
+            FABStartButton()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+    }
+
+    private var statusBarPill: some View {
+        bottomAccessoryContent
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
+            .modifier(AccessoryPillBackgroundModifier(cornerRadius: 22))
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+    }
+
+    private struct AccessoryPillBackgroundModifier: ViewModifier {
+        let cornerRadius: CGFloat
+        func body(content: Content) -> some View {
+            if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                content.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            } else {
+                content.background(.bar, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            }
+        }
     }
 
     private var bottomAccessoryContent: some View {
         HStack(spacing: 12) {
             if let profile = environments.extensionProfile {
                 StatusText(profile: profile)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             }
             NavigationButtonsView(
                 showGroupsButton: buttonState.showGroupsButton,
@@ -129,6 +130,17 @@ struct MainView: View {
         }
         .padding(.horizontal)
         .tint(.primary)
+        .buttonStyle(BarItemButtonStyle())
+    }
+
+    private struct BarItemButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .opacity(configuration.isPressed ? 0.5 : 1)
+                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+        }
     }
 
     private var mainBody: some View {
@@ -197,6 +209,64 @@ struct MainView: View {
             profile: environments.extensionProfile,
             commandClient: environments.commandClient
         )
+    }
+
+    private struct AccessoryInset<StatusBar: View, FAB: View>: View {
+        @ObservedObject var profile: ExtensionProfile
+        @ViewBuilder let statusBar: () -> StatusBar
+        @ViewBuilder let fab: () -> FAB
+
+        var body: some View {
+            ZStack(alignment: .bottomTrailing) {
+                if profile.status == .disconnected {
+                    fab()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else {
+                    statusBar()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: profile.status)
+        }
+    }
+
+    private struct FABStartButton: View {
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @State private var alert: AlertState?
+
+        var body: some View {
+            Button {
+                guard let profile = environments.extensionProfile else { return }
+                Task {
+                    do {
+                        try await profile.start()
+                    } catch {
+                        alert = AlertState(action: "start service", error: error)
+                    }
+                }
+            } label: {
+                Label("Start", systemImage: "play.fill")
+                    .labelStyle(.iconOnly)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 56, height: 56)
+                    .modifier(FABBackgroundModifier())
+                    .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .disabled(environments.extensionProfile == nil || environments.emptyProfiles)
+            .alert($alert)
+        }
+
+        private struct FABBackgroundModifier: ViewModifier {
+            func body(content: Content) -> some View {
+                if #available(iOS 26.0, *), !Variant.debugNoIOS26 {
+                    content.glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                } else {
+                    content.background(.bar, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+            }
+        }
     }
 
     private struct StatusText: View {
