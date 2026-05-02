@@ -40,9 +40,19 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         if options.getAutoRoute() {
             settings.mtu = NSNumber(value: options.getMTU())
 
-            let dnsServer = try options.getDNSServerAddress()
-            let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
-            settings.dnsSettings = dnsSettings
+            var dnsSettings: NEDNSSettings?
+            if options.getDNSMode()!.value != LibboxDNSModeDisabled {
+                let dnsServerIterator = try options.getDNSServerAddress()
+                var dnsServers: [String] = []
+                while dnsServerIterator.hasNext() {
+                    dnsServers.append(dnsServerIterator.next())
+                }
+                if !dnsServers.isEmpty {
+                    let newDNSSettings = NEDNSSettings(servers: dnsServers)
+                    settings.dnsSettings = newDNSSettings
+                    dnsSettings = newDNSSettings
+                }
+            }
 
             var ipv4Address: [String] = []
             var ipv4Mask: [String] = []
@@ -153,8 +163,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 $0.destinationAddress == "0.0.0.0" && $0.destinationSubnetMask == "0.0.0.0"
             })
             if !hasDefaultRoute {
-                dnsSettings.matchDomains = [""]
-                dnsSettings.matchDomainsNoSearch = true
+                dnsSettings?.matchDomains = [""]
+                dnsSettings?.matchDomainsNoSearch = true
             }
         }
 
