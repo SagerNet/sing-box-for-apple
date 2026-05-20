@@ -2,6 +2,7 @@ import AppKit
 import CodeEditLanguages
 import CodeEditSourceEditor
 import CodeEditTextView
+import Combine
 import SwiftUI
 
 @MainActor
@@ -34,13 +35,17 @@ public final class CodeEditEditorController: ObservableObject {
     }
 }
 
+private func isDark(_ appearance: NSAppearance) -> Bool {
+    appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+}
+
 private extension NSColor {
     var forEditor: NSColor {
-        usingColorSpace(.sRGB) ?? self
+        usingColorSpace(.deviceRGB) ?? self
     }
 }
 
-private func makeTheme(for colorScheme: ColorScheme) -> EditorTheme {
+private func makeTheme(isDark: Bool) -> EditorTheme {
     var theme: EditorTheme!
     let build = {
         theme = EditorTheme(
@@ -62,7 +67,7 @@ private func makeTheme(for colorScheme: ColorScheme) -> EditorTheme {
             comments: .init(color: NSColor.secondaryLabelColor.forEditor)
         )
     }
-    if let appearance = NSAppearance(named: colorScheme == .dark ? .darkAqua : .aqua) {
+    if let appearance = NSAppearance(named: isDark ? .darkAqua : .aqua) {
         appearance.performAsCurrentDrawingAppearance(build)
     } else {
         build()
@@ -70,10 +75,10 @@ private func makeTheme(for colorScheme: ColorScheme) -> EditorTheme {
     return theme
 }
 
-private func makeConfiguration(isEditable: Bool, colorScheme: ColorScheme) -> SourceEditorConfiguration {
+private func makeConfiguration(isEditable: Bool, isDark: Bool) -> SourceEditorConfiguration {
     SourceEditorConfiguration(
         appearance: .init(
-            theme: makeTheme(for: colorScheme),
+            theme: makeTheme(isDark: isDark),
             font: .monospacedSystemFont(ofSize: 14, weight: .regular),
             lineHeightMultiple: 1.3,
             wrapLines: false
@@ -94,8 +99,6 @@ struct CodeEditTextView: NSViewRepresentable {
     let isEditable: Bool
     let editorController: CodeEditEditorController?
 
-    @Environment(\.colorScheme) private var colorScheme
-
     init(text: Binding<String>, isEditable: Bool, editorController: CodeEditEditorController? = nil) {
         _text = text
         self.isEditable = isEditable
@@ -103,16 +106,17 @@ struct CodeEditTextView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSView {
+        let containerView = NSView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        let initialIsDark = isDark(containerView.effectiveAppearance)
+
         let controller = TextViewController(
             string: text,
             language: .json,
-            configuration: makeConfiguration(isEditable: isEditable, colorScheme: colorScheme),
+            configuration: makeConfiguration(isEditable: isEditable, isDark: initialIsDark),
             cursorPositions: []
         )
         controller.loadView()
-
-        let containerView = NSView()
-        containerView.translatesAutoresizingMaskIntoConstraints = false
 
         let controllerView = controller.view
         controllerView.translatesAutoresizingMaskIntoConstraints = false
@@ -126,8 +130,8 @@ struct CodeEditTextView: NSViewRepresentable {
         ])
 
         context.coordinator.controller = controller
-        context.coordinator.lastColorScheme = colorScheme
-        context.coordinator.setupObservation()
+        context.coordinator.lastIsDark = initialIsDark
+        context.coordinator.setupObservation(on: containerView)
         editorController?.controller = controller
         Task { @MainActor in
             editorController?.updateUndoState()
@@ -147,10 +151,6 @@ struct CodeEditTextView: NSViewRepresentable {
         if controller.configuration.behavior.isEditable != isEditable {
             controller.configuration.behavior.isEditable = isEditable
         }
-        if context.coordinator.lastColorScheme != colorScheme {
-            context.coordinator.lastColorScheme = colorScheme
-            controller.configuration.appearance.theme = makeTheme(for: colorScheme)
-        }
         editorController?.controller = controller
     }
 
@@ -160,9 +160,10 @@ struct CodeEditTextView: NSViewRepresentable {
 
     class Coordinator: NSObject {
         var controller: TextViewController?
-        var lastColorScheme: ColorScheme?
+        var lastIsDark: Bool?
         @Binding var text: String
         private var observation: NSObjectProtocol?
+        private var appearanceCancellable: AnyCancellable?
         private weak var editorController: CodeEditEditorController?
 
         init(text: Binding<String>, editorController: CodeEditEditorController?) {
@@ -171,7 +172,7 @@ struct CodeEditTextView: NSViewRepresentable {
             super.init()
         }
 
-        func setupObservation() {
+        func setupObservation(on view: NSView) {
             guard let controller else { return }
             observation = NotificationCenter.default.addObserver(
                 forName: TextView.textDidChangeNotification,
@@ -184,12 +185,23 @@ struct CodeEditTextView: NSViewRepresentable {
                     self.editorController?.updateUndoState()
                 }
             }
+            appearanceCancellable = view.publisher(for: \.effectiveAppearance)
+                .map { isDark($0) }
+                .removeDuplicates()
+                .receive(on: RunLoop.main)
+                .sink { [weak self] dark in
+                    guard let self, let controller = self.controller else { return }
+                    guard self.lastIsDark != dark else { return }
+                    self.lastIsDark = dark
+                    controller.configuration.appearance.theme = makeTheme(isDark: dark)
+                }
         }
 
         deinit {
             if let observation {
                 NotificationCenter.default.removeObserver(observation)
             }
+            appearanceCancellable?.cancel()
         }
     }
 }
