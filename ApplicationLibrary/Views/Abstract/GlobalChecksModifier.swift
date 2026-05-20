@@ -72,8 +72,10 @@ public struct GlobalChecksModifier: ViewModifier {
             .onChangeCompat(of: importRemoteProfile.wrappedValue) { _ in
                 Task { @MainActor in handleImportRemoteProfile() }
             }
-            .onChangeCompat(of: environments.extensionProfile?.status) { status in
-                handleStatusChange(status)
+            .background {
+                if let profile = environments.extensionProfile {
+                    ProfileStatusObserver(profile: profile, onChange: handleStatusChange)
+                }
             }
     }
 
@@ -241,6 +243,19 @@ public struct GlobalChecksModifier: ViewModifier {
             )
         }
     #endif
+}
+
+@MainActor
+private struct ProfileStatusObserver: View {
+    @ObservedObject var profile: ExtensionProfile
+    let onChange: (NEVPNStatus?) -> Void
+
+    var body: some View {
+        Color.clear
+            .onChangeCompat(of: profile.status) { status in
+                onChange(status)
+            }
+    }
 }
 
 public extension View {
