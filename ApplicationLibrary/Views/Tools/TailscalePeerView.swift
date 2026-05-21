@@ -66,22 +66,49 @@ public struct TailscalePeerView: View {
                 }
             }
 
-            if peer.keyExpiry > 0 || !peer.os.isEmpty || peer.exitNode {
-                Section("Details") {
-                    if peer.keyExpiry > 0 {
-                        FormTextItem("Key Expiry", "key") {
-                            Text(keyExpiryText)
-                        }
+            Section("Details") {
+                if peer.expired {
+                    FormTextItem("Key Expiry", "key") {
+                        Text("Expired")
+                            .foregroundStyle(.red)
                     }
-                    if !peer.os.isEmpty {
-                        FormTextItem("OS", "desktopcomputer") {
-                            Text(peer.os)
-                        }
+                } else if peer.keyExpiry > 0 {
+                    FormTextItem("Key Expiry", "key") {
+                        Text(keyExpiryText)
                     }
-                    if peer.exitNode {
-                        FormTextItem("Exit Node", "arrow.triangle.turn.up.right.diamond") {
-                            Text("Active")
-                        }
+                } else {
+                    FormTextItem("Key Expiry", "key") {
+                        Text("Disabled")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if !peer.os.isEmpty {
+                    FormTextItem("OS", "desktopcomputer") {
+                        Text(peer.os)
+                    }
+                }
+                if !peer.online, peer.lastSeen > 0 {
+                    FormTextItem("Last Seen", "clock") {
+                        Text(lastSeenText)
+                    }
+                }
+                if peer.exitNode {
+                    FormTextItem("Exit Node", "arrow.triangle.turn.up.right.diamond") {
+                        Text("Active")
+                    }
+                } else if peer.exitNodeOption {
+                    FormTextItem("Exit Node", "arrow.triangle.turn.up.right.diamond") {
+                        Text("Available")
+                    }
+                }
+                if peer.shareeNode {
+                    FormTextItem("Shared in", "person.crop.circle.badge.exclamationmark") {
+                        Text("Yes")
+                    }
+                }
+                if !peer.sshHostKeys.isEmpty {
+                    FormTextItem("SSH", "terminal") {
+                        Text("Available")
                     }
                 }
             }
@@ -167,6 +194,13 @@ public struct TailscalePeerView: View {
 
     private var keyExpiryText: String {
         let date = Date(timeIntervalSince1970: TimeInterval(peer.keyExpiry))
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private var lastSeenText: String {
+        let date = Date(timeIntervalSince1970: TimeInterval(peer.lastSeen))
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         return formatter.localizedString(for: date, relativeTo: Date())
