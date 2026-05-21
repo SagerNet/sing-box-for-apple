@@ -794,6 +794,34 @@
         }
       }
     },
+    "Available" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در دسترس"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступно"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用"
+          }
+        }
+      }
+    },
     "Beta" : {
       "localizations" : {
         "fa" : {
@@ -1351,6 +1379,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除日誌"
+          }
+        }
+      }
+    },
+    "Client Version" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نسخه کلاینت"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Версия клиента"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客户端版本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客戶端版本"
           }
         }
       }
@@ -3558,6 +3614,90 @@
         }
       }
     },
+    "Exit Node: waiting approval" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گره خروجی: در انتظار تأیید"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выходной узел: ожидает одобрения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出口节点：等待批准"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出口節點：等待批准"
+          }
+        }
+      }
+    },
+    "Expired" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "منقضی شده"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Истёк"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已过期"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已過期"
+          }
+        }
+      }
+    },
+    "Expires %@" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انقضا %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Истекает %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@过期"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@過期"
+          }
+        }
+      }
+    },
     "Export Complete" : {
       "localizations" : {
         "fa" : {
@@ -5090,6 +5230,34 @@
         }
       }
     },
+    "Key expiry disabled" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انقضای کلید غیرفعال است"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Срок действия ключа отключён"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密钥过期已禁用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金鑰到期已停用"
+          }
+        }
+      }
+    },
     "Kill all connections to free memory when the service memory exceeds the limit." : {
       "localizations" : {
         "fa" : {
@@ -5198,6 +5366,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重啟應用後語言將生效。"
+          }
+        }
+      }
+    },
+    "Last Seen" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آخرین بازدید"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Был(а) в сети"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最后在线"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最後上線"
           }
         }
       }
@@ -8338,6 +8534,34 @@
         }
       }
     },
+    "Shared in" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "به اشتراک گذاشته شده"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享至此"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享至此"
+          }
+        }
+      }
+    },
     "Show in Menu Bar" : {
       "localizations" : {
         "fa" : {
@@ -8525,6 +8749,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "贊助"
+          }
+        }
+      }
+    },
+    "SSH" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SSH"
           }
         }
       }
@@ -10256,6 +10508,34 @@
         }
       }
     },
+    "Waiting approval" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در انتظار تأیید"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ожидает одобрения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待批准"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待批准"
+          }
+        }
+      }
+    },
     "What is QRS" : {
       "localizations" : {
         "fa" : {
@@ -10476,6 +10756,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "應用程序位置錯誤"
+          }
+        }
+      }
+    },
+    "Yes" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بله"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Да"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }

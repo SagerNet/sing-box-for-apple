@@ -5,17 +5,22 @@ import SwiftUI
 
 public struct TailscalePeerData: Identifiable {
     public let id: String
+    public let stableID: String
     public let hostName: String
     public let dnsName: String
     public let os: String
     public let tailscaleIPs: [String]
+    public let sshHostKeys: [String]
     public let online: Bool
     public let exitNode: Bool
     public let exitNodeOption: Bool
+    public let shareeNode: Bool
+    public let expired: Bool
     public let active: Bool
     public let rxBytes: Int64
     public let txBytes: Int64
     public let keyExpiry: Int64
+    public let lastSeen: Int64
 }
 
 public struct TailscaleUserGroupData: Identifiable {
@@ -34,7 +39,16 @@ public struct TailscaleEndpointData: Identifiable {
     public let networkName: String
     public let magicDNSSuffix: String
     public let selfPeer: TailscalePeerData?
+    public let exitNode: TailscalePeerData?
     public let userGroups: [TailscaleUserGroupData]
+
+    public var hasExitNodeCandidates: Bool {
+        if exitNode != nil { return true }
+        let selfStableID = selfPeer?.stableID
+        return userGroups.contains { group in
+            group.peers.contains { $0.exitNodeOption && $0.stableID != selfStableID }
+        }
+    }
 }
 
 @MainActor
@@ -72,6 +86,16 @@ public final class TailscaleStatusViewModel: BaseViewModel {
 
     public func endpoint(tag: String) -> TailscaleEndpointData? {
         endpoints.first { $0.endpointTag == tag }
+    }
+
+    public func setExitNode(endpointTag: String, stableID: String) async {
+        do {
+            try await Task.detached {
+                try LibboxNewStandaloneCommandClient()!.setTailscaleExitNode(endpointTag, stableID: stableID)
+            }.value
+        } catch {
+            alert = AlertState(action: "set exit node", error: error)
+        }
     }
 
     private final class StatusHandler: NSObject, LibboxTailscaleStatusHandlerProtocol, @unchecked Sendable {
@@ -130,6 +154,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 networkName: endpoint.networkName,
                 magicDNSSuffix: endpoint.magicDNSSuffix,
                 selfPeer: endpoint.self_ != nil ? convertPeer(endpoint.self_!) : nil,
+                exitNode: endpoint.exitNode != nil ? convertPeer(endpoint.exitNode!) : nil,
                 userGroups: userGroups
             )
         }
@@ -159,19 +184,30 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                     ips.append(ipIterator.next())
                 }
             }
+            var sshKeys: [String] = []
+            if let keyIterator = peer.sshHostKeys() {
+                while keyIterator.hasNext() {
+                    sshKeys.append(keyIterator.next())
+                }
+            }
             return TailscalePeerData(
                 id: peer.dnsName.isEmpty ? peer.hostName : peer.dnsName,
+                stableID: peer.stableID,
                 hostName: peer.hostName,
                 dnsName: peer.dnsName,
                 os: peer.os,
                 tailscaleIPs: ips,
+                sshHostKeys: sshKeys,
                 online: peer.online,
                 exitNode: peer.exitNode,
                 exitNodeOption: peer.exitNodeOption,
+                shareeNode: peer.shareeNode,
+                expired: peer.expired,
                 active: peer.active,
                 rxBytes: peer.rxBytes,
                 txBytes: peer.txBytes,
-                keyExpiry: peer.keyExpiry
+                keyExpiry: peer.keyExpiry,
+                lastSeen: peer.lastSeen
             )
         }
     }
