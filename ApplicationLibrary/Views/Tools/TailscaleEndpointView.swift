@@ -39,6 +39,19 @@ public struct TailscaleEndpointView: View {
                             Text(endpoint.magicDNSSuffix)
                         }
                     }
+                    if endpoint.backendState == "Running", endpoint.hasExitNodeCandidates {
+                        FormNavigationLink {
+                            TailscaleExitNodePickerView(viewModel: viewModel, endpointTag: endpointTag)
+                        } label: {
+                            HStack {
+                                Label("Exit Node", systemImage: "arrow.triangle.turn.up.right.diamond")
+                                Spacer()
+                                Text(endpoint.exitNode?.hostName ?? String(localized: "Disabled"))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
                     if !endpoint.authURL.isEmpty {
                         if let url = URL(string: endpoint.authURL) {
                             #if !os(tvOS)
@@ -93,16 +106,68 @@ public struct TailscaleEndpointView: View {
                 Image(systemName: "circle.fill")
                     .font(.system(size: 8))
                     .foregroundStyle(peer.online ? .green : Color(.systemGray))
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(peer.hostName)
                     if let firstIP = peer.tailscaleIPs.first {
                         Text(firstIP)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+                    let badges = peerBadges(peer)
+                    if !badges.isEmpty {
+                        HStack(spacing: 4) {
+                            ForEach(badges) { badge in
+                                peerBadgeView(badge)
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private func peerBadges(_ peer: TailscalePeerData) -> [PeerBadge] {
+        var badges: [PeerBadge] = []
+        if peer.shareeNode {
+            badges.append(PeerBadge(id: "sharee", text: "Shared in", color: .red))
+        }
+        if peer.exitNodeOption {
+            badges.append(PeerBadge(id: "exit", text: "Exit Node", color: .blue))
+        }
+        if peer.expired {
+            badges.append(PeerBadge(id: "expired", text: "Expired", color: .red))
+        } else if peer.keyExpiry > 0 {
+            let date = Date(timeIntervalSince1970: TimeInterval(peer.keyExpiry))
+            let now = Date()
+            let oneMonth: TimeInterval = 30 * 24 * 60 * 60
+            if date.timeIntervalSince(now) <= oneMonth {
+                let formatter = RelativeDateTimeFormatter()
+                formatter.unitsStyle = .abbreviated
+                let relative = formatter.localizedString(for: date, relativeTo: now)
+                badges.append(PeerBadge(id: "expires", text: "Expires \(relative)", color: .gray))
+            }
+        } else {
+            badges.append(PeerBadge(id: "expiry-disabled", text: "Key expiry disabled", color: .gray))
+        }
+        if !peer.sshHostKeys.isEmpty {
+            badges.append(PeerBadge(id: "ssh", text: "SSH", color: .green))
+        }
+        return badges
+    }
+
+    private func peerBadgeView(_ badge: PeerBadge) -> some View {
+        Text(badge.text)
+            .font(.caption2)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(badge.color, in: Capsule())
+    }
+
+    private struct PeerBadge: Identifiable {
+        let id: String
+        let text: LocalizedStringKey
+        let color: Color
     }
 
     private func stateColor(_ state: String) -> Color {
