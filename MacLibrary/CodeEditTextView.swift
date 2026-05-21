@@ -2,7 +2,6 @@ import AppKit
 import CodeEditLanguages
 import CodeEditSourceEditor
 import CodeEditTextView
-import Combine
 import SwiftUI
 
 @MainActor
@@ -37,6 +36,15 @@ public final class CodeEditEditorController: ObservableObject {
 
 private func isDark(_ appearance: NSAppearance) -> Bool {
     appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+}
+
+private final class CodeEditContainerView: NSView {
+    var onAppearanceChange: ((Bool) -> Void)?
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        onAppearanceChange?(isDark(effectiveAppearance))
+    }
 }
 
 private extension NSColor {
@@ -106,7 +114,7 @@ struct CodeEditTextView: NSViewRepresentable {
     }
 
     func makeNSView(context: Context) -> NSView {
-        let containerView = NSView()
+        let containerView = CodeEditContainerView()
         containerView.translatesAutoresizingMaskIntoConstraints = false
         let initialIsDark = isDark(containerView.effectiveAppearance)
 
@@ -131,7 +139,13 @@ struct CodeEditTextView: NSViewRepresentable {
 
         context.coordinator.controller = controller
         context.coordinator.lastIsDark = initialIsDark
-        context.coordinator.setupObservation(on: containerView)
+        context.coordinator.setupObservation()
+        containerView.onAppearanceChange = { [weak coordinator = context.coordinator] dark in
+            guard let coordinator, let controller = coordinator.controller else { return }
+            guard coordinator.lastIsDark != dark else { return }
+            coordinator.lastIsDark = dark
+            controller.configuration.appearance.theme = makeTheme(isDark: dark)
+        }
         editorController?.controller = controller
         Task { @MainActor in
             editorController?.updateUndoState()
@@ -163,7 +177,6 @@ struct CodeEditTextView: NSViewRepresentable {
         var lastIsDark: Bool?
         @Binding var text: String
         private var observation: NSObjectProtocol?
-        private var appearanceCancellable: AnyCancellable?
         private weak var editorController: CodeEditEditorController?
 
         init(text: Binding<String>, editorController: CodeEditEditorController?) {
@@ -172,7 +185,7 @@ struct CodeEditTextView: NSViewRepresentable {
             super.init()
         }
 
-        func setupObservation(on view: NSView) {
+        func setupObservation() {
             guard let controller else { return }
             observation = NotificationCenter.default.addObserver(
                 forName: TextView.textDidChangeNotification,
@@ -185,23 +198,12 @@ struct CodeEditTextView: NSViewRepresentable {
                     self.editorController?.updateUndoState()
                 }
             }
-            appearanceCancellable = view.publisher(for: \.effectiveAppearance)
-                .map { isDark($0) }
-                .removeDuplicates()
-                .receive(on: RunLoop.main)
-                .sink { [weak self] dark in
-                    guard let self, let controller = self.controller else { return }
-                    guard self.lastIsDark != dark else { return }
-                    self.lastIsDark = dark
-                    controller.configuration.appearance.theme = makeTheme(isDark: dark)
-                }
         }
 
         deinit {
             if let observation {
                 NotificationCenter.default.removeObserver(observation)
             }
-            appearanceCancellable?.cancel()
         }
     }
 }
