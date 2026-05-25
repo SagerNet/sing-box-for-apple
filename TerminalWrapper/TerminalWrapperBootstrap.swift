@@ -6,9 +6,15 @@ import SwiftUI
 public final class TerminalWrapperBootstrap: NSObject {
     @objc public static func register() {
         Task { @MainActor in
-            TailscaleSSHLaunchService.shared.terminalViewMaker = { presentedSession in
-                AnyView(TerminalWrapperView(presentedSession))
-            }
+            #if os(iOS)
+                TailscaleSSHLaunchService.shared.terminalViewMaker = { presentedSession in
+                    AnyView(TerminalSessionContainerView(presentedSession))
+                }
+            #else
+                TailscaleSSHLaunchService.shared.terminalViewMaker = { presentedSession in
+                    AnyView(TerminalWrapperView(presentedSession))
+                }
+            #endif
             #if !os(tvOS)
                 TailscaleSSHLaunchService.shared.ghosttyThemePickerMaker = { isDark, currentName, onSelect in
                     AnyView(ThemePickerView(

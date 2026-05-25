@@ -104,7 +104,10 @@
     }
 
     public struct ImportedFont: Identifiable, Hashable, Sendable {
-        public var id: URL { fileURL }
+        public var id: URL {
+            fileURL
+        }
+
         public let fileURL: URL
         public let familyName: String
     }

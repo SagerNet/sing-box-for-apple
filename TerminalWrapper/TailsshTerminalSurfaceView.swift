@@ -14,11 +14,12 @@ import SwiftUI
 struct TailsshTerminalSurfaceView: View {
     let state: TerminalViewState
     let extras: TailsshTerminalExtras
+    var isActive: Bool = true
 
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        Representable(state: state, extras: extras)
+        Representable(state: state, extras: extras, isActive: isActive)
             .onChange(of: colorScheme, initial: true) { _, newScheme in
                 state.adopt(colorScheme: newScheme)
             }
@@ -28,6 +29,7 @@ struct TailsshTerminalSurfaceView: View {
         private struct Representable: NSViewRepresentable {
             let state: TerminalViewState
             let extras: TailsshTerminalExtras
+            var isActive: Bool = true
 
             func makeNSView(context _: Context) -> AppTerminalView {
                 let view = AppTerminalView(frame: .zero)
@@ -52,6 +54,7 @@ struct TailsshTerminalSurfaceView: View {
         private struct Representable: UIViewRepresentable {
             let state: TerminalViewState
             let extras: TailsshTerminalExtras
+            var isActive: Bool = true
 
             func makeUIView(context _: Context) -> UITerminalView {
                 let view = UITerminalView(frame: .zero)
@@ -68,6 +71,9 @@ struct TailsshTerminalSurfaceView: View {
                 view.configuration = state.configuration
                 if view.delegate !== extras {
                     view.delegate = extras
+                }
+                if isActive, !view.isFirstResponder {
+                    view.becomeFirstResponder()
                 }
             }
         }

@@ -20,6 +20,7 @@ public struct TailscalePeerView: View {
         @State private var sshPromptPresented = false
         @State private var sshUnavailablePresented = false
         @State private var sshPresentedSession: TailscaleSSHPresentedSession?
+        @State private var isQuickConnect = false
     #endif
     #if os(macOS)
         @Environment(\.openWindow) private var openWindow
@@ -120,6 +121,8 @@ public struct TailscalePeerView: View {
                             FormButton {
                                 if TailscaleSSHLaunchService.shared.terminalViewMaker == nil {
                                     sshUnavailablePresented = true
+                                } else if isQuickConnect {
+                                    quickConnect()
                                 } else {
                                     sshPromptPresented = true
                                 }
@@ -130,6 +133,13 @@ public struct TailscalePeerView: View {
                                     Image(systemName: "chevron.right")
                                         .font(.caption.weight(.semibold))
                                         .foregroundStyle(.tertiary)
+                                }
+                            }
+                            .contextMenu {
+                                Button {
+                                    sshPromptPresented = true
+                                } label: {
+                                    Label("Edit Connect Options", systemImage: "slider.horizontal.3")
                                 }
                             }
                         } else {
@@ -170,6 +180,14 @@ public struct TailscalePeerView: View {
             }
         }
         #if !os(tvOS)
+        .task {
+            await loadQuickConnectState()
+        }
+        .onChangeCompat(of: sshPromptPresented) { newValue in
+            if !newValue {
+                Task { await loadQuickConnectState() }
+            }
+        }
         .platformSheet(isPresented: $sshPromptPresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220)) {
             TailscaleSSHPromptView(
                 peer: peer,
@@ -292,6 +310,30 @@ public struct TailscalePeerView: View {
             #endif
         }
     }
+
+    #if !os(tvOS)
+        private func quickConnect() {
+            Task {
+                let usernames = await SharedPreferences.tailscaleSSHRememberedUsernames.get()
+                let termTypes = await SharedPreferences.tailscaleSSHRememberedTerminalTypes.get()
+                let username = usernames[peer.stableID] ?? "root"
+                let terminalType = termTypes[peer.stableID] ?? "xterm-256color"
+                sshPresentedSession = TailscaleSSHPresentedSession(
+                    endpointTag: endpointTag,
+                    peerHostName: peer.hostName,
+                    peerAddress: peer.tailscaleIPs.first!,
+                    username: username,
+                    terminalType: terminalType,
+                    hostKeys: peer.sshHostKeys
+                )
+            }
+        }
+
+        private func loadQuickConnectState() async {
+            let quickPeers = await SharedPreferences.tailscaleSSHQuickConnectPeers.get()
+            isQuickConnect = quickPeers.contains(peer.stableID)
+        }
+    #endif
 
     private func copyToClipboard(_ text: String) {
         #if os(iOS)
