@@ -7,10 +7,9 @@ public extension Profile {
         #endif
         switch type {
         case .local, .remote:
-            return try String(contentsOfFile: path)
+            return try String(contentsOf: FilePath.sharedDirectory.appendingPathComponent(path))
         case .icloud:
-            let saveURL = FilePath.iCloudDirectory.appendingPathComponent(path)
-            return try String(contentsOf: saveURL)
+            return try String(contentsOf: FilePath.iCloudDirectory.appendingPathComponent(path))
         }
     }
 
@@ -20,10 +19,9 @@ public extension Profile {
         #endif
         switch type {
         case .local, .remote:
-            try content.write(toFile: path, atomically: true, encoding: .utf8)
+            try content.write(to: FilePath.sharedDirectory.appendingPathComponent(path), atomically: true, encoding: .utf8)
         case .icloud:
-            let saveURL = FilePath.iCloudDirectory.appendingPathComponent(path)
-            try content.write(to: saveURL, atomically: true, encoding: .utf8)
+            try content.write(to: FilePath.iCloudDirectory.appendingPathComponent(path), atomically: true, encoding: .utf8)
         }
     }
 
@@ -33,10 +31,9 @@ public extension Profile {
         return try await BlockingIO.run {
             switch type {
             case .local, .remote:
-                return try String(contentsOfFile: path)
+                return try String(contentsOf: FilePath.sharedDirectory.appendingPathComponent(path))
             case .icloud:
-                let saveURL = FilePath.iCloudDirectory.appendingPathComponent(path)
-                return try String(contentsOf: saveURL)
+                return try String(contentsOf: FilePath.iCloudDirectory.appendingPathComponent(path))
             }
         }
     }
@@ -48,10 +45,9 @@ public extension Profile {
         try await BlockingIO.run {
             switch type {
             case .local, .remote:
-                try content.write(toFile: path, atomically: true, encoding: .utf8)
+                try content.write(to: FilePath.sharedDirectory.appendingPathComponent(path), atomically: true, encoding: .utf8)
             case .icloud:
-                let saveURL = FilePath.iCloudDirectory.appendingPathComponent(path)
-                try content.write(to: saveURL, atomically: true, encoding: .utf8)
+                try content.write(to: FilePath.iCloudDirectory.appendingPathComponent(path), atomically: true, encoding: .utf8)
             }
         }
     }
