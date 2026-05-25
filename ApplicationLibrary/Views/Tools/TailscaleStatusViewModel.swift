@@ -82,6 +82,8 @@ public final class TailscaleStatusViewModel: BaseViewModel {
         runningTask = nil
         isSubscribed = false
         endpoints = []
+        TailscaleSSHLaunchService.shared.sshPeers = []
+        TailscaleSSHLaunchService.shared.quickConnectPeerIDs = []
     }
 
     public func endpoint(tag: String) -> TailscaleEndpointData? {
@@ -98,6 +100,28 @@ public final class TailscaleStatusViewModel: BaseViewModel {
         }
     }
 
+    fileprivate func updateSSHPeersOnService(_ endpoints: [TailscaleEndpointData]) {
+        var allSSHPeers: [TailscaleSSHPeerEntry] = []
+        for endpoint in endpoints {
+            for group in endpoint.userGroups {
+                for peer in group.peers where peer.online && !peer.sshHostKeys.isEmpty && !peer.tailscaleIPs.isEmpty {
+                    allSSHPeers.append(TailscaleSSHPeerEntry(
+                        endpointTag: endpoint.endpointTag,
+                        hostName: peer.hostName,
+                        peerAddress: peer.tailscaleIPs.first!,
+                        stableID: peer.stableID,
+                        sshHostKeys: peer.sshHostKeys
+                    ))
+                }
+            }
+        }
+        TailscaleSSHLaunchService.shared.sshPeers = allSSHPeers
+        Task {
+            let qcSet = await SharedPreferences.tailscaleSSHQuickConnectPeers.get()
+            TailscaleSSHLaunchService.shared.quickConnectPeerIDs = qcSet
+        }
+    }
+
     private final class StatusHandler: NSObject, LibboxTailscaleStatusHandlerProtocol, @unchecked Sendable {
         private weak var viewModel: TailscaleStatusViewModel?
 
@@ -111,6 +135,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
             DispatchQueue.main.async { [self] in
                 guard let viewModel, viewModel.isSubscribed else { return }
                 viewModel.endpoints = endpoints
+                viewModel.updateSSHPeersOnService(endpoints)
             }
         }
 
@@ -119,6 +144,8 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 guard let viewModel, viewModel.isSubscribed else { return }
                 viewModel.isSubscribed = false
                 viewModel.endpoints = []
+                TailscaleSSHLaunchService.shared.sshPeers = []
+                TailscaleSSHLaunchService.shared.quickConnectPeerIDs = []
                 if let message {
                     viewModel.alert = AlertState(errorMessage: message)
                 }
