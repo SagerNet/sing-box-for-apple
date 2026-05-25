@@ -190,6 +190,7 @@ public final class TerminalWrapperViewModel: ObservableObject {
     }
 
     public func disconnect() {
+        guard libboxSession != nil || commandClient != nil else { return }
         try? libboxSession?.close()
         libboxSession = nil
         cleanupCommandClient()
