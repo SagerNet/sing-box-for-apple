@@ -113,5 +113,12 @@
             )
             addSession(from: newSession)
         }
+
+        func addSessionFromPeer(_ peer: TailscaleSSHPeerEntry) {
+            Task {
+                let session = await peer.createSession()
+                addSession(from: session)
+            }
+        }
     }
 #endif
