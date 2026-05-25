@@ -123,7 +123,7 @@ public final class NewProfileViewModel: BaseViewModel {
                     try "{}".write(to: profileConfig, atomically: true, encoding: .utf8)
                 }
             }
-            savePath = profileConfig.relativePath
+            savePath = "configs/config_\(nextProfileID).json"
         } else if profileType == .icloud {
             let iCloudDirectory = FilePath.iCloudDirectory
             try await BlockingIO.run {
@@ -153,7 +153,7 @@ public final class NewProfileViewModel: BaseViewModel {
                 try FileManager.default.createDirectory(at: profileConfigDirectory, withIntermediateDirectories: true)
                 try remoteContent.write(to: profileConfig, atomically: true, encoding: .utf8)
             }
-            savePath = profileConfig.relativePath
+            savePath = "configs/config_\(nextProfileID).json"
             remoteURL = remotePath
             lastUpdated = .now
         }
