@@ -127,6 +127,16 @@ public struct AppView: View {
                         }
                     }
 
+                    #if !os(tvOS)
+                        Section("Tailscale") {
+                            FormNavigationLink {
+                                GhosttyConfigurationView()
+                            } label: {
+                                Text("Ghostty Configuration")
+                            }
+                        }
+                    #endif
+
                     #if os(macOS)
                         if Variant.useSystemExtension {
                             Section("Update Settings") {

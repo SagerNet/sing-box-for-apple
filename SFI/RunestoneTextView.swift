@@ -43,11 +43,18 @@ public final class RunestoneEditorController: ObservableObject {
 struct RunestoneTextView: UIViewRepresentable {
     @Binding var text: String
     let isEditable: Bool
+    let language: TreeSitterLanguage?
     let controller: RunestoneEditorController?
 
-    init(text: Binding<String>, isEditable: Bool, controller: RunestoneEditorController? = nil) {
+    init(
+        text: Binding<String>,
+        isEditable: Bool,
+        language: TreeSitterLanguage? = .json5,
+        controller: RunestoneEditorController? = nil
+    ) {
         _text = text
         self.isEditable = isEditable
+        self.language = language
         self.controller = controller
     }
 
@@ -82,7 +89,12 @@ struct RunestoneTextView: UIViewRepresentable {
         ]
 
         let theme = ProfileEditorTheme()
-        let state = TextViewState(text: text, theme: theme, language: .json5)
+        let state: TextViewState
+        if let language {
+            state = TextViewState(text: text, theme: theme, language: language)
+        } else {
+            state = TextViewState(text: text, theme: theme)
+        }
         textView.setState(state)
 
         textView.isEditable = isEditable
