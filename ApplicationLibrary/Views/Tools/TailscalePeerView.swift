@@ -16,6 +16,14 @@ public struct TailscalePeerView: View {
 
     @State private var copiedAddress: String?
     @StateObject private var pingViewModel = TailscalePingViewModel()
+    #if !os(tvOS)
+        @State private var sshPromptPresented = false
+        @State private var sshUnavailablePresented = false
+        @State private var sshPresentedSession: TailscaleSSHPresentedSession?
+    #endif
+    #if os(macOS)
+        @Environment(\.openWindow) private var openWindow
+    #endif
 
     public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool) {
         self.peer = peer
@@ -107,9 +115,33 @@ public struct TailscalePeerView: View {
                     }
                 }
                 if !peer.sshHostKeys.isEmpty {
-                    FormTextItem("SSH", "terminal") {
-                        Text("Available")
-                    }
+                    #if !os(tvOS)
+                        if peer.online, !isSelf, !peer.tailscaleIPs.isEmpty {
+                            FormButton {
+                                if TailscaleSSHLaunchService.shared.terminalViewMaker == nil {
+                                    sshUnavailablePresented = true
+                                } else {
+                                    sshPromptPresented = true
+                                }
+                            } label: {
+                                HStack {
+                                    Label("Connect via SSH", systemImage: "terminal")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                        } else {
+                            FormTextItem("SSH", "terminal") {
+                                Text("Available")
+                            }
+                        }
+                    #else
+                        FormTextItem("SSH", "terminal") {
+                            Text("Available")
+                        }
+                    #endif
                 }
             }
         }
@@ -137,6 +169,33 @@ public struct TailscalePeerView: View {
                 pingViewModel.stop()
             }
         }
+        #if !os(tvOS)
+        .platformSheet(isPresented: $sshPromptPresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220)) {
+            TailscaleSSHPromptView(
+                peer: peer,
+                endpointTag: endpointTag,
+                presentedSession: $sshPresentedSession
+            )
+        }
+            #if os(iOS)
+        .sheet(item: $sshPresentedSession) { presented in
+            NavigationStackCompat {
+                if let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
+                    maker(presented)
+                }
+            }
+        }
+            #elseif os(macOS)
+        .onChangeCompat(of: sshPresentedSession) { newValue in
+            guard let newValue else { return }
+            openWindow(value: newValue)
+            sshPresentedSession = nil
+        }
+            #endif
+        .platformSheet(isPresented: $sshUnavailablePresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220)) {
+            TailscaleSSHUnavailableView(peerHostName: peer.hostName)
+        }
+        #endif
     }
 
     private var connectionTypeRow: some View {
