@@ -8,7 +8,6 @@ import GhosttyTerminal
 /// already implements back to it (so its @Published-equivalent state stays
 /// in sync), and additionally implements OpenURL / HoverLink / Progress
 /// which TerminalViewState does not conform to upstream.
-@available(iOS 17.0, macOS 14.0, *)
 @MainActor
 public final class TailsshTerminalExtras: NSObject, ObservableObject,
     TerminalSurfaceTitleDelegate,

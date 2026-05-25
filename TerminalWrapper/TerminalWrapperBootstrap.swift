@@ -2,7 +2,6 @@ import Library
 import SwiftUI
 
 @objc(TerminalWrapperBootstrap)
-@available(iOS 17.0, macOS 14.0, *)
 public final class TerminalWrapperBootstrap: NSObject {
     @objc public static func register() {
         Task { @MainActor in

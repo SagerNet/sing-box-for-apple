@@ -5,7 +5,6 @@ import SwiftUI
     import UIKit
 #endif
 
-@available(iOS 17.0, macOS 14.0, *)
 @MainActor
 public struct TerminalWrapperView: View {
     @StateObject private var viewModel = TerminalWrapperViewModel()

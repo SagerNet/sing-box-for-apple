@@ -1,7 +1,6 @@
 #if canImport(UIKit) && !targetEnvironment(macCatalyst)
     import UIKit
 
-    @available(iOS 17.0, *)
     final class TailsshTerminalSelectionViewController: UIViewController, UITextViewDelegate {
         private let pendingText: String
         private let pendingAnchorRange: NSRange?
@@ -83,6 +82,7 @@
             }
         }
 
+        @available(iOS 17.0, *)
         func textView(_: UITextView,
                       primaryActionFor textItem: UITextItem,
                       defaultAction: UIAction) -> UIAction?
