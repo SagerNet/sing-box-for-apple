@@ -6,6 +6,10 @@ import SwiftUI
 struct Application: App {
     @NSApplicationDelegateAdaptor private var appDelegate: StandaloneApplicationDelegate
 
+    init() {
+        TailscaleSSHTerminalRegistration.registerIfAvailable()
+    }
+
     var body: some Scene {
         MacApplication()
     }

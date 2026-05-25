@@ -105,11 +105,18 @@ private func makeConfiguration(isEditable: Bool, isDark: Bool) -> SourceEditorCo
 struct CodeEditTextView: NSViewRepresentable {
     @Binding var text: String
     let isEditable: Bool
+    let language: CodeLanguage
     let editorController: CodeEditEditorController?
 
-    init(text: Binding<String>, isEditable: Bool, editorController: CodeEditEditorController? = nil) {
+    init(
+        text: Binding<String>,
+        isEditable: Bool,
+        language: CodeLanguage = .json,
+        editorController: CodeEditEditorController? = nil
+    ) {
         _text = text
         self.isEditable = isEditable
+        self.language = language
         self.editorController = editorController
     }
 
@@ -120,7 +127,7 @@ struct CodeEditTextView: NSViewRepresentable {
 
         let controller = TextViewController(
             string: text,
-            language: .json,
+            language: language,
             configuration: makeConfiguration(isEditable: isEditable, isDark: initialIsDark),
             cursorPositions: []
         )
@@ -160,7 +167,7 @@ struct CodeEditTextView: NSViewRepresentable {
             controller.text = text
             // setText() creates a new Highlighter but doesn't trigger initial highlighting.
             // Re-setting the language forces the highlighter to invalidate and re-highlight.
-            controller.language = .json
+            controller.language = language
         }
         if controller.configuration.behavior.isEditable != isEditable {
             controller.configuration.behavior.isEditable = isEditable
