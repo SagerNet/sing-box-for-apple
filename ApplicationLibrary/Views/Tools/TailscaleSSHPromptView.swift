@@ -61,12 +61,17 @@ public struct TailscaleSSHPromptView: View {
                                 qcPeers.remove(peer.stableID)
                             }
                             await SharedPreferences.tailscaleSSHQuickConnectPeers.set(qcPeers)
+                            TailscaleSSHLaunchService.shared.quickConnectPeerIDs = qcPeers
                         }
                     }
             } header: {
                 Text("Quick Connect")
             } footer: {
-                Text("If enabled, you will need to long press the `Connect via SSH` button and select `Edit Connect Options` to change settings.\nTip: Long press on SSH-capable peers in the peer list to quickly connect via the context menu.")
+                #if os(iOS)
+                    Text("If enabled, you can quickly connect to this peer via the **context menu** (long press) on the Tailscale entry in Tools and on peer entries in the peer list.\n\nThis peer will also appear in the **New Session** menu when connected to other peers via SSH.")
+                #else
+                    Text("If enabled, you can quickly connect to this peer via the **context menu** (long press) on the Tailscale entry in Tools and on peer entries in the peer list.\n\nThis peer will also appear in the **New Window** menu when connected to other peers via SSH.")
+                #endif
             }
         }
         .navigationTitle(peer.hostName)

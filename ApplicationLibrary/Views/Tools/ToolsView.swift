@@ -11,6 +11,15 @@ public struct ToolsView: View {
         @State private var showCrashReportList = false
         @State private var showOOMReportList = false
     #endif
+    #if !os(tvOS)
+        @State private var sshPromptPeer: TailscalePeerData?
+        @State private var sshPromptEndpointTag: String = ""
+        @State private var sshPresentedSession: TailscaleSSHPresentedSession?
+        @State private var pendingSSHSession: TailscaleSSHPresentedSession?
+    #endif
+    #if os(macOS)
+        @Environment(\.openWindow) private var openWindow
+    #endif
 
     public init() {}
 
@@ -28,6 +37,30 @@ public struct ToolsView: View {
                                 Label("Tailscale: \(endpoint.endpointTag)", systemImage: "point.3.filled.connected.trianglepath.dotted")
                             }
                         }
+                        #if !os(tvOS)
+                        .contextMenu {
+                            if TailscaleSSHLaunchService.shared.terminalViewMaker != nil {
+                                let sshPeers = sshAvailablePeers
+                                if sshPeers.count == 1 {
+                                    Button {
+                                        handleSSH(sshPeers[0])
+                                    } label: {
+                                        Label("Connect via SSH", systemImage: "terminal")
+                                    }
+                                } else if sshPeers.count > 1 {
+                                    Section("Connect via SSH") {
+                                        ForEach(sshPeers) { info in
+                                            Button {
+                                                handleSSH(info)
+                                            } label: {
+                                                Label(info.peer.hostName, systemImage: "terminal")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        #endif
                     }
                 }
             }
@@ -126,7 +159,75 @@ public struct ToolsView: View {
         }
         .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, viewModel: tailscaleViewModel))
         .alert($tailscaleViewModel.alert)
+        #if !os(tvOS)
+            .platformSheet(item: $sshPromptPeer, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
+                if let session = pendingSSHSession {
+                    pendingSSHSession = nil
+                    sshPresentedSession = session
+                }
+            }) { peer in
+                TailscaleSSHPromptView(peer: peer, endpointTag: sshPromptEndpointTag, onConnect: { session in pendingSSHSession = session })
+            }
+            #if os(iOS)
+            .sheet(item: $sshPresentedSession) { presented in
+                NavigationStackCompat {
+                    if let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
+                        maker(presented)
+                    }
+                }
+            }
+            #elseif os(macOS)
+            .onChangeCompat(of: sshPresentedSession) { newValue in
+                guard let newValue else { return }
+                openWindow(value: newValue)
+                sshPresentedSession = nil
+            }
+            #endif
+        #endif
     }
+
+    #if !os(tvOS)
+        private struct SSHPeerInfo: Identifiable {
+            var id: String {
+                peer.stableID
+            }
+
+            let peer: TailscalePeerData
+            let endpointTag: String
+        }
+
+        private var sshAvailablePeers: [SSHPeerInfo] {
+            tailscaleViewModel.endpoints.flatMap { endpoint in
+                endpoint.userGroups.flatMap { group in
+                    group.peers.compactMap { peer in
+                        guard peer.online, !peer.sshHostKeys.isEmpty, !peer.tailscaleIPs.isEmpty else { return nil }
+                        return SSHPeerInfo(peer: peer, endpointTag: endpoint.endpointTag)
+                    }
+                }
+            }
+        }
+
+        private func handleSSH(_ info: SSHPeerInfo) {
+            Task {
+                let quickPeers = await SharedPreferences.tailscaleSSHQuickConnectPeers.get()
+                if quickPeers.contains(info.peer.stableID) {
+                    let usernames = await SharedPreferences.tailscaleSSHRememberedUsernames.get()
+                    let termTypes = await SharedPreferences.tailscaleSSHRememberedTerminalTypes.get()
+                    sshPresentedSession = TailscaleSSHPresentedSession(
+                        endpointTag: info.endpointTag,
+                        peerHostName: info.peer.hostName,
+                        peerAddress: info.peer.tailscaleIPs.first!,
+                        username: usernames[info.peer.stableID] ?? "root",
+                        terminalType: termTypes[info.peer.stableID] ?? "xterm-256color",
+                        hostKeys: info.peer.sshHostKeys
+                    )
+                } else {
+                    sshPromptEndpointTag = info.endpointTag
+                    sshPromptPeer = info.peer
+                }
+            }
+        }
+    #endif
 }
 
 private struct TailscaleStatusObserver: ViewModifier {

@@ -1,4 +1,5 @@
 #if os(iOS)
+    import Library
     import SwiftUI
     import UIKit
 
@@ -28,14 +29,48 @@
         }
 
         private func createMenu() -> UIMenu {
-            let newSessionAction = UIAction(
-                title: NSLocalizedString("New Session", comment: ""),
-                image: UIImage(systemName: "plus")
-            ) { _ in
-                sessionManager.createDuplicateSession()
+            let currentSession = sessionManager.activeSession?.presentedSession
+            let otherQCPeers = TailscaleSSHLaunchService.shared.quickConnectPeers.filter { peer in
+                guard let current = currentSession else { return true }
+                return !(peer.endpointTag == current.endpointTag && peer.peerAddress == current.peerAddress)
             }
 
-            let newSessionMenu = UIMenu(title: "", options: .displayInline, children: [newSessionAction])
+            let newSessionChildren: [UIMenuElement]
+            if otherQCPeers.isEmpty {
+                let newSessionAction = UIAction(
+                    title: NSLocalizedString("New Session", comment: ""),
+                    image: UIImage(systemName: "plus")
+                ) { _ in
+                    sessionManager.createDuplicateSession()
+                }
+                newSessionChildren = [newSessionAction]
+            } else {
+                var submenuChildren: [UIAction] = []
+                if let current = currentSession {
+                    submenuChildren.append(UIAction(
+                        title: current.peerHostName,
+                        image: UIImage(systemName: "doc.on.doc")
+                    ) { _ in
+                        sessionManager.createDuplicateSession()
+                    })
+                }
+                for peer in otherQCPeers {
+                    let peerEntry = peer
+                    submenuChildren.append(UIAction(
+                        title: peerEntry.hostName,
+                        image: UIImage(systemName: "terminal")
+                    ) { _ in
+                        sessionManager.addSessionFromPeer(peerEntry)
+                    })
+                }
+                newSessionChildren = [UIMenu(
+                    title: NSLocalizedString("New Session", comment: ""),
+                    image: UIImage(systemName: "plus"),
+                    children: submenuChildren
+                )]
+            }
+
+            let newSessionMenu = UIMenu(title: "", options: .displayInline, children: newSessionChildren)
 
             let sessionActions: [UIMenuElement] = sessionManager.sessions.map { managed in
                 let isActive = managed.id == sessionManager.activeSessionID
