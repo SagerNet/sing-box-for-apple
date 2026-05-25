@@ -104,6 +104,9 @@ public struct MacApplication: Scene {
             TailscaleSSHTerminalWindow(session: session)
         }
         .defaultSize(width: 880, height: 560)
+        .commands {
+            TerminalCommands()
+        }
     }
 
     private func initialize() async {
