@@ -33,6 +33,28 @@ enum Database {
             migrator.registerMigration("fix_cellular_typo") { db in
                 try db.execute(sql: "UPDATE preferences SET name = 'exclude_cellular_services' WHERE name = 'exclude_celluar_services'")
             }
+            migrator.registerMigration("use_relative_profile_paths") { db in
+                let rows = try Row.fetchAll(db, sql: "SELECT id, path, type FROM profiles")
+                let prefix = FilePath.sharedDirectory.path.hasSuffix("/")
+                    ? FilePath.sharedDirectory.path
+                    : FilePath.sharedDirectory.path + "/"
+                for row in rows {
+                    let id: Int64 = row["id"]
+                    let path: String = row["path"]
+                    let type: Int = row["type"]
+                    if type == ProfileType.icloud.rawValue { continue }
+                    guard path.hasPrefix("/") else { continue }
+                    var newPath = path
+                    if path.hasPrefix(prefix) {
+                        newPath = String(path.dropFirst(prefix.count))
+                    } else if let range = path.range(of: "configs/config_") {
+                        newPath = String(path[range.lowerBound...])
+                    }
+                    if newPath != path {
+                        try db.execute(sql: "UPDATE profiles SET path = ? WHERE id = ?", arguments: [newPath, id])
+                    }
+                }
+            }
             try migrator.migrate(database)
             return database
         } catch {
