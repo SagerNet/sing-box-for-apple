@@ -12,6 +12,7 @@ public struct TailscaleSSHPromptView: View {
     @State private var rememberedMap: [String: String] = [:]
     @State private var terminalType: String = defaultTerminalType
     @State private var rememberedTerminalTypes: [String: String] = [:]
+    @State private var rememberSSHOptions = false
 
     private static let defaultTerminalType = "xterm-256color"
 
@@ -49,19 +50,30 @@ public struct TailscaleSSHPromptView: View {
             } footer: {
                 Text("You can customize the terminal appearance by editing the Ghostty Configuration in App Settings.")
             }
+            Section {
+                Toggle("Remember SSH Options", isOn: $rememberSSHOptions)
+                    .onChangeCompat(of: rememberSSHOptions) { newValue in
+                        Task {
+                            var qcPeers = await SharedPreferences.tailscaleSSHQuickConnectPeers.get()
+                            if newValue {
+                                qcPeers.insert(peer.stableID)
+                            } else {
+                                qcPeers.remove(peer.stableID)
+                            }
+                            await SharedPreferences.tailscaleSSHQuickConnectPeers.set(qcPeers)
+                        }
+                    }
+            } header: {
+                Text("Quick Connect")
+            } footer: {
+                Text("If enabled, you will need to long press the `Connect via SSH` button and select `Edit Connect Options` to change settings.\nTip: Long press on SSH-capable peers in the peer list to quickly connect via the context menu.")
+            }
         }
         .navigationTitle(peer.hostName)
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
             .toolbar {
-                #if os(macOS)
-                    ToolbarItem(placement: .principal) {
-                        Label(peer.hostName, systemImage: "terminal")
-                            .labelStyle(.titleAndIcon)
-                            .font(.headline)
-                    }
-                #endif
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
@@ -92,6 +104,8 @@ public struct TailscaleSSHPromptView: View {
         if let saved = rememberedTerminalTypes[peer.stableID], !saved.isEmpty {
             terminalType = saved
         }
+        let quickPeers = await SharedPreferences.tailscaleSSHQuickConnectPeers.get()
+        rememberSSHOptions = quickPeers.contains(peer.stableID)
     }
 
     private func connect() {

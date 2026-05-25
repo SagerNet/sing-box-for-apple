@@ -18,52 +18,10 @@ public struct TerminalWrapperView: View {
     }
 
     public var body: some View {
-        ZStack {
-            #if os(iOS)
-                Color(uiColor: .systemBackground)
-                    .ignoresSafeArea()
-            #elseif os(macOS)
-                Color(nsColor: .windowBackgroundColor)
-                    .ignoresSafeArea()
-            #endif
-            TailsshTerminalSurfaceView(
-                state: viewModel.terminalState,
-                extras: viewModel.extras
-            )
-            if case .connecting = viewModel.phase {
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .controlSize(.large)
-                    if let banner = viewModel.authBanner, !banner.isEmpty {
-                        Text(Self.bannerAttributedString(banner))
-                            .font(.callout)
-                            .multilineTextAlignment(.leading)
-                            .foregroundColor(.primary)
-                            .padding()
-                            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-                            .padding(.horizontal)
-                            .frame(maxWidth: 480)
-                            .textSelection(.enabled)
-                    }
-                }
-            } else if case let .finished(reason) = viewModel.phase {
-                VStack {
-                    Spacer()
-                    HStack(spacing: 12) {
-                        Text(reason.displayText)
-                            .font(.callout)
-                            .multilineTextAlignment(.leading)
-                            .textSelection(.enabled)
-                        Spacer(minLength: 8)
-                        Button("Close") { dismiss() }
-                            .buttonStyle(.borderedProminent)
-                    }
-                    .padding()
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                    .padding()
-                }
-            }
-        }
+        TerminalSessionContentView(
+            viewModel: viewModel,
+            presentedSession: presentedSession
+        )
         .navigationTitle(displayedTitle)
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -103,11 +61,11 @@ public struct TerminalWrapperView: View {
     }
 
     private var displayedTitle: String {
-        if case .connecting = viewModel.phase {
-            return presentedSession.peerHostName
-        }
-        let remote = viewModel.extras.title.trimmingCharacters(in: .whitespaces)
-        return remote.isEmpty ? presentedSession.peerHostName : remote
+        TerminalSessionContentView.displayTitle(
+            phase: viewModel.phase,
+            extrasTitle: viewModel.extras.title,
+            peerHostName: presentedSession.peerHostName
+        )
     }
 
     #if os(iOS) && !targetEnvironment(macCatalyst)
@@ -148,21 +106,4 @@ public struct TerminalWrapperView: View {
             return top
         }
     #endif
-
-    private static func bannerAttributedString(_ text: String) -> AttributedString {
-        var attributed = AttributedString(text)
-        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
-            return attributed
-        }
-        let nsText = text as NSString
-        let matches = detector.matches(in: text, range: NSRange(location: 0, length: nsText.length))
-        for match in matches {
-            guard let url = match.url,
-                  let range = Range(match.range, in: attributed) else { continue }
-            attributed[range].link = url
-            attributed[range].foregroundColor = .accentColor
-            attributed[range].underlineStyle = .single
-        }
-        return attributed
-    }
 }
