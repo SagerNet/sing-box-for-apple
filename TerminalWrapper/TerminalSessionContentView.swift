@@ -2,7 +2,6 @@ import GhosttyTerminal
 import Library
 import SwiftUI
 
-@available(iOS 17.0, macOS 14.0, *)
 @MainActor
 struct TerminalSessionContentView: View {
     @ObservedObject var viewModel: TerminalWrapperViewModel

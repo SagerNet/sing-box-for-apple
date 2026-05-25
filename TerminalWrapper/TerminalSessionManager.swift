@@ -4,7 +4,6 @@
     import Library
     import SwiftUI
 
-    @available(iOS 17.0, *)
     @MainActor
     final class TerminalSessionManager: ObservableObject {
         struct ManagedSession: Identifiable {
