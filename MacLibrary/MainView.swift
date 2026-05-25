@@ -20,6 +20,10 @@ public struct MainView: View {
         AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
     }
 
+    private let ghosttyConfigEditor: (Binding<String>) -> AnyView = { text in
+        AnyView(GhosttyConfigEditorWrapperView(text: text))
+    }
+
     private let screenshotDefaultPixelHeight: CGFloat = 1000
 
     public init() {
@@ -150,6 +154,7 @@ public struct MainView: View {
         .environment(\.importProfile, $viewModel.importProfile)
         .environment(\.importRemoteProfile, $viewModel.importRemoteProfile)
         .environment(\.profileEditor, profileEditor)
+        .environment(\.ghosttyConfigEditor, ghosttyConfigEditor)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
         .onOpenURL(perform: viewModel.openURL)
         .sheet(isPresented: $showCardManagement, onDismiss: {
