@@ -6,23 +6,70 @@ private struct NewTerminalWindowActionKey: FocusedValueKey {
     typealias Value = () -> Void
 }
 
+private struct OpenTerminalWindowActionKey: FocusedValueKey {
+    typealias Value = (TailscaleSSHPresentedSession) -> Void
+}
+
+private struct CurrentTerminalSessionKey: FocusedValueKey {
+    typealias Value = TailscaleSSHPresentedSession
+}
+
 extension FocusedValues {
     var newTerminalWindowAction: (() -> Void)? {
         get { self[NewTerminalWindowActionKey.self] }
         set { self[NewTerminalWindowActionKey.self] = newValue }
     }
+
+    var openTerminalWindowAction: ((TailscaleSSHPresentedSession) -> Void)? {
+        get { self[OpenTerminalWindowActionKey.self] }
+        set { self[OpenTerminalWindowActionKey.self] = newValue }
+    }
+
+    var currentTerminalSession: TailscaleSSHPresentedSession? {
+        get { self[CurrentTerminalSessionKey.self] }
+        set { self[CurrentTerminalSessionKey.self] = newValue }
+    }
 }
 
 struct TerminalCommands: Commands {
     @FocusedValue(\.newTerminalWindowAction) var newWindowAction
+    @FocusedValue(\.openTerminalWindowAction) var openTerminalWindowAction
+    @FocusedValue(\.currentTerminalSession) var currentSession
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
             if let newWindowAction {
-                Button("New Window") {
-                    newWindowAction()
+                let currentSession = currentSession
+                let otherQCPeers = TailscaleSSHLaunchService.shared.quickConnectPeers.filter { peer in
+                    guard let current = currentSession else { return true }
+                    return !(peer.endpointTag == current.endpointTag && peer.peerAddress == current.peerAddress)
                 }
-                .keyboardShortcut("n", modifiers: .command)
+
+                if otherQCPeers.isEmpty {
+                    Button("New Window") {
+                        newWindowAction()
+                    }
+                    .keyboardShortcut("n", modifiers: .command)
+                } else {
+                    Menu("New Window") {
+                        Button(currentSession?.peerHostName ?? String(localized: "New Window")) {
+                            newWindowAction()
+                        }
+                        .keyboardShortcut("n", modifiers: .command)
+
+                        Divider()
+
+                        ForEach(otherQCPeers) { peer in
+                            Button(peer.hostName) {
+                                guard let openAction = openTerminalWindowAction else { return }
+                                Task { @MainActor in
+                                    let session = await peer.createSession()
+                                    openAction(session)
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -39,7 +86,7 @@ struct TailscaleSSHTerminalWindow: View {
         Group {
             if let session, let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
                 maker(session)
-                    .focusedSceneValue(\.newTerminalWindowAction, { [openWindow] in
+                    .focusedSceneValue(\.newTerminalWindowAction) { [openWindow] in
                         openWindow(value: TailscaleSSHPresentedSession(
                             endpointTag: session.endpointTag,
                             peerHostName: session.peerHostName,
@@ -48,7 +95,11 @@ struct TailscaleSSHTerminalWindow: View {
                             terminalType: session.terminalType,
                             hostKeys: session.hostKeys
                         ))
-                    })
+                    }
+                    .focusedSceneValue(\.openTerminalWindowAction) { [openWindow] newSession in
+                        openWindow(value: newSession)
+                    }
+                    .focusedSceneValue(\.currentTerminalSession, session)
             } else {
                 Color.clear
             }
