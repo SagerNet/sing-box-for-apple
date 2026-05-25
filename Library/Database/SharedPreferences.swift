@@ -132,6 +132,19 @@ public enum SharedPreferences {
     public static let nqHttp3 = Preference<Bool>("nq_http3", defaultValue: false)
     public static let nqMaxRuntime = Preference<Int>("nq_max_runtime", defaultValue: 30)
     public static let stunServer = Preference<String>("stun_server", defaultValue: "")
+    public static let tailscaleSSHRememberedUsernames = Preference<[String: String]>("tailscale_ssh_remembered_usernames", defaultValue: [:])
+    public static let tailscaleSSHRememberedTerminalTypes = Preference<[String: String]>("tailscale_ssh_remembered_terminal_types", defaultValue: [:])
+    public static let tailscaleSSHGhosttyLightTheme = Preference<String>("tailscale_ssh_ghostty_light_theme", defaultValue: "Alabaster")
+    public static let tailscaleSSHGhosttyDarkTheme = Preference<String>("tailscale_ssh_ghostty_dark_theme", defaultValue: "Afterglow")
+    public static let tailscaleSSHGhosttyLightConfig = Preference<String>("tailscale_ssh_ghostty_light_config", defaultValue: "")
+    public static let tailscaleSSHGhosttyDarkConfig = Preference<String>("tailscale_ssh_ghostty_dark_config", defaultValue: "")
+    public static let tailscaleSSHTerminalFontFollowTheme = Preference<Bool>("tailscale_ssh_terminal_font_follow_theme", defaultValue: true)
+    public static let tailscaleSSHTerminalFontFamily = Preference<String>("tailscale_ssh_terminal_font_family", defaultValue: "")
+    #if os(macOS)
+        public static let tailscaleSSHTerminalFontSize = Preference<Double>("tailscale_ssh_terminal_font_size", defaultValue: 13)
+    #else
+        public static let tailscaleSSHTerminalFontSize = Preference<Double>("tailscale_ssh_terminal_font_size", defaultValue: 10)
+    #endif
 
     // Dashboard
 

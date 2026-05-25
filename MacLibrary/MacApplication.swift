@@ -99,6 +99,11 @@ public struct MacApplication: Scene {
         }
         .windowResizability(.contentMinSize)
         .defaultSize(width: 700, height: 500)
+
+        WindowGroup(for: TailscaleSSHPresentedSession.self) { $session in
+            TailscaleSSHTerminalWindow(session: session)
+        }
+        .defaultSize(width: 880, height: 560)
     }
 
     private func initialize() async {

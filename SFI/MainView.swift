@@ -21,6 +21,10 @@ struct MainView: View {
         AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
     }
 
+    private let ghosttyConfigEditor: (Binding<String>) -> AnyView = { text in
+        AnyView(GhosttyConfigEditorWrapperView(text: text))
+    }
+
     private var tabViewContent: some View {
         TabView(selection: $selection) {
             ForEach(NavigationPage.allCases, id: \.self) { page in
@@ -200,6 +204,7 @@ struct MainView: View {
         .environment(\.importProfile, $importProfile)
         .environment(\.importRemoteProfile, $importRemoteProfile)
         .environment(\.profileEditor, profileEditor)
+        .environment(\.ghosttyConfigEditor, ghosttyConfigEditor)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
         .onOpenURL(perform: openURL)
     }
