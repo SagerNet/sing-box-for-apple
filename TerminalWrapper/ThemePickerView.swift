@@ -2,7 +2,6 @@
     import GhosttyTheme
     import SwiftUI
 
-    @available(iOS 17.0, macOS 14.0, *)
     public struct ThemePickerView: View {
         public enum Scheme: Sendable {
             case light
@@ -10,8 +9,8 @@
 
             var navigationTitle: String {
                 switch self {
-                case .light: String(localized: "Light Theme")
-                case .dark: String(localized: "Dark Theme")
+                case .light: NSLocalizedString("Light Theme", comment: "")
+                case .dark: NSLocalizedString("Dark Theme", comment: "")
                 }
             }
 

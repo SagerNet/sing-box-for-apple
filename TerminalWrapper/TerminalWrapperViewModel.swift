@@ -26,7 +26,6 @@ public enum TailscaleSSHEndReason: Equatable {
     }
 }
 
-@available(iOS 17.0, macOS 14.0, *)
 @MainActor
 public final class TerminalWrapperViewModel: ObservableObject {
     public enum Phase: Equatable {
@@ -319,7 +318,6 @@ public final class TerminalWrapperViewModel: ObservableObject {
     }
 }
 
-@available(iOS 17.0, macOS 14.0, *)
 private final class TerminalRelay: @unchecked Sendable {
     weak var viewModel: TerminalWrapperViewModel?
 }

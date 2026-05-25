@@ -20,6 +20,7 @@ public struct TailscalePeerView: View {
         @State private var sshPromptPresented = false
         @State private var sshUnavailablePresented = false
         @State private var sshPresentedSession: TailscaleSSHPresentedSession?
+        @State private var pendingSSHSession: TailscaleSSHPresentedSession?
         @State private var isQuickConnect = false
     #endif
     #if os(macOS)
@@ -188,11 +189,16 @@ public struct TailscalePeerView: View {
                 Task { await loadQuickConnectState() }
             }
         }
-        .platformSheet(isPresented: $sshPromptPresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220)) {
+        .platformSheet(isPresented: $sshPromptPresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
+            if let session = pendingSSHSession {
+                pendingSSHSession = nil
+                sshPresentedSession = session
+            }
+        }) {
             TailscaleSSHPromptView(
                 peer: peer,
                 endpointTag: endpointTag,
-                presentedSession: $sshPresentedSession
+                onConnect: { session in pendingSSHSession = session }
             )
         }
             #if os(iOS)

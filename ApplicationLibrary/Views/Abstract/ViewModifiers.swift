@@ -17,41 +17,44 @@ public extension View {
     func platformSheet(
         isPresented: Binding<Bool>,
         size: PlatformSheetSize = .default,
+        onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: @escaping () -> some View
     ) -> some View {
-        modifier(PlatformSheetModifier(isPresented: isPresented, size: size, content: content))
+        modifier(PlatformSheetModifier(isPresented: isPresented, size: size, onDismiss: onDismiss, content: content))
     }
 
     func platformSheet<Item: Identifiable>(
         item: Binding<Item?>,
         size: PlatformSheetSize = .default,
+        onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: @escaping (Item) -> some View
     ) -> some View {
-        modifier(PlatformSheetItemModifier(item: item, size: size, content: content))
+        modifier(PlatformSheetItemModifier(item: item, size: size, onDismiss: onDismiss, content: content))
     }
 }
 
 private struct PlatformSheetModifier<SheetContent: View>: ViewModifier {
     @Binding var isPresented: Bool
     let size: PlatformSheetSize
+    let onDismiss: (() -> Void)?
     @ViewBuilder let content: () -> SheetContent
 
     func body(content: Content) -> some View {
         #if os(iOS)
-            content.sheet(isPresented: $isPresented) {
+            content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
                 NavigationStackCompat {
                     self.content()
                 }
             }
         #elseif os(macOS)
-            content.sheet(isPresented: $isPresented) {
+            content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
                 NavigationStackCompat {
                     self.content()
                 }
                 .frame(minWidth: size.minWidth, minHeight: size.minHeight)
             }
         #elseif os(tvOS)
-            content.fullScreenCover(isPresented: $isPresented) {
+            content.fullScreenCover(isPresented: $isPresented, onDismiss: onDismiss) {
                 NavigationStackCompat {
                     self.content()
                 }
@@ -63,24 +66,25 @@ private struct PlatformSheetModifier<SheetContent: View>: ViewModifier {
 private struct PlatformSheetItemModifier<Item: Identifiable, SheetContent: View>: ViewModifier {
     @Binding var item: Item?
     let size: PlatformSheetSize
+    let onDismiss: (() -> Void)?
     @ViewBuilder let content: (Item) -> SheetContent
 
     func body(content: Content) -> some View {
         #if os(iOS)
-            content.sheet(item: $item) { item in
+            content.sheet(item: $item, onDismiss: onDismiss) { item in
                 NavigationStackCompat {
                     self.content(item)
                 }
             }
         #elseif os(macOS)
-            content.sheet(item: $item) { item in
+            content.sheet(item: $item, onDismiss: onDismiss) { item in
                 NavigationStackCompat {
                     self.content(item)
                 }
                 .frame(minWidth: size.minWidth, minHeight: size.minHeight)
             }
         #elseif os(tvOS)
-            content.fullScreenCover(item: $item) { item in
+            content.fullScreenCover(item: $item, onDismiss: onDismiss) { item in
                 NavigationStackCompat {
                     self.content(item)
                 }

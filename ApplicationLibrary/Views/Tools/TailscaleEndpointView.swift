@@ -9,6 +9,7 @@ public struct TailscaleEndpointView: View {
     #if !os(tvOS)
         @State private var sshPromptPeer: TailscalePeerData?
         @State private var sshPresentedSession: TailscaleSSHPresentedSession?
+        @State private var pendingSSHSession: TailscaleSSHPresentedSession?
     #endif
     #if os(macOS)
         @Environment(\.openWindow) private var openWindow
@@ -104,8 +105,13 @@ public struct TailscaleEndpointView: View {
             }
         }
         #if !os(tvOS)
-        .platformSheet(item: $sshPromptPeer, size: PlatformSheetSize(minWidth: 360, minHeight: 220)) { peer in
-            TailscaleSSHPromptView(peer: peer, endpointTag: endpointTag, presentedSession: $sshPresentedSession)
+        .platformSheet(item: $sshPromptPeer, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
+            if let session = pendingSSHSession {
+                pendingSSHSession = nil
+                sshPresentedSession = session
+            }
+        }) { peer in
+            TailscaleSSHPromptView(peer: peer, endpointTag: endpointTag, onConnect: { session in pendingSSHSession = session })
         }
             #if os(iOS)
         .sheet(item: $sshPresentedSession) { presented in

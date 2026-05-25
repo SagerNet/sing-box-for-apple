@@ -2,7 +2,6 @@
     import SwiftUI
     import UIKit
 
-    @available(iOS 17.0, *)
     struct TerminalSessionMenuButton: UIViewRepresentable {
         @ObservedObject var sessionManager: TerminalSessionManager
         @Environment(\.colorScheme) private var colorScheme

@@ -5,7 +5,7 @@ import SwiftUI
 public struct TailscaleSSHPromptView: View {
     private let peer: TailscalePeerData
     private let endpointTag: String
-    @Binding private var presentedSession: TailscaleSSHPresentedSession?
+    private let onConnect: (TailscaleSSHPresentedSession) -> Void
     @Environment(\.dismiss) private var dismiss
 
     @State private var username: String = "root"
@@ -19,11 +19,11 @@ public struct TailscaleSSHPromptView: View {
     public init(
         peer: TailscalePeerData,
         endpointTag: String,
-        presentedSession: Binding<TailscaleSSHPresentedSession?>
+        onConnect: @escaping (TailscaleSSHPresentedSession) -> Void
     ) {
         self.peer = peer
         self.endpointTag = endpointTag
-        _presentedSession = presentedSession
+        self.onConnect = onConnect
     }
 
     public var body: some View {
@@ -131,14 +131,14 @@ public struct TailscaleSSHPromptView: View {
             await SharedPreferences.tailscaleSSHRememberedTerminalTypes.set(termMap)
         }
 
-        presentedSession = TailscaleSSHPresentedSession(
+        onConnect(TailscaleSSHPresentedSession(
             endpointTag: endpointTag,
             peerHostName: peer.hostName,
             peerAddress: peer.tailscaleIPs.first!,
             username: trimmed,
             terminalType: effectiveTerm,
             hostKeys: peer.sshHostKeys
-        )
+        ))
         dismiss()
     }
 }
