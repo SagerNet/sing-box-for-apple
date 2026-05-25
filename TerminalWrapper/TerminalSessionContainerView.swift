@@ -6,7 +6,6 @@
         import UIKit
     #endif
 
-    @available(iOS 17.0, *)
     @MainActor
     struct TerminalSessionContainerView: View {
         @StateObject private var sessionManager = TerminalSessionManager()

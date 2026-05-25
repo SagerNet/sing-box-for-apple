@@ -2,6 +2,32 @@ import AppKit
 import Library
 import SwiftUI
 
+private struct NewTerminalWindowActionKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
+extension FocusedValues {
+    var newTerminalWindowAction: (() -> Void)? {
+        get { self[NewTerminalWindowActionKey.self] }
+        set { self[NewTerminalWindowActionKey.self] = newValue }
+    }
+}
+
+struct TerminalCommands: Commands {
+    @FocusedValue(\.newTerminalWindowAction) var newWindowAction
+
+    var body: some Commands {
+        CommandGroup(replacing: .newItem) {
+            if let newWindowAction {
+                Button("New Window") {
+                    newWindowAction()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+        }
+    }
+}
+
 struct TailscaleSSHTerminalWindow: View {
     let session: TailscaleSSHPresentedSession?
 
@@ -13,6 +39,16 @@ struct TailscaleSSHTerminalWindow: View {
         Group {
             if let session, let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
                 maker(session)
+                    .focusedSceneValue(\.newTerminalWindowAction, { [openWindow] in
+                        openWindow(value: TailscaleSSHPresentedSession(
+                            endpointTag: session.endpointTag,
+                            peerHostName: session.peerHostName,
+                            peerAddress: session.peerAddress,
+                            username: session.username,
+                            terminalType: session.terminalType,
+                            hostKeys: session.hostKeys
+                        ))
+                    })
             } else {
                 Color.clear
             }
@@ -49,17 +85,6 @@ struct TailscaleSSHTerminalWindow: View {
         switch event.charactersIgnoringModifiers?.lowercased() {
         case "q":
             host.close()
-            return nil
-        case "n":
-            guard let session else { return nil }
-            openWindow(value: TailscaleSSHPresentedSession(
-                endpointTag: session.endpointTag,
-                peerHostName: session.peerHostName,
-                peerAddress: session.peerAddress,
-                username: session.username,
-                terminalType: session.terminalType,
-                hostKeys: session.hostKeys
-            ))
             return nil
         default:
             return event

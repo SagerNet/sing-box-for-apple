@@ -10,7 +10,6 @@ import SwiftUI
 /// Thin wrapper around AppTerminalView / UITerminalView that installs our
 /// own forwarder delegate instead of the package's default (TerminalViewState),
 /// so OpenURL / HoverLink / Progress callbacks reach us.
-@available(iOS 17.0, macOS 14.0, *)
 struct TailsshTerminalSurfaceView: View {
     let state: TerminalViewState
     let extras: TailsshTerminalExtras
@@ -20,8 +19,11 @@ struct TailsshTerminalSurfaceView: View {
 
     var body: some View {
         Representable(state: state, extras: extras, isActive: isActive)
-            .onChange(of: colorScheme, initial: true) { _, newScheme in
+            .onChange(of: colorScheme) { newScheme in
                 state.adopt(colorScheme: newScheme)
+            }
+            .onAppear {
+                state.adopt(colorScheme: colorScheme)
             }
     }
 
