@@ -29,6 +29,7 @@ public final class STUNTestViewModel: BaseViewModel, OutboundSelectable {
     private var isLoadingPreferences = false
     private var saveServerTask: Task<Void, Never>?
     private var standaloneTest: LibboxSTUNTest?
+    private var stunSession: LibboxSTUNTestSession?
     private var runningTask: Task<Void, Never>?
 
     public func loadPreferences() async {
@@ -54,17 +55,17 @@ public final class STUNTestViewModel: BaseViewModel, OutboundSelectable {
 
         if vpnConnected {
             let handler = TestHandler(self)
-            runningTask = Task { [weak self] in
+            Task { [weak self] in
                 do {
-                    try await Task.detached {
+                    let session = try await Task.detached {
                         try LibboxNewStandaloneCommandClient()!.startSTUNTest(server, outboundTag: outboundTag, handler: handler)
                     }.value
+                    self?.stunSession = session
                 } catch {
                     guard let self else { return }
                     self.isRunning = false
                     self.alert = AlertState(action: "STUN test", error: error)
                 }
-                self?.runningTask = nil
             }
         } else {
             let test = LibboxNewSTUNTest()!
@@ -75,6 +76,8 @@ public final class STUNTestViewModel: BaseViewModel, OutboundSelectable {
     }
 
     public func cancel() {
+        try? stunSession?.close()
+        stunSession = nil
         runningTask?.cancel()
         runningTask = nil
         standaloneTest?.cancel()
@@ -126,6 +129,7 @@ public final class STUNTestViewModel: BaseViewModel, OutboundSelectable {
                 viewModel.natFiltering = natFiltering
                 viewModel.natTypeSupported = natTypeSupported
                 viewModel.isRunning = false
+                viewModel.stunSession = nil
                 viewModel.runningTask = nil
                 viewModel.standaloneTest = nil
             }
@@ -135,6 +139,7 @@ public final class STUNTestViewModel: BaseViewModel, OutboundSelectable {
             DispatchQueue.main.async { [self] in
                 guard let viewModel, viewModel.isRunning else { return }
                 viewModel.isRunning = false
+                viewModel.stunSession = nil
                 viewModel.runningTask = nil
                 viewModel.standaloneTest = nil
                 if let message {
