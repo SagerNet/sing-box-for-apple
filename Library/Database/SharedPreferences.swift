@@ -135,6 +135,9 @@ public enum SharedPreferences {
     public static let tailscaleSSHRememberedUsernames = Preference<[String: String]>("tailscale_ssh_remembered_usernames", defaultValue: [:])
     public static let tailscaleSSHRememberedTerminalTypes = Preference<[String: String]>("tailscale_ssh_remembered_terminal_types", defaultValue: [:])
     public static let tailscaleSSHQuickConnectPeers = Preference<Set<String>>("tailscale_ssh_quick_connect_peers", defaultValue: [])
+    #if os(macOS)
+        public static let tailscaleSSHForwardAgent = Preference<Bool>("tailscale_ssh_forward_agent", defaultValue: false)
+    #endif
     public static let tailscaleSSHGhosttyLightTheme = Preference<String>("tailscale_ssh_ghostty_light_theme", defaultValue: "Alabaster")
     public static let tailscaleSSHGhosttyDarkTheme = Preference<String>("tailscale_ssh_ghostty_dark_theme", defaultValue: "Afterglow")
     public static let tailscaleSSHGhosttyLightConfig = Preference<String>("tailscale_ssh_ghostty_light_config", defaultValue: "")
