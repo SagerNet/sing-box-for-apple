@@ -1,4 +1,4 @@
-#if os(iOS)
+#if canImport(GhosttyTerminal) && os(iOS)
     import GhosttyTerminal
     import Library
     import SwiftUI
@@ -50,24 +50,24 @@
                 }
             }
             .background(
-                Button("") {
+                Button(action: {
                     if let id = sessionManager.activeSessionID {
                         sessionManager.closeSession(id: id)
                     }
-                }
-                .keyboardShortcut("w", modifiers: .command)
-                .opacity(0)
-                .frame(width: 0, height: 0)
-                .accessibilityHidden(true)
+                }) {}
+                    .keyboardShortcut("w", modifiers: .command)
+                    .opacity(0)
+                    .frame(width: 0, height: 0)
+                    .accessibilityHidden(true)
             )
             .background(
-                Button("") {
+                Button(action: {
                     sessionManager.createDuplicateSession()
-                }
-                .keyboardShortcut("n", modifiers: .command)
-                .opacity(0)
-                .frame(width: 0, height: 0)
-                .accessibilityHidden(true)
+                }) {}
+                    .keyboardShortcut("n", modifiers: .command)
+                    .opacity(0)
+                    .frame(width: 0, height: 0)
+                    .accessibilityHidden(true)
             )
             .onAppear {
                 sessionManager.onDismissAll = { dismiss() }

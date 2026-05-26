@@ -6,6 +6,7 @@ public struct TailscaleSSHPromptView: View {
     private let peer: TailscalePeerData
     private let endpointTag: String
     private let onConnect: (TailscaleSSHPresentedSession) -> Void
+    @EnvironmentObject private var peerStore: TailscaleSSHPeerStore
     @Environment(\.dismiss) private var dismiss
 
     @State private var username: String = "root"
@@ -73,7 +74,7 @@ public struct TailscaleSSHPromptView: View {
                                 qcPeers.remove(peer.stableID)
                             }
                             await SharedPreferences.tailscaleSSHQuickConnectPeers.set(qcPeers)
-                            TailscaleSSHLaunchService.shared.quickConnectPeerIDs = qcPeers
+                            peerStore.quickConnectPeerIDs = qcPeers
                         }
                     }
             } header: {
