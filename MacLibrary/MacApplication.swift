@@ -9,6 +9,7 @@ public struct MacApplication: Scene {
     @State private var showMenuBarExtra = false
     @State private var menuBarExtraSpeedMode = MenuBarExtraSpeedMode.enabled.rawValue
     @StateObject private var environments = ExtensionEnvironments()
+    @StateObject private var peerStore = TailscaleSSHPeerStore()
     @StateObject private var updateManager = UpdateManager()
     @State private var statusBarController: StatusBarController?
     @State private var showUpdateCheckPrompt = false
@@ -29,6 +30,7 @@ public struct MacApplication: Scene {
                 .environment(\.showMenuBarExtra, $showMenuBarExtra)
                 .environment(\.menuBarExtraSpeedMode, $menuBarExtraSpeedMode)
                 .environmentObject(environments)
+                .environmentObject(peerStore)
                 .environmentObject(updateManager)
                 .alert(
                     "Check Update",
@@ -102,6 +104,7 @@ public struct MacApplication: Scene {
 
         WindowGroup(for: TailscaleSSHPresentedSession.self) { $session in
             TailscaleSSHTerminalWindow(session: session)
+                .environmentObject(peerStore)
         }
         .defaultSize(width: 880, height: 560)
         .commands {

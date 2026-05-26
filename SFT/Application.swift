@@ -1,3 +1,4 @@
+import ApplicationLibrary
 import Foundation
 import Library
 import SwiftUI
@@ -6,6 +7,7 @@ import SwiftUI
 struct Application: App {
     @UIApplicationDelegateAdaptor private var appDelegate: ApplicationDelegate
     @StateObject private var environments = ExtensionEnvironments()
+    @StateObject private var peerStore = TailscaleSSHPeerStore()
 
     init() {
         ScreenshotLocalization.applyIfNeeded()
@@ -15,6 +17,7 @@ struct Application: App {
         WindowGroup {
             MainView()
                 .environmentObject(environments)
+                .environmentObject(peerStore)
         }
     }
 }
