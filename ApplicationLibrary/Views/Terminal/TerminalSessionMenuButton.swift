@@ -1,10 +1,11 @@
-#if os(iOS)
+#if canImport(GhosttyTerminal) && os(iOS)
     import Library
     import SwiftUI
     import UIKit
 
     struct TerminalSessionMenuButton: UIViewRepresentable {
         @ObservedObject var sessionManager: TerminalSessionManager
+        @EnvironmentObject private var peerStore: TailscaleSSHPeerStore
         @Environment(\.colorScheme) private var colorScheme
 
         func makeUIView(context _: Context) -> UIButton {
@@ -30,7 +31,7 @@
 
         private func createMenu() -> UIMenu {
             let currentSession = sessionManager.activeSession?.presentedSession
-            let otherQCPeers = TailscaleSSHLaunchService.shared.quickConnectPeers.filter { peer in
+            let otherQCPeers = peerStore.quickConnectPeers.filter { peer in
                 guard let current = currentSession else { return true }
                 return !(peer.endpointTag == current.endpointTag && peer.peerAddress == current.peerAddress)
             }
@@ -57,8 +58,7 @@
                 for peer in otherQCPeers {
                     let peerEntry = peer
                     submenuChildren.append(UIAction(
-                        title: peerEntry.hostName,
-                        image: UIImage(systemName: "terminal")
+                        title: peerEntry.hostName
                     ) { _ in
                         sessionManager.addSessionFromPeer(peerEntry)
                     })
@@ -78,7 +78,7 @@
 
                 return UIAction(
                     title: title,
-                    state: isActive ? .on : .off
+                    image: isActive ? UIImage(systemName: "checkmark") : nil
                 ) { _ in
                     sessionManager.switchTo(id: managed.id)
                 }

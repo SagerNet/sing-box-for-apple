@@ -1719,34 +1719,6 @@
         }
       }
     },
-    "Connect via SSH requires iOS 17 or macOS 14." : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اتصال از طریق SSH نیاز به iOS 17 یا macOS 14 دارد."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подключение по SSH требует iOS 17 или macOS 14."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通过 SSH 连接需要 iOS 17 或 macOS 14。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "透過 SSH 連接需要 iOS 17 或 macOS 14。"
-          }
-        }
-      }
-    },
     "Connect VPN if the destination is not directly accessible." : {
       "localizations" : {
         "fa" : {
@@ -1939,6 +1911,35 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連接"
+          }
+        }
+      }
+    },
+    "Content" : {
+      "comment" : "Title for the terminal text selection sheet",
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "محتوا"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Содержимое"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "內容"
           }
         }
       }
@@ -2278,6 +2279,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "深色自定義配置"
+          }
+        }
+      }
+    },
+    "Dark Theme" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم تیره"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тёмная тема"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色主题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色主題"
           }
         }
       }
@@ -4916,6 +4945,34 @@
         }
       }
     },
+    "If enabled, you can quickly connect to this peer via the **context menu** (long press) on the Tailscale entry in Tools and on peer entries in the peer list.\n\nThis peer will also appear in the **New Session** menu when connected to other peers via SSH." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در صورت فعال بودن، می‌توانید از طریق **منوی زمینه** (فشار طولانی) روی ورودی Tailscale در ابزارها و ورودی‌های همتا در لیست همتاها به سرعت به این همتا متصل شوید.\n\nاین همتا همچنین در منوی **جلسه جدید** هنگام اتصال به همتاهای دیگر از طریق SSH ظاهر خواهد شد."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Если включено, вы можете быстро подключиться к этому узлу через **контекстное меню** (долгое нажатие) записи Tailscale в инструментах и записей узлов в списке узлов.\n\nЭтот узел также появится в меню **Новая сессия** при подключении к другим узлам по SSH."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用后，你可以通过工具中 Tailscale 条目和节点列表中节点条目的**上下文菜单**（长按）快速连接到此节点。\n\n当通过 SSH 连接到其他节点时，此节点也会出现在**新建会话**菜单中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用後，你可以透過工具中 Tailscale 條目和節點列表中節點條目的**上下文選單**（長按）快速連接到此節點。\n\n當透過 SSH 連接到其他節點時，此節點也會出現在**新建工作階段**選單中。"
+          }
+        }
+      }
+    },
     "If enabled, you can quickly connect to this peer via the **context menu** (long press) on the Tailscale entry in Tools and on peer entries in the peer list.\n\nThis peer will also appear in the **New Window** menu when connected to other peers via SSH." : {
       "localizations" : {
         "fa" : {
@@ -5251,6 +5308,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "導入遠程配置"
+          }
+        }
+      }
+    },
+    "Imported" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وارد شده"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортировано"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已导入"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已匯入"
           }
         }
       }
@@ -5930,6 +6015,34 @@
         }
       }
     },
+    "Light Theme" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم روشن"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Светлая тема"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浅色主题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "淺色主題"
+          }
+        }
+      }
+    },
     "Loading..." : {
       "localizations" : {
         "fa" : {
@@ -6067,6 +6180,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "MagicDNS"
+          }
+        }
+      }
+    },
+    "Manage Imported Fonts" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مدیریت فونت‌های وارد شده"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Управление импортированными шрифтами"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理已导入的字体"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理已匯入的字型"
           }
         }
       }
@@ -6800,6 +6941,34 @@
         }
       }
     },
+    "New Session" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جلسه جدید"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новая сессия"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建会话"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建工作階段"
+          }
+        }
+      }
+    },
     "New version available: %@" : {
       "localizations" : {
         "fa" : {
@@ -7061,34 +7230,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "باشه"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ОК"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "好"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "好"
-          }
-        }
-      }
-    },
-    "OK" : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تأیید"
           }
         },
         "ru" : {
@@ -10097,34 +10238,6 @@
         }
       }
     },
-    "Terminal not available" : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ترمینال در دسترس نیست"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Терминал недоступен"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "终端不可用"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "終端不可用"
-          }
-        }
-      }
-    },
     "Terminal Type" : {
       "localizations" : {
         "fa" : {
@@ -10249,6 +10362,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Тема"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主題"
+          }
+        }
+      }
+    },
+    "Themes" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم‌ها"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Темы"
           }
         },
         "zh-Hans" : {

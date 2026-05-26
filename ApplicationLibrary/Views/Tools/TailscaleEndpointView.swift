@@ -116,9 +116,7 @@ public struct TailscaleEndpointView: View {
             #if os(iOS)
         .sheet(item: $sshPresentedSession) { presented in
             NavigationStackCompat {
-                if let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
-                    maker(presented)
-                }
+                TerminalSessionContainerView(presented)
             }
         }
             #elseif os(macOS)
@@ -159,9 +157,7 @@ public struct TailscaleEndpointView: View {
         }
         #if !os(tvOS)
         .contextMenu {
-            if !peer.sshHostKeys.isEmpty, peer.online, !isSelf, !peer.tailscaleIPs.isEmpty,
-               TailscaleSSHLaunchService.shared.terminalViewMaker != nil
-            {
+            if !peer.sshHostKeys.isEmpty, peer.online, !isSelf, !peer.tailscaleIPs.isEmpty {
                 Button {
                     handleSSHFromPeerList(peer)
                 } label: {
