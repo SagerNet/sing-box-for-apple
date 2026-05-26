@@ -1,4 +1,4 @@
-#if os(iOS)
+#if canImport(GhosttyTerminal) && os(iOS)
     import Combine
     import Foundation
     import Library

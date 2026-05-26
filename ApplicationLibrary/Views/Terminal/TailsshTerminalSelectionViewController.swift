@@ -1,4 +1,4 @@
-#if canImport(UIKit) && !targetEnvironment(macCatalyst)
+#if canImport(GhosttyTerminal) && canImport(UIKit) && !targetEnvironment(macCatalyst)
     import UIKit
 
     final class TailsshTerminalSelectionViewController: UIViewController, UITextViewDelegate {

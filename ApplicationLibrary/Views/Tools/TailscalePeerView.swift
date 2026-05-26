@@ -18,7 +18,6 @@ public struct TailscalePeerView: View {
     @StateObject private var pingViewModel = TailscalePingViewModel()
     #if !os(tvOS)
         @State private var sshPromptPresented = false
-        @State private var sshUnavailablePresented = false
         @State private var sshPresentedSession: TailscaleSSHPresentedSession?
         @State private var pendingSSHSession: TailscaleSSHPresentedSession?
     #endif
@@ -119,11 +118,7 @@ public struct TailscalePeerView: View {
                     #if !os(tvOS)
                         if peer.online, !isSelf, !peer.tailscaleIPs.isEmpty {
                             FormButton {
-                                if TailscaleSSHLaunchService.shared.terminalViewMaker == nil {
-                                    sshUnavailablePresented = true
-                                } else {
-                                    sshPromptPresented = true
-                                }
+                                sshPromptPresented = true
                             } label: {
                                 HStack {
                                     Label("Connect via SSH", systemImage: "terminal")
@@ -148,64 +143,59 @@ public struct TailscalePeerView: View {
         }
         .navigationTitle(peer.hostName)
         #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline)
         #elseif os(macOS)
-        .navigationSubtitle(peer.online ? String(localized: "Connected") : String(localized: "Not Connected"))
+            .navigationSubtitle(peer.online ? String(localized: "Connected") : String(localized: "Not Connected"))
         #endif
-        .toolbar {
-            #if !os(macOS)
-            ToolbarItem(placement: .principal) {
-                VStack(spacing: 4) {
-                    Text(peer.hostName)
-                        .font(.headline)
-                    HStack(spacing: 4) {
-                        Image(systemName: "circle.fill")
-                            .font(.system(size: 6))
-                            .foregroundStyle(peer.online ? .green : Color(.systemGray))
-                        Text(peer.online ? "Connected" : "Not Connected")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            .toolbar {
+                #if !os(macOS)
+                    ToolbarItem(placement: .principal) {
+                        VStack(spacing: 4) {
+                            Text(peer.hostName)
+                                .font(.headline)
+                            HStack(spacing: 4) {
+                                Image(systemName: "circle.fill")
+                                    .font(.system(size: 6))
+                                    .foregroundStyle(peer.online ? .green : Color(.systemGray))
+                                Text(peer.online ? "Connected" : "Not Connected")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
+                #endif
+            }
+            .onDisappear {
+                if pingViewModel.isRunning {
+                    pingViewModel.stop()
                 }
             }
-            #endif
-        }
-        .onDisappear {
-            if pingViewModel.isRunning {
-                pingViewModel.stop()
-            }
-        }
         #if !os(tvOS)
-        .platformSheet(isPresented: $sshPromptPresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
-            if let session = pendingSSHSession {
-                pendingSSHSession = nil
-                sshPresentedSession = session
+            .platformSheet(isPresented: $sshPromptPresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
+                if let session = pendingSSHSession {
+                    pendingSSHSession = nil
+                    sshPresentedSession = session
+                }
+            }) {
+                TailscaleSSHPromptView(
+                    peer: peer,
+                    endpointTag: endpointTag,
+                    onConnect: { session in pendingSSHSession = session }
+                )
             }
-        }) {
-            TailscaleSSHPromptView(
-                peer: peer,
-                endpointTag: endpointTag,
-                onConnect: { session in pendingSSHSession = session }
-            )
-        }
             #if os(iOS)
-        .sheet(item: $sshPresentedSession) { presented in
-            NavigationStackCompat {
-                if let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
-                    maker(presented)
+            .sheet(item: $sshPresentedSession) { presented in
+                NavigationStackCompat {
+                    TerminalSessionContainerView(presented)
                 }
             }
-        }
             #elseif os(macOS)
-        .onChangeCompat(of: sshPresentedSession) { newValue in
-            guard let newValue else { return }
-            openWindow(value: newValue)
-            sshPresentedSession = nil
-        }
+            .onChangeCompat(of: sshPresentedSession) { newValue in
+                guard let newValue else { return }
+                openWindow(value: newValue)
+                sshPresentedSession = nil
+            }
             #endif
-        .platformSheet(isPresented: $sshUnavailablePresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220)) {
-            TailscaleSSHUnavailableView(peerHostName: peer.hostName)
-        }
         #endif
     }
 

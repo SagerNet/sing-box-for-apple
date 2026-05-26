@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationLibrary
 import Library
 import SwiftUI
 
@@ -12,6 +13,10 @@ private struct OpenTerminalWindowActionKey: FocusedValueKey {
 
 private struct CurrentTerminalSessionKey: FocusedValueKey {
     typealias Value = TailscaleSSHPresentedSession
+}
+
+private struct QuickConnectPeersKey: FocusedValueKey {
+    typealias Value = [TailscaleSSHPeerEntry]
 }
 
 extension FocusedValues {
@@ -29,15 +34,21 @@ extension FocusedValues {
         get { self[CurrentTerminalSessionKey.self] }
         set { self[CurrentTerminalSessionKey.self] = newValue }
     }
+
+    var quickConnectPeers: [TailscaleSSHPeerEntry]? {
+        get { self[QuickConnectPeersKey.self] }
+        set { self[QuickConnectPeersKey.self] = newValue }
+    }
 }
 
 struct TerminalCommands: Commands {
     @FocusedValue(\.newTerminalWindowAction) var newWindowAction
     @FocusedValue(\.openTerminalWindowAction) var openTerminalWindowAction
     @FocusedValue(\.currentTerminalSession) var currentSession
+    @FocusedValue(\.quickConnectPeers) var quickConnectPeers
 
     private var otherQCPeers: [TailscaleSSHPeerEntry] {
-        TailscaleSSHLaunchService.shared.quickConnectPeers.filter { peer in
+        (quickConnectPeers ?? []).filter { peer in
             guard let current = currentSession else { return true }
             return !(peer.endpointTag == current.endpointTag && peer.peerAddress == current.peerAddress)
         }
@@ -87,15 +98,16 @@ struct TerminalCommands: Commands {
 struct TailscaleSSHTerminalWindow: View {
     let session: TailscaleSSHPresentedSession?
 
+    @EnvironmentObject private var peerStore: TailscaleSSHPeerStore
     @Environment(\.openWindow) private var openWindow
     @State private var hostWindow: NSWindow?
     @State private var keyMonitor: Any?
 
     var body: some View {
         Group {
-            if let session, let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
-                maker(session)
-                    .focusedSceneValue(\.newTerminalWindowAction, { [openWindow] in
+            if let session {
+                TerminalWrapperView(session)
+                    .focusedSceneValue(\.newTerminalWindowAction) { [openWindow] in
                         openWindow(value: TailscaleSSHPresentedSession(
                             endpointTag: session.endpointTag,
                             peerHostName: session.peerHostName,
@@ -105,11 +117,12 @@ struct TailscaleSSHTerminalWindow: View {
                             hostKeys: session.hostKeys,
                             forwardAgent: session.forwardAgent
                         ))
-                    })
-                    .focusedSceneValue(\.openTerminalWindowAction, { [openWindow] newSession in
+                    }
+                    .focusedSceneValue(\.openTerminalWindowAction) { [openWindow] newSession in
                         openWindow(value: newSession)
-                    })
+                    }
                     .focusedSceneValue(\.currentTerminalSession, session)
+                    .focusedSceneValue(\.quickConnectPeers, peerStore.quickConnectPeers)
             } else {
                 Color.clear
             }
@@ -144,6 +157,18 @@ struct TailscaleSSHTerminalWindow: View {
         let bareMods = event.modifierFlags.intersection([.command, .control, .option, .shift])
         guard bareMods == [.command] else { return event }
         switch event.charactersIgnoringModifiers?.lowercased() {
+        case "n":
+            guard let session else { return event }
+            openWindow(value: TailscaleSSHPresentedSession(
+                endpointTag: session.endpointTag,
+                peerHostName: session.peerHostName,
+                peerAddress: session.peerAddress,
+                username: session.username,
+                terminalType: session.terminalType,
+                hostKeys: session.hostKeys,
+                forwardAgent: session.forwardAgent
+            ))
+            return nil
         case "q":
             host.close()
             return nil

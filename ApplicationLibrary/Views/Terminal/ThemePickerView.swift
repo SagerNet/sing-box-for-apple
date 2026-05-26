@@ -1,4 +1,4 @@
-#if !os(tvOS)
+#if canImport(GhosttyTerminal)
     import GhosttyTheme
     import SwiftUI
 

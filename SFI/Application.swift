@@ -1,3 +1,4 @@
+import ApplicationLibrary
 import Foundation
 import Library
 import SwiftUI
@@ -6,9 +7,9 @@ import SwiftUI
 struct Application: App {
     @UIApplicationDelegateAdaptor private var appDelegate: ApplicationDelegate
     @StateObject private var environments = ExtensionEnvironments()
+    @StateObject private var peerStore = TailscaleSSHPeerStore()
 
     init() {
-        TailscaleSSHTerminalRegistration.registerIfAvailable()
         Task { @MainActor in
             ImportedFontStore.shared.bootstrap()
         }
@@ -18,6 +19,7 @@ struct Application: App {
         WindowGroup {
             MainView()
                 .environmentObject(environments)
+                .environmentObject(peerStore)
         }
     }
 }

@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 public struct ToolsView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
+    @EnvironmentObject private var peerStore: TailscaleSSHPeerStore
     @StateObject private var viewModel = SettingViewModel()
     @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
     #if os(iOS)
@@ -39,22 +40,18 @@ public struct ToolsView: View {
                         }
                         #if !os(tvOS)
                         .contextMenu {
-                            if TailscaleSSHLaunchService.shared.terminalViewMaker != nil {
-                                let sshPeers = sshAvailablePeers
-                                if sshPeers.count == 1 {
-                                    Button {
-                                        handleSSH(sshPeers[0])
-                                    } label: {
-                                        Label("Connect via SSH", systemImage: "terminal")
-                                    }
-                                } else if sshPeers.count > 1 {
-                                    Section("Connect via SSH") {
-                                        ForEach(sshPeers) { info in
-                                            Button {
-                                                handleSSH(info)
-                                            } label: {
-                                                Label(info.peer.hostName, systemImage: "terminal")
-                                            }
+                            let sshPeers = sshAvailablePeers
+                            if sshPeers.count == 1 {
+                                Button {
+                                    handleSSH(sshPeers[0])
+                                } label: {
+                                    Label("Connect via SSH", systemImage: "terminal")
+                                }
+                            } else if sshPeers.count > 1 {
+                                Section("Connect via SSH") {
+                                    ForEach(sshPeers) { info in
+                                        Button(info.peer.hostName) {
+                                            handleSSH(info)
                                         }
                                     }
                                 }
@@ -159,6 +156,7 @@ public struct ToolsView: View {
         }
         .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, viewModel: tailscaleViewModel))
         .alert($tailscaleViewModel.alert)
+        .onAppear { tailscaleViewModel.peerStore = peerStore }
         #if !os(tvOS)
             .platformSheet(item: $sshPromptPeer, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
                 if let session = pendingSSHSession {
@@ -171,9 +169,7 @@ public struct ToolsView: View {
             #if os(iOS)
             .sheet(item: $sshPresentedSession) { presented in
                 NavigationStackCompat {
-                    if let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
-                        maker(presented)
-                    }
+                    TerminalSessionContainerView(presented)
                 }
             }
             #elseif os(macOS)

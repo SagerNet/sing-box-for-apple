@@ -8,7 +8,6 @@ struct Application: App {
 
     init() {
         ScreenshotLocalization.applyIfNeeded()
-        TailscaleSSHTerminalRegistration.registerIfAvailable()
     }
 
     var body: some Scene {

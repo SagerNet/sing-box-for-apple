@@ -114,25 +114,23 @@
             }
         }
 
-        @ViewBuilder
         private func themeRow(
             isDark: Bool,
             pickerTheme: Binding<String>,
             themePreference: SharedPreferences.Preference<String>
         ) -> some View {
-            if let pickerMaker = TailscaleSSHLaunchService.shared.ghosttyThemePickerMaker {
-                FormNavigationLink {
-                    pickerMaker(isDark, pickerTheme.wrappedValue) { newName in
-                        guard !newName.isEmpty else { return }
-                        Task {
-                            await themePreference.set(newName)
-                            pickerTheme.wrappedValue = newName
-                        }
+            FormNavigationLink {
+                ThemePickerView(
+                    scheme: isDark ? .dark : .light,
+                    currentName: pickerTheme.wrappedValue
+                ) { newName in
+                    guard !newName.isEmpty else { return }
+                    Task {
+                        await themePreference.set(newName)
+                        pickerTheme.wrappedValue = newName
                     }
-                } label: {
-                    themeRowLabel(value: pickerTheme.wrappedValue)
                 }
-            } else {
+            } label: {
                 themeRowLabel(value: pickerTheme.wrappedValue)
             }
         }
