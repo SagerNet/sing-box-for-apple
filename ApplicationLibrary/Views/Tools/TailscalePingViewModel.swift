@@ -14,31 +14,31 @@ public final class TailscalePingViewModel: BaseViewModel {
     @Published public var latencyHistory: [CGFloat] = []
 
     private let maxHistorySize = 30
-    private var commandClient: LibboxCommandClient?
-    private var runningTask: Task<Void, Never>?
+    private var pingSession: LibboxTailscalePingSession?
 
     public func start(endpointTag: String, peerIP: String) {
         latencyHistory = []
         hasResult = false
         isRunning = true
 
-        let client = LibboxNewStandaloneCommandClient()!
-        commandClient = client
         let handler = PingHandler(self)
 
-        runningTask = Task { [weak self] in
-            await Task.detached {
-                try? client.startTailscalePing(endpointTag, peerIP: peerIP, handler: handler)
-            }.value
-            self?.runningTask = nil
+        Task { [weak self] in
+            do {
+                let session = try await Task.detached {
+                    try LibboxNewStandaloneCommandClient()!.startTailscalePing(endpointTag, peerIP: peerIP, handler: handler)
+                }.value
+                self?.pingSession = session
+            } catch {
+                guard let self else { return }
+                self.isRunning = false
+            }
         }
     }
 
     public func stop() {
-        runningTask?.cancel()
-        runningTask = nil
-        try? commandClient?.disconnect()
-        commandClient = nil
+        try? pingSession?.close()
+        pingSession = nil
         isRunning = false
     }
 
@@ -81,8 +81,7 @@ public final class TailscalePingViewModel: BaseViewModel {
             DispatchQueue.main.async { [self] in
                 guard let viewModel, viewModel.isRunning else { return }
                 viewModel.isRunning = false
-                viewModel.commandClient = nil
-                viewModel.runningTask = nil
+                viewModel.pingSession = nil
             }
         }
     }

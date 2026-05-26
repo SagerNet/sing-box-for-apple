@@ -146,12 +146,16 @@ public struct TailscalePeerView: View {
                 }
             }
         }
+        .navigationTitle(peer.hostName)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #elseif os(macOS)
+        .navigationSubtitle(peer.online ? String(localized: "Connected") : String(localized: "Not Connected"))
         #endif
         .toolbar {
+            #if !os(macOS)
             ToolbarItem(placement: .principal) {
-                VStack(spacing: 2) {
+                VStack(spacing: 4) {
                     Text(peer.hostName)
                         .font(.headline)
                     HStack(spacing: 4) {
@@ -164,6 +168,7 @@ public struct TailscalePeerView: View {
                     }
                 }
             }
+            #endif
         }
         .onDisappear {
             if pingViewModel.isRunning {
