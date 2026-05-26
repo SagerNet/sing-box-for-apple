@@ -109,7 +109,8 @@
                 peerAddress: src.peerAddress,
                 username: src.username,
                 terminalType: src.terminalType,
-                hostKeys: src.hostKeys
+                hostKeys: src.hostKeys,
+                forwardAgent: src.forwardAgent
             )
             addSession(from: newSession)
         }

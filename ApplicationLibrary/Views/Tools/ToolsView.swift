@@ -213,13 +213,19 @@ public struct ToolsView: View {
                 if quickPeers.contains(info.peer.stableID) {
                     let usernames = await SharedPreferences.tailscaleSSHRememberedUsernames.get()
                     let termTypes = await SharedPreferences.tailscaleSSHRememberedTerminalTypes.get()
+                    #if os(macOS)
+                        let forwardAgent = await SharedPreferences.tailscaleSSHForwardAgent.get()
+                    #else
+                        let forwardAgent = false
+                    #endif
                     sshPresentedSession = TailscaleSSHPresentedSession(
                         endpointTag: info.endpointTag,
                         peerHostName: info.peer.hostName,
                         peerAddress: info.peer.tailscaleIPs.first!,
                         username: usernames[info.peer.stableID] ?? "root",
                         terminalType: termTypes[info.peer.stableID] ?? "xterm-256color",
-                        hostKeys: info.peer.sshHostKeys
+                        hostKeys: info.peer.sshHostKeys,
+                        forwardAgent: forwardAgent
                     )
                 } else {
                     sshPromptEndpointTag = info.endpointTag
