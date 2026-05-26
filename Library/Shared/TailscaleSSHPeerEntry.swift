@@ -23,13 +23,19 @@ public struct TailscaleSSHPeerEntry: Identifiable {
     public func createSession() async -> TailscaleSSHPresentedSession {
         let usernames = await SharedPreferences.tailscaleSSHRememberedUsernames.get()
         let termTypes = await SharedPreferences.tailscaleSSHRememberedTerminalTypes.get()
+        #if os(macOS)
+            let forwardAgent = await SharedPreferences.tailscaleSSHForwardAgent.get()
+        #else
+            let forwardAgent = false
+        #endif
         return TailscaleSSHPresentedSession(
             endpointTag: endpointTag,
             peerHostName: hostName,
             peerAddress: peerAddress,
             username: usernames[stableID] ?? "root",
             terminalType: termTypes[stableID] ?? "xterm-256color",
-            hostKeys: sshHostKeys
+            hostKeys: sshHostKeys,
+            forwardAgent: forwardAgent
         )
     }
 }

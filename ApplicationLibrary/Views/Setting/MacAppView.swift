@@ -255,7 +255,12 @@ public struct AppView: View {
                                                 try HelperServiceManager.registerRootHelper()
                                                 refreshHelperStatus()
                                             } catch {
-                                                alert = AlertState(action: "update helper service", error: error)
+                                                refreshHelperStatus()
+                                                if rootHelperRegistrationStatus == .requiresApproval {
+                                                    openHelperSettings()
+                                                } else {
+                                                    alert = AlertState(action: "update helper service", error: error)
+                                                }
                                             }
                                         }
                                     } label: {
@@ -471,7 +476,12 @@ public struct AppView: View {
                 try action()
                 refreshHelperStatus()
             } catch {
-                alert = AlertState(action: actionName, error: error)
+                refreshHelperStatus()
+                if rootHelperRegistrationStatus == .requiresApproval {
+                    openHelperSettings()
+                } else {
+                    alert = AlertState(action: actionName, error: error)
+                }
             }
         }
 

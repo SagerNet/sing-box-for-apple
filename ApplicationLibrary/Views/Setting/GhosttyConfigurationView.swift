@@ -74,7 +74,7 @@
                         HStack {
                             Text("Size")
                             Spacer()
-                            Text("\(Int(fontSize))")
+                            Text(verbatim: "\(Int(fontSize))")
                                 .monospacedDigit()
                                 .foregroundStyle(.secondary)
                         }
