@@ -74,6 +74,7 @@ public final class NetworkQualityViewModel: BaseViewModel, OutboundSelectable {
     private var isLoadingPreferences = false
     private var saveConfigURLTask: Task<Void, Never>?
     private var standaloneTest: LibboxNetworkQualityTest?
+    private var nqSession: LibboxNetworkQualityTestSession?
     private var runningTask: Task<Void, Never>?
     public func loadPreferences() async {
         isLoadingPreferences = true
@@ -138,17 +139,17 @@ public final class NetworkQualityViewModel: BaseViewModel, OutboundSelectable {
 
         if vpnConnected {
             let handler = TestHandler(self)
-            runningTask = Task { [weak self] in
+            Task { [weak self] in
                 do {
-                    try await Task.detached {
+                    let session = try await Task.detached {
                         try LibboxNewStandaloneCommandClient()!.startNetworkQualityTest(configURL, outboundTag: outboundTag, serial: serial, maxRuntimeSeconds: maxRuntimeSeconds, http3: http3, handler: handler)
                     }.value
+                    self?.nqSession = session
                 } catch {
                     guard let self else { return }
                     self.isRunning = false
                     self.alert = AlertState(action: "network quality test", error: error)
                 }
-                self?.runningTask = nil
             }
         } else {
             let test = LibboxNewNetworkQualityTest()!
@@ -172,6 +173,8 @@ public final class NetworkQualityViewModel: BaseViewModel, OutboundSelectable {
     }
 
     public func cancel() {
+        try? nqSession?.close()
+        nqSession = nil
         runningTask?.cancel()
         runningTask = nil
         standaloneTest?.cancel()
@@ -219,6 +222,7 @@ public final class NetworkQualityViewModel: BaseViewModel, OutboundSelectable {
                 guard let viewModel, viewModel.isRunning else { return }
                 viewModel.applyMetrics(phase: LibboxNetworkQualityPhaseDone, idleLatencyMs: idleLatencyMs, downloadCapacity: downloadCapacity, uploadCapacity: uploadCapacity, downloadRPM: downloadRPM, uploadRPM: uploadRPM, downloadCapacityAccuracy: downloadCapacityAccuracy, uploadCapacityAccuracy: uploadCapacityAccuracy, downloadRPMAccuracy: downloadRPMAccuracy, uploadRPMAccuracy: uploadRPMAccuracy)
                 viewModel.isRunning = false
+                viewModel.nqSession = nil
                 viewModel.runningTask = nil
                 viewModel.standaloneTest = nil
             }
@@ -228,6 +232,7 @@ public final class NetworkQualityViewModel: BaseViewModel, OutboundSelectable {
             DispatchQueue.main.async { [self] in
                 guard let viewModel, viewModel.isRunning else { return }
                 viewModel.isRunning = false
+                viewModel.nqSession = nil
                 viewModel.runningTask = nil
                 viewModel.standaloneTest = nil
                 if let message {
