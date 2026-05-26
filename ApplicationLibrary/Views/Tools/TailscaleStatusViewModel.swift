@@ -56,6 +56,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
     @Published public var endpoints: [TailscaleEndpointData] = []
     @Published public var isSubscribed = false
 
+    public weak var peerStore: TailscaleSSHPeerStore?
     private var statusSubscription: LibboxTailscaleStatusSubscription?
 
     public func subscribe() {
@@ -82,8 +83,8 @@ public final class TailscaleStatusViewModel: BaseViewModel {
         statusSubscription = nil
         isSubscribed = false
         endpoints = []
-        TailscaleSSHLaunchService.shared.sshPeers = []
-        TailscaleSSHLaunchService.shared.quickConnectPeerIDs = []
+        peerStore?.sshPeers = []
+        peerStore?.quickConnectPeerIDs = []
     }
 
     public func endpoint(tag: String) -> TailscaleEndpointData? {
@@ -115,10 +116,10 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 }
             }
         }
-        TailscaleSSHLaunchService.shared.sshPeers = allSSHPeers
+        peerStore?.sshPeers = allSSHPeers
         Task {
             let qcSet = await SharedPreferences.tailscaleSSHQuickConnectPeers.get()
-            TailscaleSSHLaunchService.shared.quickConnectPeerIDs = qcSet
+            peerStore?.quickConnectPeerIDs = qcSet
         }
     }
 
@@ -145,8 +146,8 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 viewModel.isSubscribed = false
                 viewModel.statusSubscription = nil
                 viewModel.endpoints = []
-                TailscaleSSHLaunchService.shared.sshPeers = []
-                TailscaleSSHLaunchService.shared.quickConnectPeerIDs = []
+                viewModel.peerStore?.sshPeers = []
+                viewModel.peerStore?.quickConnectPeerIDs = []
                 if let message {
                     viewModel.alert = AlertState(errorMessage: message)
                 }
