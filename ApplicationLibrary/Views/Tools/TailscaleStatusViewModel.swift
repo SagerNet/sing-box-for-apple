@@ -56,30 +56,30 @@ public final class TailscaleStatusViewModel: BaseViewModel {
     @Published public var endpoints: [TailscaleEndpointData] = []
     @Published public var isSubscribed = false
 
-    private var runningTask: Task<Void, Never>?
+    private var statusSubscription: LibboxTailscaleStatusSubscription?
 
     public func subscribe() {
         guard !isSubscribed else { return }
         isSubscribed = true
 
         let handler = StatusHandler(self)
-        runningTask = Task { [weak self] in
+        Task { [weak self] in
             do {
-                try await Task.detached {
+                let subscription = try await Task.detached {
                     try LibboxNewStandaloneCommandClient()!.subscribeTailscaleStatus(handler)
                 }.value
+                self?.statusSubscription = subscription
             } catch {
                 guard let self else { return }
                 self.isSubscribed = false
                 self.endpoints = []
             }
-            self?.runningTask = nil
         }
     }
 
     public func cancel() {
-        runningTask?.cancel()
-        runningTask = nil
+        try? statusSubscription?.close()
+        statusSubscription = nil
         isSubscribed = false
         endpoints = []
         TailscaleSSHLaunchService.shared.sshPeers = []
@@ -143,6 +143,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
             DispatchQueue.main.async { [self] in
                 guard let viewModel, viewModel.isSubscribed else { return }
                 viewModel.isSubscribed = false
+                viewModel.statusSubscription = nil
                 viewModel.endpoints = []
                 TailscaleSSHLaunchService.shared.sshPeers = []
                 TailscaleSSHLaunchService.shared.quickConnectPeerIDs = []

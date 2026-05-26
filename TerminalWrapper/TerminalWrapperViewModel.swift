@@ -135,6 +135,7 @@ public final class TerminalWrapperViewModel: ObservableObject {
         options.rows = 24
 
         options.hostKeys = presentedSession.hostKeys.toStringIterator()
+        options.forwardAgent = presentedSession.forwardAgent
 
         let client = LibboxNewStandaloneCommandClient()!
         commandClient = client
