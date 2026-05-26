@@ -36,38 +36,47 @@ struct TerminalCommands: Commands {
     @FocusedValue(\.openTerminalWindowAction) var openTerminalWindowAction
     @FocusedValue(\.currentTerminalSession) var currentSession
 
-    var body: some Commands {
-        CommandGroup(replacing: .newItem) {
-            if let newWindowAction {
-                let currentSession = currentSession
-                let otherQCPeers = TailscaleSSHLaunchService.shared.quickConnectPeers.filter { peer in
-                    guard let current = currentSession else { return true }
-                    return !(peer.endpointTag == current.endpointTag && peer.peerAddress == current.peerAddress)
-                }
+    private var otherQCPeers: [TailscaleSSHPeerEntry] {
+        TailscaleSSHLaunchService.shared.quickConnectPeers.filter { peer in
+            guard let current = currentSession else { return true }
+            return !(peer.endpointTag == current.endpointTag && peer.peerAddress == current.peerAddress)
+        }
+    }
 
+    var body: some Commands {
+        if let newWindowAction {
+            CommandGroup(replacing: .newItem) {
                 if otherQCPeers.isEmpty {
-                    Button("New Window") {
+                    Button {
                         newWindowAction()
+                    } label: {
+                        Label("New Window", systemImage: "macwindow.badge.plus")
                     }
                     .keyboardShortcut("n", modifiers: .command)
                 } else {
-                    Menu("New Window") {
-                        Button(currentSession?.peerHostName ?? String(localized: "New Window")) {
+                    Menu {
+                        Button {
                             newWindowAction()
+                        } label: {
+                            Label(currentSession?.peerHostName ?? String(localized: "New Window"), systemImage: "doc.on.doc")
                         }
                         .keyboardShortcut("n", modifiers: .command)
 
                         Divider()
 
                         ForEach(otherQCPeers) { peer in
-                            Button(peer.hostName) {
+                            Button {
                                 guard let openAction = openTerminalWindowAction else { return }
                                 Task { @MainActor in
                                     let session = await peer.createSession()
                                     openAction(session)
                                 }
+                            } label: {
+                                Label(peer.hostName, systemImage: "terminal")
                             }
                         }
+                    } label: {
+                        Label("New Window", systemImage: "macwindow.badge.plus")
                     }
                 }
             }
@@ -86,19 +95,20 @@ struct TailscaleSSHTerminalWindow: View {
         Group {
             if let session, let maker = TailscaleSSHLaunchService.shared.terminalViewMaker {
                 maker(session)
-                    .focusedSceneValue(\.newTerminalWindowAction) { [openWindow] in
+                    .focusedSceneValue(\.newTerminalWindowAction, { [openWindow] in
                         openWindow(value: TailscaleSSHPresentedSession(
                             endpointTag: session.endpointTag,
                             peerHostName: session.peerHostName,
                             peerAddress: session.peerAddress,
                             username: session.username,
                             terminalType: session.terminalType,
-                            hostKeys: session.hostKeys
+                            hostKeys: session.hostKeys,
+                            forwardAgent: session.forwardAgent
                         ))
-                    }
-                    .focusedSceneValue(\.openTerminalWindowAction) { [openWindow] newSession in
+                    })
+                    .focusedSceneValue(\.openTerminalWindowAction, { [openWindow] newSession in
                         openWindow(value: newSession)
-                    }
+                    })
                     .focusedSceneValue(\.currentTerminalSession, session)
             } else {
                 Color.clear

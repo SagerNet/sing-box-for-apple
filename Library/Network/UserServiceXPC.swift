@@ -7,6 +7,7 @@
 
     @objc public protocol UserServiceProtocol {
         func getWIFIState(reply: @escaping (String?, String?, NSError?) -> Void)
+        func connectSSHAgent(reply: @escaping (FileHandle?, NSError?) -> Void)
         func sendNotification(
             identifier: String,
             typeName: String,
@@ -17,6 +18,18 @@
             openURL: String,
             reply: @escaping (NSError?) -> Void
         )
+    }
+
+    public enum UserServiceXPC {
+        public static func configureInterface(_ interface: NSXPCInterface) {
+            let fileHandleClasses = NSSet(array: [FileHandle.self]) as! Set<AnyHashable>
+            interface.setClasses(
+                fileHandleClasses,
+                for: #selector(UserServiceProtocol.connectSSHAgent(reply:)),
+                argumentIndex: 0,
+                ofReply: true
+            )
+        }
     }
 
     public class UserServiceClient {
@@ -41,7 +54,9 @@
             }
 
             let newConnection = NSXPCConnection(listenerEndpoint: endpoint)
-            newConnection.remoteObjectInterface = NSXPCInterface(with: UserServiceProtocol.self)
+            let remoteInterface = NSXPCInterface(with: UserServiceProtocol.self)
+            UserServiceXPC.configureInterface(remoteInterface)
+            newConnection.remoteObjectInterface = remoteInterface
 
             newConnection.invalidationHandler = { [weak self] in
                 guard let self else { return }
@@ -139,6 +154,33 @@
             }
 
             return LibboxWIFIState(ssid, wifiBSSID: bssid)
+        }
+
+        public func connectSSHAgent() -> Int32? {
+            let semaphore = DispatchSemaphore(value: 0)
+            var resultFD: Int32?
+
+            guard let proxy = getProxy() else {
+                logger.error("connectSSHAgent: no UserService connection")
+                return nil
+            }
+
+            proxy.connectSSHAgent { handle, error in
+                if let error {
+                    logger.error("connectSSHAgent error: \(error.localizedDescription)")
+                } else if let handle {
+                    resultFD = dup(handle.fileDescriptor)
+                }
+                semaphore.signal()
+            }
+
+            let timeout = DispatchTime.now() + .seconds(5)
+            if semaphore.wait(timeout: timeout) == .timedOut {
+                logger.error("connectSSHAgent: timeout")
+                return nil
+            }
+
+            return resultFD
         }
 
         public func sendNotification(_ notification: LibboxNotification) throws {

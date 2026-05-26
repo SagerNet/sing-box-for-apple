@@ -414,6 +414,23 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
+    public func connectSSHAgent(_ ret0_: UnsafeMutablePointer<Int32>?) throws {
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                guard let fd = UserServiceClient.shared.connectSSHAgent() else {
+                    throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                        NSLocalizedDescriptionKey: "Failed to connect to SSH agent",
+                    ])
+                }
+                ret0_?.pointee = fd
+                return
+            }
+        #endif
+        throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+            NSLocalizedDescriptionKey: "SSH agent forwarding is not supported",
+        ])
+    }
+
     public func serviceStop() throws {
         tunnel.stopService()
     }

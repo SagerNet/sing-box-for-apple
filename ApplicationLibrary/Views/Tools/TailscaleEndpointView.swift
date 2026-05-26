@@ -179,13 +179,19 @@ public struct TailscaleEndpointView: View {
                 if quickPeers.contains(peer.stableID) {
                     let usernames = await SharedPreferences.tailscaleSSHRememberedUsernames.get()
                     let termTypes = await SharedPreferences.tailscaleSSHRememberedTerminalTypes.get()
+                    #if os(macOS)
+                        let forwardAgent = await SharedPreferences.tailscaleSSHForwardAgent.get()
+                    #else
+                        let forwardAgent = false
+                    #endif
                     sshPresentedSession = TailscaleSSHPresentedSession(
                         endpointTag: endpointTag,
                         peerHostName: peer.hostName,
                         peerAddress: peer.tailscaleIPs.first!,
                         username: usernames[peer.stableID] ?? "root",
                         terminalType: termTypes[peer.stableID] ?? "xterm-256color",
-                        hostKeys: peer.sshHostKeys
+                        hostKeys: peer.sshHostKeys,
+                        forwardAgent: forwardAgent
                     )
                 } else {
                     sshPromptPeer = peer

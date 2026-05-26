@@ -13,6 +13,9 @@ public struct TailscaleSSHPromptView: View {
     @State private var terminalType: String = defaultTerminalType
     @State private var rememberedTerminalTypes: [String: String] = [:]
     @State private var rememberSSHOptions = false
+    #if os(macOS)
+        @State private var forwardAgent = false
+    #endif
 
     private static let defaultTerminalType = "xterm-256color"
 
@@ -45,6 +48,15 @@ public struct TailscaleSSHPromptView: View {
                         .autocorrectionDisabled(true)
                     #endif
                 }
+                #if os(macOS)
+                    Toggle("Forward Agent", isOn: $forwardAgent)
+                        .disabled(!Variant.useSystemExtension)
+                    if !Variant.useSystemExtension {
+                        Text("Only available in the macOS standalone version")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                #endif
             } header: {
                 Text("SSH Options")
             } footer: {
@@ -111,6 +123,9 @@ public struct TailscaleSSHPromptView: View {
         }
         let quickPeers = await SharedPreferences.tailscaleSSHQuickConnectPeers.get()
         rememberSSHOptions = quickPeers.contains(peer.stableID)
+        #if os(macOS)
+            forwardAgent = await SharedPreferences.tailscaleSSHForwardAgent.get()
+        #endif
     }
 
     private func connect() {
@@ -131,9 +146,18 @@ public struct TailscaleSSHPromptView: View {
             termMap[peer.stableID] = effectiveTerm
         }
 
+        #if os(macOS)
+            let forwardAgentValue = forwardAgent
+        #else
+            let forwardAgentValue = false
+        #endif
+
         Task.detached {
             await SharedPreferences.tailscaleSSHRememberedUsernames.set(map)
             await SharedPreferences.tailscaleSSHRememberedTerminalTypes.set(termMap)
+            #if os(macOS)
+                await SharedPreferences.tailscaleSSHForwardAgent.set(forwardAgentValue)
+            #endif
         }
 
         onConnect(TailscaleSSHPresentedSession(
@@ -142,7 +166,8 @@ public struct TailscaleSSHPromptView: View {
             peerAddress: peer.tailscaleIPs.first!,
             username: trimmed,
             terminalType: effectiveTerm,
-            hostKeys: peer.sshHostKeys
+            hostKeys: peer.sshHostKeys,
+            forwardAgent: forwardAgentValue
         ))
         dismiss()
     }

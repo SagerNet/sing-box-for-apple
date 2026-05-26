@@ -55,7 +55,9 @@
                 return false
             }
 
-            newConnection.exportedInterface = NSXPCInterface(with: UserServiceProtocol.self)
+            let exportedInterface = NSXPCInterface(with: UserServiceProtocol.self)
+            UserServiceXPC.configureInterface(exportedInterface)
+            newConnection.exportedInterface = exportedInterface
             newConnection.exportedObject = exportedObject
             newConnection.resume()
             return true
@@ -125,6 +127,48 @@
     }
 
     private final class UserServiceHandler: NSObject, UserServiceProtocol {
+        func connectSSHAgent(reply: @escaping (FileHandle?, NSError?) -> Void) {
+            guard let socketPath = ProcessInfo.processInfo.environment["SSH_AUTH_SOCK"] else {
+                reply(nil, NSError(domain: "UserService", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "SSH_AUTH_SOCK not set",
+                ]))
+                return
+            }
+
+            let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+            guard fd >= 0 else {
+                reply(nil, NSError(domain: "UserService", code: Int(errno), userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to create socket: \(String(cString: strerror(errno)))",
+                ]))
+                return
+            }
+
+            var addr = sockaddr_un()
+            addr.sun_family = sa_family_t(AF_UNIX)
+            let pathSize = MemoryLayout.size(ofValue: addr.sun_path)
+            withUnsafeMutableBytes(of: &addr.sun_path) { buffer in
+                _ = socketPath.withCString { cString in
+                    strncpy(buffer.baseAddress!.assumingMemoryBound(to: CChar.self), cString, pathSize - 1)
+                }
+            }
+
+            let connectResult = withUnsafePointer(to: &addr) { ptr in
+                ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                    connect(fd, sockaddrPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
+                }
+            }
+
+            guard connectResult >= 0 else {
+                close(fd)
+                reply(nil, NSError(domain: "UserService", code: Int(errno), userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to connect to SSH agent: \(String(cString: strerror(errno)))",
+                ]))
+                return
+            }
+
+            reply(FileHandle(fileDescriptor: fd, closeOnDealloc: false), nil)
+        }
+
         func getWIFIState(reply: @escaping (String?, String?, NSError?) -> Void) {
             let client = CWWiFiClient.shared()
             guard let interface = client.interface() else {
