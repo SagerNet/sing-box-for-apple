@@ -57,7 +57,7 @@
             phaseCancellables[presented.id] = vm.$phase
                 .dropFirst()
                 .sink { [weak self] phase in
-                    if case .finished = phase {
+                    if case .finished(.cleanExit) = phase {
                         let sessionID = presented.id
                         Task { @MainActor [weak self] in
                             try? await Task.sleep(nanoseconds: NSEC_PER_SEC)
