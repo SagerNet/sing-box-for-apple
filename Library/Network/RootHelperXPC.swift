@@ -175,6 +175,51 @@
         }
     }
 
+    @objc(PlatformUserPayload) public class PlatformUserPayload: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var username: String
+        @objc public var uid: Int32
+        @objc public var gid: Int32
+        @objc public var homeDir: String
+        @objc public var shell: String
+        @objc public var groups: [NSNumber]
+
+        public init(username: String, uid: Int32, gid: Int32, homeDir: String, shell: String, groups: [Int32]) {
+            self.username = username
+            self.uid = uid
+            self.gid = gid
+            self.homeDir = homeDir
+            self.shell = shell
+            self.groups = groups.map { NSNumber(value: $0) }
+        }
+
+        public required init?(coder: NSCoder) {
+            guard let username = coder.decodeObject(of: NSString.self, forKey: "username") as String?,
+                  let homeDir = coder.decodeObject(of: NSString.self, forKey: "homeDir") as String?,
+                  let shell = coder.decodeObject(of: NSString.self, forKey: "shell") as String?
+            else {
+                return nil
+            }
+            self.username = username
+            self.homeDir = homeDir
+            self.shell = shell
+            uid = coder.decodeInt32(forKey: "uid")
+            gid = coder.decodeInt32(forKey: "gid")
+            let groupClasses = [NSArray.self, NSNumber.self] as [AnyClass]
+            groups = coder.decodeObject(of: groupClasses, forKey: "groups") as? [NSNumber] ?? []
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(username as NSString, forKey: "username")
+            coder.encode(uid, forKey: "uid")
+            coder.encode(gid, forKey: "gid")
+            coder.encode(homeDir as NSString, forKey: "homeDir")
+            coder.encode(shell as NSString, forKey: "shell")
+            coder.encode(groups as NSArray, forKey: "groups")
+        }
+    }
+
     @objc public protocol RootHelperProtocol {
         func findConnectionOwner(
             ipProtocol: Int32,
@@ -196,6 +241,20 @@
         func promoteOOMDraft(reply: @escaping (NSError?) -> Void)
         func triggerGoCrash(reply: @escaping (NSError?) -> Void)
         func triggerNativeCrash(reply: @escaping (NSError?) -> Void)
+
+        func openShellSession(
+            user: PlatformUserPayload,
+            command: String,
+            environ: NSArray,
+            term: String,
+            rows: Int32,
+            cols: Int32,
+            reply: @escaping (FileHandle?, String?, NSError?) -> Void
+        )
+        func signalShellSession(handle: String, signal: Int32, reply: @escaping (NSError?) -> Void)
+        func waitShellSession(handle: String, reply: @escaping (Int32, NSError?) -> Void)
+        func closeShellSession(handle: String, reply: @escaping (NSError?) -> Void)
+        func readSystemSSHHostKey(reply: @escaping (NSString?, NSError?) -> Void)
     }
 
     public enum RootHelperXPC {
@@ -232,6 +291,22 @@
                 argumentIndex: 0,
                 ofReply: false
             )
+
+            let openShellSelector = #selector(RootHelperProtocol.openShellSession(user:command:environ:term:rows:cols:reply:))
+            let userPayloadClasses = NSSet(array: [PlatformUserPayload.self, NSArray.self, NSNumber.self, NSString.self]) as! Set<AnyHashable>
+            interface.setClasses(
+                userPayloadClasses,
+                for: openShellSelector,
+                argumentIndex: 0,
+                ofReply: false
+            )
+            let shellEnvClasses = NSSet(array: [NSArray.self, NSString.self]) as! Set<AnyHashable>
+            interface.setClasses(
+                shellEnvClasses,
+                for: openShellSelector,
+                argumentIndex: 2,
+                ofReply: false
+            )
         }
 
         public static func configureListenerInterface(_ interface: NSXPCInterface) {
@@ -243,6 +318,11 @@
                 ofReply: false
             )
         }
+    }
+
+    private struct ShellSessionHandshake {
+        let fileHandle: FileHandle
+        let handle: String
     }
 
     public class RootHelperClient: @unchecked Sendable {
@@ -281,6 +361,7 @@
 
         private func performXPCCallOptional<T>(
             _ operation: String,
+            timeout: DispatchTimeInterval = .seconds(5),
             call: (RootHelperProtocol, @escaping (T?, NSError?) -> Void) -> Void
         ) throws -> T? {
             let semaphore = DispatchSemaphore(value: 0)
@@ -308,8 +389,7 @@
                 semaphore.signal()
             }
 
-            let timeout = DispatchTime.now() + .seconds(5)
-            if semaphore.wait(timeout: timeout) == .timedOut {
+            if semaphore.wait(timeout: DispatchTime.now() + timeout) == .timedOut {
                 let error = NSError(domain: "RootHelper", code: -1, userInfo: [
                     NSLocalizedDescriptionKey: "\(operation) request timeout",
                 ])
@@ -327,9 +407,10 @@
 
         private func performXPCCall<T>(
             _ operation: String,
+            timeout: DispatchTimeInterval = .seconds(5),
             call: (RootHelperProtocol, @escaping (T?, NSError?) -> Void) -> Void
         ) throws -> T {
-            guard let value: T = try performXPCCallOptional(operation, call: call) else {
+            guard let value: T = try performXPCCallOptional(operation, timeout: timeout, call: call) else {
                 throw NSError(domain: "RootHelper", code: -1, userInfo: [
                     NSLocalizedDescriptionKey: "\(operation) returned nil",
                 ])
@@ -464,6 +545,61 @@
             try performXPCCall("getVersion") { proxy, reply in
                 proxy.getVersion { version in
                     reply(version as String?, nil)
+                }
+            }
+        }
+
+        public func openShellSession(
+            user: PlatformUserPayload,
+            command: String,
+            environ: [String],
+            term: String,
+            rows: Int32,
+            cols: Int32
+        ) throws -> (FileHandle, String) {
+            let handshake: ShellSessionHandshake = try performXPCCall("openShellSession", timeout: .seconds(10)) { proxy, reply in
+                proxy.openShellSession(
+                    user: user,
+                    command: command,
+                    environ: environ as NSArray,
+                    term: term,
+                    rows: rows,
+                    cols: cols
+                ) { fileHandle, handle, error in
+                    if let fileHandle, let handle {
+                        reply(ShellSessionHandshake(fileHandle: fileHandle, handle: handle), error)
+                    } else {
+                        reply(nil, error)
+                    }
+                }
+            }
+            return (handshake.fileHandle, handshake.handle)
+        }
+
+        public func signalShellSession(handle: String, signal: Int32) throws {
+            try performXPCCallVoid("signalShellSession") { proxy, reply in
+                proxy.signalShellSession(handle: handle, signal: signal, reply: reply)
+            }
+        }
+
+        public func waitShellSession(handle: String) throws -> Int32 {
+            try performXPCCall("waitShellSession", timeout: .never) { proxy, reply in
+                proxy.waitShellSession(handle: handle) { status, error in
+                    reply(status, error)
+                }
+            }
+        }
+
+        public func closeShellSession(handle: String) throws {
+            try performXPCCallVoid("closeShellSession") { proxy, reply in
+                proxy.closeShellSession(handle: handle, reply: reply)
+            }
+        }
+
+        public func readSystemSSHHostKey() throws -> String {
+            try performXPCCall("readSystemSSHHostKey") { proxy, reply in
+                proxy.readSystemSSHHostKey { keyData, error in
+                    reply(keyData as String?, error)
                 }
             }
         }
