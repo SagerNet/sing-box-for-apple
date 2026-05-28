@@ -87,9 +87,6 @@
             terminalState = state
             relay.viewModel = self
             extras.state = state
-            extras.onClose = { [weak self] _ in
-                self?.onWindowClose?()
-            }
             extras.onDesktopNotification = { [weak self] title, body in
                 self?.postSystemNotification(title: title, body: body)
             }
@@ -254,6 +251,9 @@
                 reason = .exitWithCode(exitCode, signal: signal.isEmpty ? nil : signal)
             }
             phase = .finished(reason: reason)
+            if reason == .cleanExit {
+                onWindowClose?()
+            }
             cleanupCommandClient()
         }
 

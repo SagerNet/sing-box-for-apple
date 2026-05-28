@@ -583,6 +583,127 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     public func systemCertificates() -> (any LibboxStringIteratorProtocol)? {
         nil
     }
+
+    public func usePlatformShell() -> Bool {
+        #if os(macOS)
+            return Variant.useSystemExtension
+        #else
+            return false
+        #endif
+    }
+
+    public func checkPlatformShell() throws {
+        #if os(macOS)
+            _ = try RootHelperClient.shared.getVersion()
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "SSH server is not supported",
+            ])
+        #endif
+    }
+
+    public func openShellSession(_ user: LibboxPlatformUser?, command: String?, environ: (any LibboxStringIteratorProtocol)?, term: String?, rows: Int32, cols: Int32) throws -> any LibboxShellSessionProtocol {
+        #if os(macOS)
+            guard let user else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "missing user",
+                ])
+            }
+            let command = command ?? ""
+            let term = term ?? ""
+            let envStrings = environ?.toArray() ?? []
+
+            let groups = user.groups()?.toArray() ?? []
+            let payload = PlatformUserPayload(
+                username: user.username,
+                uid: user.uid,
+                gid: user.gid,
+                homeDir: user.homeDir,
+                shell: user.shell,
+                groups: groups
+            )
+
+            let (fileHandle, handle) = try RootHelperClient.shared.openShellSession(
+                user: payload,
+                command: command,
+                environ: envStrings,
+                term: term,
+                rows: rows,
+                cols: cols
+            )
+
+            return RootHelperShellSession(fileHandle: fileHandle, handle: handle)
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "SSH server is not supported",
+            ])
+        #endif
+    }
+
+    public func readSystemSSHHostKey() throws -> LibboxStringBox {
+        #if os(macOS)
+            let keyData = try RootHelperClient.shared.readSystemSSHHostKey()
+            let result = LibboxStringBox()
+            result.value = keyData
+            return result
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "not supported on this platform",
+            ])
+        #endif
+    }
+
+    public func lookupSFTPServer() throws -> LibboxStringBox {
+        throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+            NSLocalizedDescriptionKey: "lookupSFTPServer is not supported on Apple platforms",
+        ])
+    }
+
+    public func lookupUser(_ username: String?) throws -> LibboxPlatformUser {
+        #if os(macOS)
+            guard let username else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "lookupUser: username is required",
+                ])
+            }
+            guard let pw = getpwnam(username) else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "user not found: \(username)",
+                ])
+            }
+            let result = LibboxPlatformUser()
+            result.username = String(cString: pw.pointee.pw_name)
+            result.uid = Int32(pw.pointee.pw_uid)
+            result.gid = Int32(pw.pointee.pw_gid)
+            result.homeDir = String(cString: pw.pointee.pw_dir)
+            if let shellPtr = pw.pointee.pw_shell {
+                result.shell = String(cString: shellPtr)
+            }
+
+            var ngroups: Int32 = 64
+            var groupIDs = [Int32](repeating: 0, count: Int(ngroups))
+            var rc = groupIDs.withUnsafeMutableBufferPointer { buffer in
+                getgrouplist(username, Int32(bitPattern: pw.pointee.pw_gid), buffer.baseAddress, &ngroups)
+            }
+            if rc == -1 {
+                groupIDs = [Int32](repeating: 0, count: Int(ngroups))
+                rc = groupIDs.withUnsafeMutableBufferPointer { buffer in
+                    getgrouplist(username, Int32(bitPattern: pw.pointee.pw_gid), buffer.baseAddress, &ngroups)
+                }
+            }
+            if rc == -1 {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "getgrouplist failed for \(username)",
+                ])
+            }
+            result.setGroups(Array(groupIDs.prefix(Int(ngroups))).toInt32Iterator())
+            return result
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "SSH server is not supported",
+            ])
+        #endif
+    }
 }
 
 #if os(macOS)
@@ -629,6 +750,46 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             entry.macAddress = result.macAddress
             entry.hostname = result.hostname
             return entry
+        }
+    }
+
+    private class RootHelperShellSession: NSObject, LibboxShellSessionProtocol {
+        private let fileHandle: FileHandle
+        private let handle: String
+
+        init(fileHandle: FileHandle, handle: String) {
+            self.fileHandle = fileHandle
+            self.handle = handle
+        }
+
+        func masterFD() -> Int32 {
+            fileHandle.fileDescriptor
+        }
+
+        func resize(_ rows: Int32, cols: Int32) throws {
+            var ws = winsize(ws_row: UInt16(rows), ws_col: UInt16(cols), ws_xpixel: 0, ws_ypixel: 0)
+            let result = withUnsafeMutablePointer(to: &ws) { ptr in
+                ioctl(fileHandle.fileDescriptor, TIOCSWINSZ, ptr)
+            }
+            if result < 0 {
+                throw NSError(domain: "RootHelperShellSession", code: Int(Darwin.errno), userInfo: [
+                    NSLocalizedDescriptionKey: "ioctl TIOCSWINSZ: \(String(cString: strerror(Darwin.errno)))",
+                ])
+            }
+        }
+
+        func signal(_ signal: Int32) throws {
+            try RootHelperClient.shared.signalShellSession(handle: handle, signal: signal)
+        }
+
+        func waitExit(_ ret0_: UnsafeMutablePointer<Int32>?) throws {
+            let exitStatus = try RootHelperClient.shared.waitShellSession(handle: handle)
+            ret0_?.pointee = exitStatus
+        }
+
+        func close() throws {
+            try? RootHelperClient.shared.closeShellSession(handle: handle)
+            fileHandle.closeFile()
         }
     }
 #endif
