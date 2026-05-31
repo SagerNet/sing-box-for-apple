@@ -169,7 +169,7 @@ struct TailscaleSSHTerminalWindow: View {
                 forwardAgent: session.forwardAgent
             ))
             return nil
-        case "q":
+        case "q", "w":
             host.close()
             return nil
         default:
