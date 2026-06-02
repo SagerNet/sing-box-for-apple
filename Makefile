@@ -52,15 +52,15 @@ release_macos_standalone: release_macos_dmg release_macos_pkg
 # Archive commands
 archive_macos_standalone_apple:
 	rm -rf build/SFM.System-arm64.xcarchive
-	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-arm64.xcarchive ARCHS=arm64 -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
+	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-arm64.xcarchive -derivedDataPath build/SFM.System-arm64.dd ARCHS=arm64 -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
 
 archive_macos_standalone_intel:
 	rm -rf build/SFM.System-x86_64.xcarchive
-	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-x86_64.xcarchive ARCHS=x86_64 -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
+	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-x86_64.xcarchive -derivedDataPath build/SFM.System-x86_64.dd ARCHS=x86_64 -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
 
 archive_macos_standalone_universal:
 	rm -rf build/SFM.System-universal.xcarchive
-	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-universal.xcarchive -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
+	xcodebuild archive -scheme SFM.System -configuration Release -archivePath build/SFM.System-universal.xcarchive -derivedDataPath build/SFM.System-universal.dd -allowProvisioningUpdates | xcbeautify | grep -A 10 -e "Archive Succeeded" -e "ARCHIVE FAILED" -e "❌"
 
 archive_macos_standalone: archive_macos_standalone_apple archive_macos_standalone_intel archive_macos_standalone_universal
 
@@ -243,5 +243,8 @@ clean:
 	rm -rf build/SFM.System-arm64
 	rm -rf build/SFM.System-x86_64
 	rm -rf build/SFM.System-universal
+	rm -rf build/SFM.System-arm64.dd
+	rm -rf build/SFM.System-x86_64.dd
+	rm -rf build/SFM.System-universal.dd
 	rm -f build/SFM-Apple.dmg build/SFM-Intel.dmg build/SFM-Universal.dmg
 	rm -f build/SFM-Apple.pkg build/SFM-Intel.pkg build/SFM-Universal.pkg
