@@ -34,6 +34,7 @@
 		3AAAFB2E2EF5218F004C69AD /* FileProviderExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3AAAFB202EF5218F004C69AD /* FileProviderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3AAAFE172EF52772004C69AD /* FileProvider.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AAAFE162EF52772004C69AD /* FileProvider.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		3AC194492A50013F00BD8CB9 /* IntentsExtension.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 3A77016D2A4E6B34008F031F /* IntentsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3AC89DD52FCD9E3B002A14E8 /* DeviceKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3AC89DD42FCD9E3B002A14E8 /* DeviceKit */; };
 		3ACE5E032EE1A91300644196 /* CodeEditSourceEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 3ACE5E022EE1A91200644196 /* CodeEditSourceEditor */; };
 		3AE1719A2A8128DD00393060 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF342B12A4AA520002B34AC /* NetworkExtension.framework */; };
 		3AE171A62A81294400393060 /* TVExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3AE171992A8128DD00393060 /* TVExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -751,6 +752,7 @@
 				3AFE19402EF5677100F61E06 /* SystemConfiguration.framework in Frameworks */,
 				3A76504C2A4F08BA003945C5 /* Libbox.xcframework in Frameworks */,
 				3A5AA1BA2F7DB10900BA2A0D /* CrashReporter in Frameworks */,
+				3AC89DD52FCD9E3B002A14E8 /* DeviceKit in Frameworks */,
 				3A7E90382A46778E00D53052 /* BinaryCodable in Frameworks */,
 				3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */,
 			);
@@ -1218,6 +1220,7 @@
 				3A7E90372A46778E00D53052 /* BinaryCodable */,
 				3A017F912A4AB2E4009149FA /* GRDB */,
 				3A5AA1B92F7DB10900BA2A0D /* CrashReporter */,
+				3AC89DD42FCD9E3B002A14E8 /* DeviceKit */,
 			);
 			productName = Library;
 			productReference = 3AEC211D2A459B4700A63465 /* Library.framework */;
@@ -1387,6 +1390,7 @@
 				3A4CA8CA2F75381F009C36CA /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 				3A5AA1B82F7DB10900BA2A0D /* XCRemoteSwiftPackageReference "plcrashreporter" */,
 				3AC6CFCF2FC07CA200F5B0AE /* XCRemoteSwiftPackageReference "libghostty-spm" */,
+				3AC89DD32FCD9E3B002A14E8 /* XCRemoteSwiftPackageReference "DeviceKit" */,
 			);
 			productRefGroup = 3AEC20C72A45991900A63465 /* Products */;
 			projectDirPath = "";
@@ -3393,6 +3397,14 @@
 				minimumVersion = 1.1.10;
 			};
 		};
+		3AC89DD32FCD9E3B002A14E8 /* XCRemoteSwiftPackageReference "DeviceKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devicekit/DeviceKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.8.0;
+			};
+		};
 		3ACE5E012EE1A91100644196 /* XCRemoteSwiftPackageReference "CodeEditSourceEditor" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/nekohasekai/CodeEditSourceEditor.git";
@@ -3438,6 +3450,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A7E90362A46778E00D53052 /* XCRemoteSwiftPackageReference "BinaryCodable" */;
 			productName = BinaryCodable;
+		};
+		3AC89DD42FCD9E3B002A14E8 /* DeviceKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3AC89DD32FCD9E3B002A14E8 /* XCRemoteSwiftPackageReference "DeviceKit" */;
+			productName = DeviceKit;
 		};
 		3ACE5E022EE1A91200644196 /* CodeEditSourceEditor */ = {
 			isa = XCSwiftPackageProductDependency;
