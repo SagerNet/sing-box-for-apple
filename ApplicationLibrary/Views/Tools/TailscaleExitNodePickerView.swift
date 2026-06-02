@@ -25,7 +25,7 @@ public struct TailscaleExitNodePickerView: View {
         var rows: [(TailscaleUserGroupData, TailscalePeerData)] = []
         for group in endpoint.userGroups {
             for peer in group.peers where peer.exitNodeOption && peer.stableID != selfStableID {
-                if searchText.isEmpty || peer.hostName.localizedCaseInsensitiveContains(searchText) {
+                if searchText.isEmpty || peer.displayName.localizedCaseInsensitiveContains(searchText) || peer.hostName.localizedCaseInsensitiveContains(searchText) {
                     rows.append((group, peer))
                 }
             }
@@ -61,7 +61,7 @@ public struct TailscaleExitNodePickerView: View {
                             .font(.system(size: 8))
                             .foregroundStyle(row.peer.online ? .green : Color(.systemGray))
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(row.peer.hostName)
+                            Text(row.peer.displayName)
                                 .foregroundStyle(.foreground)
                                 .lineLimit(1)
                             if let firstIP = row.peer.tailscaleIPs.first {

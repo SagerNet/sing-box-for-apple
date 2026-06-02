@@ -21,6 +21,11 @@ public struct TailscalePeerData: Identifiable {
     public let txBytes: Int64
     public let keyExpiry: Int64
     public let lastSeen: Int64
+
+    public var displayName: String {
+        let segment = dnsName.split(separator: ".").first.map(String.init) ?? ""
+        return segment.isEmpty ? hostName : segment
+    }
 }
 
 public struct TailscaleUserGroupData: Identifiable {
@@ -41,6 +46,7 @@ public struct TailscaleEndpointData: Identifiable {
     public let selfPeer: TailscalePeerData?
     public let exitNode: TailscalePeerData?
     public let userGroups: [TailscaleUserGroupData]
+    public let keyAuth: Bool
 
     public var hasExitNodeCandidates: Bool {
         if exitNode != nil { return true }
@@ -98,6 +104,16 @@ public final class TailscaleStatusViewModel: BaseViewModel {
             }.value
         } catch {
             alert = AlertState(action: "set exit node", error: error)
+        }
+    }
+
+    public func logout(endpointTag: String) async {
+        do {
+            try await Task.detached {
+                try LibboxNewStandaloneCommandClient()!.tailscaleLogout(endpointTag)
+            }.value
+        } catch {
+            alert = AlertState(action: "logout", error: error)
         }
     }
 
@@ -184,7 +200,8 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 magicDNSSuffix: endpoint.magicDNSSuffix,
                 selfPeer: endpoint.self_ != nil ? convertPeer(endpoint.self_!) : nil,
                 exitNode: endpoint.exitNode != nil ? convertPeer(endpoint.exitNode!) : nil,
-                userGroups: userGroups
+                userGroups: userGroups,
+                keyAuth: endpoint.keyAuth
             )
         }
 

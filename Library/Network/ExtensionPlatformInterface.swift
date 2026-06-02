@@ -6,6 +6,9 @@ import UserNotifications
 #if os(macOS)
     import CoreWLAN
 #endif
+#if os(iOS) || os(tvOS)
+    import DeviceKit
+#endif
 
 public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol, LibboxCommandServerHandlerProtocol {
     private static let logger = Logger(category: "ExtensionPlatformInterface")
@@ -640,23 +643,35 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
-    public func readSystemSSHHostKey() throws -> LibboxStringBox {
+    public func readSystemSSHHostKey(_ error: NSErrorPointer) -> String {
         #if os(macOS)
-            let keyData = try RootHelperClient.shared.readSystemSSHHostKey()
-            let result = LibboxStringBox()
-            result.value = keyData
-            return result
+            do {
+                return try RootHelperClient.shared.readSystemSSHHostKey()
+            } catch let keyError {
+                error?.pointee = keyError as NSError
+                return ""
+            }
         #else
-            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+            error?.pointee = NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
                 NSLocalizedDescriptionKey: "not supported on this platform",
             ])
+            return ""
         #endif
     }
 
-    public func lookupSFTPServer() throws -> LibboxStringBox {
-        throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+    public func lookupSFTPServer(_ error: NSErrorPointer) -> String {
+        error?.pointee = NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
             NSLocalizedDescriptionKey: "lookupSFTPServer is not supported on Apple platforms",
         ])
+        return ""
+    }
+
+    public func tailscaleHostname() -> String {
+        #if os(iOS) || os(tvOS)
+            return Device.current.safeDescription
+        #else
+            return ""
+        #endif
     }
 
     public func lookupUser(_ username: String?) throws -> LibboxPlatformUser {

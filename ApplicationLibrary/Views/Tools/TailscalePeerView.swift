@@ -13,6 +13,9 @@ public struct TailscalePeerView: View {
     let peer: TailscalePeerData
     let endpointTag: String
     let isSelf: Bool
+    let networkName: String
+    let canLogout: Bool
+    let onLogout: (() -> Void)?
 
     @State private var copiedAddress: String?
     @StateObject private var pingViewModel = TailscalePingViewModel()
@@ -25,17 +28,37 @@ public struct TailscalePeerView: View {
         @Environment(\.openWindow) private var openWindow
     #endif
 
-    public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool) {
+    public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool, networkName: String = "", canLogout: Bool = false, onLogout: (() -> Void)? = nil) {
         self.peer = peer
         self.endpointTag = endpointTag
         self.isSelf = isSelf
+        self.networkName = networkName
+        self.canLogout = canLogout
+        self.onLogout = onLogout
     }
 
     public var body: some View {
         FormView {
+            if isSelf, !networkName.isEmpty || (canLogout && onLogout != nil) {
+                Section("Network") {
+                    if !networkName.isEmpty {
+                        addressRow(networkName, label: "Network")
+                    }
+                    if canLogout, let onLogout {
+                        FormButton(role: .destructive) {
+                            onLogout()
+                        } label: {
+                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    }
+                }
+            }
             Section("Tailscale Addresses") {
                 if !peer.dnsName.isEmpty {
                     addressRow(LibboxFormatFQDN(peer.dnsName), label: "MagicDNS")
+                }
+                if !peer.hostName.isEmpty {
+                    addressRow(peer.hostName, label: String(localized: "Hostname"))
                 }
                 ForEach(Array(peer.tailscaleIPs.enumerated()), id: \.offset) { _, ip in
                     if ip.contains(":") {
@@ -141,7 +164,7 @@ public struct TailscalePeerView: View {
                 }
             }
         }
-        .navigationTitle(peer.hostName)
+        .navigationTitle(peer.displayName)
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #elseif os(macOS)
@@ -151,7 +174,7 @@ public struct TailscalePeerView: View {
                 #if !os(macOS)
                     ToolbarItem(placement: .principal) {
                         VStack(spacing: 4) {
-                            Text(peer.hostName)
+                            Text(peer.displayName)
                                 .font(.headline)
                             HStack(spacing: 4) {
                                 Image(systemName: "circle.fill")

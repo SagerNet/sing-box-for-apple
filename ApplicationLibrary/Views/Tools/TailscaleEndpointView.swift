@@ -37,14 +37,21 @@ public struct TailscaleEndpointView: View {
                             Text(endpoint.backendState)
                         }
                     }
-                    if !endpoint.networkName.isEmpty {
-                        FormTextItem("Network", "network") {
-                            Text(endpoint.networkName)
-                        }
-                    }
-                    if !endpoint.magicDNSSuffix.isEmpty {
-                        FormTextItem("MagicDNS", "globe") {
-                            Text(endpoint.magicDNSSuffix)
+                    if endpoint.backendState == "Running", let selfPeer = endpoint.selfPeer {
+                        FormNavigationLink {
+                            TailscalePeerView(peer: selfPeer, endpointTag: endpointTag, isSelf: true, networkName: endpoint.networkName, canLogout: !endpoint.keyAuth, onLogout: {
+                                Task {
+                                    await viewModel.logout(endpointTag: endpointTag)
+                                }
+                            })
+                        } label: {
+                            HStack {
+                                Label("This Device", systemImage: "laptopcomputer")
+                                Spacer()
+                                Text(selfPeer.displayName)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
                         }
                     }
                     if endpoint.backendState == "Running", endpoint.hasExitNodeCandidates {
@@ -54,7 +61,7 @@ public struct TailscaleEndpointView: View {
                             HStack {
                                 Label("Exit Node", systemImage: "arrow.triangle.turn.up.right.diamond")
                                 Spacer()
-                                Text(endpoint.exitNode?.hostName ?? String(localized: "Disabled"))
+                                Text(endpoint.exitNode?.displayName ?? String(localized: "Disabled"))
                                     .foregroundColor(.secondary)
                                     .lineLimit(1)
                             }
@@ -73,12 +80,6 @@ public struct TailscaleEndpointView: View {
                                 Label("Open Auth URL as QR Code", systemImage: "qrcode")
                             }
                         }
-                    }
-                }
-
-                if endpoint.backendState == "Running", let selfPeer = endpoint.selfPeer {
-                    Section("This Device") {
-                        peerLink(selfPeer, isSelf: true)
                     }
                 }
 
@@ -138,7 +139,7 @@ public struct TailscaleEndpointView: View {
                     .font(.system(size: 8))
                     .foregroundStyle(peer.online ? .green : Color(.systemGray))
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(peer.hostName)
+                    Text(peer.displayName)
                     if let firstIP = peer.tailscaleIPs.first {
                         Text(firstIP)
                             .font(.caption)
@@ -197,6 +198,7 @@ public struct TailscaleEndpointView: View {
     #endif
 
     private func peerBadges(_ peer: TailscalePeerData) -> [PeerBadge] {
+        guard peer.online else { return [] }
         var badges: [PeerBadge] = []
         if peer.shareeNode {
             badges.append(PeerBadge(id: "sharee", text: "Shared in", color: .red))
