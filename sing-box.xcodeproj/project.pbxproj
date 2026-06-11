@@ -491,6 +491,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Application.swift,
+				LibcxxCompat.c,
 			);
 			target = 3AEC21082A459B1900A63465 /* SFM */;
 		};
@@ -498,6 +499,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Application.swift,
+				LibcxxCompat.c,
 				StandaloneApplicationDelegate.swift,
 			);
 			target = 3AEECC032A6DF9CA006A0E0C /* SFM.System */;
