@@ -28,36 +28,59 @@ private struct LogViewContent: View {
     }
 
     var body: some View {
-        LogContentInnerView(dataModel: viewModel.dataModel, viewModel: viewModel)
-        #if !os(tvOS)
-            .applySearchable(text: $viewModel.searchText, isSearching: $viewModel.isSearching, shouldShow: viewModel.isSearching)
-            .toolbar {
-                ToolbarItemGroup {
-                    toolbarButtons
+        #if os(tvOS)
+            LogContentInnerView(dataModel: viewModel.dataModel, viewModel: viewModel)
+        #else
+            contentWithToolbar
+                .onDisappear {
+                    environments.logSearchText = viewModel.searchText
                 }
-            }
-            .onDisappear {
-                environments.logSearchText = viewModel.searchText
-            }
-            .alert($viewModel.alert)
-            .background(
-                LogExportView(
-                    showFileExporter: Binding(
-                        get: { viewModel.dataModel.showFileExporter },
-                        set: { viewModel.dataModel.showFileExporter = $0 }
-                    ),
-                    logFileURL: Binding(
-                        get: { viewModel.dataModel.logFileURL },
-                        set: { viewModel.dataModel.logFileURL = $0 }
-                    ),
-                    alert: $viewModel.alert,
-                    cleanup: { viewModel.dataModel.cleanupLogFile() }
+                .alert($viewModel.alert)
+                .background(
+                    LogExportView(
+                        showFileExporter: Binding(
+                            get: { viewModel.dataModel.showFileExporter },
+                            set: { viewModel.dataModel.showFileExporter = $0 }
+                        ),
+                        logFileURL: Binding(
+                            get: { viewModel.dataModel.logFileURL },
+                            set: { viewModel.dataModel.logFileURL = $0 }
+                        ),
+                        alert: $viewModel.alert,
+                        cleanup: { viewModel.dataModel.cleanupLogFile() }
+                    )
                 )
-            )
         #endif
     }
 
     #if !os(tvOS)
+        private var searchableContent: some View {
+            LogContentInnerView(dataModel: viewModel.dataModel, viewModel: viewModel)
+                .applySearchable(text: $viewModel.searchText, isSearching: $viewModel.isSearching, shouldShow: viewModel.isSearching)
+        }
+
+        @ViewBuilder
+        private var contentWithToolbar: some View {
+            if #available(iOS 16.0, *) {
+                searchableContent.toolbar {
+                    ToolbarItemGroup {
+                        toolbarButtons
+                        logMenu
+                    }
+                }
+            } else {
+                // iOS 15 renders only one trailing toolbar entry; group all buttons into a single item
+                searchableContent.toolbar {
+                    ToolbarItem {
+                        HStack {
+                            toolbarButtons
+                            logMenu
+                        }
+                    }
+                }
+            }
+        }
+
         @ViewBuilder
         private var toolbarButtons: some View {
             if #available(iOS 17.0, macOS 14.0, *) {
@@ -71,10 +94,18 @@ private struct LogViewContent: View {
                     systemImage: viewModel.isPaused ? "play.circle" : "pause.circle"
                 )
             }
+        }
+
+        private var logMenu: AnyView {
             #if canImport(UIKit)
-                LogMenuButton(viewModel: viewModel)
+                if #available(iOS 16.0, *) {
+                    return AnyView(LogMenuButton(viewModel: viewModel))
+                } else {
+                    // UIViewRepresentable views collapse to zero size in iOS 15 toolbars
+                    return AnyView(LogMenuView(viewModel: viewModel))
+                }
             #else
-                LogMenuView(viewModel: viewModel)
+                return AnyView(LogMenuView(viewModel: viewModel))
             #endif
         }
     #endif
@@ -171,54 +202,65 @@ private struct LogViewContent: View {
         }
     #endif
 
-    #if canImport(AppKit)
-        private struct LogMenuView: View {
-            let viewModel: LogViewModel
+    private struct LogMenuView: View {
+        let viewModel: LogViewModel
 
-            var body: some View {
-                Menu {
-                    Picker(selection: Binding(
-                        get: { viewModel.selectedLogLevel },
-                        set: { viewModel.selectedLogLevel = $0 }
-                    )) {
-                        Text(NSLocalizedString("Default", comment: "Log level filter default option")).tag(Int?.none)
-                        ForEach(LogLevel.allCases) { level in
-                            Text(level.name).tag(Int?.some(level.rawValue))
-                        }
+        var body: some View {
+            Menu {
+                if #unavailable(iOS 16.0) {
+                    // iOS 15 renders a bare Picker inline; wrap it to match the iOS 16+ submenu
+                    Menu {
+                        logLevelPicker
                     } label: {
                         Label("Log Level", systemImage: "slider.horizontal.3")
                     }
-                    Menu {
-                        Button {
-                            viewModel.dataModel.copyToClipboard()
-                        } label: {
-                            Label("To Clipboard", systemImage: "doc.on.clipboard")
-                        }
-                        Button {
-                            viewModel.dataModel.prepareLogFile()
-                            viewModel.dataModel.showFileExporter = true
-                        } label: {
-                            Label("To File", systemImage: "arrow.down.doc")
-                        }
-                        Button {
-                            viewModel.dataModel.prepareLogFile()
-                        } label: {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                        }
+                } else {
+                    logLevelPicker
+                }
+                Menu {
+                    Button {
+                        viewModel.dataModel.copyToClipboard()
                     } label: {
-                        Label("Save", systemImage: "square.and.arrow.down")
+                        Label("To Clipboard", systemImage: "doc.on.clipboard")
                     }
-                    Button(role: .destructive) {
-                        viewModel.dataModel.clearLogs()
+                    Button {
+                        viewModel.dataModel.prepareLogFile()
+                        viewModel.dataModel.showFileExporter = true
                     } label: {
-                        Label(NSLocalizedString("Clear Logs", comment: "Clear all logs"), systemImage: "trash")
+                        Label("To File", systemImage: "arrow.down.doc")
+                    }
+                    Button {
+                        viewModel.dataModel.prepareLogFile()
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
                     }
                 } label: {
-                    Label("Filter", systemImage: "line.3.horizontal.circle")
+                    Label("Save", systemImage: "square.and.arrow.down")
                 }
+                Button(role: .destructive) {
+                    viewModel.dataModel.clearLogs()
+                } label: {
+                    Label(NSLocalizedString("Clear Logs", comment: "Clear all logs"), systemImage: "trash")
+                }
+            } label: {
+                Label("Filter", systemImage: "line.3.horizontal.circle")
             }
         }
-    #endif
+
+        private var logLevelPicker: some View {
+            Picker(selection: Binding(
+                get: { viewModel.selectedLogLevel },
+                set: { viewModel.selectedLogLevel = $0 }
+            )) {
+                Text(NSLocalizedString("Default", comment: "Log level filter default option")).tag(Int?.none)
+                ForEach(LogLevel.allCases) { level in
+                    Text(level.name).tag(Int?.some(level.rawValue))
+                }
+            } label: {
+                Label("Log Level", systemImage: "slider.horizontal.3")
+            }
+        }
+    }
 #endif
 
 private struct LogContentInnerView: View {
