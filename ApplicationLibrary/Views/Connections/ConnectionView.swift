@@ -1,4 +1,5 @@
 import Libbox
+import Library
 import SwiftUI
 
 @MainActor
@@ -119,7 +120,7 @@ public struct ConnectionView: View {
 
     private nonisolated func closeConnection() async {
         do {
-            try await LibboxNewStandaloneCommandClient()!.closeConnection(connection.id)
+            try await CommandTarget.standaloneClient().closeConnection(connection.id)
         } catch {
             await MainActor.run {
                 alert = AlertState(action: "close connection", error: error)

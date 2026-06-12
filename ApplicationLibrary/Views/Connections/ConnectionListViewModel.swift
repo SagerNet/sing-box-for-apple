@@ -88,7 +88,7 @@ public class ConnectionListViewModel: BaseViewModel {
 
     public func closeAllConnections() {
         do {
-            try LibboxNewStandaloneCommandClient()!.closeConnections()
+            try CommandTarget.standaloneClient().closeConnections()
         } catch {
             alert = AlertState(action: "close all connections", error: error)
         }

@@ -10,7 +10,6 @@
     public extension Notification.Name {
         static let extensionRequiresWIFIState = Notification.Name("extensionRequiresWIFIState")
         static let extensionRequiresHelperService = Notification.Name("extensionRequiresHelperService")
-        static let navigateToSettingsPage = Notification.Name("navigateToSettingsPage")
     }
 
     public final class UserServiceEndpointPublisher: NSObject, NSXPCListenerDelegate {

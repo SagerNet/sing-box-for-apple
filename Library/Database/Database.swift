@@ -55,6 +55,15 @@ enum Database {
                     }
                 }
             }
+            migrator.registerMigration("add_remote_servers") { db in
+                try db.create(table: "remote_servers") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("name", .text).notNull()
+                    t.column("order", .integer).notNull()
+                    t.column("url", .text).notNull()
+                    t.column("secret", .text).notNull().defaults(to: "")
+                }
+            }
             try migrator.migrate(database)
             return database
         } catch {

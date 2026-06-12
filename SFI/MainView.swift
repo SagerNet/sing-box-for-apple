@@ -74,7 +74,9 @@ struct MainView: View {
 
     @ViewBuilder
     private var accessoryInset: some View {
-        if let profile = environments.extensionProfile, !environments.extensionProfileLoading, !environments.emptyProfiles {
+        if environments.remoteServer != nil {
+            remoteStatusBarPill
+        } else if let profile = environments.extensionProfile, !environments.extensionProfileLoading, !environments.emptyProfiles {
             AccessoryInset(profile: profile) {
                 statusBarPill
             } fab: {
@@ -102,6 +104,66 @@ struct MainView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 12)
+    }
+
+    private var remoteStatusBarPill: some View {
+        remoteAccessoryContent
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
+            .modifier(AccessoryPillBackgroundModifier(cornerRadius: 22))
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+    }
+
+    private var remoteAccessoryContent: some View {
+        HStack(spacing: 12) {
+            RemoteStatusText(
+                commandClient: environments.commandClient,
+                serverName: environments.remoteServer?.displayName ?? ""
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            NavigationButtonsView(
+                showGroupsButton: buttonState.showGroupsButton,
+                showConnectionsButton: buttonState.showConnectionsButton,
+                groupsCount: buttonState.groupsCount,
+                connectionsCount: buttonState.connectionsCount,
+                onGroupsTap: { showGroups = true },
+                onConnectionsTap: { showConnections = true }
+            )
+            Divider()
+            RemoteUptimeText(commandClient: environments.commandClient)
+            Button {
+                environments.exitRemoteControl()
+            } label: {
+                Label("Disconnect", systemImage: "antenna.radiowaves.left.and.right.slash")
+                    .labelStyle(.iconOnly)
+            }
+        }
+        .padding(.horizontal)
+        .tint(.primary)
+        .buttonStyle(BarItemButtonStyle())
+    }
+
+    private struct RemoteStatusText: View {
+        @ObservedObject var commandClient: CommandClient
+        let serverName: String
+
+        var body: some View {
+            statusText
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+        }
+
+        private var statusText: Text {
+            if commandClient.isConnected {
+                return Text(serverName)
+            } else {
+                return Text("Connecting...")
+            }
+        }
     }
 
     private struct AccessoryPillBackgroundModifier: ViewModifier {
@@ -162,6 +224,15 @@ struct MainView: View {
                 .onReceive(environments.commandClient.$hasAnyConnection) { _ in
                     Task { @MainActor in updateButtonVisibility() }
                 }
+                .onReceive(environments.commandClient.$isConnected) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .onReceive(environments.commandClient.statusPublisher) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
+                .onReceive(environments.$remoteServer) { _ in
+                    Task { @MainActor in updateButtonVisibility() }
+                }
                 .onReceive(NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)) { _ in
                     Task { @MainActor in updateButtonVisibility() }
                 }
@@ -200,6 +271,10 @@ struct MainView: View {
                 selection = .tools
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToSettingsPage)) { notification in
+            guard notification.object is SettingsPage else { return }
+            selection = .settings
+        }
         .environment(\.selection, $selection)
         .environment(\.importProfile, $importProfile)
         .environment(\.importRemoteProfile, $importRemoteProfile)
@@ -210,10 +285,18 @@ struct MainView: View {
     }
 
     private func updateButtonVisibility() {
-        buttonState.update(
-            profile: environments.extensionProfile,
-            commandClient: environments.commandClient
-        )
+        var newState = buttonState
+        if environments.remoteServer != nil {
+            newState.update(remoteClient: environments.commandClient)
+        } else {
+            newState.update(
+                profile: environments.extensionProfile,
+                commandClient: environments.commandClient
+            )
+        }
+        if newState != buttonState {
+            buttonState = newState
+        }
     }
 
     private struct AccessoryInset<StatusBar: View, FAB: View>: View {

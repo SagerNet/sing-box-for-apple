@@ -513,7 +513,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         let shouldConnect = speedMode != .disabled && environments.extensionProfile?.status.isConnectedStrict == true
         if shouldConnect {
             if commandClient == nil {
-                commandClient = CommandClient(.status)
+                commandClient = CommandClient(.status, localOnly: true)
                 commandClient!.statusPublisher
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] status in

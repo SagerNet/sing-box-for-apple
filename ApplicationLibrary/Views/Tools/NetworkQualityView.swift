@@ -81,7 +81,9 @@ public struct NetworkQualityView: View {
                     }
                 }
                 .disabled(viewModel.isRunning)
-                if let profile = environments.extensionProfile {
+                if environments.remoteServer != nil {
+                    RemoteToolOutboundSection(commandClient: environments.commandClient, viewModel: viewModel)
+                } else if let profile = environments.extensionProfile {
                     ToolOutboundSection(profile: profile, viewModel: viewModel)
                 }
             }
@@ -95,7 +97,7 @@ public struct NetworkQualityView: View {
                     }
                 } else {
                     FormButton {
-                        viewModel.requestStartTest(vpnConnected: environments.extensionProfile?.status.isConnectedStrict == true)
+                        viewModel.requestStartTest(vpnConnected: environments.serviceAvailable)
                     } label: {
                         Label("Start Test", systemImage: "play.fill")
                     }

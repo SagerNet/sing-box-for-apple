@@ -8,21 +8,17 @@ import SwiftUI
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
     @ObservedObject private var coordinator: DashboardViewModel
-    @StateObject private var cardConfiguration = DashboardCardConfiguration()
-    #if os(iOS) || os(tvOS)
-        @State private var showCardManagement = false
-    #endif
+    @ObservedObject private var cardConfiguration: DashboardCardConfiguration
     #if os(tvOS)
+        @State private var showCardManagement = false
         @State private var showGroups = false
         @State private var showConnections = false
         @State private var buttonState = ButtonVisibilityState()
     #endif
-    #if os(macOS)
-        @Environment(\.cardConfigurationVersion) private var cardConfigurationVersion
-    #endif
 
-    public init(coordinator: DashboardViewModel) {
+    public init(coordinator: DashboardViewModel, cardConfiguration: DashboardCardConfiguration) {
         _coordinator = ObservedObject(wrappedValue: coordinator)
+        _cardConfiguration = ObservedObject(wrappedValue: cardConfiguration)
     }
 
     public var body: some View {
@@ -62,11 +58,20 @@ import SwiftUI
         Group {
             overviewPage
         }
-        #if os(iOS) || os(tvOS)
+        #if os(tvOS)
         .toolbar {
-            toolbar
+            ToolbarItemGroup(placement: .topBarLeading) {
+                navigationButtons
+            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    showCardManagement = true
+                } label: {
+                    Image(systemName: "square.grid.2x2")
+                }
+                StartStopButton()
+            }
         }
-            #if os(tvOS)
         .navigationDestination(isPresented: $showGroups) {
             GroupListView()
                 .navigationTitle("Groups")
@@ -96,58 +101,42 @@ import SwiftUI
                 }
             }
         }
-            #else
-        .sheet(isPresented: $showCardManagement, onDismiss: {
-                        Task { await cardConfiguration.reload() }
-                    }, content: {
-                        if #available(iOS 16.0, *) {
-                            CardManagementSheet().presentationDetents([.large]).presentationDragIndicator(.visible)
-                        } else {
-                            CardManagementSheet()
-                        }
-                    })
-            #endif
         #endif
         .onAppear {
-                environments.connect()
-            }.onChangeCompat(of: scenePhase) { phase in
-                guard phase == .active else {
-                    return
-                }
-                environments.connect()
-            }.onChangeCompat(of: profile.status) { status in
-                guard status.isConnected else {
-                    return
-                }
-                environments.connect()
-            }.onReceive(environments.profileUpdate) { _ in
-                Task {
-                    await coordinator.reload()
-                }
-            }.onReceive(environments.selectedProfileUpdate) { _ in
-                Task {
-                    await coordinator.updateSelectedProfile()
-                    if profile.status.isConnected {
-                        await coordinator.reloadSystemProxy()
-                    }
+            environments.connect()
+        }.onChangeCompat(of: scenePhase) { phase in
+            guard phase == .active else {
+                return
+            }
+            environments.connect()
+        }.onChangeCompat(of: profile.status) { status in
+            guard status.isConnected else {
+                return
+            }
+            environments.connect()
+        }.onReceive(environments.profileUpdate) { _ in
+            Task {
+                await coordinator.reload()
+            }
+        }.onReceive(environments.selectedProfileUpdate) { _ in
+            Task {
+                await coordinator.updateSelectedProfile()
+                if profile.status.isConnected {
+                    await coordinator.reloadSystemProxy()
                 }
             }
+        }
         #if os(tvOS)
-            .onReceive(environments.commandClient.$groups) { _ in
-                Task { @MainActor in
-                    updateButtonVisibility()
-                }
-            }.onReceive(profile.$status) { _ in
-                Task { @MainActor in
-                    updateButtonVisibility()
-                }
-            }.onAppear {
+        .onReceive(environments.commandClient.$groups) { _ in
+            Task { @MainActor in
                 updateButtonVisibility()
             }
-        #endif
-        #if os(macOS)
-            .onChangeCompat(of: cardConfigurationVersion) { _ in
-                Task { await cardConfiguration.reload() }
+        }.onReceive(profile.$status) { _ in
+            Task { @MainActor in
+                updateButtonVisibility()
+            }
+        }.onAppear {
+            updateButtonVisibility()
         }
         #endif
     }
@@ -166,62 +155,20 @@ import SwiftUI
         private func updateButtonVisibility() {
             buttonState.update(profile: profile, commandClient: environments.commandClient)
         }
-    #endif
 
-    #if os(iOS) || os(tvOS)
-        @ToolbarContentBuilder private var toolbar: some ToolbarContent {
-            #if os(tvOS)
-                ToolbarItemGroup(placement: .topBarLeading) {
-                    navigationButtons
+        private var navigationButtons: some View {
+            NavigationButtonsView(
+                showGroupsButton: buttonState.showGroupsButton,
+                showConnectionsButton: buttonState.showConnectionsButton,
+                groupsCount: buttonState.groupsCount,
+                connectionsCount: buttonState.connectionsCount,
+                onGroupsTap: {
+                    showGroups = true
+                },
+                onConnectionsTap: {
+                    showConnections = true
                 }
-            #endif
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                if #available(iOS 16.0, tvOS 17.0, *) {
-                    cardManagementButton
-                }
-                #if os(tvOS)
-                    StartStopButton()
-                #endif
-            }
-        }
-
-        #if os(tvOS)
-            private var navigationButtons: some View {
-                NavigationButtonsView(
-                    showGroupsButton: buttonState.showGroupsButton,
-                    showConnectionsButton: buttonState.showConnectionsButton,
-                    groupsCount: buttonState.groupsCount,
-                    connectionsCount: buttonState.connectionsCount,
-                    onGroupsTap: {
-                        showGroups = true
-                    },
-                    onConnectionsTap: {
-                        showConnections = true
-                    }
-                )
-            }
-        #endif
-    #endif
-
-    #if os(iOS) || os(tvOS)
-        @available(iOS 16.0, *) @ViewBuilder private var cardManagementButton: some View {
-            #if os(iOS)
-                Menu {
-                    Button {
-                        showCardManagement = true
-                    } label: {
-                        Label("Dashboard Items", systemImage: "square.grid.2x2")
-                    }
-                } label: {
-                    Label("Others", systemImage: "line.3.horizontal.circle")
-                }
-            #elseif os(tvOS)
-                Button {
-                    showCardManagement = true
-                } label: {
-                    Image(systemName: "square.grid.2x2")
-                }
-            #endif
+            )
         }
     #endif
 }
