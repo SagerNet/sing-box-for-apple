@@ -142,7 +142,7 @@ public final class NetworkQualityViewModel: BaseViewModel, OutboundSelectable {
             Task { [weak self] in
                 do {
                     let session = try await Task.detached {
-                        try LibboxNewStandaloneCommandClient()!.startNetworkQualityTest(configURL, outboundTag: outboundTag, serial: serial, maxRuntimeSeconds: maxRuntimeSeconds, http3: http3, handler: handler)
+                        try CommandTarget.standaloneClient().startNetworkQualityTest(configURL, outboundTag: outboundTag, serial: serial, maxRuntimeSeconds: maxRuntimeSeconds, http3: http3, handler: handler)
                     }.value
                     self?.nqSession = session
                 } catch {

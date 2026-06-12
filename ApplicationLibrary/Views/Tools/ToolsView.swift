@@ -11,6 +11,7 @@ public struct ToolsView: View {
     #if os(iOS)
         @State private var showCrashReportList = false
         @State private var showOOMReportList = false
+        @State private var remoteServers: [RemoteServer] = []
     #endif
     #if !os(tvOS)
         @State private var sshPromptPeer: TailscalePeerData?
@@ -75,112 +76,145 @@ public struct ToolsView: View {
                 }
             }
 
-            Section("Debug") {
-                #if os(iOS)
-                    NavigationLink(isActive: $showCrashReportList) {
-                        CrashReportListView()
-                    } label: {
-                        Label("Crash Report", systemImage: "ladybug.fill")
-                            .badge(environments.crashReportManager.unreadCount)
-                    }
-                    .onReceive(NotificationCenter.default.publisher(for: .reportReceived)) { notification in
-                        Task {
-                            try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * 300)
-                            if let reportType = notification.object as? ReportType {
-                                switch reportType {
-                                case .crash:
-                                    showCrashReportList = true
-                                case .oom:
-                                    showOOMReportList = true
+            // Crash/OOM reports and device checks read the local device, which the
+            // remote control API does not reach.
+            if environments.remoteServer == nil {
+                Section("Debug") {
+                    #if os(iOS)
+                        NavigationLink(isActive: $showCrashReportList) {
+                            CrashReportListView()
+                        } label: {
+                            Label("Crash Report", systemImage: "ladybug.fill")
+                                .badge(environments.crashReportManager.unreadCount)
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .reportReceived)) { notification in
+                            Task {
+                                try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * 300)
+                                if let reportType = notification.object as? ReportType {
+                                    switch reportType {
+                                    case .crash:
+                                        showCrashReportList = true
+                                    case .oom:
+                                        showOOMReportList = true
+                                    }
                                 }
                             }
                         }
-                    }
-                    NavigationLink(isActive: $showOOMReportList) {
-                        OOMReportListView()
-                    } label: {
-                        Label("OOM Report", systemImage: "memorychip")
-                            .badge(environments.oomReportManager.unreadCount)
-                    }
-                #else
-                    FormNavigationLink {
-                        CrashReportListView()
-                    } label: {
-                        #if os(tvOS)
-                            HStack {
-                                Label("Crash Report", systemImage: "ladybug.fill")
-                                Spacer()
-                                if environments.crashReportManager.unreadCount > 0 {
-                                    Text(verbatim: "\(environments.crashReportManager.unreadCount)")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        #else
-                            Label("Crash Report", systemImage: "ladybug.fill")
-                                .badge(environments.crashReportManager.unreadCount)
-                        #endif
-                    }
-                #endif
-                #if !os(iOS)
-                    FormNavigationLink {
-                        OOMReportListView()
-                    } label: {
-                        #if os(tvOS)
-                            HStack {
-                                Label("OOM Report", systemImage: "memorychip")
-                                Spacer()
-                                if environments.oomReportManager.unreadCount > 0 {
-                                    Text(verbatim: "\(environments.oomReportManager.unreadCount)")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        #else
+                        NavigationLink(isActive: $showOOMReportList) {
+                            OOMReportListView()
+                        } label: {
                             Label("OOM Report", systemImage: "memorychip")
                                 .badge(environments.oomReportManager.unreadCount)
-                        #endif
-                    }
-                #endif
-                FormTextItem("Taiwan Flag Available", "touchid") {
-                    if viewModel.isLoading {
-                        Text("Loading...")
-                            .onAppear {
-                                Task.detached {
-                                    await viewModel.checkTaiwanFlagAvailability()
+                        }
+                    #else
+                        FormNavigationLink {
+                            CrashReportListView()
+                        } label: {
+                            #if os(tvOS)
+                                HStack {
+                                    Label("Crash Report", systemImage: "ladybug.fill")
+                                    Spacer()
+                                    if environments.crashReportManager.unreadCount > 0 {
+                                        Text(verbatim: "\(environments.crashReportManager.unreadCount)")
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
-                            }
-                    } else {
-                        Text(viewModel.taiwanFlagAvailable.toString())
+                            #else
+                                Label("Crash Report", systemImage: "ladybug.fill")
+                                    .badge(environments.crashReportManager.unreadCount)
+                            #endif
+                        }
+                    #endif
+                    #if !os(iOS)
+                        FormNavigationLink {
+                            OOMReportListView()
+                        } label: {
+                            #if os(tvOS)
+                                HStack {
+                                    Label("OOM Report", systemImage: "memorychip")
+                                    Spacer()
+                                    if environments.oomReportManager.unreadCount > 0 {
+                                        Text(verbatim: "\(environments.oomReportManager.unreadCount)")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            #else
+                                Label("OOM Report", systemImage: "memorychip")
+                                    .badge(environments.oomReportManager.unreadCount)
+                            #endif
+                        }
+                    #endif
+                    FormTextItem("Taiwan Flag Available", "touchid") {
+                        if viewModel.isLoading {
+                            Text("Loading...")
+                                .onAppear {
+                                    Task.detached {
+                                        await viewModel.checkTaiwanFlagAvailability()
+                                    }
+                                }
+                        } else {
+                            Text(viewModel.taiwanFlagAvailable.toString())
+                        }
                     }
                 }
             }
         }
-        .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, viewModel: tailscaleViewModel))
+        .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, viewModel: tailscaleViewModel))
         .alert($tailscaleViewModel.alert)
         .onAppear { tailscaleViewModel.peerStore = peerStore }
+        #if os(iOS)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !remoteServers.isEmpty {
+                        othersMenu
+                    }
+                }
+            }
+            .onAppear {
+                Task { await reloadRemoteServers() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .remoteServersUpdated)) { _ in
+                Task { await reloadRemoteServers() }
+            }
+        #endif
         #if !os(tvOS)
-            .platformSheet(item: $sshPromptPeer, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
-                if let session = pendingSSHSession {
-                    pendingSSHSession = nil
-                    sshPresentedSession = session
-                }
-            }) { peer in
-                TailscaleSSHPromptView(peer: peer, endpointTag: sshPromptEndpointTag, onConnect: { session in pendingSSHSession = session })
+        .platformSheet(item: $sshPromptPeer, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
+            if let session = pendingSSHSession {
+                pendingSSHSession = nil
+                sshPresentedSession = session
             }
+        }) { peer in
+            TailscaleSSHPromptView(peer: peer, endpointTag: sshPromptEndpointTag, onConnect: { session in pendingSSHSession = session })
+        }
             #if os(iOS)
-            .sheet(item: $sshPresentedSession) { presented in
-                NavigationStackCompat {
-                    TerminalSessionContainerView(presented)
-                }
+        .sheet(item: $sshPresentedSession) { presented in
+            NavigationStackCompat {
+                TerminalSessionContainerView(presented)
             }
+        }
             #elseif os(macOS)
-            .onChangeCompat(of: sshPresentedSession) { newValue in
-                guard let newValue else { return }
-                openWindow(value: newValue)
-                sshPresentedSession = nil
-            }
+        .onChangeCompat(of: sshPresentedSession) { newValue in
+            guard let newValue else { return }
+            openWindow(value: newValue)
+            sshPresentedSession = nil
+        }
             #endif
         #endif
     }
+
+    #if os(iOS)
+        private var othersMenu: some View {
+            Menu {
+                RemoteControlMenuItems(servers: remoteServers)
+            } label: {
+                Label("Others", systemImage: "line.3.horizontal.circle")
+            }
+        }
+
+        private func reloadRemoteServers() async {
+            remoteServers = await (try? RemoteServerManager.list()) ?? []
+        }
+    #endif
 
     #if !os(tvOS)
         private struct SSHPeerInfo: Identifiable {
@@ -234,14 +268,34 @@ public struct ToolsView: View {
 
 private struct TailscaleStatusObserver: ViewModifier {
     var profile: ExtensionProfile?
+    var remoteServerID: Int64?
     var viewModel: TailscaleStatusViewModel
 
     func body(content: Content) -> some View {
-        if let profile {
-            content
-                .modifier(ActiveObserver(profile: profile, viewModel: viewModel))
-        } else {
-            content
+        Group {
+            if remoteServerID != nil {
+                content
+                    .onAppear {
+                        viewModel.subscribe()
+                    }
+            } else if let profile {
+                content
+                    .modifier(ActiveObserver(profile: profile, viewModel: viewModel))
+            } else {
+                content
+            }
+        }
+        .onChangeCompat(of: remoteServerID) { newValue in
+            // Drop the previous target's subscription when switching between
+            // the local service and a remote server, or between two servers:
+            // a server without tailscale leaves no active stream to error out,
+            // so isSubscribed would stay stale without an explicit cancel.
+            viewModel.cancel()
+            if newValue != nil {
+                viewModel.subscribe()
+            } else if profile?.status.isConnectedStrict == true {
+                viewModel.subscribe()
+            }
         }
     }
 
