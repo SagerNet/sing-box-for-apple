@@ -135,10 +135,10 @@
             options.hostKeys = presentedSession.hostKeys.toStringIterator()
             options.forwardAgent = presentedSession.forwardAgent
 
-            let client = LibboxNewStandaloneCommandClient()!
-            commandClient = client
             let handler = SessionHandler(self)
             do {
+                let client = try CommandTarget.ownedStandaloneClient()
+                commandClient = client
                 libboxSession = try client.startTailscaleSSHSession(options, handler: handler)
             } catch {
                 phase = .finished(reason: .error(error.localizedDescription))

@@ -73,7 +73,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
         Task { [weak self] in
             do {
                 let subscription = try await Task.detached {
-                    try LibboxNewStandaloneCommandClient()!.subscribeTailscaleStatus(handler)
+                    try CommandTarget.standaloneClient().subscribeTailscaleStatus(handler)
                 }.value
                 self?.statusSubscription = subscription
             } catch {
@@ -100,7 +100,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
     public func setExitNode(endpointTag: String, stableID: String) async {
         do {
             try await Task.detached {
-                try LibboxNewStandaloneCommandClient()!.setTailscaleExitNode(endpointTag, stableID: stableID)
+                try CommandTarget.standaloneClient().setTailscaleExitNode(endpointTag, stableID: stableID)
             }.value
         } catch {
             alert = AlertState(action: "set exit node", error: error)
@@ -110,7 +110,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
     public func logout(endpointTag: String) async {
         do {
             try await Task.detached {
-                try LibboxNewStandaloneCommandClient()!.tailscaleLogout(endpointTag)
+                try CommandTarget.standaloneClient().tailscaleLogout(endpointTag)
             }.value
         } catch {
             alert = AlertState(action: "logout", error: error)
