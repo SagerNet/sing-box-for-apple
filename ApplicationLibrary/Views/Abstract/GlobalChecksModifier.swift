@@ -72,6 +72,13 @@ public struct GlobalChecksModifier: ViewModifier {
             .onChangeCompat(of: importRemoteProfile.wrappedValue) { _ in
                 Task { @MainActor in handleImportRemoteProfile() }
             }
+            .onReceive(environments.$remoteControlAlert) { alertState in
+                guard let alertState else { return }
+                Task { @MainActor in
+                    environments.remoteControlAlert = nil
+                    alert = alertState
+                }
+            }
             .background {
                 if let profile = environments.extensionProfile {
                     ProfileStatusObserver(profile: profile, onChange: handleStatusChange)
