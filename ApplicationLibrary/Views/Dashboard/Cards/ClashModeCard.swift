@@ -192,7 +192,7 @@ public struct ClashModeCard: View {
 
     private nonisolated func setClashMode(_ newMode: String) async {
         do {
-            try LibboxNewStandaloneCommandClient()!.setClashMode(newMode)
+            try CommandTarget.standaloneClient().setClashMode(newMode)
         } catch {
             await MainActor.run {
                 alert = AlertState(action: "set clash mode", error: error)

@@ -48,7 +48,7 @@ public struct TailscalePeerView: View {
                         FormButton(role: .destructive) {
                             onLogout()
                         } label: {
-                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right").foregroundColor(.red)
                         }
                     }
                 }

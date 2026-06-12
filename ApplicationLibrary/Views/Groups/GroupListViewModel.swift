@@ -81,7 +81,7 @@ public class GroupListViewModel: BaseViewModel {
 
     private nonisolated func doSelectOutbound(groupTag: String, outboundTag: String) async {
         do {
-            try await LibboxNewStandaloneCommandClient()!.selectOutbound(groupTag, outboundTag: outboundTag)
+            try await CommandTarget.standaloneClient().selectOutbound(groupTag, outboundTag: outboundTag)
         } catch {
             await MainActor.run {
                 alert = AlertState(action: "select outbound", error: error)
@@ -100,7 +100,7 @@ public class GroupListViewModel: BaseViewModel {
 
     private nonisolated func setGroupExpand(tag: String, isExpand: Bool) async {
         do {
-            try await LibboxNewStandaloneCommandClient()!.setGroupExpand(tag, isExpand: isExpand)
+            try await CommandTarget.standaloneClient().setGroupExpand(tag, isExpand: isExpand)
         } catch {
             await MainActor.run {
                 alert = AlertState(action: "update group expansion", error: error)
@@ -116,7 +116,7 @@ public class GroupListViewModel: BaseViewModel {
 
     private nonisolated func doURLTest(tag: String) async {
         do {
-            try await LibboxNewStandaloneCommandClient()!.urlTest(tag)
+            try await CommandTarget.standaloneClient().urlTest(tag)
         } catch {
             await MainActor.run {
                 alert = AlertState(action: "run URL test", error: error)

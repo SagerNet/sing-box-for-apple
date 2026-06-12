@@ -26,7 +26,7 @@ public final class TailscalePingViewModel: BaseViewModel {
         Task { [weak self] in
             do {
                 let session = try await Task.detached {
-                    try LibboxNewStandaloneCommandClient()!.startTailscalePing(endpointTag, peerIP: peerIP, handler: handler)
+                    try CommandTarget.standaloneClient().startTailscalePing(endpointTag, peerIP: peerIP, handler: handler)
                 }.value
                 self?.pingSession = session
             } catch {

@@ -63,7 +63,9 @@ public struct STUNTestView: View {
                         #endif
                     }
                 #endif
-                if let profile = environments.extensionProfile {
+                if environments.remoteServer != nil {
+                    RemoteToolOutboundSection(commandClient: environments.commandClient, viewModel: viewModel)
+                } else if let profile = environments.extensionProfile {
                     ToolOutboundSection(profile: profile, viewModel: viewModel)
                 }
             }
@@ -77,7 +79,7 @@ public struct STUNTestView: View {
                     }
                 } else {
                     FormButton {
-                        viewModel.startTest(vpnConnected: environments.extensionProfile?.status.isConnectedStrict == true)
+                        viewModel.startTest(vpnConnected: environments.serviceAvailable)
                     } label: {
                         Label("Start Test", systemImage: "play.fill")
                     }

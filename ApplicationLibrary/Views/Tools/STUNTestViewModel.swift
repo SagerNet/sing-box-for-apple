@@ -58,7 +58,7 @@ public final class STUNTestViewModel: BaseViewModel, OutboundSelectable {
             Task { [weak self] in
                 do {
                     let session = try await Task.detached {
-                        try LibboxNewStandaloneCommandClient()!.startSTUNTest(server, outboundTag: outboundTag, handler: handler)
+                        try CommandTarget.standaloneClient().startSTUNTest(server, outboundTag: outboundTag, handler: handler)
                     }.value
                     self?.stunSession = session
                 } catch {

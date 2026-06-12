@@ -154,7 +154,7 @@ public struct ToolsView: View {
                 }
             }
         }
-        .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, viewModel: tailscaleViewModel))
+        .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, viewModel: tailscaleViewModel))
         .alert($tailscaleViewModel.alert)
         .onAppear { tailscaleViewModel.peerStore = peerStore }
         #if !os(tvOS)
@@ -234,14 +234,34 @@ public struct ToolsView: View {
 
 private struct TailscaleStatusObserver: ViewModifier {
     var profile: ExtensionProfile?
+    var remoteServerID: Int64?
     var viewModel: TailscaleStatusViewModel
 
     func body(content: Content) -> some View {
-        if let profile {
-            content
-                .modifier(ActiveObserver(profile: profile, viewModel: viewModel))
-        } else {
-            content
+        Group {
+            if remoteServerID != nil {
+                content
+                    .onAppear {
+                        viewModel.subscribe()
+                    }
+            } else if let profile {
+                content
+                    .modifier(ActiveObserver(profile: profile, viewModel: viewModel))
+            } else {
+                content
+            }
+        }
+        .onChangeCompat(of: remoteServerID) { newValue in
+            // Drop the previous target's subscription when switching between
+            // the local service and a remote server, or between two servers:
+            // a server without tailscale leaves no active stream to error out,
+            // so isSubscribed would stay stale without an explicit cancel.
+            viewModel.cancel()
+            if newValue != nil {
+                viewModel.subscribe()
+            } else if profile?.status.isConnectedStrict == true {
+                viewModel.subscribe()
+            }
         }
     }
 

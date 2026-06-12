@@ -16,17 +16,7 @@ public struct ToolOutboundSection<VM: OutboundSelectable>: View {
     public var body: some View {
         Group {
             if profile.status.isConnectedStrict {
-                FormNavigationLink {
-                    OutboundPickerView(selectedOutbound: $viewModel.selectedOutbound)
-                } label: {
-                    HStack {
-                        Text("Outbound")
-                        Spacer()
-                        Text(viewModel.selectedOutbound.isEmpty ? String(localized: "Default") : viewModel.selectedOutbound)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-                }
+                OutboundPickerLink(viewModel: viewModel)
             }
         }
         .onChangeCompat(of: profile.status) { status in
@@ -35,6 +25,50 @@ public struct ToolOutboundSection<VM: OutboundSelectable>: View {
                     viewModel.cancel()
                 }
                 viewModel.selectedOutbound = ""
+            }
+        }
+    }
+}
+
+public struct RemoteToolOutboundSection<VM: OutboundSelectable>: View {
+    @ObservedObject var commandClient: CommandClient
+    @ObservedObject var viewModel: VM
+
+    public init(commandClient: CommandClient, viewModel: VM) {
+        _commandClient = ObservedObject(wrappedValue: commandClient)
+        _viewModel = ObservedObject(wrappedValue: viewModel)
+    }
+
+    public var body: some View {
+        Group {
+            if commandClient.isConnected {
+                OutboundPickerLink(viewModel: viewModel)
+            }
+        }
+        .onChangeCompat(of: commandClient.isConnected) { isConnected in
+            if !isConnected {
+                if viewModel.isRunning {
+                    viewModel.cancel()
+                }
+                viewModel.selectedOutbound = ""
+            }
+        }
+    }
+}
+
+private struct OutboundPickerLink<VM: OutboundSelectable>: View {
+    @ObservedObject var viewModel: VM
+
+    var body: some View {
+        FormNavigationLink {
+            OutboundPickerView(selectedOutbound: $viewModel.selectedOutbound)
+        } label: {
+            HStack {
+                Text("Outbound")
+                Spacer()
+                Text(viewModel.selectedOutbound.isEmpty ? String(localized: "Default") : viewModel.selectedOutbound)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
             }
         }
     }
