@@ -243,6 +243,9 @@ clean:
 	rm -rf build/SFM.System-arm64
 	rm -rf build/SFM.System-x86_64
 	rm -rf build/SFM.System-universal
+	rm -rf build/SFI.dd
+	rm -rf build/SFM.dd
+	rm -rf build/SFT.dd
 	rm -rf build/SFM.System-arm64.dd
 	rm -rf build/SFM.System-x86_64.dd
 	rm -rf build/SFM.System-universal.dd
