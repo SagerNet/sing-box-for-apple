@@ -11,6 +11,7 @@ public final class TailscalePingViewModel: BaseViewModel {
     @Published public var derpRegionCode: String = ""
     @Published public var endpoint: String = ""
     @Published public var hasResult = false
+    @Published public var pingError: String = ""
     @Published public var latencyHistory: [CGFloat] = []
 
     private let maxHistorySize = 30
@@ -19,6 +20,7 @@ public final class TailscalePingViewModel: BaseViewModel {
     public func start(endpointTag: String, peerIP: String) {
         latencyHistory = []
         hasResult = false
+        pingError = ""
         isRunning = true
 
         let handler = PingHandler(self)
@@ -66,12 +68,14 @@ public final class TailscalePingViewModel: BaseViewModel {
             DispatchQueue.main.async { [self] in
                 guard let viewModel, viewModel.isRunning else { return }
                 if !error.isEmpty {
+                    viewModel.pingError = error
                     return
                 }
                 viewModel.latencyMs = latencyMs
                 viewModel.isDirect = isDirect
                 viewModel.derpRegionCode = derpRegionCode
                 viewModel.endpoint = endpoint
+                viewModel.pingError = ""
                 viewModel.hasResult = true
                 viewModel.appendLatency(latencyMs)
             }
