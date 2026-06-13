@@ -73,11 +73,27 @@ public struct TailscalePeerView: View {
                 Section {
                     if pingViewModel.hasResult {
                         connectionTypeRow
+                        if pingViewModel.isDirect, !pingViewModel.endpoint.isEmpty {
+                            FormTextItem("Endpoint", pingViewModel.endpoint)
+                        }
+                        if !pingViewModel.isDirect, !pingViewModel.derpRegionCode.isEmpty {
+                            FormTextItem("DERP region", pingViewModel.derpRegionCode)
+                        }
                     }
                     if pingViewModel.isRunning, pingViewModel.hasResult {
                         pingChartView
                     }
-                    if !pingViewModel.hasResult {
+                    if !pingViewModel.pingError.isEmpty {
+                        Text(pingViewModel.pingError)
+                            .foregroundStyle(.red)
+                    } else if pingViewModel.isRunning, !pingViewModel.hasResult {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Connecting...")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if !pingViewModel.hasResult {
                         Text("No data")
                             .foregroundStyle(.secondary)
                     }

@@ -2564,6 +2564,34 @@
         }
       }
     },
+    "DERP region" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "منطقه DERP"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Регион DERP"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DERP 区域"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DERP 區域"
+          }
+        }
+      }
+    },
     "DERP-relayed connection" : {
       "localizations" : {
         "fa" : {
@@ -3596,6 +3624,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已啟用"
+          }
+        }
+      }
+    },
+    "Endpoint" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نقطه اتصال"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Точка подключения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "端点"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "端點"
           }
         }
       }
