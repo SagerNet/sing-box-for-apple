@@ -57,7 +57,7 @@ public enum AppConfiguration {
         "iCloud.\(packageName)"
     }
 
-    #if os(macOS)
+    #if os(macOS) || JAILBREAK
         public static var rootHelperBundleID: String {
             "\(packageName).helper"
         }

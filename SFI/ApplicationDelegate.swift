@@ -43,6 +43,18 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
             ),
         ])
         notificationCenter.delegate = self
+        #if JAILBREAK
+            Task {
+                let settings = await notificationCenter.notificationSettings()
+                if settings.authorizationStatus == .notDetermined {
+                    do {
+                        _ = try await notificationCenter.requestAuthorization(options: [.alert, .sound])
+                    } catch {
+                        NSLog("request notification authorization error: \(error.localizedDescription)")
+                    }
+                }
+            }
+        #endif
         setup()
         return true
     }

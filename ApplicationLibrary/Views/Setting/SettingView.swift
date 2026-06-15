@@ -179,6 +179,13 @@ public struct SettingView: View {
                 #if !os(tvOS)
                     remoteControlLink
                 #endif
+                #if JAILBREAK
+                    FormNavigationLink {
+                        JailbreakView()
+                    } label: {
+                        Label("Jailbreak", systemImage: "lock.shield.fill")
+                    }
+                #endif
             }
             #if !os(tvOS)
                 Section("About") {
