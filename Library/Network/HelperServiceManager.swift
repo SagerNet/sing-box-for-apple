@@ -29,7 +29,7 @@
             guard rootHelperStatus == .enabled else { return }
 
             do {
-                let installedVersion = try RootHelperClient.shared.getVersion()
+                let installedVersion = try ShellHelperClient.shared.getVersion()
                 let currentVersion = Bundle.main.version
                 guard currentVersion != installedVersion else { return }
             } catch {
