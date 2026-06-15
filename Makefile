@@ -6,6 +6,9 @@ INSTALLER_SIGN_IDENTITY := 16480CA444F481F8DEAF9421FAD2CCE590FC54E4
 
 build_all: build_ios build_macos build_tvos
 
+build_ios_deb:
+	bash Jailbreak/package.sh
+
 build_ios:
 	xcodebuild build -scheme SFI -configuration Debug -destination 'generic/platform=iOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
 

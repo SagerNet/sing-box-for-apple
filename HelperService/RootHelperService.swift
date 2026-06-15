@@ -29,10 +29,7 @@ class RootHelperService: NSObject {
     private var tunInterfaceName: String?
     var pendingCrashLogs: [CrashLogFileResult] = []
 
-    private var shellSessions: [String: any LibboxShellSessionProtocol] = [:]
-    private var shellOwnership: [ObjectIdentifier: Set<String>] = [:]
-    private var shellOwner: [String: ObjectIdentifier] = [:]
-    private let shellSessionsLock = NSLock()
+    private let shellSessionManager = ShellSessionManager()
 
     func start() {
         listener = NSXPCListener(machServiceName: AppConfiguration.rootHelperMachService)
@@ -60,7 +57,7 @@ extension RootHelperService: NSXPCListenerDelegate {
         newConnection.exportedObject = self
         let ownerID = ObjectIdentifier(newConnection)
         newConnection.invalidationHandler = { [weak self] in
-            self?.reapShellSessions(for: ownerID)
+            self?.shellSessionManager.reap(owner: ownerID)
         }
         newConnection.resume()
         return true
@@ -288,75 +285,27 @@ extension RootHelperService: RootHelperProtocol {
         cols: Int32,
         reply: @escaping (FileHandle?, String?, NSError?) -> Void
     ) {
-        let ownerID = ObjectIdentifier(NSXPCConnection.current()!)
-        logger.info("openShellSession: user=\(user.username), term=\(term), rows=\(rows), cols=\(cols)")
-
-        let envStrings = environ.compactMap { $0 as? String }
-        let argv: [String]
-        if command.isEmpty {
-            let base = (user.shell as NSString).lastPathComponent
-            argv = ["-\(base)"]
-        } else {
-            argv = [user.shell, "-c", command]
-        }
-        let groupValues = user.groups.map(\.int32Value)
-
-        var error: NSError?
-        let session: (any LibboxShellSessionProtocol)?
-        if !term.isEmpty {
-            session = LibboxOpenNativeShellSession(
-                user.shell,
-                user.homeDir,
-                argv.toStringIterator(),
-                envStrings.toStringIterator(),
-                term,
-                rows,
-                cols,
-                user.uid,
-                user.gid,
-                groupValues.toInt32Iterator(),
-                &error
-            )
-        } else {
-            session = LibboxOpenNativePipeSession(
-                user.shell,
-                user.homeDir,
-                argv.toStringIterator(),
-                envStrings.toStringIterator(),
-                user.uid,
-                user.gid,
-                groupValues.toInt32Iterator(),
-                &error
-            )
-        }
-
-        guard let session else {
-            logger.error("openShellSession: spawn failed: \(error?.localizedDescription ?? "")")
-            reply(nil, nil, error)
-            return
-        }
-
-        let dupFD = dup(session.masterFD())
-        if dupFD < 0 {
-            let dupErrno = errno
-            try? session.close()
-            let errorMessage = String(cString: strerror(dupErrno))
-            logger.error("openShellSession: dup failed: \(errorMessage)")
-            reply(nil, nil, NSError(domain: "RootHelper", code: Int(dupErrno), userInfo: [
-                NSLocalizedDescriptionKey: "dup master fd: \(errorMessage)",
+        guard let currentConnection = NSXPCConnection.current() else {
+            reply(nil, nil, NSError(domain: "RootHelper", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "no current XPC connection",
             ]))
             return
         }
-
-        let handle = UUID().uuidString
-        shellSessionsLock.lock()
-        shellSessions[handle] = session
-        shellOwnership[ownerID, default: []].insert(handle)
-        shellOwner[handle] = ownerID
-        shellSessionsLock.unlock()
-
-        let masterFileHandle = FileHandle(fileDescriptor: dupFD, closeOnDealloc: true)
-        reply(masterFileHandle, handle, nil)
+        do {
+            let (fileHandle, handle) = try shellSessionManager.open(
+                owner: ObjectIdentifier(currentConnection),
+                user: user,
+                command: command,
+                environ: environ.compactMap { $0 as? String },
+                term: term,
+                rows: rows,
+                cols: cols
+            )
+            reply(fileHandle, handle, nil)
+        } catch {
+            logger.error("openShellSession: \(error.localizedDescription)")
+            reply(nil, nil, error as NSError)
+        }
     }
 
     func readSystemSSHHostKey(reply: @escaping (NSString?, NSError?) -> Void) {
@@ -369,17 +318,8 @@ extension RootHelperService: RootHelperProtocol {
     }
 
     func signalShellSession(handle: String, signal sig: Int32, reply: @escaping (NSError?) -> Void) {
-        shellSessionsLock.lock()
-        let session = shellSessions[handle]
-        shellSessionsLock.unlock()
-        guard let session else {
-            reply(NSError(domain: "RootHelper", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: "shell session not found: \(handle)",
-            ]))
-            return
-        }
         do {
-            try session.signal(sig)
+            try shellSessionManager.signal(handle: handle, signal: sig)
             reply(nil)
         } catch {
             reply(error as NSError)
@@ -387,85 +327,29 @@ extension RootHelperService: RootHelperProtocol {
     }
 
     func waitShellSession(handle: String, reply: @escaping (Int32, NSError?) -> Void) {
-        shellSessionsLock.lock()
-        let session = shellSessions[handle]
-        shellSessionsLock.unlock()
-        guard let session else {
-            reply(255, NSError(domain: "RootHelper", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: "shell session not found: \(handle)",
-            ]))
-            return
-        }
         DispatchQueue.global().async { [weak self] in
-            var exitStatus: Int32 = 0
-            let waitError: Error?
-            do {
-                try session.waitExit(&exitStatus)
-                waitError = nil
-            } catch {
-                waitError = error
-            }
-            if let self {
-                self.shellSessionsLock.lock()
-                _ = self.shellSessions.removeValue(forKey: handle)
-                self.forgetShellOwnerLocked(handle: handle)
-                self.shellSessionsLock.unlock()
-            }
-            if let waitError {
-                logger.error("openShellSession: handle \(handle) wait failed: \(waitError)")
-                reply(255, waitError as NSError)
+            guard let self else {
+                reply(255, NSError(domain: "RootHelper", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "service deallocated",
+                ]))
                 return
             }
-            logger.info("openShellSession: handle \(handle) exited with status \(exitStatus)")
-            reply(exitStatus, nil)
+            do {
+                let exitStatus = try shellSessionManager.wait(handle: handle)
+                reply(exitStatus, nil)
+            } catch {
+                logger.error("waitShellSession: handle \(handle) failed: \(error.localizedDescription)")
+                reply(255, error as NSError)
+            }
         }
     }
 
     func closeShellSession(handle: String, reply: @escaping (NSError?) -> Void) {
-        shellSessionsLock.lock()
-        let session = shellSessions.removeValue(forKey: handle)
-        forgetShellOwnerLocked(handle: handle)
-        shellSessionsLock.unlock()
         do {
-            try session?.close()
+            try shellSessionManager.close(handle: handle)
             reply(nil)
         } catch {
             reply(error as NSError)
-        }
-    }
-
-    private func forgetShellOwnerLocked(handle: String) {
-        guard let ownerID = shellOwner.removeValue(forKey: handle) else { return }
-        guard var handles = shellOwnership[ownerID] else { return }
-        handles.remove(handle)
-        if handles.isEmpty {
-            shellOwnership.removeValue(forKey: ownerID)
-        } else {
-            shellOwnership[ownerID] = handles
-        }
-    }
-
-    private func reapShellSessions(for ownerID: ObjectIdentifier) {
-        shellSessionsLock.lock()
-        let handles = shellOwnership.removeValue(forKey: ownerID) ?? []
-        var sessions: [(String, any LibboxShellSessionProtocol)] = []
-        for handle in handles {
-            shellOwner.removeValue(forKey: handle)
-            if let session = shellSessions.removeValue(forKey: handle) {
-                sessions.append((handle, session))
-            }
-        }
-        shellSessionsLock.unlock()
-        if sessions.isEmpty {
-            return
-        }
-        logger.info("reapShellSessions: client gone, reaping \(sessions.count) shell session(s)")
-        for (handle, session) in sessions {
-            do {
-                try session.close()
-            } catch {
-                logger.error("reapShellSessions: handle \(handle) close failed: \(error.localizedDescription)")
-            }
         }
     }
 
