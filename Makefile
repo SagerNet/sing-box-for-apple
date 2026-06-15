@@ -7,6 +7,9 @@ XCODEBUILD_FLAGS ?=
 
 build_all: build_ios build_macos build_tvos
 
+build_ios_deb:
+	bash Jailbreak/package.sh
+
 build_ios:
 	xcodebuild build -scheme SFI -configuration Debug -destination 'generic/platform=iOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
 

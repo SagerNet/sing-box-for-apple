@@ -529,7 +529,9 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             content.interruptionLevel = .active
             let request = UNNotificationRequest(identifier: notification.identifier, content: content, trigger: nil)
             try runBlocking {
-                try await center.requestAuthorization(options: [.alert])
+                #if !JAILBREAK
+                    try await center.requestAuthorization(options: [.alert])
+                #endif
                 try await center.add(request)
             }
         #endif
@@ -590,14 +592,16 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     public func usePlatformShell() -> Bool {
         #if os(macOS)
             return Variant.useSystemExtension
+        #elseif JAILBREAK
+            return true
         #else
             return false
         #endif
     }
 
     public func checkPlatformShell() throws {
-        #if os(macOS)
-            _ = try RootHelperClient.shared.getVersion()
+        #if os(macOS) || JAILBREAK
+            _ = try ShellHelperClient.shared.getVersion()
         #else
             throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
                 NSLocalizedDescriptionKey: "SSH server is not supported",
@@ -606,7 +610,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func openShellSession(_ user: LibboxPlatformUser?, command: String?, environ: (any LibboxStringIteratorProtocol)?, term: String?, rows: Int32, cols: Int32) throws -> any LibboxShellSessionProtocol {
-        #if os(macOS)
+        #if os(macOS) || JAILBREAK
             guard let user else {
                 throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
                     NSLocalizedDescriptionKey: "missing user",
@@ -626,7 +630,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 groups: groups
             )
 
-            let (fileHandle, handle) = try RootHelperClient.shared.openShellSession(
+            let (fileHandle, handle) = try ShellHelperClient.shared.openShellSession(
                 user: payload,
                 command: command,
                 environ: envStrings,
@@ -644,9 +648,9 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func readSystemSSHHostKey(_ error: NSErrorPointer) -> String {
-        #if os(macOS)
+        #if os(macOS) || JAILBREAK
             do {
-                return try RootHelperClient.shared.readSystemSSHHostKey()
+                return try ShellHelperClient.shared.readSystemSSHHostKey()
             } catch let keyError {
                 error?.pointee = keyError as NSError
                 return ""
@@ -660,10 +664,14 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func lookupSFTPServer(_ error: NSErrorPointer) -> String {
-        error?.pointee = NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
-            NSLocalizedDescriptionKey: "lookupSFTPServer is not supported on Apple platforms",
-        ])
-        return ""
+        #if JAILBREAK
+            return "\(JailbreakConfiguration.rootlessPrefix)/usr/libexec/sftp-server"
+        #else
+            error?.pointee = NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "lookupSFTPServer is not supported on Apple platforms",
+            ])
+            return ""
+        #endif
     }
 
     public func tailscaleHostname() -> String {
@@ -675,7 +683,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func lookupUser(_ username: String?) throws -> LibboxPlatformUser {
-        #if os(macOS)
+        #if os(macOS) || JAILBREAK
             guard let username else {
                 throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
                     NSLocalizedDescriptionKey: "lookupUser: username is required",
@@ -765,46 +773,6 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             entry.macAddress = result.macAddress
             entry.hostname = result.hostname
             return entry
-        }
-    }
-
-    private class RootHelperShellSession: NSObject, LibboxShellSessionProtocol {
-        private let fileHandle: FileHandle
-        private let handle: String
-
-        init(fileHandle: FileHandle, handle: String) {
-            self.fileHandle = fileHandle
-            self.handle = handle
-        }
-
-        func masterFD() -> Int32 {
-            fileHandle.fileDescriptor
-        }
-
-        func resize(_ rows: Int32, cols: Int32) throws {
-            var ws = winsize(ws_row: UInt16(rows), ws_col: UInt16(cols), ws_xpixel: 0, ws_ypixel: 0)
-            let result = withUnsafeMutablePointer(to: &ws) { ptr in
-                ioctl(fileHandle.fileDescriptor, TIOCSWINSZ, ptr)
-            }
-            if result < 0 {
-                throw NSError(domain: "RootHelperShellSession", code: Int(Darwin.errno), userInfo: [
-                    NSLocalizedDescriptionKey: "ioctl TIOCSWINSZ: \(String(cString: strerror(Darwin.errno)))",
-                ])
-            }
-        }
-
-        func signal(_ signal: Int32) throws {
-            try RootHelperClient.shared.signalShellSession(handle: handle, signal: signal)
-        }
-
-        func waitExit(_ ret0_: UnsafeMutablePointer<Int32>?) throws {
-            let exitStatus = try RootHelperClient.shared.waitShellSession(handle: handle)
-            ret0_?.pointee = exitStatus
-        }
-
-        func close() throws {
-            try? RootHelperClient.shared.closeShellSession(handle: handle)
-            fileHandle.closeFile()
         }
     }
 #endif

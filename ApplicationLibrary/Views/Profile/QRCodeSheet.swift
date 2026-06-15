@@ -27,12 +27,10 @@ public struct QRCodeContentView: View {
     public var body: some View {
         VStack {
             Spacer()
-            QRCodeViewUI(
+            ExternalQRCodeView(
                 content: LibboxGenerateRemoteProfileImportLink(profileName, remoteURL),
-                errorCorrection: .low,
                 foregroundColor: .labelColor,
-                backgroundColor: CGColor(gray: 1.0, alpha: 0.0),
-                additionalQuietZonePixels: 4
+                backgroundColor: CGColor(gray: 1.0, alpha: 0.0)
             )
             #if os(macOS)
             .frame(minWidth: 300, minHeight: 300)
@@ -86,12 +84,10 @@ public struct URLQRCodeContentView: View {
     public var body: some View {
         VStack {
             Spacer()
-            QRCodeViewUI(
+            ExternalQRCodeView(
                 content: url,
-                errorCorrection: .low,
                 foregroundColor: .labelColor,
-                backgroundColor: CGColor(gray: 1.0, alpha: 0.0),
-                additionalQuietZonePixels: 4
+                backgroundColor: CGColor(gray: 1.0, alpha: 0.0)
             )
             #if os(macOS)
             .frame(minWidth: 300, minHeight: 300)
