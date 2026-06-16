@@ -60,6 +60,7 @@
 		3AEECC412A6DFE29006A0E0C /* MacLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AEECC2F2A6DFDAD006A0E0C /* MacLibrary.framework */; };
 		3AEECC452A6DFE61006A0E0C /* ApplicationLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */; };
 		3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */; };
+		3AF6A0012FEF0001000A0001 /* IOUSBHost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF6A0022FEF0001000A0001 /* IOUSBHost.framework */; platformFilters = (macos, ); };
 		3AFE19402EF5677100F61E06 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AC72A302EED94F60039DEA4 /* SystemConfiguration.framework */; };
 		9C37F17D2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
 		9C37F17E2C131100001B9FA8 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */; };
@@ -486,6 +487,7 @@
 		3AEECC2F2A6DFDAD006A0E0C /* MacLibrary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MacLibrary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AF342B12A4AA520002B34AC /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.0.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
+		3AF6A0022FEF0001000A0001 /* IOUSBHost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOUSBHost.framework; path = System/Library/Frameworks/IOUSBHost.framework; sourceTree = SDKROOT; };
 		9C37F17C2C131100001B9FA8 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -779,6 +781,7 @@
 			files = (
 				3A017F922A4AB2E4009149FA /* GRDB in Frameworks */,
 				3AFE19402EF5677100F61E06 /* SystemConfiguration.framework in Frameworks */,
+				3AF6A0012FEF0001000A0001 /* IOUSBHost.framework in Frameworks */,
 				3A76504C2A4F08BA003945C5 /* Libbox.xcframework in Frameworks */,
 				3A5AA1BA2F7DB10900BA2A0D /* CrashReporter in Frameworks */,
 				3AC89DD52FCD9E3B002A14E8 /* DeviceKit in Frameworks */,
@@ -889,6 +892,7 @@
 				3AE595A32F08C4ED00C13426 /* UserNotifications.framework */,
 				3AE595A12F08C4E900C13426 /* CoreWLAN.framework */,
 				3AAAFE162EF52772004C69AD /* FileProvider.framework */,
+				3AF6A0022FEF0001000A0001 /* IOUSBHost.framework */,
 				3AC72A2E2EED94DD0039DEA4 /* SystemConfiguration.framework */,
 				3AC72A302EED94F60039DEA4 /* SystemConfiguration.framework */,
 				3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */,

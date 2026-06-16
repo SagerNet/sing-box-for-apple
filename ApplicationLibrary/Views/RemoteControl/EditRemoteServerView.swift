@@ -1,6 +1,10 @@
 import Library
 import SwiftUI
 
+private enum ProbeState: Equatable {
+    case idle, checking, available, unavailable
+}
+
 @MainActor
 public struct EditRemoteServerView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
@@ -15,11 +19,14 @@ public struct EditRemoteServerView: View {
 
     @State private var alert: AlertState?
 
+    @State private var probeState: ProbeState = .idle
+    @State private var probeTask: Task<Void, Never>?
+
     public init(_ server: RemoteServer?, onChanged: @escaping () async -> Void) {
         origin = server
         self.onChanged = onChanged
         _name = State(initialValue: server?.name ?? "")
-        _url = State(initialValue: server?.url ?? "")
+        _url = State(initialValue: RemoteServer.normalizeURL(server?.url ?? ""))
         _secret = State(initialValue: server?.secret ?? "")
     }
 
@@ -37,7 +44,7 @@ public struct EditRemoteServerView: View {
 
     private var formContent: some View {
         FormView {
-            Section("Server") {
+            Section {
                 FormItem(String(localized: "Name")) {
                     TextField("Name", text: $name, prompt: Text("Optional"))
                         .multilineTextAlignment(.trailing)
@@ -59,8 +66,14 @@ public struct EditRemoteServerView: View {
                         .textContentType(.init(rawValue: ""))
                     #endif
                 }
+            } header: {
+                Text("Server")
+            } footer: {
+                if probeState != .idle {
+                    reachabilityFooter
+                }
             }
-            #if !os(macOS)
+            #if os(tvOS)
                 Section {
                     FormButton {
                         Task {
@@ -70,8 +83,6 @@ public struct EditRemoteServerView: View {
                         Label("Save", systemImage: "doc.fill")
                     }
                 }
-            #endif
-            #if os(tvOS)
                 if origin != nil {
                     Section {
                         FormButton(role: .destructive) {
@@ -85,6 +96,79 @@ public struct EditRemoteServerView: View {
                     }
                 }
             #endif
+        }
+        .onChangeCompat(of: url) { scheduleProbe() }
+        .onChangeCompat(of: secret) { scheduleProbe() }
+        .task { scheduleProbe(immediate: true) }
+    }
+
+    private var reachabilityFooter: some View {
+        HStack(spacing: 8) {
+            switch probeState {
+            case .checking:
+                ProgressView()
+                    .controlSize(.small)
+                Text("Checking...")
+                    .foregroundStyle(.secondary)
+            case .available:
+                Circle()
+                    .fill(.green)
+                    .frame(width: 8, height: 8)
+                Text("Available")
+                    .foregroundStyle(.green)
+            case .unavailable:
+                Circle()
+                    .fill(.red)
+                    .frame(width: 8, height: 8)
+                Text("Unavailable")
+                    .foregroundStyle(.red)
+            case .idle:
+                EmptyView()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func scheduleProbe(immediate: Bool = false) {
+        probeTask?.cancel()
+        guard (try? RemoteServer.validateURL(url)) != nil else {
+            probeState = .idle
+            return
+        }
+        let probeURL = url
+        let probeSecret = secret
+        probeState = .checking
+        probeTask = Task {
+            if !immediate {
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                if Task.isCancelled {
+                    return
+                }
+            }
+            let reachable = await probeReachable(url: probeURL, secret: probeSecret)
+            if Task.isCancelled {
+                return
+            }
+            probeState = reachable ? .available : .unavailable
+        }
+    }
+
+    private func probeReachable(url: String, secret: String) async -> Bool {
+        await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                await withCheckedContinuation { continuation in
+                    DispatchQueue.global().async {
+                        continuation.resume(returning: CommandTarget.probe(url: url, secret: secret))
+                    }
+                }
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 8_000_000_000)
+                return false
+            }
+            let reachable = await group.next() ?? false
+            group.cancelAll()
+            return reachable
         }
     }
 
@@ -119,6 +203,17 @@ public struct EditRemoteServerView: View {
         private var iOSBody: some View {
             formContent
                 .navigationTitle(title)
+            #if os(iOS)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            Task {
+                                await save()
+                            }
+                        }
+                    }
+                }
+            #endif
                 .alert($alert)
         }
     #endif
