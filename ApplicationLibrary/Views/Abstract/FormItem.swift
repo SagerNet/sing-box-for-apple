@@ -22,13 +22,14 @@ public func FormTextItem(_ name: LocalizedStringKey, _ value: String) -> some Vi
             }
         }
     #else
-        HStack {
+        HStack(alignment: .firstTextBaseline) {
             Text(name)
-            Spacer()
             Text(value)
                 .multilineTextAlignment(.trailing)
                 .font(Font.system(.caption, design: .monospaced))
                 .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .fixedSize(horizontal: false, vertical: true)
         }
     #endif
 }

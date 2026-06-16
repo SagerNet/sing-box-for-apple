@@ -25,6 +25,10 @@ public struct TailscaleEndpointView: View {
         viewModel.endpoint(tag: endpointTag)
     }
 
+    private var navigationTitleKey: LocalizedStringKey {
+        viewModel.endpoints.count > 1 ? "Tailscale: \(endpointTag)" : "Tailscale"
+    }
+
     public var body: some View {
         FormView {
             if let endpoint {
@@ -94,7 +98,7 @@ public struct TailscaleEndpointView: View {
                 }
             }
         }
-        .navigationTitle(endpointTag)
+        .navigationTitle(navigationTitleKey)
         .sheet(isPresented: $showAuthURLQRCode) {
             if let endpoint {
                 URLQRCodeSheet(url: endpoint.authURL, title: String(localized: "Auth URL"))
