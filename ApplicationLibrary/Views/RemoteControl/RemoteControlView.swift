@@ -117,6 +117,15 @@ public struct RemoteControlView: View {
                 }
             }
             .navigationTitle("Remote Control")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showNewServer = true
+                    } label: {
+                        Label("New Server", systemImage: "plus")
+                    }
+                }
+            }
             .sheet(isPresented: $showNewServer) {
                 serverSheet(nil)
             }
@@ -144,18 +153,7 @@ public struct RemoteControlView: View {
                     }
                 }
             } header: {
-                HStack {
-                    Text("Servers")
-                    Spacer()
-                    Button {
-                        showNewServer = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                    #if os(macOS)
-                    .buttonStyle(.plain)
-                    #endif
-                }
+                Text("Servers")
             }
         }
 
@@ -185,20 +183,6 @@ public struct RemoteControlView: View {
             #elseif os(iOS)
             .foregroundStyle(.primary)
             #endif
-            .contextMenu {
-                Button {
-                    editingServer = server
-                } label: {
-                    Label("Edit", systemImage: "pencil")
-                }
-                Button(role: .destructive) {
-                    Task {
-                        await delete(server)
-                    }
-                } label: {
-                    Label("Delete", systemImage: "trash.fill")
-                }
-            }
         }
 
         @ViewBuilder

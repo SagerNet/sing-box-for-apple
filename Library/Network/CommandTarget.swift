@@ -31,9 +31,29 @@ public enum CommandTarget {
 
     public static func libboxOptions(_ server: RemoteServer) -> LibboxRemoteConnectionOptions {
         let options = LibboxRemoteConnectionOptions()
-        options.url = server.url
+        options.url = RemoteServer.connectURL(server.url)
         options.secret = server.secret
         return options
+    }
+
+    /// One-shot reachability probe for a draft (unsaved) server. Dials over the network
+    /// and blocks until the probe completes, so it must run off the main thread.
+    public static func probe(url: String, secret: String) -> Bool {
+        let options = LibboxRemoteConnectionOptions()
+        options.url = RemoteServer.connectURL(url)
+        options.secret = secret
+        var error: NSError?
+        guard let client = LibboxNewStandaloneRemoteCommandClient(options, &error), error == nil else {
+            return false
+        }
+        defer { try? client.disconnect() }
+        var startedAt: Int64 = 0
+        do {
+            try client.getStartedAt(&startedAt)
+            return true
+        } catch {
+            return false
+        }
     }
 
     /// Returns a client for one-shot calls and streamed sessions. In remote mode the

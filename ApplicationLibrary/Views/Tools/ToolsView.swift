@@ -8,6 +8,10 @@ public struct ToolsView: View {
     @EnvironmentObject private var peerStore: TailscaleSSHPeerStore
     @StateObject private var viewModel = SettingViewModel()
     @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
+    @StateObject private var usbipViewModel = USBIPStatusViewModel()
+    #if os(macOS)
+        @StateObject private var usbipProviderViewModel = USBIPProviderViewModel()
+    #endif
     #if os(iOS)
         @State private var showCrashReportList = false
         @State private var showOOMReportList = false
@@ -59,6 +63,27 @@ public struct ToolsView: View {
                             }
                         }
                         #endif
+                    }
+                }
+            }
+
+            if !usbipViewModel.servers.isEmpty {
+                Section("Services") {
+                    ForEach(usbipViewModel.servers) { server in
+                        FormNavigationLink {
+                            #if os(macOS)
+                                USBIPServerView(viewModel: usbipViewModel, serverTag: server.serverTag)
+                                    .environmentObject(usbipProviderViewModel)
+                            #else
+                                USBIPServerView(viewModel: usbipViewModel, serverTag: server.serverTag)
+                            #endif
+                        } label: {
+                            if usbipViewModel.servers.count == 1 {
+                                Label("USB/IP", systemImage: "externaldrive.connected.to.line.below")
+                            } else {
+                                Label("USB/IP: \(server.serverTag)", systemImage: "externaldrive.connected.to.line.below")
+                            }
+                        }
                     }
                 }
             }
@@ -159,9 +184,13 @@ public struct ToolsView: View {
                 }
             }
         }
-        .modifier(TailscaleStatusObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, viewModel: tailscaleViewModel))
-        .alert($tailscaleViewModel.alert)
-        .onAppear { tailscaleViewModel.peerStore = peerStore }
+        .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { tailscaleViewModel.subscribe() }, onInactive: { tailscaleViewModel.cancel() }))
+        .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { usbipViewModel.subscribe() }, onInactive: { usbipViewModel.cancel() }))
+        #if os(macOS)
+            .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { usbipProviderViewModel.start() }, onInactive: { usbipProviderViewModel.cancel() }))
+        #endif
+            .alert($tailscaleViewModel.alert)
+            .onAppear { tailscaleViewModel.peerStore = peerStore }
         #if os(iOS)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -266,57 +295,72 @@ public struct ToolsView: View {
     #endif
 }
 
-private struct TailscaleStatusObserver: ViewModifier {
+private struct ConnectionLifecycleObserver: ViewModifier {
     var profile: ExtensionProfile?
     var remoteServerID: Int64?
-    var viewModel: TailscaleStatusViewModel
+    var onActive: () -> Void
+    var onInactive: () -> Void
 
     func body(content: Content) -> some View {
-        Group {
-            if remoteServerID != nil {
-                content
-                    .onAppear {
-                        viewModel.subscribe()
-                    }
-            } else if let profile {
-                content
-                    .modifier(ActiveObserver(profile: profile, viewModel: viewModel))
+        content.background {
+            if let profile {
+                LocalServiceLifecycleTrigger(profile: profile, remoteServerID: remoteServerID, onActive: onActive, onInactive: onInactive)
             } else {
-                content
-            }
-        }
-        .onChangeCompat(of: remoteServerID) { newValue in
-            // Drop the previous target's subscription when switching between
-            // the local service and a remote server, or between two servers:
-            // a server without tailscale leaves no active stream to error out,
-            // so isSubscribed would stay stale without an explicit cancel.
-            viewModel.cancel()
-            if newValue != nil {
-                viewModel.subscribe()
-            } else if profile?.status.isConnectedStrict == true {
-                viewModel.subscribe()
+                RemoteServiceLifecycleTrigger(remoteServerID: remoteServerID, onActive: onActive, onInactive: onInactive)
             }
         }
     }
+}
 
-    private struct ActiveObserver: ViewModifier {
-        @ObservedObject var profile: ExtensionProfile
-        var viewModel: TailscaleStatusViewModel
+private struct LocalServiceLifecycleTrigger: View {
+    @ObservedObject var profile: ExtensionProfile
+    var remoteServerID: Int64?
+    var onActive: () -> Void
+    var onInactive: () -> Void
 
-        func body(content: Content) -> some View {
-            content
-                .onChangeCompat(of: profile.status) { status in
-                    if status.isConnectedStrict {
-                        viewModel.subscribe()
-                    } else {
-                        viewModel.cancel()
-                    }
+    var body: some View {
+        Color.clear
+            .allowsHitTesting(false)
+            .onAppear {
+                if remoteServerID != nil || profile.status.isConnectedStrict {
+                    onActive()
                 }
-                .onAppear {
-                    if profile.status.isConnectedStrict {
-                        viewModel.subscribe()
-                    }
+            }
+            .onChangeCompat(of: remoteServerID) { newValue in
+                onInactive()
+                if newValue != nil || profile.status.isConnectedStrict {
+                    onActive()
                 }
-        }
+            }
+            .onChangeCompat(of: profile.status) { status in
+                guard remoteServerID == nil else { return }
+                if status.isConnectedStrict {
+                    onActive()
+                } else {
+                    onInactive()
+                }
+            }
+    }
+}
+
+private struct RemoteServiceLifecycleTrigger: View {
+    var remoteServerID: Int64?
+    var onActive: () -> Void
+    var onInactive: () -> Void
+
+    var body: some View {
+        Color.clear
+            .allowsHitTesting(false)
+            .onAppear {
+                if remoteServerID != nil {
+                    onActive()
+                }
+            }
+            .onChangeCompat(of: remoteServerID) { newValue in
+                onInactive()
+                if newValue != nil {
+                    onActive()
+                }
+            }
     }
 }
