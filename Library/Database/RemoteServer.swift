@@ -16,7 +16,7 @@ public class RemoteServer: Record, Identifiable, ObservableObject {
         if let name, !name.isEmpty {
             return name
         }
-        return url
+        return Self.hostPort(url)
     }
 
     public init(
@@ -68,14 +68,40 @@ public class RemoteServer: Record, Identifiable, ObservableObject {
 }
 
 public extension RemoteServer {
+    /// The stored form: scheme-less for http (default), keeping an explicit https.
+    static func normalizeURL(_ urlString: String) -> String {
+        var value = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        while value.hasSuffix("/") {
+            value.removeLast()
+        }
+        if value.lowercased().hasPrefix("http://") {
+            value.removeFirst("http://".count)
+        }
+        return value
+    }
+
+    /// The form passed to libbox: a scheme is required, defaulting to http.
+    static func connectURL(_ urlString: String) -> String {
+        var value = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        while value.hasSuffix("/") {
+            value.removeLast()
+        }
+        if value.isEmpty {
+            return ""
+        }
+        let lowercased = value.lowercased()
+        if lowercased.hasPrefix("http://") || lowercased.hasPrefix("https://") {
+            return value
+        }
+        return "http://" + value
+    }
+
     /// Validates a server URL: `host[:port]`, `http://host[:port]` or
     /// `https://host[:port]`. A missing scheme is normalized to `http://`.
     static func validateURL(_ urlString: String) throws -> String {
-        var trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.isEmpty, !trimmed.contains("://") {
-            trimmed = "http://" + trimmed
-        }
-        guard let components = URLComponents(string: trimmed),
+        let connectURL = connectURL(urlString)
+        guard !connectURL.isEmpty,
+              let components = URLComponents(string: connectURL),
               let scheme = components.scheme?.lowercased(),
               scheme == "http" || scheme == "https",
               let host = components.host, !host.isEmpty
@@ -84,6 +110,18 @@ public extension RemoteServer {
                 NSLocalizedDescriptionKey: String(localized: "Invalid server URL: \(urlString), expected host:port, http://host:port or https://host:port"),
             ])
         }
-        return trimmed
+        return normalizeURL(urlString)
+    }
+
+    static func hostPort(_ urlString: String) -> String {
+        guard let components = URLComponents(string: connectURL(urlString)),
+              let host = components.host, !host.isEmpty
+        else {
+            return urlString
+        }
+        if let port = components.port {
+            return "\(host):\(port)"
+        }
+        return host
     }
 }

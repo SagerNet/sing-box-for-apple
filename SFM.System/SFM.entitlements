@@ -24,6 +24,8 @@
 	<array>
 		<string>$(TeamIdentifierPrefix)$(BASE_PACKAGE_IDENTIFIER)</string>
 	</array>
+	<key>com.apple.security.device.usb</key>
+	<true/>
 	<key>com.apple.developer.networking.wifi-info</key>
 	<true/>
 	<key>com.apple.security.personal-information.location</key>
