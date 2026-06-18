@@ -13,7 +13,9 @@
                 if isLoading {
                     ProgressView()
                 } else {
-                    FormTextItem("Status", statusText)
+                    Section("Helper Service") {
+                        FormTextItem("Status", statusText)
+                    }
                 }
             }
             .navigationTitle("Jailbreak")
