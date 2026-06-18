@@ -4,10 +4,6 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-DEVICE="${DEVICE:-}"
-DO_INSTALL=0
-[[ "${1:-}" == "--install" ]] && DO_INSTALL=1
-
 need() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 not found${2:+ ($2)}" >&2; exit 1; }; }
 need xcodebuild
 need ldid "brew install ldid"
@@ -81,6 +77,11 @@ cp -R "$APP_SRC" "$APP_DEST"
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_DISPLAY_NAME" "$APP_DEST/Info.plist" 2>/dev/null \
 	|| /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string $APP_DISPLAY_NAME" "$APP_DEST/Info.plist"
+
+# /Applications apps aren't registered with usernotificationsd by installd; this key is what
+# makes it accept and present local notifications. Redundant (and a private key) for the App Store build.
+/usr/libexec/PlistBuddy -c "Add :SBAppUsesLocalNotifications bool true" "$APP_DEST/Info.plist" 2>/dev/null \
+	|| /usr/libexec/PlistBuddy -c "Set :SBAppUsesLocalNotifications true" "$APP_DEST/Info.plist"
 
 rm -rf "$APP_DEST/SC_Info" "$APP_DEST/_CodeSignature" "$APP_DEST/embedded.mobileprovision" "$APP_DEST/Export.plist"
 find "$APP_DEST" -name '.DS_Store' -delete
@@ -180,10 +181,3 @@ rm -f "$DEB_OUT"
 ( cd "$work" && ar rcS "$DEB_OUT" debian-binary control.tar.xz data.tar.xz )
 rm -rf "$work"
 echo "Built $DEB_OUT"
-
-if [[ "$DO_INSTALL" == "1" ]]; then
-	[[ -z "$DEVICE" ]] && { echo "error: DEVICE not set for --install (use DEVICE=root@<ip>)" >&2; exit 1; }
-	echo "Installing on $DEVICE"
-	scp -q "$DEB_OUT" "$DEVICE:/var/jb/tmp/sfajb.deb"
-	ssh "$DEVICE" 'dpkg -i /var/jb/tmp/sfajb.deb'
-fi

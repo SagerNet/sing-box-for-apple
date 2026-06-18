@@ -44,14 +44,14 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
         ])
         notificationCenter.delegate = self
         #if JAILBREAK
+            // usernotificationsd only registers the live BulletinBoard data provider that gates
+            // delivery once requestAuthorization runs from the host app; it never reaches that path
+            // for a section that is already authorized, so the call must not be skipped.
             Task {
-                let settings = await notificationCenter.notificationSettings()
-                if settings.authorizationStatus == .notDetermined {
-                    do {
-                        _ = try await notificationCenter.requestAuthorization(options: [.alert, .sound])
-                    } catch {
-                        NSLog("request notification authorization error: \(error.localizedDescription)")
-                    }
+                do {
+                    _ = try await notificationCenter.requestAuthorization(options: [.alert, .sound])
+                } catch {
+                    NSLog("request notification authorization error: \(error.localizedDescription)")
                 }
             }
         #endif
