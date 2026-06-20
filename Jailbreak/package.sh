@@ -43,8 +43,13 @@ if [[ ! -d "$APP_SRC" ]]; then
 	exit 1
 fi
 
-VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_SRC/Info.plist" 2>/dev/null || true)"
-[[ -n "$VERSION" ]] || { echo "error: could not read CFBundleShortVersionString from $APP_SRC/Info.plist" >&2; exit 1; }
+# The SFI MARKETING_VERSION is stripped to X.Y.Z for App Store Connect; the SFM.System
+# standalone target keeps the full prerelease form (set by sing-box's update_apple_version).
+VERSION="$(awk -F' = ' '
+	/MARKETING_VERSION = / { v=$2; gsub(/[";]/,"",v) }
+	/PRODUCT_BUNDLE_IDENTIFIER = io\.nekohasekai\.sfavt\.standalone;/ { print v; exit }
+' sing-box.xcodeproj/project.pbxproj)"
+[[ -n "$VERSION" ]] || { echo "error: could not read standalone MARKETING_VERSION from project.pbxproj" >&2; exit 1; }
 echo "Packaging $PRODUCT_NAME $VERSION"
 
 echo "Building sfajb-roothelper daemon ($VERSION)"
@@ -77,6 +82,8 @@ cp -R "$APP_SRC" "$APP_DEST"
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_DISPLAY_NAME" "$APP_DEST/Info.plist" 2>/dev/null \
 	|| /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string $APP_DISPLAY_NAME" "$APP_DEST/Info.plist"
+
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP_DEST/Info.plist"
 
 # /Applications apps aren't registered with usernotificationsd by installd; this key is what
 # makes it accept and present local notifications. Redundant (and a private key) for the App Store build.
@@ -133,10 +140,13 @@ find "$DEB_ROOT" -name '._*' -delete
 find "$DEB_ROOT" -name '.DS_Store' -delete
 
 INSTALLED_SIZE="$(du -ks "$DEB_ROOT/var" | cut -f1)"
+# dpkg sorts '~' before everything, so 1.14.0~alpha.33 < 1.14.0 (the eventual release);
+# a literal '-' would parse as a Debian revision and sort *after* it, breaking upgrades.
+DEB_VERSION="${VERSION//-/\~}"
 cat > "$DEB_ROOT/DEBIAN/control" <<EOF
 Package: $BASE_PACKAGE_IDENTIFIER
 Name: sing-box JB
-Version: $VERSION
+Version: $DEB_VERSION
 Architecture: iphoneos-arm64
 Installed-Size: $INSTALLED_SIZE
 Description: sing-box but privileged
