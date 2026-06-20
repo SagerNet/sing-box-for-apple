@@ -15,7 +15,7 @@ public struct TailscalePeerView: View {
     let isSelf: Bool
     let networkName: String
     let canLogout: Bool
-    let onLogout: (() -> Void)?
+    let logoutModel: TailscaleStatusViewModel?
 
     @State private var copiedAddress: String?
     @StateObject private var pingViewModel = TailscalePingViewModel()
@@ -28,25 +28,27 @@ public struct TailscalePeerView: View {
         @Environment(\.openWindow) private var openWindow
     #endif
 
-    public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool, networkName: String = "", canLogout: Bool = false, onLogout: (() -> Void)? = nil) {
+    public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool, networkName: String = "", canLogout: Bool = false, logoutModel: TailscaleStatusViewModel? = nil) {
         self.peer = peer
         self.endpointTag = endpointTag
         self.isSelf = isSelf
         self.networkName = networkName
         self.canLogout = canLogout
-        self.onLogout = onLogout
+        self.logoutModel = logoutModel
     }
 
     public var body: some View {
         FormView {
-            if isSelf, !networkName.isEmpty || (canLogout && onLogout != nil) {
+            if isSelf, !networkName.isEmpty || (canLogout && logoutModel != nil) {
                 Section("Network") {
                     if !networkName.isEmpty {
                         addressRow(networkName, label: "Network")
                     }
-                    if canLogout, let onLogout {
+                    if canLogout, let logoutModel {
                         FormButton(role: .destructive) {
-                            onLogout()
+                            Task {
+                                await logoutModel.logout(endpointTag: endpointTag)
+                            }
                         } label: {
                             Label("Log out", systemImage: "rectangle.portrait.and.arrow.right").foregroundColor(.red)
                         }
