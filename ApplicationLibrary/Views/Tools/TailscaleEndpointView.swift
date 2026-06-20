@@ -43,11 +43,7 @@ public struct TailscaleEndpointView: View {
                     }
                     if endpoint.backendState == "Running", let selfPeer = endpoint.selfPeer {
                         FormNavigationLink {
-                            TailscalePeerView(peer: selfPeer, endpointTag: endpointTag, isSelf: true, networkName: endpoint.networkName, canLogout: !endpoint.keyAuth, onLogout: {
-                                Task {
-                                    await viewModel.logout(endpointTag: endpointTag)
-                                }
-                            })
+                            TailscalePeerView(peer: selfPeer, endpointTag: endpointTag, isSelf: true, networkName: endpoint.networkName, canLogout: !endpoint.keyAuth, logoutModel: viewModel)
                         } label: {
                             HStack {
                                 Label("This Device", systemImage: "laptopcomputer")
