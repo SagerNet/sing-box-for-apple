@@ -48,8 +48,42 @@
         }
     }
 
+    @objc public class ConnectionOwnerResult: NSObject, NSSecureCoding {
+        public static let supportsSecureCoding = true
+
+        @objc public var userId: Int32
+        @objc public var userName: String
+        @objc public var processPath: String
+
+        public init(userId: Int32, userName: String, processPath: String) {
+            self.userId = userId
+            self.userName = userName
+            self.processPath = processPath
+        }
+
+        public required init?(coder: NSCoder) {
+            userId = coder.decodeInt32(forKey: "userId")
+            userName = coder.decodeObject(of: NSString.self, forKey: "userName") as? String ?? ""
+            processPath = coder.decodeObject(of: NSString.self, forKey: "processPath") as? String ?? ""
+        }
+
+        public func encode(with coder: NSCoder) {
+            coder.encode(userId, forKey: "userId")
+            coder.encode(userName as NSString, forKey: "userName")
+            coder.encode(processPath as NSString, forKey: "processPath")
+        }
+    }
+
     @objc public protocol ShellHelperProtocol {
         func getVersion(reply: @escaping (String) -> Void)
+        func findConnectionOwner(
+            ipProtocol: Int32,
+            sourceAddress: String,
+            sourcePort: Int32,
+            destinationAddress: String,
+            destinationPort: Int32,
+            reply: @escaping (ConnectionOwnerResult?, NSError?) -> Void
+        )
         func openShellSession(
             user: PlatformUserPayload,
             command: String,
@@ -82,6 +116,13 @@
                 argumentIndex: 2,
                 ofReply: false
             )
+            let connectionOwnerClasses = NSSet(array: [ConnectionOwnerResult.self, NSString.self]) as! Set<AnyHashable>
+            interface.setClasses(
+                connectionOwnerClasses,
+                for: #selector(ShellHelperProtocol.findConnectionOwner(ipProtocol:sourceAddress:sourcePort:destinationAddress:destinationPort:reply:)),
+                argumentIndex: 0,
+                ofReply: true
+            )
         }
     }
 
@@ -106,6 +147,25 @@
         public func getVersion() throws -> String {
             try call("getVersion") { proxy, reply in
                 (proxy as! ShellHelperProtocol).getVersion { reply($0 as String?, nil) }
+            }
+        }
+
+        public func findConnectionOwner(
+            ipProtocol: Int32,
+            sourceAddress: String,
+            sourcePort: Int32,
+            destinationAddress: String,
+            destinationPort: Int32
+        ) throws -> ConnectionOwnerResult {
+            try call("findConnectionOwner") { proxy, reply in
+                (proxy as! ShellHelperProtocol).findConnectionOwner(
+                    ipProtocol: ipProtocol,
+                    sourceAddress: sourceAddress,
+                    sourcePort: sourcePort,
+                    destinationAddress: destinationAddress,
+                    destinationPort: destinationPort,
+                    reply: reply
+                )
             }
         }
 
