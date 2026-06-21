@@ -54,6 +54,8 @@ public final class USBIPStatusViewModel: BaseViewModel {
     @Published public var servers: [USBIPServerData] = []
     @Published public var isSubscribed = false
 
+    private static let minAPIVersionUSBIP: Int32 = 2
+
     private var statusSubscription: LibboxUSBIPServerStatusSubscription?
 
     public func subscribe() {
@@ -63,10 +65,20 @@ public final class USBIPStatusViewModel: BaseViewModel {
         let handler = StatusHandler(self)
         Task { [weak self] in
             do {
-                let subscription = try await Task.detached {
-                    try CommandTarget.standaloneClient().subscribeUSBIPServerStatus(handler)
+                let subscription = try await Task.detached { () -> LibboxUSBIPServerStatusSubscription? in
+                    let client = try CommandTarget.standaloneClient()
+                    var apiVersion: Int32 = 0
+                    try client.getAPIVersion(&apiVersion)
+                    guard apiVersion >= Self.minAPIVersionUSBIP else { return nil }
+                    return try client.subscribeUSBIPServerStatus(handler)
                 }.value
-                self?.statusSubscription = subscription
+                guard let self else { return }
+                guard let subscription else {
+                    self.isSubscribed = false
+                    self.servers = []
+                    return
+                }
+                self.statusSubscription = subscription
             } catch {
                 guard let self else { return }
                 self.isSubscribed = false
