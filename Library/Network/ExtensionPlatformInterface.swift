@@ -249,6 +249,24 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 result.processPath = owner.processPath
                 return result
             }
+        #elseif JAILBREAK
+            guard let sourceAddress, let destinationAddress else {
+                throw NSError(domain: "findConnectionOwner", code: 0, userInfo: [
+                    NSLocalizedDescriptionKey: "Missing source or destination address",
+                ])
+            }
+            let owner = try ShellHelperClient.shared.findConnectionOwner(
+                ipProtocol: ipProtocol,
+                sourceAddress: sourceAddress,
+                sourcePort: sourcePort,
+                destinationAddress: destinationAddress,
+                destinationPort: destinationPort
+            )
+            let result = LibboxConnectionOwner()
+            result.userId = owner.userId
+            result.userName = owner.userName
+            result.processPath = owner.processPath
+            return result
         #endif
         throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Not implemented")])
     }
