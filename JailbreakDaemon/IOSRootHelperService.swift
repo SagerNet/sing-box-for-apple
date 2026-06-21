@@ -65,6 +65,33 @@ extension IOSRootHelperService: ShellHelperProtocol {
         reply(Bundle.main.version)
     }
 
+    func findConnectionOwner(
+        ipProtocol: Int32,
+        sourceAddress: String,
+        sourcePort: Int32,
+        destinationAddress: String,
+        destinationPort: Int32,
+        reply: @escaping (ConnectionOwnerResult?, NSError?) -> Void
+    ) {
+        guard let result = ConnectionOwnerLookup.find(
+            ipProtocol: ipProtocol,
+            sourceAddress: sourceAddress,
+            sourcePort: sourcePort,
+            destinationAddress: destinationAddress,
+            destinationPort: destinationPort
+        ) else {
+            reply(nil, NSError(domain: "RootHelper", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "Connection owner not found",
+            ]))
+            return
+        }
+        reply(ConnectionOwnerResult(
+            userId: result.userId,
+            userName: result.userName,
+            processPath: result.processPath
+        ), nil)
+    }
+
     func openShellSession(
         user: PlatformUserPayload,
         command: String,

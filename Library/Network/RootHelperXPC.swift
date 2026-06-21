@@ -34,32 +34,6 @@
         func updateNeighborTable(entries: NSArray)
     }
 
-    @objc public class ConnectionOwnerResult: NSObject, NSSecureCoding {
-        public static let supportsSecureCoding = true
-
-        @objc public var userId: Int32
-        @objc public var userName: String
-        @objc public var processPath: String
-
-        public init(userId: Int32, userName: String, processPath: String) {
-            self.userId = userId
-            self.userName = userName
-            self.processPath = processPath
-        }
-
-        public required init?(coder: NSCoder) {
-            userId = coder.decodeInt32(forKey: "userId")
-            userName = coder.decodeObject(of: NSString.self, forKey: "userName") as? String ?? ""
-            processPath = coder.decodeObject(of: NSString.self, forKey: "processPath") as? String ?? ""
-        }
-
-        public func encode(with coder: NSCoder) {
-            coder.encode(userId, forKey: "userId")
-            coder.encode(userName as NSString, forKey: "userName")
-            coder.encode(processPath as NSString, forKey: "processPath")
-        }
-    }
-
     @objc(CrashLogFileResult) public class CrashLogFileResult: NSObject, NSSecureCoding {
         public static let supportsSecureCoding = true
 
@@ -176,15 +150,6 @@
     }
 
     @objc public protocol RootHelperProtocol: ShellHelperProtocol {
-        func findConnectionOwner(
-            ipProtocol: Int32,
-            sourceAddress: String,
-            sourcePort: Int32,
-            destinationAddress: String,
-            destinationPort: Int32,
-            reply: @escaping (ConnectionOwnerResult?, NSError?) -> Void
-        )
-
         func getWorkingDirectorySize(reply: @escaping (Int64, NSError?) -> Void)
         func cleanWorkingDirectory(reply: @escaping (NSError?) -> Void)
         func startNeighborMonitor(callbackEndpoint: NSXPCListenerEndpoint, reply: @escaping (NSError?) -> Void)
@@ -201,13 +166,6 @@
         public static func configureInterface(_ interface: NSXPCInterface) {
             ShellHelperXPC.configureInterface(interface)
 
-            let resultClasses = NSSet(array: [ConnectionOwnerResult.self, NSString.self]) as! Set<AnyHashable>
-            interface.setClasses(
-                resultClasses,
-                for: #selector(RootHelperProtocol.findConnectionOwner(ipProtocol:sourceAddress:sourcePort:destinationAddress:destinationPort:reply:)),
-                argumentIndex: 0,
-                ofReply: true
-            )
             let crashArtifactClasses = NSSet(array: [
                 CrashArtifactsResult.self, NSArray.self, CrashLogFileResult.self, NSData.self,
             ]) as! Set<AnyHashable>
