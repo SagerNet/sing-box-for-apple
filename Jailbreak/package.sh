@@ -8,7 +8,6 @@ need() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 not found${2:+ ($2
 need xcodebuild
 need ldid "brew install ldid"
 need dpkg-deb "brew install dpkg"
-need xz "brew install xz"
 [[ -x /usr/libexec/PlistBuddy ]] || { echo "error: /usr/libexec/PlistBuddy missing" >&2; exit 1; }
 
 BASE_PACKAGE_IDENTIFIER="io.nekohasekai.sfajb"
@@ -149,10 +148,10 @@ Name: sing-box JB
 Version: $DEB_VERSION
 Architecture: iphoneos-arm64
 Installed-Size: $INSTALLED_SIZE
-Description: sing-box but privileged
+Description: The universal proxy platform.
 Maintainer: nekohasekai
 Author: nekohasekai
-Section: Networking
+Section: Applications
 Depends: firmware (>= 15.0)
 EOF
 
@@ -180,14 +179,5 @@ chmod 644 "$DEB_ROOT/DEBIAN/md5sums"
 
 DEB_OUT="$REPO_ROOT/build/jailbreak/SFI-${VERSION}-iphoneos-arm64.deb"
 
-dpkg-deb --root-owner-group -Zxz -z9 --build "$DEB_ROOT" "$DEB_OUT"
-
-work="$(mktemp -d)"
-( cd "$work" && ar x "$DEB_OUT" )
-xz -dc "$work/data.tar.xz" | xz -c --arm64 --lzma2=preset=9e > "$work/data.tar.new"
-mv -f "$work/data.tar.new" "$work/data.tar.xz"
-rm -f "$DEB_OUT"
-# Without S, macOS ar adds a __.SYMDEF member that makes dpkg reject the .deb.
-( cd "$work" && ar rcS "$DEB_OUT" debian-binary control.tar.xz data.tar.xz )
-rm -rf "$work"
+dpkg-deb --root-owner-group -Zxz -z9 -Sextreme --build "$DEB_ROOT" "$DEB_OUT"
 echo "Built $DEB_OUT"
