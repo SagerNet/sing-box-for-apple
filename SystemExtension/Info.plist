@@ -9,7 +9,7 @@
 	<key>NetworkExtension</key>
 	<dict>
 		<key>NEMachServiceName</key>
-		<string>$(APP_GROUP_IDENTIFIER).system</string>
+		<string>$(APP_GROUP_IDENTIFIER).system.$(MARKETING_VERSION)</string>
 		<key>NEProviderClasses</key>
 		<dict>
 			<key>com.apple.networkextension.packet-tunnel</key>

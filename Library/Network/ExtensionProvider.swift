@@ -125,7 +125,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #if os(macOS)
             if Variant.useSystemExtension {
                 let socketPath = basePath + "/command.sock"
-                let machServiceName = AppConfiguration.appGroupID + ".system"
+                let machServiceName = AppConfiguration.systemExtensionMachServiceName
                 xpcService = CommandXPCService(socketPath: socketPath)
                 xpcListener = NSXPCListener(machServiceName: machServiceName)
                 xpcListener.delegate = xpcService
