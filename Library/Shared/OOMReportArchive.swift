@@ -29,6 +29,10 @@ public enum OOMReportArchive {
         artifactURL.appendingPathComponent(ReportArchive.configFileName)
     }
 
+    static func goLogURL(for artifactURL: URL) -> URL {
+        artifactURL.appendingPathComponent(ReportArchive.goLogFileName)
+    }
+
     public static func readMetadata(for artifactURL: URL) -> OOMReportMetadata? {
         guard let data = try? Data(contentsOf: metadataURL(for: artifactURL)) else {
             return nil
@@ -44,7 +48,7 @@ public enum OOMReportArchive {
         ) else {
             return []
         }
-        let excluded: Set<String> = [ReportArchive.metadataFileName, ReportArchive.configFileName]
+        let excluded: Set<String> = [ReportArchive.metadataFileName, ReportArchive.configFileName, ReportArchive.goLogFileName]
         return files
             .filter { !excluded.contains($0.lastPathComponent) }
             .sorted { $0.lastPathComponent < $1.lastPathComponent }
