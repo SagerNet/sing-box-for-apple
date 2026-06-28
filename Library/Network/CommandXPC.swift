@@ -179,7 +179,7 @@
             var result: Int32 = -1
             var resultError: Error?
 
-            let machServiceName = AppConfiguration.appGroupID + ".system"
+            let machServiceName = AppConfiguration.systemExtensionMachServiceName
             let connection = NSXPCConnection(machServiceName: machServiceName)
             let remoteInterface = NSXPCInterface(with: CommandXPCProtocol.self)
             CommandXPC.configureInterface(remoteInterface)
