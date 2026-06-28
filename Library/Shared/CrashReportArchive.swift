@@ -74,6 +74,8 @@ public enum ReportArchive {
     public static let readMarkerFileName = ".read"
     public static let metadataFileName = "metadata.json"
     public static let configFileName = "configuration.json"
+    public static let goLogFileName = "go.log"
+    public static let nativeLogFileName = "native.log"
     public static let tvOSDeviceOrigin = "tvOS"
 
     public static let timestampFormatter: DateFormatter = {
@@ -117,8 +119,6 @@ public enum CrashReportArchive {
     static let pendingNativeCrashDirectoryName = "native_crash_pending"
     static let pendingNativeCrashStorageDirectoryName = "com.plausiblelabs.crashreporter.data"
     static let pendingNativeCrashReportFileName = "live_report.plcrash"
-    static let goLogFileName = "go.log"
-    static let nativeLogFileName = "native.log"
 
     static var crashReportsDirectory: URL {
         FilePath.workingDirectory.appendingPathComponent("crash_reports", isDirectory: true)
@@ -133,11 +133,11 @@ public enum CrashReportArchive {
     }
 
     static func goLogURL(for artifactURL: URL) -> URL {
-        artifactURL.appendingPathComponent(goLogFileName)
+        artifactURL.appendingPathComponent(ReportArchive.goLogFileName)
     }
 
     static func nativeLogURL(for artifactURL: URL) -> URL {
-        artifactURL.appendingPathComponent(nativeLogFileName)
+        artifactURL.appendingPathComponent(ReportArchive.nativeLogFileName)
     }
 
     static func configURL(for artifactURL: URL) -> URL {
