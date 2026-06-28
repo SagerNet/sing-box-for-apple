@@ -17,6 +17,7 @@
         @Published public var isUpdateSheetPresented = false
         @Published public var isChecking = false
         @Published public var isDownloading = false
+        @Published public var isInstalling = false
         @Published public var downloadProgress: Double = 0
         @Published public var alert: AlertState?
 
@@ -82,6 +83,7 @@
             guard let updateInfo else { return }
 
             isDownloading = true
+            isInstalling = false
             downloadProgress = 0
             alert = nil
 
@@ -91,6 +93,8 @@
                         self?.downloadProgress = progress
                     }
                 }
+
+                isInstalling = true
 
                 let authRef = try PKGInstaller.authorize()
 
@@ -120,8 +124,10 @@
                 exit(0)
             } catch PKGInstallerError.authorizationCancelled {
                 isDownloading = false
+                isInstalling = false
             } catch {
                 isDownloading = false
+                isInstalling = false
                 logger.error("update failed: \(error.localizedDescription)")
                 alert = AlertState(action: "install update", error: error)
             }
