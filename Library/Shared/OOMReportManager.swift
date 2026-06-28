@@ -16,6 +16,7 @@ public struct OOMReportFile: Identifiable, Hashable, Sendable {
     public enum Kind: String, Sendable {
         case metadata
         case configContent
+        case goLog
         case profile
     }
 
@@ -89,6 +90,11 @@ public class OOMReportManager: ObservableObject {
             let configURL = OOMReportArchive.configURL(for: report.fileURL)
             if fm.fileExists(atPath: configURL.path) {
                 files.append(OOMReportFile(id: "config", kind: .configContent, displayName: "Configuration", fileURL: configURL))
+            }
+
+            let goLogURL = OOMReportArchive.goLogURL(for: report.fileURL)
+            if fm.fileExists(atPath: goLogURL.path) {
+                files.append(OOMReportFile(id: "log", kind: .goLog, displayName: "Log", fileURL: goLogURL))
             }
 
             for profileURL in OOMReportArchive.profileFiles(for: report.fileURL) {
