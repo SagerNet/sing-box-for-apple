@@ -1,6 +1,34 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "[age](https://github.com/filosottile/age) is a modern and secure asymmetric encryption tool. When enabled, the zip file is encrypted with this project's public key so it can be posted publicly, e.g. in GitHub issues." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[age](https://github.com/filosottile/age) یک ابزار رمزگذاری نامتقارن مدرن و امن است. هنگام فعال‌سازی، فایل zip با کلید عمومی این پروژه رمزگذاری می‌شود تا بتوان آن را به‌صورت عمومی منتشر کرد، مثلاً در issueهای گیت‌هاب."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[age](https://github.com/filosottile/age) — современный и безопасный инструмент асимметричного шифрования. Когда включено, zip-файл шифруется открытым ключом этого проекта, чтобы его можно было опубликовать, например, в issue на GitHub."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[age](https://github.com/filosottile/age) 是一个现代且安全的非对称加密工具。启用后，zip 文件将使用本项目的公钥加密，因此可以公开发布，例如发布在 GitHub issue 中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[age](https://github.com/filosottile/age) 是一個現代且安全的非對稱加密工具。啟用後，zip 檔案將使用本專案的公鑰加密，因此可以公開發佈，例如發佈在 GitHub issue 中。"
+          }
+        }
+      }
+    },
     "**If I’ve defended your modern life, please consider sponsoring me.**" : {
       "localizations" : {
         "fa" : {
@@ -1771,6 +1799,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "配置"
+          }
+        }
+      }
+    },
+    "Configuration files may contain private content and should not be made public." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل‌های پیکربندی ممکن است حاوی محتوای خصوصی باشند و نباید عمومی شوند."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файлы конфигурации могут содержать личные данные и не должны публиковаться."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置文件可能包含隐私内容，不应该被公开发布。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置檔案可能包含隱私內容，不應該被公開發佈。"
           }
         }
       }
@@ -3876,6 +3932,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已啟用"
+          }
+        }
+      }
+    },
+    "Encrypt with age for Project S" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمزگذاری با age برای Project S"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шифровать с помощью age для Project S"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为 Project S 使用 age 加密"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "為 Project S 使用 age 加密"
           }
         }
       }
@@ -6657,6 +6741,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日誌"
+          }
+        }
+      }
+    },
+    "Logs and configuration files may contain private content and should not be made public." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل‌های گزارش و پیکربندی ممکن است حاوی محتوای خصوصی باشند و نباید عمومی شوند."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Журналы и файлы конфигурации могут содержать личные данные и не должны публиковаться."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日志和配置文件可能包含隐私内容，不应该被公开发布。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日誌和配置檔案可能包含隱私內容，不應該被公開發佈。"
           }
         }
       }
@@ -9545,6 +9657,35 @@
         }
       }
     },
+    "Save With Configuration" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ذخیره با پیکربندی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранить с конфигурацией"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附带配置保存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附帶配置保存"
+          }
+        }
+      }
+    },
     "Scan QR Code" : {
       "localizations" : {
         "fa" : {
@@ -10134,6 +10275,7 @@
       }
     },
     "Share With Configuration" : {
+      "extractionState" : "stale",
       "localizations" : {
         "fa" : {
           "stringUnit" : {
@@ -12581,6 +12723,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "WiFi 狀態訪問"
+          }
+        }
+      }
+    },
+    "With Configuration" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "همراه با پیکربندی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "С конфигурацией"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附带配置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附帶配置"
+          }
+        }
+      }
+    },
+    "With Log" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "همراه با گزارش"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "С журналом"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附带日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附帶日誌"
           }
         }
       }
