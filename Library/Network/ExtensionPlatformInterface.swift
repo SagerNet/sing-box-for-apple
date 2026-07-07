@@ -700,6 +700,89 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
+    public func usePlatformBridge() -> Bool {
+        #if os(macOS)
+            return Variant.useSystemExtension
+        #elseif JAILBREAK
+            return true
+        #else
+            return false
+        #endif
+    }
+
+    public func createBridge(_ options: LibboxBridgeOptions?) throws -> any LibboxBridgeSessionProtocol {
+        #if os(macOS) || JAILBREAK
+            guard let options else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "createBridge: missing options",
+                ])
+            }
+            let handshake = try ShellHelperClient.shared.createBridgeService(
+                bridgeName: options.bridgeName,
+                mtu: options.mtu,
+                inet4Port: options.inet4Port,
+                inet6Port: options.inet6Port,
+                interfaceName: options.interface
+            )
+            let tunFd = dup(handshake.fileHandle.fileDescriptor)
+            guard tunFd >= 0 else {
+                let dupErrno = errno
+                try? ShellHelperClient.shared.closeBridgeService(handle: handshake.handle)
+                throw NSError(domain: "ExtensionPlatformInterface", code: Int(dupErrno), userInfo: [
+                    NSLocalizedDescriptionKey: "dup bridge tun fd: \(String(cString: strerror(dupErrno)))",
+                ])
+            }
+            try? handshake.fileHandle.close()
+            return BridgeServiceSession(
+                fileDescriptor: tunFd,
+                name: handshake.name,
+                inet6Active: handshake.inet6Active,
+                handle: handshake.handle
+            )
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "bridge is not supported on this platform",
+            ])
+        #endif
+    }
+
+    #if os(macOS) || JAILBREAK
+        private class BridgeServiceSession: NSObject, LibboxBridgeSessionProtocol {
+            private let tunFileDescriptor: Int32
+            private let tunName: String
+            private let tunInet6Active: Bool
+            private let handle: String
+
+            init(fileDescriptor: Int32, name: String, inet6Active: Bool, handle: String) {
+                tunFileDescriptor = fileDescriptor
+                tunName = name
+                tunInet6Active = inet6Active
+                self.handle = handle
+            }
+
+            func fileDescriptor() -> Int32 {
+                tunFileDescriptor
+            }
+
+            func name() -> String {
+                tunName
+            }
+
+            func inet6Active() -> Bool {
+                tunInet6Active
+            }
+
+            func setEgress(_ interfaceName: String?) throws {
+                try ShellHelperClient.shared.setBridgeEgress(handle: handle, egress: interfaceName ?? "")
+            }
+
+            func close() throws {
+                try? ShellHelperClient.shared.closeBridgeService(handle: handle)
+                Darwin.close(tunFileDescriptor)
+            }
+        }
+    #endif
+
     public func lookupUser(_ username: String?) throws -> LibboxPlatformUser {
         #if os(macOS) || JAILBREAK
             guard let username else {
