@@ -97,6 +97,23 @@
         func waitShellSession(handle: String, reply: @escaping (Int32, NSError?) -> Void)
         func closeShellSession(handle: String, reply: @escaping (NSError?) -> Void)
         func readSystemSSHHostKey(reply: @escaping (NSString?, NSError?) -> Void)
+        func createBridgeService(
+            bridgeName: String,
+            mtu: Int32,
+            inet4Port: String,
+            inet6Port: String,
+            interfaceName: String,
+            reply: @escaping (FileHandle?, NSString?, Bool, NSString?, NSError?) -> Void
+        )
+        func setBridgeEgress(handle: String, egress: String, reply: @escaping (NSError?) -> Void)
+        func closeBridgeService(handle: String, reply: @escaping (NSError?) -> Void)
+    }
+
+    public struct BridgeServiceHandshake {
+        public let fileHandle: FileHandle
+        public let name: String
+        public let inet6Active: Bool
+        public let handle: String
     }
 
     public enum ShellHelperXPC {
@@ -221,6 +238,47 @@
                 (proxy as! ShellHelperProtocol).readSystemSSHHostKey { keyData, error in
                     reply(keyData as String?, error)
                 }
+            }
+        }
+
+        public func createBridgeService(
+            bridgeName: String,
+            mtu: Int32,
+            inet4Port: String,
+            inet6Port: String,
+            interfaceName: String
+        ) throws -> BridgeServiceHandshake {
+            try call("createBridgeService", timeout: .seconds(10)) { proxy, reply in
+                (proxy as! ShellHelperProtocol).createBridgeService(
+                    bridgeName: bridgeName,
+                    mtu: mtu,
+                    inet4Port: inet4Port,
+                    inet6Port: inet6Port,
+                    interfaceName: interfaceName
+                ) { fileHandle, name, inet6Active, handle, error in
+                    if let fileHandle, let name, let handle {
+                        reply(BridgeServiceHandshake(
+                            fileHandle: fileHandle,
+                            name: name as String,
+                            inet6Active: inet6Active,
+                            handle: handle as String
+                        ), error)
+                    } else {
+                        reply(nil, error)
+                    }
+                }
+            }
+        }
+
+        public func setBridgeEgress(handle: String, egress: String) throws {
+            try callVoid("setBridgeEgress") { proxy, reply in
+                (proxy as! ShellHelperProtocol).setBridgeEgress(handle: handle, egress: egress, reply: reply)
+            }
+        }
+
+        public func closeBridgeService(handle: String) throws {
+            try callVoid("closeBridgeService") { proxy, reply in
+                (proxy as! ShellHelperProtocol).closeBridgeService(handle: handle, reply: reply)
             }
         }
     }
