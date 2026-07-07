@@ -34,21 +34,20 @@ public struct NavigationButtonsView: View {
     }
 
     #if os(tvOS)
+        @ViewBuilder
         private var tvOSBody: some View {
-            Group {
-                if showConnectionsButton {
-                    Button {
-                        onConnectionsTap()
-                    } label: {
-                        Image(systemName: "list.bullet.rectangle.portrait.fill")
-                    }
+            if showConnectionsButton {
+                Button {
+                    onConnectionsTap()
+                } label: {
+                    Image(systemName: "list.bullet.rectangle.portrait.fill")
                 }
-                if showGroupsButton {
-                    Button {
-                        onGroupsTap()
-                    } label: {
-                        Image(systemName: "rectangle.3.group.fill")
-                    }
+            }
+            if showGroupsButton {
+                Button {
+                    onGroupsTap()
+                } label: {
+                    Image(systemName: "rectangle.3.group.fill")
                 }
             }
         }

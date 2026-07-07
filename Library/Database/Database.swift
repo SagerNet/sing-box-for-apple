@@ -42,7 +42,9 @@ enum Database {
                     let id: Int64 = row["id"]
                     let path: String = row["path"]
                     let type: Int = row["type"]
-                    if type == ProfileType.icloud.rawValue { continue }
+                    if type == ProfileType.icloud.rawValue {
+                        continue
+                    }
                     guard path.hasPrefix("/") else { continue }
                     var newPath = path
                     if path.hasPrefix(prefix) {
