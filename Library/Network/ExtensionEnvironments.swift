@@ -285,7 +285,9 @@ public class ExtensionEnvironments: ObservableObject {
     private func restoreRemoteControl() async {
         // Remote control is not available on tvOS.
         #if !os(tvOS)
-            if Variant.screenshotMode { return }
+            if Variant.screenshotMode {
+                return
+            }
             guard !remoteControlRestored else { return }
             remoteControlRestored = true
             let serverID = await SharedPreferences.activeRemoteServerID.get()
@@ -299,7 +301,9 @@ public class ExtensionEnvironments: ObservableObject {
     }
 
     public func reload() async {
-        if Variant.screenshotMode { return }
+        if Variant.screenshotMode {
+            return
+        }
         if let newProfile = try? await ExtensionProfile.load() {
             if extensionProfile == nil || extensionProfile?.status == .invalid {
                 newProfile.register()
@@ -322,7 +326,9 @@ public class ExtensionEnvironments: ObservableObject {
     }
 
     public func connect() {
-        if Variant.screenshotMode { return }
+        if Variant.screenshotMode {
+            return
+        }
         if remoteServer != nil {
             if !commandClient.isConnected {
                 commandClient.connect()

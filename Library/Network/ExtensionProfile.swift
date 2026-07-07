@@ -199,7 +199,9 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func reloadService() async throws {
-        if isMock { return }
+        if isMock {
+            return
+        }
         let options = try await prepareStartOptions()
         let data = try ExtensionStartOptions.encode(options)
         guard let session = connection as? NETunnelProviderSession else {

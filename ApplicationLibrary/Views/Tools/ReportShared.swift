@@ -106,7 +106,9 @@ struct ReportFileContentView: View {
             var error: NSError?
             LibboxCreateZipArchive(strippedURL.path, tempURL.path, encrypt, &error)
             try? FileManager.default.removeItem(at: strippedURL)
-            if let error { throw error }
+            if let error {
+                throw error
+            }
             return tempURL
         }
     }

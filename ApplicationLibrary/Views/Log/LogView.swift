@@ -336,16 +336,14 @@ private struct LogContentInnerView: View {
     private let logFont = Font.system(.caption2, design: .monospaced)
 
     var body: some View {
-        Group {
-            if Variant.screenshotMode {
-                previewContent
-            } else if dataModel.isEmpty {
-                emptyContent
-            } else if dataModel.visibleLogs.isEmpty {
-                emptyContent
-            } else {
-                logScrollView
-            }
+        if Variant.screenshotMode {
+            previewContent
+        } else if dataModel.isEmpty {
+            emptyContent
+        } else if dataModel.visibleLogs.isEmpty {
+            emptyContent
+        } else {
+            logScrollView
         }
     }
 

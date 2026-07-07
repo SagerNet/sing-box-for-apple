@@ -177,7 +177,9 @@
             TerminalConfiguration { builder in
                 for rawLine in text.split(separator: "\n", omittingEmptySubsequences: false) {
                     let line = rawLine.trimmingCharacters(in: .whitespaces)
-                    if line.isEmpty || line.hasPrefix("#") { continue }
+                    if line.isEmpty || line.hasPrefix("#") {
+                        continue
+                    }
                     guard let eq = line.firstIndex(of: "=") else { continue }
                     let key = line[..<eq].trimmingCharacters(in: .whitespaces)
                     let value = line[line.index(after: eq)...].trimmingCharacters(in: .whitespaces)
@@ -258,7 +260,9 @@
         }
 
         fileprivate func didReceiveError(_ message: String) {
-            if case .finished = phase { return }
+            if case .finished = phase {
+                return
+            }
             phase = .finished(reason: .error(message))
             cleanupCommandClient()
         }
