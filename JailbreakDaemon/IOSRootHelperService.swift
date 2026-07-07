@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 import Library
 import os
 
@@ -33,6 +34,7 @@ final class IOSRootHelperService: NSObject {
         resolveShell: resolveShell,
         resolveHomeDirectory: resolveHomeDirectory
     )
+    private let bridgeSessionManager = BridgeSessionManager()
 
     func start() {
         let machListener = XPCMachServiceBridge.makeListener(machServiceName: AppConfiguration.rootHelperMachService)
@@ -54,6 +56,7 @@ extension IOSRootHelperService: NSXPCListenerDelegate {
         let owner = ObjectIdentifier(newConnection)
         newConnection.invalidationHandler = { [weak self] in
             self?.shellSessionManager.reap(owner: owner)
+            self?.bridgeSessionManager.reap(owner: owner)
         }
         newConnection.resume()
         return true
@@ -158,6 +161,61 @@ extension IOSRootHelperService: ShellHelperProtocol {
         } catch {
             reply(error as NSError)
         }
+    }
+
+    func createBridgeService(
+        bridgeName: String,
+        mtu: Int32,
+        inet4Port: String,
+        inet6Port: String,
+        interfaceName: String,
+        reply: @escaping (FileHandle?, NSString?, Bool, NSString?, NSError?) -> Void
+    ) {
+        guard let currentConnection = NSXPCConnection.current() else {
+            reply(nil, nil, false, nil, NSError(domain: "RootHelper", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "no current XPC connection",
+            ]))
+            return
+        }
+        let options = LibboxBridgeOptions()
+        options.bridgeName = bridgeName
+        options.mtu = mtu
+        options.inet4Port = inet4Port
+        options.inet6Port = inet6Port
+        options.interface = interfaceName
+        do {
+            let (handle, session) = try bridgeSessionManager.create(owner: ObjectIdentifier(currentConnection), options: options)
+            logger.info("createBridgeService: \(session.name(), privacy: .public)")
+            let fileHandle = FileHandle(fileDescriptor: session.fileDescriptor(), closeOnDealloc: false)
+            reply(fileHandle, session.name() as NSString, session.inet6Active(), handle as NSString, nil)
+        } catch {
+            logger.error("createBridgeService: \(error.localizedDescription, privacy: .public)")
+            reply(nil, nil, false, nil, error as NSError)
+        }
+    }
+
+    func setBridgeEgress(handle: String, egress: String, reply: @escaping (NSError?) -> Void) {
+        guard let session = bridgeSessionManager.session(handle: handle) else {
+            reply(NSError(domain: "RootHelper", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "bridge session not found",
+            ]))
+            return
+        }
+        do {
+            try session.setEgress(egress)
+            reply(nil)
+        } catch {
+            reply(error as NSError)
+        }
+    }
+
+    func closeBridgeService(handle: String, reply: @escaping (NSError?) -> Void) {
+        guard let currentConnection = NSXPCConnection.current() else {
+            reply(nil)
+            return
+        }
+        bridgeSessionManager.close(owner: ObjectIdentifier(currentConnection), handle: handle)
+        reply(nil)
     }
 
     func readSystemSSHHostKey(reply: @escaping (NSString?, NSError?) -> Void) {
