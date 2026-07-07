@@ -210,78 +210,76 @@ struct MainView: View {
     }
 
     private var mainBody: some View {
-        Group {
-            tabViewContent
-                .onAppear {
-                    updateButtonVisibility()
-                }
-                .onReceive(environments.commandClient.$groups) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(environments.commandClient.$connections) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(environments.commandClient.$hasAnyConnection) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(environments.commandClient.$isConnected) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(environments.commandClient.statusPublisher) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(environments.$remoteServer) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(environments.$extensionProfile) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .onReceive(environments.$emptyProfiles) { _ in
-                    Task { @MainActor in updateButtonVisibility() }
-                }
-                .sheet(isPresented: $showGroups) {
-                    GroupsSheetContent()
-                }
-                .sheet(isPresented: $showConnections) {
-                    ConnectionsSheetContent()
-                }
-        }
-        .onAppear {
-            environments.postReload()
-        }
-        .alert($alert)
-        .globalChecks()
-        .onChangeCompat(of: scenePhase) { newValue in
-            if newValue == .active {
+        tabViewContent
+            .onAppear {
+                updateButtonVisibility()
+            }
+            .onReceive(environments.commandClient.$groups) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(environments.commandClient.$connections) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(environments.commandClient.$hasAnyConnection) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(environments.commandClient.$isConnected) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(environments.commandClient.statusPublisher) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(environments.$remoteServer) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(environments.$extensionProfile) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .onReceive(environments.$emptyProfiles) { _ in
+                Task { @MainActor in updateButtonVisibility() }
+            }
+            .sheet(isPresented: $showGroups) {
+                GroupsSheetContent()
+            }
+            .sheet(isPresented: $showConnections) {
+                ConnectionsSheetContent()
+            }
+            .onAppear {
                 environments.postReload()
             }
-        }
-        .onChangeCompat(of: selection) { newValue in
-            if newValue == .logs {
-                environments.connect()
+            .alert($alert)
+            .globalChecks()
+            .onChangeCompat(of: scenePhase) { newValue in
+                if newValue == .active {
+                    environments.postReload()
+                }
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .reportReceived)) { _ in
-            Task {
-                await environments.crashReportManager.refresh()
-                await environments.oomReportManager.refresh()
-                selection = .tools
+            .onChangeCompat(of: selection) { newValue in
+                if newValue == .logs {
+                    environments.connect()
+                }
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .navigateToSettingsPage)) { notification in
-            guard notification.object is SettingsPage else { return }
-            selection = .settings
-        }
-        .environment(\.selection, $selection)
-        .environment(\.importProfile, $importProfile)
-        .environment(\.importRemoteProfile, $importRemoteProfile)
-        .environment(\.profileEditor, profileEditor)
-        .environment(\.ghosttyConfigEditor, ghosttyConfigEditor)
-        .handlesExternalEvents(preferring: [], allowing: ["*"])
-        .onOpenURL(perform: openURL)
+            .onReceive(NotificationCenter.default.publisher(for: .reportReceived)) { _ in
+                Task {
+                    await environments.crashReportManager.refresh()
+                    await environments.oomReportManager.refresh()
+                    selection = .tools
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .navigateToSettingsPage)) { notification in
+                guard notification.object is SettingsPage else { return }
+                selection = .settings
+            }
+            .environment(\.selection, $selection)
+            .environment(\.importProfile, $importProfile)
+            .environment(\.importRemoteProfile, $importRemoteProfile)
+            .environment(\.profileEditor, profileEditor)
+            .environment(\.ghosttyConfigEditor, ghosttyConfigEditor)
+            .handlesExternalEvents(preferring: [], allowing: ["*"])
+            .onOpenURL(perform: openURL)
     }
 
     private func updateButtonVisibility() {

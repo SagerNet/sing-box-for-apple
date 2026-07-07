@@ -246,7 +246,11 @@ private struct CardRow: View {
     private var isToggleEnabled: Binding<Bool> {
         Binding(
             get: { isProfileCard || isEnabled },
-            set: { _ in if !isProfileCard { onToggle() } }
+            set: {
+                _ in if !isProfileCard {
+                    onToggle()
+                }
+            }
         )
     }
 

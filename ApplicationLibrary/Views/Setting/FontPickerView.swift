@@ -142,7 +142,9 @@
             var result: [String: [String]] = [:]
             for family in pool {
                 #if os(iOS)
-                    if importedNames.contains(family) { continue }
+                    if importedNames.contains(family) {
+                        continue
+                    }
                 #endif
                 let first = family.first.map(String.init)?.uppercased() ?? "#"
                 let key = first.first?.isLetter == true ? first : "#"

@@ -49,7 +49,9 @@ public struct TailscaleEndpointData: Identifiable {
     public let keyAuth: Bool
 
     public var hasExitNodeCandidates: Bool {
-        if exitNode != nil { return true }
+        if exitNode != nil {
+            return true
+        }
         let selfStableID = selfPeer?.stableID
         return userGroups.contains { group in
             group.peers.contains { $0.exitNodeOption && $0.stableID != selfStableID }

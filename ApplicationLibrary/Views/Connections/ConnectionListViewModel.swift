@@ -65,7 +65,9 @@ public class ConnectionListViewModel: BaseViewModel {
         connectTask = Task { @MainActor [weak self] in
             guard let self else { return }
             await self.loadPreferences()
-            if Task.isCancelled { return }
+            if Task.isCancelled {
+                return
+            }
             self.connectTask = nil
         }
     }
