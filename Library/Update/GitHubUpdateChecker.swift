@@ -25,8 +25,12 @@ public enum GitHubUpdateChecker {
         var bestAsset: GitHubAsset?
 
         for release in releases {
-            if release.draft { continue }
-            if track == .stable, release.prerelease { continue }
+            if release.draft {
+                continue
+            }
+            if track == .stable, release.prerelease {
+                continue
+            }
             guard let pkgAsset = findPKGAsset(in: release.assets) else { continue }
 
             let version = release.tagName.hasPrefix("v")

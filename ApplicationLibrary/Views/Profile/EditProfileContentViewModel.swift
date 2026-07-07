@@ -47,7 +47,9 @@ public final class EditProfileContentViewModel: BaseViewModel {
 
     private func checkConfiguration() async {
         let content = profileContent
-        if content.isEmpty { return }
+        if content.isEmpty {
+            return
+        }
         let errorDescription: String? = await BlockingIO.run {
             var error: NSError?
             LibboxCheckConfig(content, &error)
@@ -58,7 +60,9 @@ public final class EditProfileContentViewModel: BaseViewModel {
 
     public func formatConfiguration() async {
         let content = profileContent
-        if content.isEmpty { return }
+        if content.isEmpty {
+            return
+        }
         do {
             let formatted: String? = try await BlockingIO.run {
                 var error: NSError?

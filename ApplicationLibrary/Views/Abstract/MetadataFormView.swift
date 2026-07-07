@@ -21,18 +21,28 @@ private struct OrderedStringMap {
             rest = rest.dropFirst()
             var s = ""
             while let ch = rest.first, ch != "\"" {
-                if ch == "\\" { rest = rest.dropFirst() }
-                if let c = rest.first { s.append(c); rest = rest.dropFirst() }
+                if ch == "\\" {
+                    rest = rest.dropFirst()
+                }
+                if let c = rest.first {
+                    s.append(c); rest = rest.dropFirst()
+                }
             }
-            if !rest.isEmpty { rest = rest.dropFirst() }
+            if !rest.isEmpty {
+                rest = rest.dropFirst()
+            }
             return s
         }
 
         guard skip("{") else { return nil }
         while true {
             guard let key = readString(), skip(":"), let value = readString() else { break }
-            if !value.isEmpty { entries.append((key: key, value: value)) }
-            if !skip(",") { break }
+            if !value.isEmpty {
+                entries.append((key: key, value: value))
+            }
+            if !skip(",") {
+                break
+            }
         }
         self.entries = entries
     }

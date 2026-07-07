@@ -163,13 +163,17 @@ public struct QRSDisplayView: View {
 
         generationTask = Task {
             let (encoder, requiredFrames) = await createEncoder()
-            if Task.isCancelled { return }
+            if Task.isCancelled {
+                return
+            }
 
             newGenerator.setExpectedFrames(requiredFrames)
 
             let fountain = encoder.fountain()
             for _ in 0 ..< requiredFrames {
-                if Task.isCancelled { return }
+                if Task.isCancelled {
+                    return
+                }
                 guard let block = fountain.next() else { continue }
                 await newGenerator.addFrame(block)
             }
@@ -192,7 +196,9 @@ public struct QRSDisplayView: View {
 
     private nonisolated static func calculateRequiredFrames(dataSize: Int, sliceSize: Int) -> Int {
         let k = (dataSize + sliceSize - 1) / sliceSize
-        if k == 0 { return 1 }
+        if k == 0 {
+            return 1
+        }
         return max(Int(Double(k) * recoveryFactor), k + 5)
     }
 }
