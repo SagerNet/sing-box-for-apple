@@ -6016,7 +6016,7 @@
         }
       }
     },
-    "In Minutes" : {
+    "min" : {
       "localizations" : {
         "fa" : {
           "stringUnit" : {
@@ -6027,7 +6027,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Минуты"
+            "value" : "мин"
           }
         },
         "zh-Hans" : {

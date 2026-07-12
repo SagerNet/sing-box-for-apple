@@ -109,11 +109,15 @@ public struct NewProfileView: View {
                     }
                     Toggle("Auto Update", isOn: $viewModel.autoUpdate)
                     FormItem(String(localized: "Auto Update Interval")) {
-                        TextField("Auto Update Interval", text: $viewModel.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
-                            .multilineTextAlignment(.trailing)
-                        #if !os(macOS)
-                            .keyboardType(.numberPad)
-                        #endif
+                        HStack {
+                            TextField("Auto Update Interval", text: $viewModel.autoUpdateInterval.stringBinding(defaultValue: 60))
+                                .multilineTextAlignment(.trailing)
+                            #if !os(macOS)
+                                .keyboardType(.numberPad)
+                            #endif
+                            Text("min")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             } footer: {
