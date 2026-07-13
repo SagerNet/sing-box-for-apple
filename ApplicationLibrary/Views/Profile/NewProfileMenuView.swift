@@ -270,6 +270,13 @@ public struct NewProfileMenuView: View {
                     primaryButton: .default(String(localized: "Import")) {
                         Task {
                             do {
+                                try await BlockingIO.run {
+                                    var error: NSError?
+                                    LibboxCheckConfig(content.config, &error)
+                                    if let error {
+                                        throw error
+                                    }
+                                }
                                 try await content.importProfile()
                                 environments.profileUpdate.send()
                                 dismiss()
