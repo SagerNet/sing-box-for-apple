@@ -37,6 +37,7 @@ public struct AppView: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var updateManager: UpdateManager
         @State private var updateTrack: UpdateTrack = .stable
+        @State private var githubToken = ""
         @State private var checkUpdateEnabled = false
     #endif
 
@@ -148,6 +149,17 @@ public struct AppView: View {
                                     Task {
                                         await updateManager.updateTrackChanged(to: newValue)
                                     }
+                                }
+
+                                FormItem(String(localized: "GitHub Token")) {
+                                    SecureField("GitHub Token", text: $githubToken, prompt: Text("Get higher GitHub API rate limits"))
+                                        .multilineTextAlignment(.trailing)
+                                        .onChangeCompat(of: githubToken) { newValue in
+                                            Task {
+                                                let token = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                                                await SharedPreferences.githubToken.set(token.isEmpty ? nil : token)
+                                            }
+                                        }
                                 }
 
                                 Toggle("Automatic Update Check", isOn: $checkUpdateEnabled)
@@ -321,6 +333,7 @@ public struct AppView: View {
                 systemExtensionInstalled = await SystemExtension.isInstalled()
                 let trackString = await SharedPreferences.updateTrack.get()
                 updateTrack = UpdateTrack.resolved(from: trackString)
+                githubToken = await SharedPreferences.githubToken.get()
                 checkUpdateEnabled = await SharedPreferences.checkUpdateEnabled.get()
             }
         #endif
