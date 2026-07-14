@@ -19,12 +19,15 @@ public class HTTPClient {
         client.modernTLS()
     }
 
-    public func getString(_ url: String?) throws -> String {
+    public func getString(_ url: String?, headers: [String: String] = [:]) throws -> String {
         #if DEBUG
             precondition(!Thread.isMainThread, "HTTPClient.getString(...) must not be called on the main thread")
         #endif
         let request = client.newRequest()!
         request.setUserAgent(HTTPClient.userAgent)
+        for (key, value) in headers {
+            request.setHeader(key, value: value)
+        }
         try request.setURL(url)
         let response = try request.execute()
         let content = try response.getContent()

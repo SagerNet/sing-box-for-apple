@@ -7,15 +7,15 @@ public enum GitHubUpdateChecker {
     private static let releasesPerPage = 100
     private static let minimumSemver = "0.0.0-0"
 
-    public static func checkAsync(track: UpdateTrack, force: Bool = false) async throws -> UpdateInfo? {
+    public static func checkAsync(track: UpdateTrack, githubToken: String = "", force: Bool = false) async throws -> UpdateInfo? {
         try await BlockingIO.run {
-            try check(track: track, force: force)
+            try check(track: track, githubToken: githubToken, force: force)
         }
     }
 
-    public static func check(track: UpdateTrack, force: Bool = false) throws -> UpdateInfo? {
+    public static func check(track: UpdateTrack, githubToken: String = "", force: Bool = false) throws -> UpdateInfo? {
         let client = HTTPClient()
-        guard let releases = try fetchReleases(client: client, track: track) else {
+        guard let releases = try fetchReleases(client: client, track: track, githubToken: githubToken) else {
             return nil
         }
         let currentVersion = Bundle.main.version
@@ -133,12 +133,20 @@ public enum GitHubUpdateChecker {
         return trimmedVersion.contains("-") && isValidSemver(trimmedVersion)
     }
 
-    private static func fetchReleases(client: HTTPClient, track: UpdateTrack) throws -> [GitHubRelease]? {
+    private static func fetchReleases(client: HTTPClient, track: UpdateTrack, githubToken: String) throws -> [GitHubRelease]? {
         var allReleases: [GitHubRelease] = []
         var page = 1
+        var headers: [String: String] = [:]
+        let token = githubToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !token.isEmpty {
+            headers["Authorization"] = "Bearer \(token)"
+        }
 
         while true {
-            let releasesJSON = try client.getString("\(releasesURL)?per_page=\(releasesPerPage)&page=\(page)")
+            let releasesJSON = try client.getString(
+                "\(releasesURL)?per_page=\(releasesPerPage)&page=\(page)",
+                headers: headers
+            )
             guard let data = releasesJSON.data(using: .utf8) else {
                 return nil
             }

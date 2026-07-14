@@ -145,7 +145,8 @@
 
             do {
                 let track = await currentTrack()
-                let info = try await GitHubUpdateChecker.checkAsync(track: track, force: force)
+                let githubToken = await SharedPreferences.githubToken.get()
+                let info = try await GitHubUpdateChecker.checkAsync(track: track, githubToken: githubToken, force: force)
                 let currentTrack = await currentTrack()
                 guard track == currentTrack else {
                     throw CancellationError()
