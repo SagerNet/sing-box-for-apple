@@ -4955,6 +4955,34 @@
         }
       }
     },
+    "Get higher GitHub API rate limits" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دریافت محدودیت نرخ بالاتر برای API گیت‌هاب"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Получите более высокие лимиты запросов GitHub API"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "获取更高的 GitHub API 速率限制"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取得更高的 GitHub API 速率限制"
+          }
+        }
+      }
+    },
     "Ghostty Configuration" : {
       "localizations" : {
         "fa" : {
@@ -5007,6 +5035,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通過 Github Sponsors (推薦)"
+          }
+        }
+      }
+    },
+    "GitHub Token" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "توکن GitHub"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Токен GitHub"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub Token"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub Token"
           }
         }
       }
