@@ -109,7 +109,7 @@ public struct NewProfileView: View {
                     }
                     Toggle("Auto Update", isOn: $viewModel.autoUpdate)
                     FormItem(String(localized: "Auto Update Interval")) {
-                        HStack {
+                        HStack(spacing: 4) {
                             TextField("Auto Update Interval", text: $viewModel.autoUpdateInterval.stringBinding(defaultValue: 60))
                                 .multilineTextAlignment(.trailing)
                             #if !os(macOS)
@@ -117,6 +117,7 @@ public struct NewProfileView: View {
                             #endif
                             Text("min")
                                 .foregroundStyle(.secondary)
+                                .fixedSize()
                         }
                     }
                 }
