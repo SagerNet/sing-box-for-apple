@@ -229,6 +229,7 @@ public class ExtensionProfile: ObservableObject {
     private func prepareStartOptions() async throws -> [String: NSObject] {
         var options: [String: NSObject] = [
             "manualStart": NSNumber(value: true),
+            "locale": NSString(string: ApplicationLocale.preferredIdentifier),
         ]
 
         let profileID = await SharedPreferences.selectedProfileID.get()

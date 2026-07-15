@@ -26,10 +26,10 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
         if let setupError {
             NSLog("setup service error: \(setupError.localizedDescription)")
         }
-        var localeError: NSError?
-        LibboxSetLocale(Locale.current.identifier, &localeError)
-        if let localeError {
-            NSLog("failed to set locale: \(localeError)")
+        do {
+            try ApplicationLocale.apply()
+        } catch {
+            NSLog("failed to set locale: \(error)")
         }
         let notificationCenter = UNUserNotificationCenter.current()
         notificationCenter.setNotificationCategories([
