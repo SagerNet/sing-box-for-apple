@@ -27,7 +27,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     public var overridePreferences: OverridePreferences?
 
-    private func applyStartOptions(_ options: [String: NSObject]) {
+    private func applyStartOptions(_ options: [String: NSObject]) throws {
+        try ApplicationLocale.apply(options["locale"] as? String)
         tunnelOptions = options
         overridePreferences = OverridePreferences(
             includeAllNetworks: (options["includeAllNetworks"] as? NSNumber)?.boolValue ?? false,
@@ -133,6 +134,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #endif
 
         let effectiveOptions = try resolveStartOptions(startOptions)
+        try applyStartOptions(effectiveOptions)
         if effectiveOptions["configContent"] == nil {
             throw ExtensionStartupError("(packet-tunnel) error: missing configContent in tunnel options")
         }
@@ -141,9 +143,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         } catch {
             throw ExtensionStartupError("(packet-tunnel) error: persist start options: \(error.localizedDescription)")
         }
-
-        applyStartOptions(effectiveOptions)
-
         let options = LibboxSetupOptions()
         options.basePath = basePath
         options.workingPath = workingPath
@@ -309,7 +308,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     override open func handleAppMessage(_ messageData: Data) async -> Data? {
         do {
             let options = try ExtensionStartOptions.decode(messageData)
-            applyStartOptions(options)
+            try applyStartOptions(options)
             try persistStartOptions(options)
             try await reloadService()
             return nil
