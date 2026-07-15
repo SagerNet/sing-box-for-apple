@@ -37,10 +37,10 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         if let error {
             NSLog("setup service error: \(error.localizedDescription)")
         }
-        var localeError: NSError?
-        LibboxSetLocale(Locale.current.identifier, &localeError)
-        if let localeError {
-            NSLog("failed to set locale: \(localeError)")
+        do {
+            try ApplicationLocale.apply()
+        } catch {
+            NSLog("failed to set locale: \(error)")
         }
         setup()
         return true

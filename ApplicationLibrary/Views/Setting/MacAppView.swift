@@ -348,12 +348,10 @@ public struct AppView: View {
     }
 
     private static func currentLanguage() -> String? {
-        guard let languages = UserDefaults.standard.array(forKey: "AppleLanguages") as? [String],
-              let first = languages.first
-        else {
+        guard let selectedIdentifier = ApplicationLocale.selectedIdentifier else {
             return nil
         }
-        let current = canonicalLanguageCode(first)
+        let current = canonicalLanguageCode(selectedIdentifier)
         for language in supportedLanguages {
             guard let code = language.code else {
                 continue
@@ -366,11 +364,7 @@ public struct AppView: View {
     }
 
     private func updateLanguage(_ language: String?) {
-        if let language {
-            UserDefaults.standard.set([Self.canonicalLanguageCode(language)], forKey: "AppleLanguages")
-        } else {
-            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
-        }
+        ApplicationLocale.setSelectedIdentifier(language)
         alert = AlertState(
             title: String(localized: "Restart Required"),
             message: String(localized: "Language will be changed after restarting the app.")
