@@ -83,18 +83,9 @@ public struct EditRemoteServerView: View {
                         Label("Save", systemImage: "doc.fill")
                     }
                 }
-                if origin != nil {
-                    Section {
-                        FormButton(role: .destructive) {
-                            Task {
-                                await deleteServer()
-                            }
-                        } label: {
-                            Label("Delete", systemImage: "trash.fill")
-                                .foregroundColor(.red)
-                        }
-                    }
-                }
+            #endif
+            #if os(iOS) || os(tvOS)
+                deleteSection
             #endif
         }
         .onChangeCompat(of: url) { scheduleProbe() }
@@ -184,6 +175,17 @@ public struct EditRemoteServerView: View {
                 formContent
             }
             .toolbar {
+                if origin != nil {
+                    ToolbarItem(placement: .destructiveAction) {
+                        Button(role: .destructive) {
+                            Task {
+                                await deleteServer()
+                            }
+                        } label: {
+                            Text("Delete")
+                        }
+                    }
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
@@ -215,6 +217,24 @@ public struct EditRemoteServerView: View {
                 }
             #endif
                 .alert($alert)
+        }
+    #endif
+
+    #if os(iOS) || os(tvOS)
+        @ViewBuilder
+        private var deleteSection: some View {
+            if origin != nil {
+                Section {
+                    FormButton(role: .destructive) {
+                        Task {
+                            await deleteServer()
+                        }
+                    } label: {
+                        Label("Delete", systemImage: "trash.fill")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
         }
     #endif
 
@@ -255,22 +275,20 @@ public struct EditRemoteServerView: View {
         dismiss()
     }
 
-    #if os(tvOS)
-        private func deleteServer() async {
-            guard let origin else {
-                return
-            }
-            do {
-                if environments.remoteServer?.id == origin.id {
-                    environments.exitRemoteControl()
-                }
-                try await RemoteServerManager.delete(origin)
-            } catch {
-                alert = AlertState(action: "delete server", error: error)
-                return
-            }
-            await onChanged()
-            dismiss()
+    private func deleteServer() async {
+        guard let origin else {
+            return
         }
-    #endif
+        do {
+            if environments.remoteServer?.id == origin.id {
+                environments.exitRemoteControl()
+            }
+            try await RemoteServerManager.delete(origin)
+        } catch {
+            alert = AlertState(action: "delete server", error: error)
+            return
+        }
+        await onChanged()
+        dismiss()
+    }
 }
