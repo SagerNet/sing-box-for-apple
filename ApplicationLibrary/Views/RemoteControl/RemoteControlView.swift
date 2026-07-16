@@ -117,15 +117,6 @@ public struct RemoteControlView: View {
                 }
             }
             .navigationTitle("Remote Control")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showNewServer = true
-                    } label: {
-                        Label("New Server", systemImage: "plus")
-                    }
-                }
-            }
             .sheet(isPresented: $showNewServer) {
                 serverSheet(nil)
             }
@@ -144,16 +135,21 @@ public struct RemoteControlView: View {
                     ForEach(servers) { server in
                         serverRow(server)
                     }
-                    .onDelete { offsets in
-                        Task {
-                            for server in offsets.map({ servers[$0] }) {
-                                await delete(server)
-                            }
-                        }
-                    }
                 }
             } header: {
-                Text("Servers")
+                HStack {
+                    Text("Servers")
+                    Spacer()
+                    Button {
+                        showNewServer = true
+                    } label: {
+                        Label("New Server", systemImage: "plus.circle.fill")
+                            .labelStyle(.iconOnly)
+                    }
+                    #if os(macOS)
+                    .buttonStyle(.plain)
+                    #endif
+                }
             }
         }
 
@@ -201,19 +197,6 @@ public struct RemoteControlView: View {
                     }
                 }
             #endif
-        }
-
-        private func delete(_ server: RemoteServer) async {
-            do {
-                if environments.remoteServer?.id == server.id {
-                    environments.exitRemoteControl()
-                }
-                try await RemoteServerManager.delete(server)
-            } catch {
-                alert = AlertState(action: "delete server", error: error)
-                return
-            }
-            await reload()
         }
 
     #endif
