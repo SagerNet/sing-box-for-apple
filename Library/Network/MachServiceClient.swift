@@ -9,6 +9,13 @@
         private var connection: NSXPCConnection?
         private let connectionLock = NSLock()
 
+        private static func copyXPCError(_ error: Error) -> NSError {
+            let error = error as NSError
+            return NSError(domain: error.domain, code: error.code, userInfo: [
+                NSLocalizedDescriptionKey: error.localizedDescription,
+            ])
+        }
+
         init(machServiceName: String, remoteInterface: NSXPCInterface, logger: Logger) {
             self.machServiceName = machServiceName
             self.remoteInterface = remoteInterface
@@ -44,12 +51,12 @@
             var resultError: NSError?
             let proxy = currentConnection().remoteObjectProxyWithErrorHandler { [logger] error in
                 logger.error("\(operation, privacy: .public) XPC error: \(error.localizedDescription, privacy: .public)")
-                resultError = error as NSError
+                resultError = Self.copyXPCError(error)
                 semaphore.signal()
             }
             body(proxy as AnyObject) { value, error in
                 result = value
-                resultError = error
+                resultError = error.map { Self.copyXPCError($0) }
                 semaphore.signal()
             }
             let deadline: DispatchTime = timeout == .never ? .distantFuture : .now() + timeout
@@ -84,11 +91,11 @@
             var resultError: NSError?
             let proxy = currentConnection().remoteObjectProxyWithErrorHandler { [logger] error in
                 logger.error("\(operation, privacy: .public) XPC error: \(error.localizedDescription, privacy: .public)")
-                resultError = error as NSError
+                resultError = Self.copyXPCError(error)
                 semaphore.signal()
             }
             body(proxy as AnyObject) { error in
-                resultError = error
+                resultError = error.map { Self.copyXPCError($0) }
                 semaphore.signal()
             }
             if semaphore.wait(timeout: .now() + timeout) == .timedOut {
