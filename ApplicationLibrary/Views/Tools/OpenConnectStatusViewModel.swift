@@ -26,12 +26,39 @@ public struct OpenConnectAuthFormFieldData: Identifiable {
 }
 
 public struct OpenConnectAuthFormData {
+    public let fields: [OpenConnectAuthFormFieldData]
+}
+
+public struct OpenConnectBrowserRequestData {
+    public let url: String
+    public let finalURL: String
+    public let cookieNames: [String]
+    public let headerNames: [String]
+}
+
+public struct OpenConnectAuthChallengeData {
     public let id: String
     public let banner: String
     public let message: String
     public let error: String
-    public let url: String
-    public let fields: [OpenConnectAuthFormFieldData]
+    public let form: OpenConnectAuthFormData?
+    public let browser: OpenConnectBrowserRequestData?
+}
+
+public struct OpenConnectBrowserCookieData {
+    public let name: String
+    public let value: String
+}
+
+public struct OpenConnectBrowserHeaderData {
+    public let name: String
+    public let values: [String]
+}
+
+public struct OpenConnectBrowserResultData {
+    public let finalURL: String
+    public let cookies: [OpenConnectBrowserCookieData]
+    public let headers: [OpenConnectBrowserHeaderData]
 }
 
 public struct OpenConnectTunnelInfoData {
@@ -53,7 +80,7 @@ public struct OpenConnectEndpointData: Identifiable {
     public let endpointTag: String
     public let state: String
     public let stateText: String
-    public let authForm: OpenConnectAuthFormData?
+    public let authChallenge: OpenConnectAuthChallengeData?
     public let error: String
     public let tunnelInfo: OpenConnectTunnelInfoData?
 }
@@ -107,7 +134,11 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
         endpoints.first { $0.endpointTag == tag }
     }
 
-    public func submitAuthForm(endpointTag: String, formID: String, values: [String: String]) async -> String? {
+    public func submitAuthFormResponse(
+        endpointTag: String,
+        challengeID: String,
+        values: [String: String]
+    ) async -> String? {
         do {
             try await Task.detached {
                 guard let formValues = LibboxNewOpenConnectFormValues() else {
@@ -116,7 +147,47 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
                 for (key, value) in values {
                     formValues.add(key, value: value)
                 }
-                try CommandTarget.standaloneClient().submitOpenConnectAuthForm(endpointTag, formID: formID, values: formValues)
+                guard let response = LibboxNewOpenConnectAuthFormResponse(formValues) else {
+                    return
+                }
+                try CommandTarget.standaloneClient().submitOpenConnectAuthResponse(
+                    endpointTag,
+                    challengeID: challengeID,
+                    response: response
+                )
+            }.value
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    public func submitBrowserResponse(
+        endpointTag: String,
+        challengeID: String,
+        result: OpenConnectBrowserResultData
+    ) async -> String? {
+        do {
+            try await Task.detached {
+                guard let browserResult = LibboxNewOpenConnectBrowserResult(result.finalURL) else {
+                    return
+                }
+                for cookie in result.cookies {
+                    browserResult.addCookie(cookie.name, value: cookie.value)
+                }
+                for header in result.headers {
+                    for value in header.values {
+                        browserResult.addHeader(header.name, value: value)
+                    }
+                }
+                guard let response = LibboxNewOpenConnectBrowserAuthResponse(browserResult) else {
+                    return
+                }
+                try CommandTarget.standaloneClient().submitOpenConnectAuthResponse(
+                    endpointTag,
+                    challengeID: challengeID,
+                    response: response
+                )
             }.value
             return nil
         } catch {
@@ -169,15 +240,17 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
                 endpointTag: endpoint.endpointTag,
                 state: endpoint.state,
                 stateText: endpoint.stateText,
-                authForm: endpoint.authForm.map(convertAuthForm),
+                authChallenge: endpoint.authChallenge.map(convertAuthChallenge),
                 error: endpoint.error,
                 tunnelInfo: endpoint.tunnelInfo.map(convertTunnelInfo)
             )
         }
 
-        private static func convertAuthForm(_ form: LibboxOpenConnectAuthForm) -> OpenConnectAuthFormData {
+        private static func convertAuthChallenge(
+            _ challenge: LibboxOpenConnectAuthChallenge
+        ) -> OpenConnectAuthChallengeData {
             var fields: [OpenConnectAuthFormFieldData] = []
-            if let fieldIterator = form.fields() {
+            if let fieldIterator = challenge.form?.fields() {
                 while fieldIterator.hasNext() {
                     if let field = fieldIterator.next() {
                         var options: [OpenConnectAuthFormChoiceData] = []
@@ -199,13 +272,24 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
                     }
                 }
             }
-            return OpenConnectAuthFormData(
-                id: form.id_,
-                banner: form.banner,
-                message: form.message,
-                error: form.error,
-                url: form.url,
-                fields: fields
+            let form = challenge.form.map { _ in
+                OpenConnectAuthFormData(fields: fields)
+            }
+            let browser = challenge.browser.map {
+                OpenConnectBrowserRequestData(
+                    url: $0.url,
+                    finalURL: $0.finalURL,
+                    cookieNames: $0.cookieNames()?.toArray() ?? [],
+                    headerNames: $0.headerNames()?.toArray() ?? []
+                )
+            }
+            return OpenConnectAuthChallengeData(
+                id: challenge.id_,
+                banner: challenge.banner,
+                message: challenge.message,
+                error: challenge.error,
+                form: form,
+                browser: browser
             )
         }
 
