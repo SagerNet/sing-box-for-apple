@@ -38,7 +38,7 @@ public struct TailscaleEndpointView: View {
                             Image(systemName: "circle.fill")
                                 .font(.system(size: 8))
                                 .foregroundStyle(stateColor(endpoint.backendState))
-                            Text(endpoint.backendState)
+                            Text(endpoint.stateText)
                         }
                     }
                     if endpoint.backendState == "Running", let selfPeer = endpoint.selfPeer {

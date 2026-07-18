@@ -9,6 +9,8 @@ public struct ToolsView: View {
     @StateObject private var viewModel = SettingViewModel()
     @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
     @StateObject private var usbipViewModel = USBIPStatusViewModel()
+    @StateObject private var openConnectViewModel = OpenConnectStatusViewModel()
+    @StateObject private var openVPNViewModel = OpenVPNStatusViewModel()
     #if os(macOS)
         @StateObject private var usbipProviderViewModel = USBIPProviderViewModel()
     #endif
@@ -31,7 +33,7 @@ public struct ToolsView: View {
 
     public var body: some View {
         FormView {
-            if !tailscaleViewModel.endpoints.isEmpty {
+            if !tailscaleViewModel.endpoints.isEmpty || !openConnectViewModel.endpoints.isEmpty || !openVPNViewModel.endpoints.isEmpty {
                 Section("Endpoints") {
                     ForEach(tailscaleViewModel.endpoints) { endpoint in
                         FormNavigationLink {
@@ -63,6 +65,28 @@ public struct ToolsView: View {
                             }
                         }
                         #endif
+                    }
+                    ForEach(openConnectViewModel.endpoints) { endpoint in
+                        FormNavigationLink {
+                            OpenConnectEndpointView(viewModel: openConnectViewModel, endpointTag: endpoint.endpointTag)
+                        } label: {
+                            if openConnectViewModel.endpoints.count == 1 {
+                                Label("OpenConnect", systemImage: "network.badge.shield.half.filled")
+                            } else {
+                                Label("OpenConnect: \(endpoint.endpointTag)", systemImage: "network.badge.shield.half.filled")
+                            }
+                        }
+                    }
+                    ForEach(openVPNViewModel.endpoints) { endpoint in
+                        FormNavigationLink {
+                            OpenVPNEndpointView(viewModel: openVPNViewModel, endpointTag: endpoint.endpointTag)
+                        } label: {
+                            if openVPNViewModel.endpoints.count == 1 {
+                                Label("OpenVPN", systemImage: "network.badge.shield.half.filled")
+                            } else {
+                                Label("OpenVPN: \(endpoint.endpointTag)", systemImage: "network.badge.shield.half.filled")
+                            }
+                        }
                     }
                 }
             }
@@ -186,6 +210,8 @@ public struct ToolsView: View {
         }
         .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { tailscaleViewModel.subscribe() }, onInactive: { tailscaleViewModel.cancel() }))
         .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { usbipViewModel.subscribe() }, onInactive: { usbipViewModel.cancel() }))
+        .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { openConnectViewModel.subscribe() }, onInactive: { openConnectViewModel.cancel() }))
+        .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { openVPNViewModel.subscribe() }, onInactive: { openVPNViewModel.cancel() }))
         #if os(macOS)
             .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { usbipProviderViewModel.start() }, onInactive: { usbipProviderViewModel.cancel() }))
         #endif
