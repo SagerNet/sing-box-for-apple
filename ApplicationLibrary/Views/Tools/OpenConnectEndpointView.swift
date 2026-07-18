@@ -6,6 +6,7 @@ public struct OpenConnectEndpointView: View {
     @ObservedObject var viewModel: OpenConnectStatusViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showAuthURLQRCode = false
+    @State private var showBrowserAuthentication = false
     let endpointTag: String
 
     public init(viewModel: OpenConnectStatusViewModel, endpointTag: String) {
@@ -17,11 +18,11 @@ public struct OpenConnectEndpointView: View {
         viewModel.endpoint(tag: endpointTag)
     }
 
-    private var authForm: OpenConnectAuthFormData? {
+    private var authChallenge: OpenConnectAuthChallengeData? {
         guard let endpoint, endpoint.state == "auth-pending" else {
             return nil
         }
-        return endpoint.authForm
+        return endpoint.authChallenge
     }
 
     private var navigationTitleKey: LocalizedStringKey {
@@ -60,20 +61,33 @@ public struct OpenConnectEndpointView: View {
                         }
                     }
                 }
-                if let authForm {
+                if let authChallenge {
                     Section("Authentication") {
-                        if !authForm.url.isEmpty {
-                            if let url = URL(string: authForm.url) {
-                                #if !os(tvOS)
-                                    Link("Open Auth URL", destination: url)
-                                #endif
+                        if !authChallenge.banner.isEmpty {
+                            Text(authChallenge.banner)
+                                .foregroundStyle(.secondary)
+                        }
+                        if !authChallenge.message.isEmpty {
+                            Text(authChallenge.message)
+                        }
+                        if authChallenge.browser != nil {
+                            #if !os(tvOS)
+                                FormButton("Continue") {
+                                    showBrowserAuthentication = true
+                                }
+                            #else
                                 Button("Open Auth URL as QR Code") {
                                     showAuthURLQRCode = true
                                 }
-                            }
-                        } else {
-                            OpenConnectAuthFormContent(viewModel: viewModel, endpointTag: endpointTag, form: authForm)
-                                .id(authForm.id)
+                            #endif
+                        } else if let form = authChallenge.form {
+                            OpenConnectAuthFormContent(
+                                viewModel: viewModel,
+                                endpointTag: endpointTag,
+                                challenge: authChallenge,
+                                form: form
+                            )
+                            .id(authChallenge.id)
                         }
                     }
                 }
@@ -82,17 +96,43 @@ public struct OpenConnectEndpointView: View {
         .navigationTitle(navigationTitleKey)
         .alert($viewModel.alert)
         .sheet(isPresented: $showAuthURLQRCode) {
-            if let authForm {
-                URLQRCodeSheet(url: authForm.url, title: String(localized: "Auth URL"))
+            if let browser = authChallenge?.browser {
+                URLQRCodeSheet(url: browser.url, title: String(localized: "Auth URL"))
             }
         }
+        #if !os(tvOS)
+        .platformSheet(isPresented: $showBrowserAuthentication) {
+            if let authChallenge, let browser = authChallenge.browser {
+                OpenConnectBrowserView(request: browser) { result in
+                    Task {
+                        let message = await viewModel.submitBrowserResponse(
+                            endpointTag: endpointTag,
+                            challengeID: authChallenge.id,
+                            result: result
+                        )
+                        showBrowserAuthentication = false
+                        if let message {
+                            viewModel.alert = AlertState(errorMessage: message)
+                        }
+                    }
+                }
+            }
+        }
+        #endif
         .onChangeCompat(of: endpoint?.error ?? "") { error in
+            if !error.isEmpty {
+                viewModel.alert = AlertState(errorMessage: error)
+            }
+        }
+        .onChangeCompat(of: authChallenge?.error ?? "") { error in
             if !error.isEmpty {
                 viewModel.alert = AlertState(errorMessage: error)
             }
         }
         .onAppear {
             if let error = endpoint?.error, !error.isEmpty {
+                viewModel.alert = AlertState(errorMessage: error)
+            } else if let error = authChallenge?.error, !error.isEmpty {
                 viewModel.alert = AlertState(errorMessage: error)
             }
         }
@@ -152,15 +192,22 @@ private struct EndpointStateRow: View {
 private struct OpenConnectAuthFormContent: View {
     @ObservedObject var viewModel: OpenConnectStatusViewModel
     let endpointTag: String
+    let challenge: OpenConnectAuthChallengeData
     let form: OpenConnectAuthFormData
 
     @State private var values: [String: String]
     @State private var submitting = false
     @State private var submitted = false
 
-    init(viewModel: OpenConnectStatusViewModel, endpointTag: String, form: OpenConnectAuthFormData) {
+    init(
+        viewModel: OpenConnectStatusViewModel,
+        endpointTag: String,
+        challenge: OpenConnectAuthChallengeData,
+        form: OpenConnectAuthFormData
+    ) {
         self.viewModel = viewModel
         self.endpointTag = endpointTag
+        self.challenge = challenge
         self.form = form
         _values = State(initialValue: Dictionary(
             form.fields.map { ($0.submissionKey, Self.initialFieldValue($0)) },
@@ -169,39 +216,25 @@ private struct OpenConnectAuthFormContent: View {
     }
 
     var body: some View {
-        Group {
-            if submitted {
-                HStack(spacing: 8) {
+        if submitted {
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Verifying")
+            }
+        } else {
+            ForEach(form.fields) { field in
+                fieldView(field)
+            }
+            FormButton {
+                submit()
+            } label: {
+                if submitting {
                     ProgressView()
-                    Text("Verifying")
+                } else {
+                    Text(form.fields.isEmpty ? "Continue" : "Submit")
                 }
-            } else {
-                if !form.banner.isEmpty {
-                    Text(form.banner)
-                        .foregroundStyle(.secondary)
-                }
-                if !form.message.isEmpty {
-                    Text(form.message)
-                }
-                ForEach(form.fields) { field in
-                    fieldView(field)
-                }
-                FormButton {
-                    submit()
-                } label: {
-                    if submitting {
-                        ProgressView()
-                    } else {
-                        Text(form.fields.isEmpty ? "Continue" : "Submit")
-                    }
-                }
-                .disabled(submitting)
             }
-        }
-        .onAppear {
-            if !form.error.isEmpty {
-                viewModel.alert = AlertState(errorMessage: form.error)
-            }
+            .disabled(submitting)
         }
     }
 
@@ -245,7 +278,11 @@ private struct OpenConnectAuthFormContent: View {
     private func submit() {
         submitting = true
         Task {
-            let message = await viewModel.submitAuthForm(endpointTag: endpointTag, formID: form.id, values: values)
+            let message = await viewModel.submitAuthFormResponse(
+                endpointTag: endpointTag,
+                challengeID: challenge.id,
+                values: values
+            )
             submitting = false
             if let message {
                 viewModel.alert = AlertState(errorMessage: message)
