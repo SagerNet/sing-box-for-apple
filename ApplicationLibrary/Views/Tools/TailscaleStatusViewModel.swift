@@ -40,6 +40,7 @@ public struct TailscaleEndpointData: Identifiable {
     public let id: String
     public let endpointTag: String
     public let backendState: String
+    public let stateText: String
     public let authURL: String
     public let networkName: String
     public let magicDNSSuffix: String
@@ -197,6 +198,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 id: endpoint.endpointTag,
                 endpointTag: endpoint.endpointTag,
                 backendState: endpoint.backendState,
+                stateText: endpoint.stateText,
                 authURL: endpoint.authURL,
                 networkName: endpoint.networkName,
                 magicDNSSuffix: endpoint.magicDNSSuffix,
