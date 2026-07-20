@@ -49,7 +49,12 @@
         }
 
         func webView(_ webView: WKWebView, didFinish _: WKNavigation?) {
-            guard let url = webView.url, url.absoluteString == request.finalURL else { return }
+            guard !request.cookieNames.isEmpty,
+                  let url = webView.url,
+                  request.finalURL.isEmpty || url.absoluteString == request.finalURL
+            else {
+                return
+            }
             webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { [weak self] cookies in
                 DispatchQueue.main.async {
                     self?.handleCookies(url: url, cookies: cookies)
