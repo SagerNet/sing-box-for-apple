@@ -19,10 +19,15 @@ DEB_ROOT="$REPO_ROOT/build/jailbreak/debroot"
 ENT="$REPO_ROOT/Jailbreak"
 DAEMON_BIN="$DERIVED_DATA/Build/Products/Release-iphoneos/sfajb-roothelper"
 HELPER_PLIST="io.nekohasekai.sfajb.helper.plist"
+XCODEBUILD_FLAGS=()
+if [[ -n "${XCODEBUILD_CLONED_SOURCE_PACKAGES_DIR_PATH:-}" ]]; then
+	XCODEBUILD_FLAGS=(-clonedSourcePackagesDirPath "$XCODEBUILD_CLONED_SOURCE_PACKAGES_DIR_PATH")
+fi
 
 echo "Building $PRODUCT_NAME (JAILBREAK, $BASE_PACKAGE_IDENTIFIER)"
 build() {
 	xcodebuild build \
+		"${XCODEBUILD_FLAGS[@]}" \
 		-scheme SFI \
 		-configuration Release \
 		-destination 'generic/platform=iOS' \
@@ -54,6 +59,7 @@ echo "Packaging $PRODUCT_NAME $VERSION"
 echo "Building sfajb-roothelper daemon ($VERSION)"
 build_daemon() {
 	xcodebuild build \
+		"${XCODEBUILD_FLAGS[@]}" \
 		-scheme JailbreakDaemon \
 		-configuration Release \
 		-destination 'generic/platform=iOS' \
