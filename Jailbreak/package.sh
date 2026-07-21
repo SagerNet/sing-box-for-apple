@@ -141,7 +141,7 @@ find "$DEB_ROOT" -name '.DS_Store' -delete
 INSTALLED_SIZE="$(du -ks "$DEB_ROOT/var" | cut -f1)"
 # dpkg sorts '~' before everything, so 1.14.0~alpha.33 < 1.14.0 (the eventual release);
 # a literal '-' would parse as a Debian revision and sort *after* it, breaking upgrades.
-DEB_VERSION="${VERSION//-/\~}"
+DEB_VERSION="${VERSION//-/~}"
 cat > "$DEB_ROOT/DEBIAN/control" <<EOF
 Package: $BASE_PACKAGE_IDENTIFIER
 Name: sing-box JB
