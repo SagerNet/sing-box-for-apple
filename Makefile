@@ -198,6 +198,9 @@ build_macos_pkg_universal: archive_macos_standalone_universal export_macos_stand
 
 build_macos_pkg: build_macos_pkg_apple build_macos_pkg_intel build_macos_pkg_universal
 
+build_macos_pkg_all: archive_macos_standalone_universal export_macos_standalone_universal
+	bash SFM.System/package_from_universal.sh
+
 # PKG notarize commands
 notarize_macos_pkg_apple:
 	xcrun notarytool submit build/SFM-Apple.pkg --wait --keychain-profile "notarytool-password"
@@ -212,6 +215,16 @@ notarize_macos_pkg_universal:
 	xcrun stapler staple build/SFM-Universal.pkg
 
 notarize_macos_pkg: notarize_macos_pkg_apple notarize_macos_pkg_intel notarize_macos_pkg_universal
+
+notarize_macos_pkg_all:
+	set -e; \
+	xcrun notarytool submit build/SFM-Apple.pkg --wait --keychain-profile "notarytool-password" & apple_pid=$$!; \
+	xcrun notarytool submit build/SFM-Intel.pkg --wait --keychain-profile "notarytool-password" & intel_pid=$$!; \
+	xcrun notarytool submit build/SFM-Universal.pkg --wait --keychain-profile "notarytool-password" & universal_pid=$$!; \
+	wait $$apple_pid; wait $$intel_pid; wait $$universal_pid
+	xcrun stapler staple build/SFM-Apple.pkg
+	xcrun stapler staple build/SFM-Intel.pkg
+	xcrun stapler staple build/SFM-Universal.pkg
 
 # PKG release commands
 release_macos_pkg_apple: build_macos_pkg_apple notarize_macos_pkg_apple
