@@ -4,6 +4,7 @@ SHELL := /bin/bash
 
 INSTALLER_SIGN_IDENTITY := 16480CA444F481F8DEAF9421FAD2CCE590FC54E4
 XCODEBUILD_FLAGS ?=
+export DISABLE_SWIFTLINT := 1
 
 build_all: build_ios build_macos build_tvos
 

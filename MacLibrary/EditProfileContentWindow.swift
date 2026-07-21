@@ -39,13 +39,13 @@ struct EditProfileContentWindow: View {
         .frame(minWidth: 600, minHeight: 400)
         .background(WindowAccessor { window in
             guard let window else { return }
+            window.isRestorable = false
             if context == nil {
                 window.close()
                 return
             }
             if windowState.window == nil {
                 windowState.window = window
-                window.isRestorable = false
                 windowState.onClose = { [weak viewModel] in
                     viewModel?.reset()
                 }
