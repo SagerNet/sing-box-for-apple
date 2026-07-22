@@ -50,15 +50,6 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         self.environments = environments
         super.init()
         observeProfile()
-        Task {
-            await initialize()
-        }
-    }
-
-    private func initialize() async {
-        let showMenuBarExtra = await SharedPreferences.showMenuBarExtra.get()
-        speedMode = await MenuBarExtraSpeedMode(rawValue: SharedPreferences.menuBarExtraSpeedMode.get()) ?? .enabled
-        updateVisibility(showMenuBarExtra)
     }
 
     public func updateVisibility(_ show: Bool) {

@@ -5,7 +5,10 @@ import Libbox
 import Library
 import UserNotifications
 
+@MainActor
 open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+    public let applicationState = MacApplicationState()
+
     public func applicationDidFinishLaunching(_: Notification) {
         LibboxPrepareCrashSignalHandlers()
         NativeCrashReporter.installForCurrentProcess()
@@ -54,6 +57,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
             NSApp.windows.first?.close()
         }
         Task {
+            await applicationState.initialize()
             do {
                 try await ProfileUpdateTask.configure()
                 if launchedAsLogInItem {
