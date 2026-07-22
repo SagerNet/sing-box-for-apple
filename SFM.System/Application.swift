@@ -9,6 +9,6 @@ struct Application: App {
     init() {}
 
     var body: some Scene {
-        MacApplication()
+        MacApplication(applicationState: appDelegate.applicationState)
     }
 }

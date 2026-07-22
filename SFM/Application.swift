@@ -11,6 +11,6 @@ struct Application: App {
     }
 
     var body: some Scene {
-        MacApplication()
+        MacApplication(applicationState: appDelegate.applicationState)
     }
 }
