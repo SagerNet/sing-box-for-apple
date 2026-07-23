@@ -46,13 +46,14 @@ public func FormTextItem(_ name: LocalizedStringKey, _ systemImage: String, @Vie
             }
         }
     #else
-        HStack {
+        HStack(alignment: .firstTextBaseline) {
             Label(name, systemImage: systemImage)
-            Spacer()
             value()
                 .multilineTextAlignment(.trailing)
                 .font(Font.system(.caption, design: .monospaced))
                 .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .fixedSize(horizontal: false, vertical: true)
         }
     #endif
 }

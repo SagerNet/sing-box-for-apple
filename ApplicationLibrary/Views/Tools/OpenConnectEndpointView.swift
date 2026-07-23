@@ -1,12 +1,20 @@
 import Library
 import SwiftUI
 
+private struct OpenConnectBrowserSession: Identifiable {
+    let challengeID: String
+    let request: OpenConnectBrowserRequestData
+
+    var id: String {
+        challengeID
+    }
+}
+
 @MainActor
 public struct OpenConnectEndpointView: View {
     @ObservedObject var viewModel: OpenConnectStatusViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var showAuthURLQRCode = false
-    @State private var showBrowserAuthentication = false
+    @State private var browserSession: OpenConnectBrowserSession?
     let endpointTag: String
 
     public init(viewModel: OpenConnectStatusViewModel, endpointTag: String) {
@@ -73,11 +81,23 @@ public struct OpenConnectEndpointView: View {
                         if authChallenge.browser != nil {
                             #if !os(tvOS)
                                 FormButton("Continue") {
-                                    showBrowserAuthentication = true
+                                    if let browser = authChallenge.browser {
+                                        browserSession = OpenConnectBrowserSession(
+                                            challengeID: authChallenge.id,
+                                            request: browser
+                                        )
+                                    }
+                                }
+                                FormButton(role: .destructive) {
+                                    cancelAuthChallenge(authChallenge)
+                                } label: {
+                                    Text("Cancel")
                                 }
                             #else
-                                Button("Open Auth URL as QR Code") {
-                                    showAuthURLQRCode = true
+                                Text("Browser authentication is not supported on tvOS.")
+                                    .foregroundStyle(.red)
+                                Button("Cancel") {
+                                    cancelAuthChallenge(authChallenge)
                                 }
                             #endif
                         } else if let form = authChallenge.form {
@@ -95,50 +115,72 @@ public struct OpenConnectEndpointView: View {
         }
         .navigationTitle(navigationTitleKey)
         .alert($viewModel.alert)
-        .sheet(isPresented: $showAuthURLQRCode) {
-            if let browser = authChallenge?.browser {
-                URLQRCodeSheet(url: browser.url, title: String(localized: "Auth URL"))
-            }
-        }
         #if !os(tvOS)
-        .platformSheet(isPresented: $showBrowserAuthentication) {
-            if let authChallenge, let browser = authChallenge.browser {
-                OpenConnectBrowserView(request: browser) { result in
+            .platformSheet(item: $browserSession) { session in
+                OpenConnectBrowserView(
+                    challengeID: session.challengeID,
+                    endpointTag: endpointTag,
+                    request: session.request
+                ) { result in
+                    guard browserSession?.challengeID == session.challengeID else { return }
+                    browserSession = nil
+                    let stableViewModel = viewModel
+                    let stableEndpointTag = endpointTag
                     Task {
-                        let message = await viewModel.submitBrowserResponse(
-                            endpointTag: endpointTag,
-                            challengeID: authChallenge.id,
+                        let message = await stableViewModel.submitBrowserResponse(
+                            endpointTag: stableEndpointTag,
+                            challengeID: session.challengeID,
                             result: result
                         )
-                        showBrowserAuthentication = false
                         if let message {
-                            viewModel.alert = AlertState(errorMessage: message)
+                            stableViewModel.alert = AlertState(errorMessage: message)
                         }
                     }
                 }
             }
-        }
         #endif
-        .onChangeCompat(of: endpoint?.error ?? "") { error in
-            if !error.isEmpty {
-                viewModel.alert = AlertState(errorMessage: error)
+            .onChangeCompat(of: authChallenge?.id ?? "") { challengeID in
+                guard let browserSession, browserSession.challengeID != challengeID else { return }
+                self.browserSession = nil
             }
-        }
-        .onChangeCompat(of: authChallenge?.error ?? "") { error in
-            if !error.isEmpty {
-                viewModel.alert = AlertState(errorMessage: error)
+            .onChangeCompat(of: endpoint?.error ?? "") { error in
+                if !error.isEmpty {
+                    viewModel.alert = AlertState(errorMessage: error)
+                }
             }
-        }
-        .onAppear {
-            if let error = endpoint?.error, !error.isEmpty {
-                viewModel.alert = AlertState(errorMessage: error)
-            } else if let error = authChallenge?.error, !error.isEmpty {
-                viewModel.alert = AlertState(errorMessage: error)
+            .onChangeCompat(of: authChallenge?.error ?? "") { error in
+                if !error.isEmpty {
+                    viewModel.alert = AlertState(errorMessage: error)
+                }
             }
-        }
-        .onChangeCompat(of: endpoint == nil) { isNil in
-            if isNil {
-                dismiss()
+            .onAppear {
+                if let error = endpoint?.error, !error.isEmpty {
+                    viewModel.alert = AlertState(errorMessage: error)
+                } else if let error = authChallenge?.error, !error.isEmpty {
+                    viewModel.alert = AlertState(errorMessage: error)
+                }
+            }
+            .onChangeCompat(of: endpoint == nil) { isNil in
+                if isNil {
+                    dismiss()
+                }
+            }
+            .onDisappear {
+                browserSession = nil
+            }
+    }
+
+    private func cancelAuthChallenge(_ challenge: OpenConnectAuthChallengeData) {
+        browserSession = nil
+        let stableViewModel = viewModel
+        let stableEndpointTag = endpointTag
+        Task {
+            let message = await stableViewModel.cancelAuthChallenge(
+                endpointTag: stableEndpointTag,
+                challengeID: challenge.id
+            )
+            if let message {
+                stableViewModel.alert = AlertState(errorMessage: message)
             }
         }
     }

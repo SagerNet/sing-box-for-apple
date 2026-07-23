@@ -3,6 +3,26 @@ import Libbox
 import Library
 import SwiftUI
 
+private enum OpenConnectBridgeError: LocalizedError {
+    case createFormValues
+    case createFormResponse
+    case createBrowserResult
+    case createBrowserResponse
+
+    var errorDescription: String? {
+        switch self {
+        case .createFormValues:
+            "Could not create the OpenConnect form values."
+        case .createFormResponse:
+            "Could not create the OpenConnect form response."
+        case .createBrowserResult:
+            "Could not create the OpenConnect browser result."
+        case .createBrowserResponse:
+            "Could not create the OpenConnect browser response."
+        }
+    }
+}
+
 public struct OpenConnectAuthFormChoiceData: Identifiable {
     public var id: String {
         value
@@ -32,8 +52,11 @@ public struct OpenConnectAuthFormData {
 public struct OpenConnectBrowserRequestData {
     public let url: String
     public let finalURL: String
+    public let cacheID: String
     public let cookieNames: [String]
+    public let earlyCookieNames: [String]
     public let headerNames: [String]
+    public let callbackURLPrefixes: [String]
 }
 
 public struct OpenConnectAuthChallengeData {
@@ -142,13 +165,13 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
         do {
             try await Task.detached {
                 guard let formValues = LibboxNewOpenConnectFormValues() else {
-                    return
+                    throw OpenConnectBridgeError.createFormValues
                 }
                 for (key, value) in values {
                     formValues.add(key, value: value)
                 }
                 guard let response = LibboxNewOpenConnectAuthFormResponse(formValues) else {
-                    return
+                    throw OpenConnectBridgeError.createFormResponse
                 }
                 try CommandTarget.standaloneClient().submitOpenConnectAuthResponse(
                     endpointTag,
@@ -170,7 +193,7 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
         do {
             try await Task.detached {
                 guard let browserResult = LibboxNewOpenConnectBrowserResult(result.finalURL) else {
-                    return
+                    throw OpenConnectBridgeError.createBrowserResult
                 }
                 for cookie in result.cookies {
                     browserResult.addCookie(cookie.name, value: cookie.value)
@@ -181,12 +204,26 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
                     }
                 }
                 guard let response = LibboxNewOpenConnectBrowserAuthResponse(browserResult) else {
-                    return
+                    throw OpenConnectBridgeError.createBrowserResponse
                 }
                 try CommandTarget.standaloneClient().submitOpenConnectAuthResponse(
                     endpointTag,
                     challengeID: challengeID,
                     response: response
+                )
+            }.value
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    public func cancelAuthChallenge(endpointTag: String, challengeID: String) async -> String? {
+        do {
+            try await Task.detached {
+                try CommandTarget.standaloneClient().cancelOpenConnectAuthChallenge(
+                    endpointTag,
+                    challengeID: challengeID
                 )
             }.value
             return nil
@@ -279,8 +316,11 @@ public final class OpenConnectStatusViewModel: BaseViewModel {
                 OpenConnectBrowserRequestData(
                     url: $0.url,
                     finalURL: $0.finalURL,
+                    cacheID: $0.cacheID,
                     cookieNames: $0.cookieNames()?.toArray() ?? [],
-                    headerNames: $0.headerNames()?.toArray() ?? []
+                    earlyCookieNames: $0.earlyCookieNames()?.toArray() ?? [],
+                    headerNames: $0.headerNames()?.toArray() ?? [],
+                    callbackURLPrefixes: $0.callbackURLPrefixes()?.toArray() ?? []
                 )
             }
             return OpenConnectAuthChallengeData(
