@@ -12,7 +12,7 @@ struct ProfileEditorWrapperView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            CodeEditTextView(text: $text, isEditable: isEditable, editorController: controller)
+            CodeEditTextView(text: $text, isEditable: isEditable, editorController: controller, enableConfigCompletion: true)
 
             if isEditable {
                 EditorToolbarView(
@@ -29,18 +29,34 @@ struct ProfileEditorWrapperView: View {
         }
         .onChangeCompat(of: text) {
             if isEditable {
-                scheduleValidation()
+                applyValidationAction(ProfileValidationGate.action(for: .textChanged, popupVisible: controller.isCompletionPopupVisible))
+            }
+        }
+        .onChangeCompat(of: controller.isCompletionPopupVisible) {
+            if isEditable, !controller.isCompletionPopupVisible {
+                applyValidationAction(ProfileValidationGate.action(for: .popupClosed, popupVisible: false))
             }
         }
     }
 
-    private func scheduleValidation() {
-        configurationError = nil
-        validationTask?.cancel()
-        validationTask = Task {
-            try? await Task.sleep(nanoseconds: 2 * NSEC_PER_SEC)
-            guard !Task.isCancelled else { return }
-            await checkConfiguration()
+    private func applyValidationAction(_ action: ProfileValidationGate.Action) {
+        switch action {
+        case let .scheduleCheck(clearError):
+            if clearError {
+                configurationError = nil
+            }
+            validationTask?.cancel()
+            validationTask = Task {
+                try? await Task.sleep(nanoseconds: 2 * NSEC_PER_SEC)
+                guard !Task.isCancelled else { return }
+                applyValidationAction(ProfileValidationGate.action(for: .debounceFired, popupVisible: controller.isCompletionPopupVisible))
+            }
+        case .runCheck:
+            Task {
+                await checkConfiguration()
+            }
+        case .none:
+            break
         }
     }
 
