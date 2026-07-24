@@ -10,6 +10,7 @@ public final class CodeEditEditorController: ObservableObject {
 
     @Published public var canUndo = false
     @Published public var canRedo = false
+    @Published public var isCompletionPopupVisible = false
 
     public init() {}
 
@@ -107,17 +108,20 @@ struct CodeEditTextView: NSViewRepresentable {
     let isEditable: Bool
     let language: CodeLanguage
     let editorController: CodeEditEditorController?
+    let enableConfigCompletion: Bool
 
     init(
         text: Binding<String>,
         isEditable: Bool,
         language: CodeLanguage = .json,
-        editorController: CodeEditEditorController? = nil
+        editorController: CodeEditEditorController? = nil,
+        enableConfigCompletion: Bool = false
     ) {
         _text = text
         self.isEditable = isEditable
         self.language = language
         self.editorController = editorController
+        self.enableConfigCompletion = enableConfigCompletion
     }
 
     func makeNSView(context: Context) -> NSView {
@@ -154,6 +158,13 @@ struct CodeEditTextView: NSViewRepresentable {
             controller.configuration.appearance.theme = makeTheme(isDark: dark)
         }
         editorController?.controller = controller
+        if enableConfigCompletion, isEditable {
+            let completionController = JSONCompletionController(textView: controller.textView)
+            completionController.onVisibilityChange = { [weak editorController] visible in
+                editorController?.isCompletionPopupVisible = visible
+            }
+            context.coordinator.completionController = completionController
+        }
         Task { @MainActor in
             editorController?.updateUndoState()
         }
@@ -181,6 +192,7 @@ struct CodeEditTextView: NSViewRepresentable {
 
     class Coordinator: NSObject {
         var controller: TextViewController?
+        var completionController: JSONCompletionController?
         var lastIsDark: Bool?
         @Binding var text: String
         private var observation: NSObjectProtocol?
