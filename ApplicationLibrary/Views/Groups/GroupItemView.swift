@@ -59,6 +59,13 @@ public struct GroupItemView: View {
         .buttonStyle(.borderless)
         .padding(16)
         .cardStyle()
+        .contextMenu {
+            Button {
+                listViewModel.performURLTest(item.tag)
+            } label: {
+                Label("URLTest", systemImage: "bolt.fill")
+            }
+        }
         #endif
     }
 }
