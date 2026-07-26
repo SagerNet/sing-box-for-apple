@@ -5,8 +5,9 @@ import SwiftUI
 public struct RemoteDashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
-    @ObservedObject private var commandClient: CommandClient
+    private let commandClient: CommandClient
     @ObservedObject private var cardConfiguration: DashboardCardConfiguration
+    @State private var isConnected = false
 
     #if os(tvOS)
         @State private var showCardManagement = false
@@ -17,13 +18,13 @@ public struct RemoteDashboardView: View {
     #endif
 
     public init(commandClient: CommandClient, cardConfiguration: DashboardCardConfiguration) {
-        _commandClient = ObservedObject(wrappedValue: commandClient)
+        self.commandClient = commandClient
         _cardConfiguration = ObservedObject(wrappedValue: cardConfiguration)
     }
 
     public var body: some View {
         Group {
-            if commandClient.isConnected {
+            if isConnected {
                 ScrollView {
                     cardGrid
                         .padding()
@@ -42,6 +43,11 @@ public struct RemoteDashboardView: View {
                 return
             }
             environments.connect()
+        }
+        .onReceive(commandClient.$isConnected) { newValue in
+            if isConnected != newValue {
+                isConnected = newValue
+            }
         }
         #if os(tvOS)
         .toolbar {
@@ -124,7 +130,11 @@ public struct RemoteDashboardView: View {
 
     #if os(tvOS)
         private func updateButtonVisibility() {
-            buttonState.update(remoteClient: commandClient)
+            var newState = buttonState
+            newState.update(remoteClient: commandClient)
+            if newState != buttonState {
+                buttonState = newState
+            }
         }
     #endif
 
