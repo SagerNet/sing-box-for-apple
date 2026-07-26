@@ -153,7 +153,11 @@ import SwiftUI
 
     #if os(tvOS)
         private func updateButtonVisibility() {
-            buttonState.update(profile: profile, commandClient: environments.commandClient)
+            var newState = buttonState
+            newState.update(profile: profile, commandClient: environments.commandClient)
+            if newState != buttonState {
+                buttonState = newState
+            }
         }
 
         private var navigationButtons: some View {
