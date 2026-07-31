@@ -152,6 +152,8 @@ public struct ProfileCard: View {
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 16))
+                    .frame(width: 44, height: 32)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .actionButtonStyle()
@@ -206,6 +208,8 @@ public struct ProfileCard: View {
         } label: {
             Image(systemName: "pencil")
                 .font(.system(size: 16))
+                .frame(width: 44, height: 32)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .actionButtonStyle()
@@ -227,38 +231,12 @@ public struct ProfileCard: View {
                         : .default,
                     value: viewModel.isUpdating
                 )
+                .frame(width: 44, height: 32)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .actionButtonStyle()
         .disabled(viewModel.isUpdating)
-    }
-
-    @ViewBuilder
-    private func qrCodeButton(for profile: ProfilePreview) -> some View {
-        #if os(iOS) || os(tvOS)
-            Button {
-                viewModel.showQRCode = true
-            } label: {
-                Image(systemName: "qrcode")
-                    .font(.system(size: 16))
-            }
-            .buttonStyle(.plain)
-            .actionButtonStyle()
-        #elseif os(macOS)
-            Button {
-                viewModel.showQRCode = true
-            } label: {
-                Image(systemName: "qrcode")
-                    .font(.system(size: 16))
-            }
-            .buttonStyle(.plain)
-            .actionButtonStyle()
-            .popover(isPresented: $viewModel.showQRCode, arrowEdge: .bottom) {
-                if let remoteURL = profile.remoteURL {
-                    QRCodeContentView(profileName: profile.name, remoteURL: remoteURL)
-                }
-            }
-        #endif
     }
 
     @ViewBuilder
