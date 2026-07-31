@@ -3,7 +3,7 @@ SHELL := /bin/bash
 .SILENT:
 
 INSTALLER_SIGN_IDENTITY := 16480CA444F481F8DEAF9421FAD2CCE590FC54E4
-XCODEBUILD_FLAGS ?=
+XCODEBUILD_FLAGS ?= -skipPackagePluginValidation
 export DISABLE_SWIFTLINT := 1
 
 build_all: build_ios build_macos build_tvos
@@ -12,16 +12,16 @@ build_ios_deb:
 	bash Jailbreak/package.sh
 
 build_ios:
-	xcodebuild build -scheme SFI -configuration Debug -destination 'generic/platform=iOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
+	xcodebuild build $(XCODEBUILD_FLAGS) -scheme SFI -configuration Debug -destination 'generic/platform=iOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
 
 build_macos:
-	xcodebuild build -scheme SFM -configuration Debug -destination 'generic/platform=macOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
+	xcodebuild build $(XCODEBUILD_FLAGS) -scheme SFM -configuration Debug -destination 'generic/platform=macOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
 
 build_macos_standalone:
-	xcodebuild build -scheme SFM.System -configuration Debug -destination 'generic/platform=macOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
+	xcodebuild build $(XCODEBUILD_FLAGS) -scheme SFM.System -configuration Debug -destination 'generic/platform=macOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
 
 build_tvos:
-	xcodebuild build -scheme SFT -configuration Debug -destination 'generic/platform=tvOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
+	xcodebuild build $(XCODEBUILD_FLAGS) -scheme SFT -configuration Debug -destination 'generic/platform=tvOS' | xcbeautify | grep -A 10 -e "Build Succeeded" -e "BUILD FAILED" -e "❌"
 
 release: release_ios release_macos release_tvos
 
@@ -29,7 +29,7 @@ release_ios: archive_ios upload_ios
 
 archive_ios:
 	rm -rf build/SFI.xcarchive
-	xcodebuild archive -scheme SFI -configuration Release -destination 'generic/platform=iOS' -archivePath build/SFI.xcarchive | xcbeautify
+	xcodebuild archive $(XCODEBUILD_FLAGS) -scheme SFI -configuration Release -destination 'generic/platform=iOS' -archivePath build/SFI.xcarchive | xcbeautify
 
 upload_ios:
 	xcodebuild -exportArchive -archivePath build/SFI.xcarchive -exportOptionsPlist SFI/Upload.plist
@@ -38,7 +38,7 @@ release_macos: archive_macos upload_macos
 
 archive_macos:
 	rm -rf build/SFM.xcarchive
-	xcodebuild archive -scheme SFM -configuration Release -archivePath build/SFM.xcarchive | xcbeautify
+	xcodebuild archive $(XCODEBUILD_FLAGS) -scheme SFM -configuration Release -archivePath build/SFM.xcarchive | xcbeautify
 
 upload_macos:
 	xcodebuild -exportArchive -archivePath build/SFM.xcarchive -exportOptionsPlist SFI/Upload.plist
@@ -47,7 +47,7 @@ release_tvos: archive_tvos upload_tvos
 
 archive_tvos:
 	rm -rf build/SFT.xcarchive
-	xcodebuild archive -scheme SFT -configuration Release -archivePath build/SFT.xcarchive | xcbeautify
+	xcodebuild archive $(XCODEBUILD_FLAGS) -scheme SFT -configuration Release -archivePath build/SFT.xcarchive | xcbeautify
 
 upload_tvos:
 	xcodebuild -exportArchive -archivePath build/SFT.xcarchive -exportOptionsPlist SFI/Upload.plist
