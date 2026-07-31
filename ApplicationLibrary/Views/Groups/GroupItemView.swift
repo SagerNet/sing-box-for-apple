@@ -54,10 +54,13 @@ public struct GroupItemView: View {
                     }
                 }
             }
+            #if !os(tvOS)
+            .padding(16)
+            .contentShape(Rectangle())
+            #endif
         }
         #if !os(tvOS)
         .buttonStyle(.borderless)
-        .padding(16)
         .cardStyle()
         .contextMenu {
             Button {
