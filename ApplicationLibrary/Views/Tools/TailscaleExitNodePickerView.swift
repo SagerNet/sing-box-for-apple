@@ -47,6 +47,7 @@ public struct TailscaleExitNodePickerView: View {
                             .foregroundStyle(Color.accentColor)
                     }
                 }
+                .contentShape(Rectangle())
             }
             #if os(macOS)
             .buttonStyle(.plain)
@@ -76,6 +77,7 @@ public struct TailscaleExitNodePickerView: View {
                                 .foregroundStyle(Color.accentColor)
                         }
                     }
+                    .contentShape(Rectangle())
                 }
                 #if os(macOS)
                 .buttonStyle(.plain)

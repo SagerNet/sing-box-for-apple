@@ -104,6 +104,7 @@ public struct OutboundPickerView: View {
                             .foregroundStyle(Color.accentColor)
                     }
                 }
+                .contentShape(Rectangle())
             }
             #if os(macOS)
             .buttonStyle(.plain)
@@ -135,6 +136,7 @@ public struct OutboundPickerView: View {
                                 .foregroundStyle(Color.accentColor)
                         }
                     }
+                    .contentShape(Rectangle())
                 }
                 #if os(macOS)
                 .buttonStyle(.plain)

@@ -849,9 +849,9 @@ private struct ProfilePickerRow: View {
                     }
                 #endif
             }
-            .contentShape(Rectangle())
             .padding(16)
             .cardStyle()
+            .contentShape(Rectangle())
         }
     #endif
 
