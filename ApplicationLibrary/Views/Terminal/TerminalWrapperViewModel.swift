@@ -259,6 +259,17 @@
             cleanupCommandClient()
         }
 
+        fileprivate func appendAuthBanner(_ message: String) {
+            let banner = message.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !banner.isEmpty else { return }
+            guard let existingBanner = authBanner, !existingBanner.isEmpty else {
+                authBanner = banner
+                return
+            }
+            guard !existingBanner.contains(banner) else { return }
+            authBanner = existingBanner + "\n\n" + banner
+        }
+
         fileprivate func didReceiveError(_ message: String) {
             if case .finished = phase {
                 return
@@ -294,7 +305,7 @@
             func onAuthBanner(_ message: String?) {
                 let banner = message ?? ""
                 DispatchQueue.main.async { [self] in
-                    viewModel?.authBanner = banner
+                    viewModel?.appendAuthBanner(banner)
                 }
             }
 
