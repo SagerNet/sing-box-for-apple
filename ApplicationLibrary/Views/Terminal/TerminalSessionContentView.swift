@@ -44,6 +44,17 @@
                 } else if case let .finished(reason) = viewModel.phase {
                     VStack {
                         Spacer()
+                        if let banner = viewModel.authBanner, !banner.isEmpty {
+                            Text(Self.bannerAttributedString(banner))
+                                .font(.callout)
+                                .multilineTextAlignment(.leading)
+                                .foregroundColor(.primary)
+                                .padding()
+                                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                                .padding(.horizontal)
+                                .frame(maxWidth: 480)
+                                .textSelection(.enabled)
+                        }
                         HStack(spacing: 12) {
                             Text(reason.displayText)
                                 .font(.callout)
