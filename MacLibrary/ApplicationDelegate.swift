@@ -56,6 +56,12 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
         } else {
             NSApp.windows.first?.close()
         }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(anyWindowWillClose(_:)),
+            name: NSWindow.willCloseNotification,
+            object: nil
+        )
         Task {
             await applicationState.initialize()
             do {
@@ -98,5 +104,29 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
             NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first?.activate()
         }
         return true
+    }
+
+    // `hide0(closeApp:)` in `MacApplication` is the only place hiding the dock icon, and it is reached
+    // only from the replaced `Quit sing-box` command. Closing the window in any other way leaves the
+    // application in `.regular` without a window, so hide the dock icon once the last one is gone.
+    @objc private func anyWindowWillClose(_ notification: Notification) {
+        guard !Variant.inDebug, NSApp.activationPolicy() != .accessory else {
+            return
+        }
+        guard let closingWindow = notification.object as? NSWindow else {
+            return
+        }
+        DispatchQueue.main.async {
+            let hasRemainingWindow = NSApp.windows.contains { window in
+                window !== closingWindow && window.isVisible && window.canBecomeMain
+            }
+            guard !hasRemainingWindow, NSApp.activationPolicy() != .accessory else {
+                return
+            }
+            guard SharedPreferences.menuBarExtraInBackground.getBlocking() else {
+                return
+            }
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 }
