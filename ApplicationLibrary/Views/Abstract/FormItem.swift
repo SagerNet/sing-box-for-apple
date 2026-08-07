@@ -169,6 +169,81 @@ public func FormNavigationLink(@ViewBuilder destination: () -> some View, @ViewB
     #endif
 }
 
+public struct FormPickerOption<Value: Hashable>: Identifiable {
+    public let value: Value
+    public let name: String
+
+    public var id: Value {
+        value
+    }
+
+    public init(_ value: Value, _ name: String) {
+        self.value = value
+        self.name = name
+    }
+}
+
+public struct FormPicker<Value: Hashable>: View {
+    private let title: String
+    private let options: [FormPickerOption<Value>]
+    @Binding private var selection: Value
+
+    public init(_ title: String, options: [FormPickerOption<Value>], selection: Binding<Value>) {
+        self.title = title
+        self.options = options
+        _selection = selection
+    }
+
+    public var body: some View {
+        #if os(tvOS)
+            FormNavigationLink {
+                FormPickerListView(title: title, options: options, selection: $selection)
+            } label: {
+                HStack {
+                    Text(title)
+                    Spacer()
+                    Text(options.first { $0.value == selection }?.name ?? "")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        #else
+            Picker(title, selection: $selection) {
+                ForEach(options) { option in
+                    Text(option.name).tag(option.value)
+                }
+            }
+        #endif
+    }
+}
+
+#if os(tvOS)
+    private struct FormPickerListView<Value: Hashable>: View {
+        let title: String
+        let options: [FormPickerOption<Value>]
+        @Binding var selection: Value
+        @Environment(\.dismiss) private var dismiss
+
+        var body: some View {
+            FormView {
+                ForEach(options) { option in
+                    Button {
+                        selection = option.value
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Text(option.name)
+                            Spacer()
+                            Image(systemName: "checkmark")
+                                .opacity(selection == option.value ? 1 : 0)
+                        }
+                    }
+                }
+            }
+            .navigationTitle(title)
+        }
+    }
+#endif
+
 #if os(macOS)
     public func FormNavigationLink(value: some Hashable, @ViewBuilder label: () -> some View) -> some View {
         NavigationLink(value: value, label: label)

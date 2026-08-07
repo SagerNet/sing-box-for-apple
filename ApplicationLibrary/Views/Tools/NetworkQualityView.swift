@@ -75,11 +75,11 @@ public struct NetworkQualityView: View {
                     .disabled(viewModel.isRunning)
                 Toggle("HTTP/3", isOn: $viewModel.http3)
                     .disabled(viewModel.isRunning)
-                Picker("Max Runtime", selection: $viewModel.maxRuntime) {
-                    ForEach(MaxRuntimeOption.allCases) { option in
-                        Text(option.label).tag(option)
-                    }
-                }
+                FormPicker(
+                    String(localized: "Max Runtime"),
+                    options: MaxRuntimeOption.allCases.map { FormPickerOption($0, $0.label) },
+                    selection: $viewModel.maxRuntime
+                )
                 .disabled(viewModel.isRunning)
                 if environments.remoteServer != nil {
                     RemoteToolOutboundSection(commandClient: environments.commandClient, viewModel: viewModel)

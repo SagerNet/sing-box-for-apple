@@ -285,11 +285,11 @@ private struct OpenConnectAuthFormContent: View {
         let label = field.label.isEmpty ? field.name : field.label
         switch field.kind {
         case "select":
-            Picker(label, selection: binding(for: field)) {
-                ForEach(field.options) { option in
-                    Text(option.label).tag(option.value)
-                }
-            }
+            FormPicker(
+                label,
+                options: field.options.map { FormPickerOption($0.value, $0.label) },
+                selection: binding(for: field)
+            )
             .disabled(submitting)
         case "password":
             FormItem(label) {
