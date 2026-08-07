@@ -50,6 +50,30 @@ public struct NewProfileView: View {
         #endif
     }
 
+    private static var profileTypeOptions: [FormPickerOption<ProfileType>] {
+        var options = [FormPickerOption(ProfileType.local, String(localized: "Local"))]
+        #if !os(tvOS)
+            options.append(FormPickerOption(ProfileType.icloud, String(localized: "iCloud")))
+        #endif
+        options.append(FormPickerOption(ProfileType.remote, String(localized: "Remote")))
+        return options
+    }
+
+    private static var fileImportOptions: [FormPickerOption<Bool>] {
+        [
+            FormPickerOption(false, String(localized: "Create New")),
+            FormPickerOption(true, String(localized: "Import")),
+        ]
+    }
+
+    private var ownsDismiss: Bool {
+        #if os(tvOS)
+            onSuccess == nil
+        #else
+            true
+        #endif
+    }
+
     private var formContent: some View {
         FormView {
             Section {
@@ -57,24 +81,11 @@ public struct NewProfileView: View {
                     TextField("Name", text: $viewModel.profileName, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
                 }
-                Picker(selection: $viewModel.profileType) {
-                    Text("Local").tag(ProfileType.local)
-                    #if !os(tvOS)
-                        Text("iCloud").tag(ProfileType.icloud)
-                    #endif
-                    Text("Remote").tag(ProfileType.remote)
-                } label: {
-                    Text("Type")
-                }
+                FormPicker(String(localized: "Type"), options: Self.profileTypeOptions, selection: $viewModel.profileType)
                 if viewModel.profileType == .local {
-                    Picker(selection: $viewModel.fileImport) {
-                        Text("Create New").tag(false)
-                        Text("Import").tag(true)
-                    } label: {
-                        Text("File")
-                    }
+                    FormPicker(String(localized: "File"), options: Self.fileImportOptions, selection: $viewModel.fileImport)
                     #if os(tvOS)
-                    .disabled(true)
+                        .disabled(true)
                     #endif
                     Group {
                         if viewModel.fileImport {
@@ -130,7 +141,7 @@ public struct NewProfileView: View {
                             Task {
                                 await viewModel.createProfile(
                                     environments: environments,
-                                    dismiss: dismiss,
+                                    dismiss: ownsDismiss ? dismiss : nil,
                                     onSuccess: onSuccess
                                 )
                             }
@@ -204,7 +215,7 @@ public struct NewProfileView: View {
                 .disabled(viewModel.isSaving)
                 .alert($viewModel.alert)
                 .onChangeCompat(of: viewModel.createSucceeded) { newValue in
-                    if newValue {
+                    if newValue, ownsDismiss {
                         dismiss()
                     }
                 }

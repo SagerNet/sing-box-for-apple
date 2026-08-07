@@ -54,14 +54,27 @@ public struct AppView: View {
                 }
             } else {
                 FormView {
-                    Picker("Language", selection: $selectedLanguage) {
-                        ForEach(Self.supportedLanguages, id: \.code) { language in
-                            Text(language.name).tag(language.code)
+                    #if os(tvOS)
+                        FormNavigationLink {
+                            LanguagePickerView(selection: $selectedLanguage)
+                        } label: {
+                            HStack {
+                                Text("Language")
+                                Spacer()
+                                Text(selectedLanguageName)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    }
-                    .onChangeCompat(of: selectedLanguage) { newValue in
-                        updateLanguage(newValue)
-                    }
+                    #else
+                        Picker("Language", selection: $selectedLanguage) {
+                            ForEach(Self.supportedLanguages, id: \.code) { language in
+                                Text(language.name).tag(language.code)
+                            }
+                        }
+                        .onChangeCompat(of: selectedLanguage) { newValue in
+                            updateLanguage(newValue)
+                        }
+                    #endif
 
                     #if os(macOS)
                         FormToggle("Start At Login", "Launch the application when the system is logged in. If enabled at the same time as `Show in Menu Bar` and `Keep Menu Bar in Background`, the application interface will not be opened automatically.", $startAtLogin) { newValue in
@@ -347,6 +360,44 @@ public struct AppView: View {
         refreshCacheSize()
     }
 
+    #if os(tvOS)
+
+        private var selectedLanguageName: String {
+            Self.supportedLanguages.first { $0.code == selectedLanguage }?.name
+                ?? String(localized: "System Default")
+        }
+
+        private struct LanguagePickerView: View {
+            @Binding var selection: String?
+            @State private var alert: AlertState?
+
+            var body: some View {
+                FormView {
+                    ForEach(AppView.supportedLanguages, id: \.code) { language in
+                        Button {
+                            selection = language.code
+                            ApplicationLocale.setSelectedIdentifier(language.code)
+                            alert = AlertState(
+                                title: String(localized: "Restart Required"),
+                                message: String(localized: "Language will be changed after restarting the app.")
+                            )
+                        } label: {
+                            HStack {
+                                Text(language.name)
+                                Spacer()
+                                Image(systemName: "checkmark")
+                                    .opacity(selection == language.code ? 1 : 0)
+                            }
+                        }
+                    }
+                }
+                .alert($alert)
+                .navigationTitle("Language")
+            }
+        }
+
+    #endif
+
     private static func currentLanguage() -> String? {
         guard let selectedIdentifier = ApplicationLocale.selectedIdentifier else {
             return nil
@@ -363,13 +414,17 @@ public struct AppView: View {
         return nil
     }
 
-    private func updateLanguage(_ language: String?) {
-        ApplicationLocale.setSelectedIdentifier(language)
-        alert = AlertState(
-            title: String(localized: "Restart Required"),
-            message: String(localized: "Language will be changed after restarting the app.")
-        )
-    }
+    #if !os(tvOS)
+
+        private func updateLanguage(_ language: String?) {
+            ApplicationLocale.setSelectedIdentifier(language)
+            alert = AlertState(
+                title: String(localized: "Restart Required"),
+                message: String(localized: "Language will be changed after restarting the app.")
+            )
+        }
+
+    #endif
 
     private static func configuredLanguageCodes() -> [String] {
         let rawCodes: [String]

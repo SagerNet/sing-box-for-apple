@@ -212,7 +212,6 @@ import SwiftUI
                     Image(systemName: "line.3.horizontal")
                         .font(.system(size: 20))
                 }
-                .buttonStyle(.plain)
                 .actionButtonStyle()
                 .focused(focusedCard, equals: card)
             }

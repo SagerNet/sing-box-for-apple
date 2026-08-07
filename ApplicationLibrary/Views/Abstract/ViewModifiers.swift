@@ -121,7 +121,7 @@ public extension View {
     @ViewBuilder
     func actionButtonStyle() -> some View {
         #if os(tvOS)
-            ActionButtonWrapper { self }
+            buttonStyle(ActionButtonStyle())
         #else
             if #available(iOS 26.0, macOS 26.0, *) {
                 frame(width: 44, height: 32)
@@ -136,16 +136,20 @@ public extension View {
 }
 
 #if os(tvOS)
-    private struct ActionButtonWrapper<Content: View>: View {
+    /// The frame has to be applied to the label rather than to the button: the focus engine
+    /// takes each button's focus region from the button's own layout frame, so sizing from the
+    /// outside leaves the region at the glyph's size while the pill drawn around it is 70x48.
+    private struct ActionButtonStyle: ButtonStyle {
         @Environment(\.isFocused) private var isFocused
-        let content: () -> Content
 
-        var body: some View {
-            content()
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
                 .frame(width: 70, height: 48)
-                .background(isFocused ? Color.secondary.opacity(0.3) : Color.secondary.opacity(0.1))
+                .contentShape(Rectangle())
+                .foregroundStyle(isFocused ? AnyShapeStyle(.black) : AnyShapeStyle(.primary))
+                .background(isFocused ? Color.white : Color.secondary.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .focusEffectDisabled()
+                .scaleEffect(configuration.isPressed ? 0.94 : 1)
         }
     }
 #endif
@@ -170,9 +174,10 @@ public struct ActionIconButton: View {
             #endif
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
         #if os(tvOS)
-            .actionButtonStyle()
+        .actionButtonStyle()
+        #else
+        .buttonStyle(.plain)
         #endif
     }
 }
