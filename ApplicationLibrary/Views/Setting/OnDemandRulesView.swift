@@ -101,11 +101,11 @@ public struct OnDemandRulesView: View {
 
     private var modePicker: some View {
         Section {
-            Picker("Mode", selection: $mode) {
-                ForEach(OnDemandMode.allCases) { m in
-                    Text(m.name).tag(m)
-                }
-            }
+            FormPicker(
+                String(localized: "Mode"),
+                options: OnDemandMode.allCases.map { FormPickerOption($0, $0.name) },
+                selection: $mode
+            )
             .onChange(of: mode) { newValue in
                 Task {
                     await saveMode(newValue)
@@ -397,20 +397,20 @@ private struct OnDemandRuleEditView: View {
 
     private var actionSection: some View {
         Section {
-            Picker("Action", selection: $rule.action) {
-                ForEach(OnDemandRuleAction.allCases) { action in
-                    Text(action.name).tag(action)
-                }
-            }
+            FormPicker(
+                String(localized: "Action"),
+                options: OnDemandRuleAction.allCases.map { FormPickerOption($0, $0.name) },
+                selection: $rule.action
+            )
             #if os(iOS)
             .pickerStyle(.menu)
             #endif
 
-            Picker("Interface Type", selection: $rule.interfaceType) {
-                ForEach(OnDemandRuleInterfaceType.availableCases, id: \.self) { type in
-                    Text(type.name).tag(type)
-                }
-            }
+            FormPicker(
+                String(localized: "Interface Type"),
+                options: OnDemandRuleInterfaceType.availableCases.map { FormPickerOption($0, $0.name) },
+                selection: $rule.interfaceType
+            )
             #if os(iOS)
             .pickerStyle(.menu)
             #endif
@@ -434,34 +434,24 @@ private struct OnDemandRuleEditView: View {
         }
     }
 
-    @ViewBuilder
     private var probeURLSection: some View {
-        #if !os(tvOS)
-            VStack(alignment: .leading) {
-                HStack {
-                    Text("Probe URL")
-                    Spacer()
-                    TextField("http://...", text: $rule.probeURL)
-                        .multilineTextAlignment(.trailing)
-                    #if os(iOS)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                    #endif
-                }
-                if !isProbeURLValid {
-                    Text("Only HTTP and HTTPS URLs are allowed")
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-            }
-        #else
+        VStack(alignment: .leading) {
             HStack {
                 Text("Probe URL")
                 Spacer()
-                Text(rule.probeURL.isEmpty ? "Not set" : rule.probeURL)
-                    .foregroundStyle(.secondary)
+                TextField("http://...", text: $rule.probeURL)
+                    .multilineTextAlignment(.trailing)
+                #if os(iOS)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                #endif
             }
-        #endif
+            if !isProbeURLValid {
+                Text("Only HTTP and HTTPS URLs are allowed")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
     }
 
     private var connectionRulesSection: some View {
@@ -564,11 +554,11 @@ private struct EvaluateConnectionRuleEditView: View {
     var body: some View {
         Form {
             Section {
-                Picker("Action", selection: $rule.action) {
-                    ForEach(EvaluateConnectionRuleAction.allCases) { action in
-                        Text(action.name).tag(action)
-                    }
-                }
+                FormPicker(
+                    String(localized: "Action"),
+                    options: EvaluateConnectionRuleAction.allCases.map { FormPickerOption($0, $0.name) },
+                    selection: $rule.action
+                )
                 #if os(iOS)
                 .pickerStyle(.menu)
                 #endif
@@ -599,24 +589,22 @@ private struct EvaluateConnectionRuleEditView: View {
                     Text("DNS servers to use for resolving the destination. If resolution fails, VPN is started.")
                 }
 
-                #if !os(tvOS)
-                    Section {
-                        HStack {
-                            Text("Probe URL")
-                            Spacer()
-                            TextField("http://...", text: $rule.probeURL)
-                                .multilineTextAlignment(.trailing)
-                            #if os(iOS)
-                                .keyboardType(.URL)
-                                .textInputAutocapitalization(.never)
-                            #endif
-                        }
-                    } header: {
+                Section {
+                    HStack {
                         Text("Probe URL")
-                    } footer: {
-                        Text("If set, a request is sent to this URL. If it doesn't return HTTP 200, VPN is started.")
+                        Spacer()
+                        TextField("http://...", text: $rule.probeURL)
+                            .multilineTextAlignment(.trailing)
+                        #if os(iOS)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                        #endif
                     }
-                #endif
+                } header: {
+                    Text("Probe URL")
+                } footer: {
+                    Text("If set, a request is sent to this URL. If it doesn't return HTTP 200, VPN is started.")
+                }
             }
         }
         .navigationTitle("Connection Rule")
@@ -672,12 +660,11 @@ private struct EvaluateConnectionRuleEditView: View {
                 .disabled(domainText.isEmpty)
             }
         #else
-            ForEach(rule.matchDomains, id: \.self) { domain in
-                Text(domain)
-            }
-            .onDelete { offsets in
-                rule.matchDomains.remove(atOffsets: offsets)
-            }
+            StringListSection(
+                title: String(localized: "Match Domains"),
+                placeholder: String(localized: "Add domain (e.g., example.com)"),
+                items: $rule.matchDomains
+            )
         #endif
     }
 
@@ -718,12 +705,11 @@ private struct EvaluateConnectionRuleEditView: View {
                 }
             }
         #else
-            ForEach(rule.useDNSServers, id: \.self) { server in
-                Text(server)
-            }
-            .onDelete { offsets in
-                rule.useDNSServers.remove(atOffsets: offsets)
-            }
+            StringListSection(
+                title: String(localized: "DNS Servers"),
+                placeholder: String(localized: "Add DNS server IP"),
+                items: $rule.useDNSServers
+            )
         #endif
     }
 
@@ -799,7 +785,7 @@ private struct StringListSection: View {
                 }
             }
         #else
-            NavigationLink {
+            FormNavigationLink {
                 StringListEditView(title: title, placeholder: placeholder, items: $items)
             } label: {
                 HStack {

@@ -1018,6 +1018,34 @@
         }
       }
     },
+    "Browser authentication is not supported on tvOS." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "احراز هویت مرورگری در tvOS پشتیبانی نمی‌شود."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аутентификация через браузер не поддерживается в tvOS."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tvOS 不支持浏览器认证。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tvOS 不支援瀏覽器認證。"
+          }
+        }
+      }
+    },
     "Bus / Device" : {
       "localizations" : {
         "fa" : {

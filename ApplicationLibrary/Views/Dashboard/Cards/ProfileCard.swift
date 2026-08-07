@@ -39,16 +39,18 @@ public struct ProfileCard: View {
         .disabled(viewModel.isUpdating)
         #if os(tvOS)
             .navigationDestination(isPresented: $viewModel.showNewProfile) {
-                NewProfileMenuView()
-                    .environmentObject(environments)
-                    .onDisappear {
-                        environments.profileUpdate.send()
+                NewProfileMenuView(onComplete: {
+                    viewModel.showNewProfile = false
+                })
+                .environmentObject(environments)
+                .onDisappear {
+                    environments.profileUpdate.send()
+                }
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
                     }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .topBarLeading) {
-                            BackButton()
-                        }
-                    }
+                }
             }
             .navigationDestination(isPresented: $viewModel.showProfilePicker) {
                 ProfilePickerSheet(
@@ -155,7 +157,9 @@ public struct ProfileCard: View {
                     .frame(width: 44, height: 32)
                     .contentShape(Rectangle())
             }
+            #if !os(tvOS)
             .buttonStyle(.plain)
+            #endif
             .actionButtonStyle()
         }
     }
@@ -211,7 +215,9 @@ public struct ProfileCard: View {
                 .frame(width: 44, height: 32)
                 .contentShape(Rectangle())
         }
+        #if !os(tvOS)
         .buttonStyle(.plain)
+        #endif
         .actionButtonStyle()
     }
 
@@ -234,7 +240,9 @@ public struct ProfileCard: View {
                 .frame(width: 44, height: 32)
                 .contentShape(Rectangle())
         }
+        #if !os(tvOS)
         .buttonStyle(.plain)
+        #endif
         .actionButtonStyle()
         .disabled(viewModel.isUpdating)
     }
@@ -260,7 +268,6 @@ public struct ProfileCard: View {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 16))
             }
-            .buttonStyle(.plain)
             .actionButtonStyle()
         #else
             Menu {
