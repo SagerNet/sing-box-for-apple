@@ -330,6 +330,14 @@ public struct AppView: View {
         .alert($alert)
         #if os(macOS)
             .alert($updateManager.alert)
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                guard Variant.useSystemExtension, helperStatusLoaded else {
+                    return
+                }
+                Task {
+                    await refreshHelperStatusUntilSettled()
+                }
+            }
         #endif
             .navigationTitle("App")
         #if os(iOS)
@@ -549,6 +557,23 @@ public struct AppView: View {
 
         private func refreshHelperStatus() {
             rootHelperRegistrationStatus = HelperServiceManager.rootHelperStatus
+        }
+
+        /// SMAppService.status keeps reporting requiresApproval for a while after the user turns the
+        /// daemon on in System Settings, so a single read on activation can still be stale.
+        private func refreshHelperStatusUntilSettled() async {
+            let previousStatus = rootHelperRegistrationStatus
+            refreshHelperStatus()
+            guard previousStatus == .requiresApproval else {
+                return
+            }
+            for _ in 0 ..< 5 {
+                guard rootHelperRegistrationStatus == .requiresApproval else {
+                    return
+                }
+                try? await Task.sleep(for: .seconds(1))
+                refreshHelperStatus()
+            }
         }
 
         private func openHelperSettings() {
