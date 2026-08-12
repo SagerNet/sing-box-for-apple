@@ -1,4 +1,5 @@
 #if os(macOS)
+    import AppKit
     import Foundation
     import os
     import ServiceManagement
@@ -23,6 +24,19 @@
 
         public static func unregisterRootHelper() throws {
             try rootHelperService.unregister()
+        }
+
+        public static func openApprovalSettings() {
+            if #available(macOS 13.0, *) {
+                SMAppService.openSystemSettingsLoginItems()
+                return
+            }
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.users?LoginItems"),
+               NSWorkspace.shared.open(url)
+            {
+                return
+            }
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Preferences.app"))
         }
 
         public static func updateRootHelperIfNeeded() async {
