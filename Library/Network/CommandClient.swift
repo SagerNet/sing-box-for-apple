@@ -119,7 +119,7 @@ public class CommandClient: ObservableObject {
             .eraseToAnyPublisher()
     }
 
-    @Published public var groups: [LibboxOutboundGroup]?
+    @Published public var groups: [OutboundGroup]?
     @Published public var outbounds: [LibboxOutboundGroupItem]?
     @Published public var logBuffer = LogBuffer()
     /// The server always sends the saved log backlog as the first message after
@@ -340,6 +340,7 @@ public class CommandClient: ObservableObject {
     private class clientHandler: NSObject, LibboxCommandClientHandlerProtocol {
         private let commandClient: CommandClient
         private let connectionToken: UInt64
+        private var lastGroups: [OutboundGroup]?
 
         init(_ commandClient: CommandClient, connectionToken: UInt64) {
             self.commandClient = commandClient
@@ -447,10 +448,14 @@ public class CommandClient: ObservableObject {
                 return
             }
             guard isActiveConnection() else { return }
-            var newGroups: [LibboxOutboundGroup] = []
+            var newGroups: [OutboundGroup] = []
             while groups.hasNext() {
-                newGroups.append(groups.next()!)
+                newGroups.append(OutboundGroup(groups.next()!))
             }
+            if newGroups == lastGroups {
+                return
+            }
+            lastGroups = newGroups
             DispatchQueue.main.async { [self] in
                 guard isActiveConnection() else { return }
                 commandClient.groups = newGroups

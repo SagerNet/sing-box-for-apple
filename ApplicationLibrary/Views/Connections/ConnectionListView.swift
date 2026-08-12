@@ -67,17 +67,13 @@ private struct ConnectionListContentView: View {
             if dataModel.isLoading {
                 Text("Loading...")
             } else {
-                if dataModel.connections.isEmpty {
-                    Text("Empty connections")
-                } else {
-                    ScrollView {
-                        LazyVStack {
-                            ForEach(dataModel.filteredConnections, id: \.id) { it in
-                                ConnectionView(it)
-                            }
+                ScrollView {
+                    LazyVStack {
+                        ForEach(dataModel.filteredConnections, id: \.id) { it in
+                            ConnectionView(it)
                         }
-                        .padding()
                     }
+                    .padding()
                 }
             }
         }
