@@ -5,6 +5,10 @@
 
     private let logger = Logger(category: "SystemExtension")
 
+    public extension Notification.Name {
+        static let systemExtensionInstalled = Notification.Name("systemExtensionInstalled")
+    }
+
     public class SystemExtension: NSObject, OSSystemExtensionRequestDelegate {
         private let forceUpdate: Bool
         private let inBackground: Bool

@@ -282,7 +282,7 @@ public struct AppView: View {
                                             } catch {
                                                 refreshHelperStatus()
                                                 if rootHelperRegistrationStatus == .requiresApproval {
-                                                    openHelperSettings()
+                                                    HelperServiceManager.openApprovalSettings()
                                                 } else {
                                                     alert = AlertState(action: "update helper service", error: error)
                                                 }
@@ -300,7 +300,7 @@ public struct AppView: View {
                                     }
                                 } else if rootHelperRegistrationStatus == .requiresApproval {
                                     FormButton {
-                                        openHelperSettings()
+                                        HelperServiceManager.openApprovalSettings()
                                     } label: {
                                         Label("Enable", systemImage: "switch.2")
                                     }
@@ -486,13 +486,14 @@ public struct AppView: View {
 
         private func installSystemExtension() async {
             do {
-                if let result = try await SystemExtension.install() {
-                    if result == .willCompleteAfterReboot {
-                        alert = AlertState(errorMessage: String(localized: "Need Reboot"))
-                        return
-                    }
+                let result = try await SystemExtension.install()
+                await SharedPreferences.rootHelperPromptPending.set(true)
+                if result == .willCompleteAfterReboot {
+                    alert = AlertState(errorMessage: String(localized: "Need Reboot"))
+                    return
                 }
                 systemExtensionInstalled = true
+                NotificationCenter.default.post(name: .systemExtensionInstalled, object: nil)
             } catch {
                 alert = AlertState(action: "install system extension", error: error)
             }
@@ -548,7 +549,7 @@ public struct AppView: View {
             } catch {
                 refreshHelperStatus()
                 if rootHelperRegistrationStatus == .requiresApproval {
-                    openHelperSettings()
+                    HelperServiceManager.openApprovalSettings()
                 } else {
                     alert = AlertState(action: actionName, error: error)
                 }
@@ -574,19 +575,6 @@ public struct AppView: View {
                 try? await Task.sleep(for: .seconds(1))
                 refreshHelperStatus()
             }
-        }
-
-        private func openHelperSettings() {
-            if #available(macOS 13.0, *) {
-                SMAppService.openSystemSettingsLoginItems()
-                return
-            }
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.users?LoginItems"),
-               NSWorkspace.shared.open(url)
-            {
-                return
-            }
-            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Preferences.app"))
         }
 
     #endif

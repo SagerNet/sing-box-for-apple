@@ -6187,6 +6187,34 @@
         }
       }
     },
+    "Install Helper Service" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نصب سرویس کمکی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Установить вспомогательную службу"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装辅助服务"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安裝輔助服務"
+          }
+        }
+      }
+    },
     "Install Network Extension" : {
       "localizations" : {
         "fa" : {
@@ -11690,6 +11718,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "終端類型"
+          }
+        }
+      }
+    },
+    "The Helper Service provides process lookup, the Bridge outbound, and many other basic features." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرویس کمکی جست‌وجوی فرایند، خروجی Bridge و بسیاری دیگر از امکانات پایه را فراهم می‌کند."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вспомогательная служба предоставляет поиск процессов, исходящее подключение Bridge и многие другие базовые функции."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "辅助服务提供进程查找、Bridge 出站等许多基础功能。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輔助服務提供進程查找、Bridge 出站等許多基礎功能。"
           }
         }
       }

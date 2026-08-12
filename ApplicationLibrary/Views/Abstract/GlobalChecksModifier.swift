@@ -65,6 +65,9 @@ public struct GlobalChecksModifier: ViewModifier {
             .onAppear {
                 handleImportProfile()
                 handleImportRemoteProfile()
+                #if os(macOS)
+                    Task { @MainActor in await checkRootHelperPrompt() }
+                #endif
             }
             .onChangeCompat(of: importProfile.wrappedValue) { _ in
                 Task { @MainActor in handleImportProfile() }
@@ -95,6 +98,9 @@ public struct GlobalChecksModifier: ViewModifier {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .extensionRequiresHelperService)) { _ in
                     Task { @MainActor in handleHelperServiceNotification() }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .systemExtensionInstalled)) { _ in
+                    Task { @MainActor in await checkRootHelperPrompt() }
                 }
         #else
             content
@@ -236,6 +242,34 @@ public struct GlobalChecksModifier: ViewModifier {
                 )
             }
             wifiLocationManager.requestAuthorizationAndShowWarning()
+        }
+
+        private func checkRootHelperPrompt() async {
+            guard Variant.useSystemExtension else { return }
+            guard await SharedPreferences.rootHelperPromptPending.get() else { return }
+            guard await SystemExtension.isInstalled() else { return }
+            await SharedPreferences.rootHelperPromptPending.set(false)
+            guard HelperServiceManager.rootHelperStatus != .enabled else { return }
+            alert = AlertState(
+                title: String(localized: "Install Helper Service"),
+                message: String(localized: "The Helper Service provides process lookup, the Bridge outbound, and many other basic features."),
+                primaryButton: .default(String(localized: "Install")) {
+                    installRootHelper()
+                },
+                secondaryButton: .cancel(String(localized: "No, thanks"))
+            )
+        }
+
+        private func installRootHelper() {
+            do {
+                try HelperServiceManager.registerRootHelper()
+            } catch {
+                if HelperServiceManager.rootHelperStatus == .requiresApproval {
+                    HelperServiceManager.openApprovalSettings()
+                } else {
+                    alert = AlertState(action: "install helper service", error: error)
+                }
+            }
         }
 
         private func handleHelperServiceNotification() {
