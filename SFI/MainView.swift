@@ -247,6 +247,16 @@ struct MainView: View {
             .sheet(isPresented: $showConnections) {
                 ConnectionsSheetContent()
             }
+            .onChangeCompat(of: buttonState.showGroupsButton) { newValue in
+                if !newValue {
+                    showGroups = false
+                }
+            }
+            .onChangeCompat(of: buttonState.showConnectionsButton) { newValue in
+                if !newValue {
+                    showConnections = false
+                }
+            }
             .onAppear {
                 environments.postReload()
             }

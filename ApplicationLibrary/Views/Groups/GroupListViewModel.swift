@@ -5,8 +5,10 @@ import SwiftUI
 @MainActor
 public class GroupListViewModel: BaseViewModel {
     @Published public var groups: [OutboundGroup] = []
+    @Published public var testingGroups: Set<String> = []
 
     private var pendingSelections: [String: String] = [:]
+    private var pendingExpands: [String: Bool] = [:]
 
     override public init() {
         super.init()
@@ -31,40 +33,28 @@ public class GroupListViewModel: BaseViewModel {
         }
     }
 
-    public func setGroups(_ goGroups: [LibboxOutboundGroup]?) {
-        guard let goGroups else { return }
-
-        let existingGroups = Dictionary(uniqueKeysWithValues: groups.map { ($0.tag, $0) })
-
-        var newGroups = [OutboundGroup]()
-        for goGroup in goGroups {
-            var items = [OutboundGroupItem]()
-            let itemIterator = goGroup.getItems()!
-            while itemIterator.hasNext() {
-                items.append(OutboundGroupItem(itemIterator.next()!))
-            }
-
-            var selected = goGroup.selected
-            if let pending = pendingSelections[goGroup.tag] {
-                if goGroup.selected == pending {
-                    pendingSelections.removeValue(forKey: goGroup.tag)
+    public func setGroups(_ newGroups: [OutboundGroup]?) {
+        guard var newGroups else { return }
+        for index in newGroups.indices {
+            let tag = newGroups[index].tag
+            if let pendingSelected = pendingSelections[tag] {
+                if newGroups[index].selected == pendingSelected {
+                    pendingSelections.removeValue(forKey: tag)
                 } else {
-                    selected = pending
+                    newGroups[index].selected = pendingSelected
                 }
             }
-
-            let isExpand = existingGroups[goGroup.tag]?.isExpand ?? goGroup.isExpand
-
-            newGroups.append(OutboundGroup(
-                tag: goGroup.tag,
-                type: goGroup.type,
-                selected: selected,
-                selectable: goGroup.selectable,
-                isExpand: isExpand,
-                items: items
-            ))
+            if let pendingExpand = pendingExpands[tag] {
+                if newGroups[index].isExpand == pendingExpand {
+                    pendingExpands.removeValue(forKey: tag)
+                } else {
+                    newGroups[index].isExpand = pendingExpand
+                }
+            }
         }
-        groups = newGroups
+        if newGroups != groups {
+            groups = newGroups
+        }
         isLoading = false
     }
 
@@ -91,8 +81,11 @@ public class GroupListViewModel: BaseViewModel {
 
     public func toggleExpand(groupTag: String) {
         guard let index = groups.firstIndex(where: { $0.tag == groupTag }) else { return }
-        groups[index].isExpand.toggle()
+        withAnimation(.easeInOut(duration: 0.25)) {
+            groups[index].isExpand.toggle()
+        }
         let isExpand = groups[index].isExpand
+        pendingExpands[groupTag] = isExpand
         Task {
             await setGroupExpand(tag: groupTag, isExpand: isExpand)
         }
@@ -105,6 +98,14 @@ public class GroupListViewModel: BaseViewModel {
             await MainActor.run {
                 alert = AlertState(action: "update group expansion", error: error)
             }
+        }
+    }
+
+    public func performGroupURLTest(_ groupTag: String) {
+        testingGroups.insert(groupTag)
+        Task {
+            await doURLTest(tag: groupTag)
+            testingGroups.remove(groupTag)
         }
     }
 

@@ -1,142 +1,245 @@
 import Library
 import SwiftUI
 
-@MainActor
-public struct GroupView: View {
-    @EnvironmentObject private var listViewModel: GroupListViewModel
-    @Binding private var group: OutboundGroup
-    @State private var geometryWidth: CGFloat = 300
+enum GroupsLayout {
+    #if os(tvOS)
+        static let dotSize: CGFloat = 33
+        static let dotSpacing: CGFloat = 12
+        static let dotCornerRadius: CGFloat = 12
+        static let selectedDotSize: CGFloat = 12
+        static let itemMinWidth: CGFloat = 320
+    #else
+        static let dotSize: CGFloat = 11
+        static let dotSpacing: CGFloat = 4
+        static let dotCornerRadius: CGFloat = 4
+        static let selectedDotSize: CGFloat = 4
+        static let itemMinWidth: CGFloat = 170
+    #endif
+}
 
-    public init(_ group: Binding<OutboundGroup>) {
-        _group = group
+@MainActor
+public struct GroupHeaderView: View {
+    @EnvironmentObject private var listViewModel: GroupListViewModel
+
+    private let group: OutboundGroup
+
+    public init(group: OutboundGroup) {
+        self.group = group
     }
 
-    private var title: some View {
-        HStack {
+    private var isTesting: Bool {
+        listViewModel.testingGroups.contains(group.tag)
+    }
+
+    public var body: some View {
+        HStack(spacing: 8) {
             Text(group.tag)
                 .font(.headline)
             Text(group.displayType)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 8)
             Text(verbatim: "\(group.items.count)")
-                .font(.subheadline)
-                .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
-                .background(Color.gray.opacity(0.5))
-                .cornerRadius(4)
-            Button {
+                .font(.caption.monospacedDigit().weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                .background(Color.urlTestNeutral)
+                .clipShape(Capsule())
+            HStack(spacing: 16) {
+                Button {
+                    listViewModel.performGroupURLTest(group.tag)
+                } label: {
+                    Group {
+                        if isTesting {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "bolt.fill")
+                        }
+                    }
+                    .frame(minWidth: 28, minHeight: 28)
+                    .contentShape(Rectangle())
+                }
+                .disabled(isTesting)
+                #if os(macOS) || os(tvOS)
+                    .buttonStyle(.plain)
+                #else
+                    .buttonStyle(.borderless)
+                #endif
+                Button {
+                    listViewModel.toggleExpand(groupTag: group.tag)
+                } label: {
+                    Image(systemName: group.isExpand ? "chevron.up" : "chevron.down")
+                        .frame(minWidth: 28, minHeight: 28)
+                        .contentShape(Rectangle())
+                }
+                #if os(macOS) || os(tvOS)
+                .buttonStyle(.plain)
+                #else
+                .buttonStyle(.borderless)
+                #endif
+            }
+        }
+        .padding(EdgeInsets(top: 12, leading: 16, bottom: 10, trailing: 8))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        #if !os(tvOS)
+            .contentShape(Rectangle())
+            .onTapGesture {
                 listViewModel.toggleExpand(groupTag: group.tag)
-            } label: {
-                if group.isExpand {
-                    Image(systemName: "arrow.down.to.line")
-                } else {
-                    Image(systemName: "arrow.up.to.line")
-                }
             }
-            #if os(macOS) || os(tvOS)
-            .buttonStyle(.plain)
-            #endif
-            Button {
-                listViewModel.performURLTest(group.tag)
-            } label: {
-                Image(systemName: "bolt.fill")
-            }
-            #if os(macOS) || os(tvOS)
-            .buttonStyle(.plain)
-            #endif
-        }
-        .padding([.top, .bottom], 8)
-        .animation(.easeInOut, value: group.isExpand)
-    }
-
-    public var body: some View {
-        Section {
-            if group.isExpand {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
-                                         count: explandColumnCount()))
-                {
-                    ForEach(group.items, id: \.tag) { it in
-                        GroupItemView($group, it)
-                    }
-                }
-            } else {
-                VStack(spacing: 5) {
-                    ForEach(Array(itemGroups.enumerated()), id: \.offset) { items in
-                        HStack(spacing: 5) {
-                            ForEach(items.element, id: \.tag) { it in
-                                ZStack {
-                                    Rectangle()
-                                        .fill(it.delayColor)
-                                    if it.tag == group.selected {
-                                        Rectangle()
-                                            .fill(Color.white)
-                                        #if !os(tvOS)
-                                            .frame(width: 5, height: 5)
-                                        #else
-                                            .frame(width: 15, height: 15)
-                                        #endif
-                                    }
-                                }
-                                #if !os(tvOS)
-                                .frame(width: 10, height: 10)
-                                #else
-                                .frame(width: 30, height: 30)
-                                #endif
-                            }
-                        }.frame(maxWidth: .infinity, alignment: .topLeading)
-                    }
-                }
-            }
-        } header: {
-            title
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-        }
-        .background {
-            GeometryReader { geometry in
-                Rectangle()
-                    .fill(.clear)
-                    .frame(height: 1)
-                    .onChangeCompat(of: geometry.size.width) { newValue in
-                        geometryWidth = newValue
-                    }
-                    .onAppear {
-                        geometryWidth = geometry.size.width
-                    }
-            }.padding()
-        }
-    }
-
-    private var itemGroups: [[OutboundGroupItem]] {
-        let count: Int
-        #if os(tvOS)
-            count = Int(Int(geometryWidth) / 40)
-        #else
-            count = Int(Int(geometryWidth) / 20)
         #endif
-        if count == 0 {
-            return [group.items]
-        } else {
-            return group.items.chunked(
-                into: count
-            )
-        }
-    }
-
-    private func explandColumnCount() -> Int {
-        let standardCount = Int(Int(geometryWidth) / 180)
-        #if os(iOS)
-            return standardCount < 2 ? 2 : standardCount
-        #elseif os(tvOS)
-            return 4
-        #else
-            return standardCount < 1 ? 1 : standardCount
-        #endif
+            .cardSegment(top: true, bottom: false)
     }
 }
 
-private extension Array {
-    func chunked(into size: Int) -> [[Element]] {
-        stride(from: 0, to: count, by: size).map {
-            Array(self[$0 ..< Swift.min($0 + size, count)])
+@MainActor
+public struct GroupContentView: View {
+    @EnvironmentObject private var listViewModel: GroupListViewModel
+
+    private let group: OutboundGroup
+    private let contentWidth: CGFloat
+
+    public init(group: OutboundGroup, contentWidth: CGFloat) {
+        self.group = group
+        self.contentWidth = contentWidth
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if group.isExpand {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: GroupsLayout.itemMinWidth), spacing: 10)], spacing: 10) {
+                    ForEach(group.items, id: \.tag) { item in
+                        GroupItemView(
+                            groupTag: group.tag,
+                            selectable: group.selectable,
+                            isSelected: group.selected == item.tag,
+                            item: item
+                        )
+                    }
+                }
+            } else {
+                dotGrid
+                #if !os(tvOS)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    listViewModel.toggleExpand(groupTag: group.tag)
+                }
+                #endif
+            }
         }
+        .padding(EdgeInsets(top: 2, leading: 16, bottom: 14, trailing: 16))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardSegment(top: false, bottom: true)
+    }
+
+    private var dotGrid: some View {
+        let columns = max(1, Int((contentWidth + GroupsLayout.dotSpacing) / (GroupsLayout.dotSize + GroupsLayout.dotSpacing)))
+        let horizontalSpacing: CGFloat
+        if columns > 1 {
+            horizontalSpacing = (contentWidth - CGFloat(columns) * GroupsLayout.dotSize) / CGFloat(columns - 1)
+        } else {
+            horizontalSpacing = 0
+        }
+        let rows = (group.items.count + columns - 1) / columns
+        let height = CGFloat(rows) * GroupsLayout.dotSize + CGFloat(max(0, rows - 1)) * GroupsLayout.dotSpacing
+        return Canvas { context, _ in
+            for (index, item) in group.items.enumerated() {
+                let x = CGFloat(index % columns) * (GroupsLayout.dotSize + horizontalSpacing)
+                let y = CGFloat(index / columns) * (GroupsLayout.dotSize + GroupsLayout.dotSpacing)
+                let rect = CGRect(x: x, y: y, width: GroupsLayout.dotSize, height: GroupsLayout.dotSize)
+                context.fill(
+                    Path(roundedRect: rect, cornerRadius: GroupsLayout.dotCornerRadius),
+                    with: .color(item.delayColor)
+                )
+                if item.tag == group.selected {
+                    let inset = (GroupsLayout.dotSize - GroupsLayout.selectedDotSize) / 2
+                    context.fill(
+                        Path(ellipseIn: rect.insetBy(dx: inset, dy: inset)),
+                        with: .color(.white)
+                    )
+                }
+            }
+        }
+        .frame(height: height)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+struct CardSegmentShape: Shape {
+    let topRadius: CGFloat
+    let bottomRadius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY + topRadius))
+        path.addArc(
+            center: CGPoint(x: rect.minX + topRadius, y: rect.minY + topRadius),
+            radius: topRadius,
+            startAngle: .degrees(180),
+            endAngle: .degrees(270),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.maxX - topRadius, y: rect.minY))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - topRadius, y: rect.minY + topRadius),
+            radius: topRadius,
+            startAngle: .degrees(270),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - bottomRadius))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - bottomRadius, y: rect.maxY - bottomRadius),
+            radius: bottomRadius,
+            startAngle: .degrees(0),
+            endAngle: .degrees(90),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.minX + bottomRadius, y: rect.maxY))
+        path.addArc(
+            center: CGPoint(x: rect.minX + bottomRadius, y: rect.maxY - bottomRadius),
+            radius: bottomRadius,
+            startAngle: .degrees(90),
+            endAngle: .degrees(180),
+            clockwise: false
+        )
+        path.closeSubpath()
+        return path
+    }
+}
+
+extension View {
+    func cardSegment(top: Bool, bottom: Bool) -> some View {
+        modifier(CardSegmentModifier(
+            shape: CardSegmentShape(topRadius: top ? 16 : 0, bottomRadius: bottom ? 16 : 0)
+        ))
+    }
+}
+
+private struct CardSegmentModifier: ViewModifier {
+    let shape: CardSegmentShape
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        content
+            .background(backgroundColor)
+            .clipShape(shape)
+    }
+
+    private var backgroundColor: Color {
+        #if os(iOS)
+            return Color(uiColor: .secondarySystemGroupedBackground)
+        #elseif os(macOS)
+            return Color(nsColor: .textBackgroundColor)
+        #elseif os(tvOS)
+            switch colorScheme {
+            case .dark:
+                return Color(uiColor: .black)
+            default:
+                return Color(uiColor: .white)
+            }
+        #else
+            return Color.clear
+        #endif
     }
 }
