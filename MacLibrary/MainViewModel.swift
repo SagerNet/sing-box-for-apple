@@ -71,8 +71,8 @@ public class MainViewModel: BaseViewModel {
     }
 
     private func checkApplicationPath() {
-        let directoryName = URL(filePath: Bundle.main.bundlePath).deletingLastPathComponent().pathComponents.last
-        if directoryName != "Applications" {
+        let directoryName = URL(filePath: Bundle.main.bundlePath).pathComponents
+        if !(directoryName[0] == "/" && directoryName[1] == "Applications") {
             alert = AlertState(
                 title: String(localized: "Wrong application location"),
                 message: String(localized: "This app needs to be placed under the Applications folder to work."),
