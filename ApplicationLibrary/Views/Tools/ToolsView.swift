@@ -6,8 +6,8 @@ import SwiftUI
 public struct ToolsView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var peerStore: TailscaleSSHPeerStore
+    @EnvironmentObject private var tailscaleViewModel: TailscaleStatusViewModel
     @StateObject private var viewModel = SettingViewModel()
-    @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
     @StateObject private var usbipViewModel = USBIPStatusViewModel()
     @StateObject private var openConnectViewModel = OpenConnectStatusViewModel()
     @StateObject private var openVPNViewModel = OpenVPNStatusViewModel()
@@ -20,10 +20,12 @@ public struct ToolsView: View {
         @State private var remoteServers: [RemoteServer] = []
     #endif
     #if !os(tvOS)
+        @EnvironmentObject private var sendManager: TaildropSendManager
         @State private var sshPromptPeer: TailscalePeerData?
         @State private var sshPromptEndpointTag: String = ""
         @State private var sshPresentedSession: TailscaleSSHPresentedSession?
         @State private var pendingSSHSession: TailscaleSSHPresentedSession?
+        @State private var taildropEndpointTag: String?
     #endif
     #if os(macOS)
         @Environment(\.openWindow) private var openWindow
@@ -39,11 +41,25 @@ public struct ToolsView: View {
                         FormNavigationLink {
                             TailscaleEndpointView(viewModel: tailscaleViewModel, endpointTag: endpoint.endpointTag)
                         } label: {
-                            if tailscaleViewModel.endpoints.count == 1 {
-                                Label("Tailscale", systemImage: "point.3.filled.connected.trianglepath.dotted")
-                            } else {
-                                Label("Tailscale: \(endpoint.endpointTag)", systemImage: "point.3.filled.connected.trianglepath.dotted")
+                            HStack {
+                                Group {
+                                    if tailscaleViewModel.endpoints.count == 1 {
+                                        Label("Tailscale", systemImage: "point.3.filled.connected.trianglepath.dotted")
+                                    } else {
+                                        Label("Tailscale: \(endpoint.endpointTag)", systemImage: "point.3.filled.connected.trianglepath.dotted")
+                                    }
+                                }
+                                #if !os(tvOS)
+                                    if sendManager.hasFailedSessions(endpointTag: endpoint.endpointTag) {
+                                        Spacer()
+                                        Image(systemName: "exclamationmark.circle.fill")
+                                            .foregroundStyle(.red)
+                                    }
+                                #endif
                             }
+                            #if !os(tvOS)
+                            .badge(sendManager.hasFailedSessions(endpointTag: endpoint.endpointTag) ? 0 : Int(endpoint.unreadFileCount))
+                            #endif
                         }
                         #if !os(tvOS)
                         .contextMenu {
@@ -208,7 +224,6 @@ public struct ToolsView: View {
                 }
             }
         }
-        .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { tailscaleViewModel.subscribe() }, onInactive: { tailscaleViewModel.cancel() }))
         .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { usbipViewModel.subscribe() }, onInactive: { usbipViewModel.cancel() }))
         .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { openConnectViewModel.subscribe() }, onInactive: { openConnectViewModel.cancel() }))
         .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { openVPNViewModel.subscribe() }, onInactive: { openVPNViewModel.cancel() }))
@@ -216,7 +231,6 @@ public struct ToolsView: View {
             .modifier(ConnectionLifecycleObserver(profile: environments.extensionProfile, remoteServerID: environments.remoteServer?.id, onActive: { usbipProviderViewModel.start() }, onInactive: { usbipProviderViewModel.cancel() }))
         #endif
             .alert($tailscaleViewModel.alert)
-            .onAppear { tailscaleViewModel.peerStore = peerStore }
         #if os(iOS)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -233,6 +247,29 @@ public struct ToolsView: View {
             }
         #endif
         #if !os(tvOS)
+        .background {
+            NavigationDestinationCompat(isPresented: Binding(
+                get: { taildropEndpointTag != nil },
+                set: { newValue in
+                    if !newValue {
+                        taildropEndpointTag = nil
+                    }
+                }
+            )) {
+                if let taildropEndpointTag {
+                    TaildropView(endpointTag: taildropEndpointTag)
+                }
+            }
+        }
+        .onAppear {
+            resolveTaildropNavigation()
+        }
+        .onChangeCompat(of: environments.pendingTaildropEndpointTag) { _ in
+            resolveTaildropNavigation()
+        }
+        .onChangeCompat(of: tailscaleViewModel.endpoints.map(\.endpointTag)) { _ in
+            resolveTaildropNavigation()
+        }
         .platformSheet(item: $sshPromptPeer, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
             if let session = pendingSSHSession {
                 pendingSSHSession = nil
@@ -272,6 +309,13 @@ public struct ToolsView: View {
     #endif
 
     #if !os(tvOS)
+        private func resolveTaildropNavigation() {
+            guard let requested = environments.pendingTaildropEndpointTag else { return }
+            guard let endpoint = tailscaleViewModel.endpoint(tag: requested) ?? tailscaleViewModel.endpoints.first else { return }
+            environments.pendingTaildropEndpointTag = nil
+            taildropEndpointTag = endpoint.endpointTag
+        }
+
         private struct SSHPeerInfo: Identifiable {
             var id: String {
                 peer.stableID
@@ -319,74 +363,4 @@ public struct ToolsView: View {
             }
         }
     #endif
-}
-
-private struct ConnectionLifecycleObserver: ViewModifier {
-    var profile: ExtensionProfile?
-    var remoteServerID: Int64?
-    var onActive: () -> Void
-    var onInactive: () -> Void
-
-    func body(content: Content) -> some View {
-        content.background {
-            if let profile {
-                LocalServiceLifecycleTrigger(profile: profile, remoteServerID: remoteServerID, onActive: onActive, onInactive: onInactive)
-            } else {
-                RemoteServiceLifecycleTrigger(remoteServerID: remoteServerID, onActive: onActive, onInactive: onInactive)
-            }
-        }
-    }
-}
-
-private struct LocalServiceLifecycleTrigger: View {
-    @ObservedObject var profile: ExtensionProfile
-    var remoteServerID: Int64?
-    var onActive: () -> Void
-    var onInactive: () -> Void
-
-    var body: some View {
-        Color.clear
-            .allowsHitTesting(false)
-            .onAppear {
-                if remoteServerID != nil || profile.status.isConnectedStrict {
-                    onActive()
-                }
-            }
-            .onChangeCompat(of: remoteServerID) { newValue in
-                onInactive()
-                if newValue != nil || profile.status.isConnectedStrict {
-                    onActive()
-                }
-            }
-            .onChangeCompat(of: profile.status) { status in
-                guard remoteServerID == nil else { return }
-                if status.isConnectedStrict {
-                    onActive()
-                } else {
-                    onInactive()
-                }
-            }
-    }
-}
-
-private struct RemoteServiceLifecycleTrigger: View {
-    var remoteServerID: Int64?
-    var onActive: () -> Void
-    var onInactive: () -> Void
-
-    var body: some View {
-        Color.clear
-            .allowsHitTesting(false)
-            .onAppear {
-                if remoteServerID != nil {
-                    onActive()
-                }
-            }
-            .onChangeCompat(of: remoteServerID) { newValue in
-                onInactive()
-                if newValue != nil {
-                    onActive()
-                }
-            }
-    }
 }

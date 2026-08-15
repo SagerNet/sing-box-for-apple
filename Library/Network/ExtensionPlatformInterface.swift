@@ -555,6 +555,23 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
+    public func cancelNotification(_ identifier: String?, typeID _: Int32) throws {
+        #if !os(tvOS)
+            guard let identifier else {
+                return
+            }
+            #if os(macOS)
+                if Variant.useSystemExtension {
+                    try UserServiceClient.shared.cancelNotification(identifier)
+                    return
+                }
+            #endif
+            let center = UNUserNotificationCenter.current()
+            center.removePendingNotificationRequests(withIdentifiers: [identifier])
+            center.removeDeliveredNotifications(withIdentifiers: [identifier])
+        #endif
+    }
+
     #if os(macOS)
         private var neighborCallbackListener: NSXPCListener?
         private var neighborCallbackHandler: NeighborCallbackHandler?

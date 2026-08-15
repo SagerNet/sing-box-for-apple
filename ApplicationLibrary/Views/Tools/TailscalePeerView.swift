@@ -13,6 +13,7 @@ public struct TailscalePeerView: View {
     let peer: TailscalePeerData
     let endpointTag: String
     let isSelf: Bool
+    let canShareFiles: Bool
     let networkName: String
     let canLogout: Bool
     let logoutModel: TailscaleStatusViewModel?
@@ -28,10 +29,11 @@ public struct TailscalePeerView: View {
         @Environment(\.openWindow) private var openWindow
     #endif
 
-    public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool, networkName: String = "", canLogout: Bool = false, logoutModel: TailscaleStatusViewModel? = nil) {
+    public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool, canShareFiles: Bool = false, networkName: String = "", canLogout: Bool = false, logoutModel: TailscaleStatusViewModel? = nil) {
         self.peer = peer
         self.endpointTag = endpointTag
         self.isSelf = isSelf
+        self.canShareFiles = canShareFiles
         self.networkName = networkName
         self.canLogout = canLogout
         self.logoutModel = logoutModel
@@ -78,7 +80,10 @@ public struct TailscalePeerView: View {
                         if pingViewModel.isDirect, !pingViewModel.endpoint.isEmpty {
                             FormTextItem("Endpoint", pingViewModel.endpoint)
                         }
-                        if !pingViewModel.isDirect, !pingViewModel.derpRegionCode.isEmpty {
+                        if !pingViewModel.isDirect, !pingViewModel.peerRelay.isEmpty {
+                            FormTextItem("Peer relay", pingViewModel.peerRelay)
+                        }
+                        if !pingViewModel.isDirect, pingViewModel.peerRelay.isEmpty, !pingViewModel.derpRegionCode.isEmpty {
                             FormTextItem("DERP region", pingViewModel.derpRegionCode)
                         }
                     }
@@ -114,6 +119,15 @@ public struct TailscalePeerView: View {
                     }
                 }
             }
+
+            #if !os(tvOS)
+                if canSendFiles {
+                    Section("Taildrop") {
+                        TaildropSendZone(endpointTag: endpointTag, peerStableID: peer.stableID, peerName: peer.displayName)
+                            .listRowInsets(EdgeInsets())
+                    }
+                }
+            #endif
 
             Section("Details") {
                 if peer.expired {
@@ -240,6 +254,10 @@ public struct TailscalePeerView: View {
         #endif
     }
 
+    private var canSendFiles: Bool {
+        !isSelf && peer.online && peer.canReceiveFiles && canShareFiles
+    }
+
     private var connectionTypeRow: some View {
         HStack(spacing: 8) {
             if pingViewModel.isDirect {
@@ -247,6 +265,11 @@ public struct TailscalePeerView: View {
                     .foregroundStyle(.green)
                 Text("Direct connection")
                     .foregroundStyle(.green)
+            } else if !pingViewModel.peerRelay.isEmpty {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(.blue)
+                Text("Peer relay connection")
+                    .foregroundStyle(.blue)
             } else {
                 Image(systemName: "arrow.triangle.2.circlepath")
                     .foregroundStyle(.orange)

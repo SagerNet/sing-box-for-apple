@@ -164,7 +164,9 @@ public struct MainView: View {
         .environment(\.profileEditor, profileEditor)
         .environment(\.ghosttyConfigEditor, ghosttyConfigEditor)
         .handlesExternalEvents(preferring: [], allowing: ["*"])
-        .onOpenURL(perform: viewModel.openURL)
+        .onOpenURL { url in
+            viewModel.openURL(url, environments: environments)
+        }
         .sheet(isPresented: $showCardManagement, onDismiss: {
             cardConfigurationVersion += 1
         }, content: {

@@ -10,6 +10,7 @@ public final class TailscalePingViewModel: BaseViewModel {
     @Published public var isDirect: Bool = false
     @Published public var derpRegionCode: String = ""
     @Published public var endpoint: String = ""
+    @Published public var peerRelay: String = ""
     @Published public var hasResult = false
     @Published public var pingError: String = ""
     @Published public var latencyHistory: [CGFloat] = []
@@ -64,6 +65,7 @@ public final class TailscalePingViewModel: BaseViewModel {
             let isDirect = result.isDirect
             let derpRegionCode = result.derpRegionCode
             let endpoint = result.endpoint
+            let peerRelay = result.peerRelay
             let error = result.error
             DispatchQueue.main.async { [self] in
                 guard let viewModel, viewModel.isRunning else { return }
@@ -75,6 +77,7 @@ public final class TailscalePingViewModel: BaseViewModel {
                 viewModel.isDirect = isDirect
                 viewModel.derpRegionCode = derpRegionCode
                 viewModel.endpoint = endpoint
+                viewModel.peerRelay = peerRelay
                 viewModel.pingError = ""
                 viewModel.hasResult = true
                 viewModel.appendLatency(latencyMs)

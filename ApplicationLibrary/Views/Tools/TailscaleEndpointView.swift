@@ -10,6 +10,7 @@ public struct TailscaleEndpointView: View {
         @State private var sshPromptPeer: TailscalePeerData?
         @State private var sshPresentedSession: TailscaleSSHPresentedSession?
         @State private var pendingSSHSession: TailscaleSSHPresentedSession?
+        @EnvironmentObject private var sendManager: TaildropSendManager
     #endif
     #if os(macOS)
         @Environment(\.openWindow) private var openWindow
@@ -23,6 +24,10 @@ public struct TailscaleEndpointView: View {
 
     private var endpoint: TailscaleEndpointData? {
         viewModel.endpoint(tag: endpointTag)
+    }
+
+    private var canShareFiles: Bool {
+        endpoint?.canShareFiles ?? false
     }
 
     private var navigationTitleKey: LocalizedStringKey {
@@ -43,7 +48,7 @@ public struct TailscaleEndpointView: View {
                     }
                     if endpoint.backendState == "Running", let selfPeer = endpoint.selfPeer {
                         FormNavigationLink {
-                            TailscalePeerView(peer: selfPeer, endpointTag: endpointTag, isSelf: true, networkName: endpoint.networkName, canLogout: !endpoint.keyAuth, logoutModel: viewModel)
+                            TailscalePeerView(peer: selfPeer, endpointTag: endpointTag, isSelf: true, canShareFiles: endpoint.canShareFiles, networkName: endpoint.networkName, canLogout: !endpoint.keyAuth, logoutModel: viewModel)
                         } label: {
                             HStack {
                                 Label("This Device", systemImage: "laptopcomputer")
@@ -67,6 +72,31 @@ public struct TailscaleEndpointView: View {
                             }
                         }
                     }
+                    #if !os(tvOS)
+                        if endpoint.backendState == "Running", endpoint.pendingFileCount > 0 || sendManager.hasSessions(endpointTag: endpointTag) {
+                            FormNavigationLink {
+                                TaildropView(endpointTag: endpointTag)
+                            } label: {
+                                HStack {
+                                    Label("Taildrop", systemImage: "tray.and.arrow.down")
+                                    Spacer()
+                                    if sendManager.hasFailedSessions(endpointTag: endpointTag) {
+                                        Image(systemName: "exclamationmark.circle.fill")
+                                            .foregroundStyle(.red)
+                                    } else if endpoint.waitingFileCount > 0 {
+                                        Text(verbatim: "\(endpoint.waitingFileCount)")
+                                            .foregroundColor(.secondary)
+                                    } else if endpoint.receivingFileCount > 0 {
+                                        Text("Receive")
+                                            .foregroundColor(.secondary)
+                                    } else if sendManager.isSending(endpointTag: endpointTag) {
+                                        Text("Send")
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                    #endif
                     if !endpoint.authURL.isEmpty {
                         if let url = URL(string: endpoint.authURL) {
                             #if !os(tvOS)
@@ -132,7 +162,7 @@ public struct TailscaleEndpointView: View {
 
     private func peerLink(_ peer: TailscalePeerData, isSelf: Bool) -> some View {
         FormNavigationLink {
-            TailscalePeerView(peer: peer, endpointTag: endpointTag, isSelf: isSelf)
+            TailscalePeerView(peer: peer, endpointTag: endpointTag, isSelf: isSelf, canShareFiles: canShareFiles)
         } label: {
             HStack {
                 Image(systemName: "circle.fill")
