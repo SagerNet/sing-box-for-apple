@@ -18,6 +18,10 @@
             openURL: String,
             reply: @escaping (NSError?) -> Void
         )
+        func cancelNotification(
+            identifier: String,
+            reply: @escaping (NSError?) -> Void
+        )
     }
 
     public enum UserServiceXPC {
@@ -195,6 +199,12 @@
                     openURL: notification.openURL,
                     reply: reply
                 )
+            }
+        }
+
+        public func cancelNotification(_ identifier: String) throws {
+            try performXPCCallVoid("cancelNotification") { proxy, reply in
+                proxy.cancelNotification(identifier: identifier, reply: reply)
             }
         }
     }

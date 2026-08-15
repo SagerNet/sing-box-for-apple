@@ -28,6 +28,9 @@ public struct MacApplication: Scene {
     @State private var isInitialized = false
     @ObservedObject private var applicationState: MacApplicationState
     @StateObject private var peerStore = TailscaleSSHPeerStore()
+    @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
+    @StateObject private var taildropSendManager = TaildropSendManager()
+    @StateObject private var taildropInbox = TaildropInboxViewModel()
     @StateObject private var updateManager = UpdateManager()
     @State private var showUpdateCheckPrompt = false
 
@@ -49,8 +52,12 @@ public struct MacApplication: Scene {
                 }
                 .environment(\.showMenuBarExtra, $applicationState.showMenuBarExtra)
                 .environment(\.menuBarExtraSpeedMode, $applicationState.menuBarExtraSpeedMode)
+                .tailscaleStatusSubscription(tailscaleViewModel, environments: applicationState.environments, peerStore: peerStore)
                 .environmentObject(applicationState.environments)
                 .environmentObject(peerStore)
+                .environmentObject(tailscaleViewModel)
+                .environmentObject(taildropSendManager)
+                .environmentObject(taildropInbox)
                 .environmentObject(updateManager)
                 .alert(
                     "Check Update",

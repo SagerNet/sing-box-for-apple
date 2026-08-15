@@ -14,14 +14,9 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
         NativeCrashReporter.installForCurrentProcess()
         LibboxReinstallCrashSignalHandlers()
         NSLog("Here I stand")
-        let options = LibboxSetupOptions()
-        options.basePath = FilePath.sharedDirectory.relativePath
-        options.workingPath = FilePath.workingDirectory.relativePath
-        options.tempPath = FilePath.cacheDirectory.relativePath
-        options.crashReportSource = "Application"
-        var error: NSError?
-        LibboxSetup(options, &error)
-        if let error {
+        do {
+            try ServiceSetup.apply(crashReportSource: "Application")
+        } catch {
             NSLog("setup service error: \(error.localizedDescription)")
         }
         do {

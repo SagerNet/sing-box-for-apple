@@ -6,6 +6,7 @@ private struct SidebarContentView: View {
     @Binding var selection: NavigationPage
     @Binding var localSelection: NavigationPage
     @ObservedObject var profile: ExtensionProfile
+    @EnvironmentObject private var sendManager: TaildropSendManager
     var environments: ExtensionEnvironments
 
     private var hasGroups: Bool {
@@ -26,12 +27,12 @@ private struct SidebarContentView: View {
                 }
                 ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
                     it.label
-                        .badge(it == .tools ? environments.totalUnreadReportCount : 0)
+                        .badge(it == .tools ? environments.toolsBadgeCount + sendManager.failedSessionCount : 0)
                 }
             } else {
                 ForEach(NavigationPage.allCases.filter { $0.visible(profile) }, id: \.self) { it in
                     it.label
-                        .badge(it == .tools ? environments.totalUnreadReportCount : 0)
+                        .badge(it == .tools ? environments.toolsBadgeCount + sendManager.failedSessionCount : 0)
                 }
             }
         }
@@ -73,6 +74,7 @@ private struct RemoteSidebarContentView: View {
     @Binding var selection: NavigationPage
     @Binding var localSelection: NavigationPage
     @ObservedObject var environments: ExtensionEnvironments
+    @EnvironmentObject private var sendManager: TaildropSendManager
     @State private var hasGroups = false
 
     var body: some View {
@@ -88,7 +90,7 @@ private struct RemoteSidebarContentView: View {
             }
             ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
                 it.label
-                    .badge(it == .tools ? environments.totalUnreadReportCount : 0)
+                    .badge(it == .tools ? environments.toolsBadgeCount + sendManager.failedSessionCount : 0)
             }
         }
         .listStyle(.sidebar)
@@ -130,6 +132,7 @@ private struct RemoteSidebarContentView: View {
 public struct SidebarView: View {
     @Binding var selection: NavigationPage
     @EnvironmentObject private var environments: ExtensionEnvironments
+    @EnvironmentObject private var sendManager: TaildropSendManager
     @State private var localSelection: NavigationPage = .dashboard
 
     public init(selection: Binding<NavigationPage>) {
@@ -165,7 +168,7 @@ public struct SidebarView: View {
         List(selection: $localSelection) {
             ForEach(NavigationPage.allCases.filter { $0.visible(nil) }, id: \.self) { it in
                 it.label
-                    .badge(it == .tools ? environments.totalUnreadReportCount : 0)
+                    .badge(it == .tools ? environments.toolsBadgeCount + sendManager.failedSessionCount : 0)
             }
         }
         .listStyle(.sidebar)

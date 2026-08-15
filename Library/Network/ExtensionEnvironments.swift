@@ -189,6 +189,12 @@ public class ExtensionEnvironments: ObservableObject {
         crashReportManager.unreadCount + oomReportManager.unreadCount
     }
 
+    @Published public var taildropUnreadCount = 0
+    @Published public var pendingTaildropEndpointTag: String?
+    public var toolsBadgeCount: Int {
+        totalUnreadReportCount + taildropUnreadCount
+    }
+
     @Published public var extensionProfileLoading = true
     @Published public var extensionProfile: ExtensionProfile?
     @Published public var emptyProfiles = false

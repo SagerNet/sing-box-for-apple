@@ -223,7 +223,8 @@
                     content.sound = .default
 
                     if !openURL.isEmpty {
-                        content.userInfo["openURL"] = openURL
+                        content.userInfo["OPEN_URL"] = openURL
+                        content.categoryIdentifier = "OPEN_URL"
                     }
 
                     let request = UNNotificationRequest(
@@ -240,6 +241,16 @@
                     reply(nsError)
                 }
             }
+        }
+
+        func cancelNotification(
+            identifier: String,
+            reply: @escaping (NSError?) -> Void
+        ) {
+            let center = UNUserNotificationCenter.current()
+            center.removePendingNotificationRequests(withIdentifiers: [identifier])
+            center.removeDeliveredNotifications(withIdentifiers: [identifier])
+            reply(nil)
         }
     }
 #endif

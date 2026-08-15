@@ -21,6 +21,7 @@ public struct TailscalePeerData: Identifiable {
     public let txBytes: Int64
     public let keyExpiry: Int64
     public let lastSeen: Int64
+    public let canReceiveFiles: Bool
 
     public var displayName: String {
         let segment = dnsName.split(separator: ".").first.map(String.init) ?? ""
@@ -48,6 +49,14 @@ public struct TailscaleEndpointData: Identifiable {
     public let exitNode: TailscalePeerData?
     public let userGroups: [TailscaleUserGroupData]
     public let keyAuth: Bool
+    public let canShareFiles: Bool
+    public let waitingFileCount: Int32
+    public let receivingFileCount: Int32
+    public let unreadFileCount: Int32
+
+    public var pendingFileCount: Int {
+        Int(waitingFileCount) + Int(receivingFileCount)
+    }
 
     public var hasExitNodeCandidates: Bool {
         if exitNode != nil {
@@ -66,6 +75,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
     @Published public var isSubscribed = false
 
     public weak var peerStore: TailscaleSSHPeerStore?
+    public weak var environments: ExtensionEnvironments?
     private var statusSubscription: LibboxTailscaleStatusSubscription?
 
     public func subscribe() {
@@ -94,6 +104,12 @@ public final class TailscaleStatusViewModel: BaseViewModel {
         endpoints = []
         peerStore?.sshPeers = []
         peerStore?.quickConnectPeerIDs = []
+        setUnreadCount(0)
+    }
+
+    fileprivate func setUnreadCount(_ count: Int) {
+        guard let environments, environments.taildropUnreadCount != count else { return }
+        environments.taildropUnreadCount = count
     }
 
     public func endpoint(tag: String) -> TailscaleEndpointData? {
@@ -156,6 +172,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 guard let viewModel, viewModel.isSubscribed else { return }
                 viewModel.endpoints = endpoints
                 viewModel.updateSSHPeersOnService(endpoints)
+                viewModel.setUnreadCount(endpoints.reduce(0) { $0 + Int($1.unreadFileCount) })
             }
         }
 
@@ -167,6 +184,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 viewModel.endpoints = []
                 viewModel.peerStore?.sshPeers = []
                 viewModel.peerStore?.quickConnectPeerIDs = []
+                viewModel.setUnreadCount(0)
                 if let message {
                     viewModel.alert = AlertState(errorMessage: message)
                 }
@@ -205,7 +223,11 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 selfPeer: endpoint.self_ != nil ? convertPeer(endpoint.self_!) : nil,
                 exitNode: endpoint.exitNode != nil ? convertPeer(endpoint.exitNode!) : nil,
                 userGroups: userGroups,
-                keyAuth: endpoint.keyAuth
+                keyAuth: endpoint.keyAuth,
+                canShareFiles: endpoint.canShareFiles,
+                waitingFileCount: endpoint.waitingFileCount,
+                receivingFileCount: endpoint.receivingFileCount,
+                unreadFileCount: endpoint.unreadFileCount
             )
         }
 
@@ -257,7 +279,8 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 rxBytes: peer.rxBytes,
                 txBytes: peer.txBytes,
                 keyExpiry: peer.keyExpiry,
-                lastSeen: peer.lastSeen
+                lastSeen: peer.lastSeen,
+                canReceiveFiles: peer.canReceiveFiles
             )
         }
     }

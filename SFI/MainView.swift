@@ -7,6 +7,7 @@ import SwiftUI
 struct MainView: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
+    @EnvironmentObject private var sendManager: TaildropSendManager
 
     @State private var selection = NavigationPage.dashboard
     @State private var importProfile: LibboxProfileContent?
@@ -33,7 +34,7 @@ struct MainView: View {
                 }
                 .tag(page)
                 .tabItem { page.label }
-                .badge(page == .tools ? environments.totalUnreadReportCount : 0)
+                .badge(page == .tools ? environments.toolsBadgeCount + sendManager.failedSessionCount : 0)
             }
         }
     }
@@ -396,7 +397,10 @@ struct MainView: View {
     }
 
     private func openURL(url: URL) {
-        if url.host == "import-remote-profile" {
+        if url.schemeAction == "taildrop" {
+            environments.pendingTaildropEndpointTag = url.schemeQueryValue("endpoint") ?? ""
+            selection = .tools
+        } else if url.host == "import-remote-profile" {
             var error: NSError?
             importRemoteProfile = LibboxParseRemoteProfileImportLink(url.absoluteString, &error)
             if let error {
