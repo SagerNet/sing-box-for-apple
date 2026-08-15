@@ -332,7 +332,7 @@
 			containerPortal = 3AEC20BD2A45991900A63465 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 3AF7B2012FF10003000A0001;
-			remoteInfo = "ShareExtension.System";
+			remoteInfo = ShareExtension.System;
 		};
 		3AF7B2132FF10003000A0001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -761,7 +761,7 @@
 		3AE595722F08C34000C13426 /* HelperService */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = HelperService; sourceTree = "<group>"; };
 		3AF7B0032FF10001000A0001 /* ShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3AF7B0042FF10001000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3AF7B1152FF10002000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3AF7B2152FF10003000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ShareExtension; sourceTree = "<group>"; };
 		3AF7B1032FF10002000A0001 /* ActionExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3AF7B1042FF10002000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ActionExtension; sourceTree = "<group>"; };
-		3AF7B2032FF10003000A0001 /* ShareExtension.System */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3AF7B2042FF10003000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "ShareExtension.System"; sourceTree = "<group>"; };
+		3AF7B2032FF10003000A0001 /* ShareExtension.System */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3AF7B2042FF10003000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ShareExtension.System; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1470,7 +1470,7 @@
 				3AEECC1C2A6DFA79006A0E0C /* PBXTargetDependency */,
 				3AEECC202A6DFA79006A0E0C /* PBXTargetDependency */,
 				3AEECC3D2A6DFDC6006A0E0C /* PBXTargetDependency */,
-	3AF7B2102FF10003000A0001 /* PBXTargetDependency */,
+				3AF7B2102FF10003000A0001 /* PBXTargetDependency */,
 			);
 			name = SFM.System;
 			packageProductDependencies = (
@@ -1565,13 +1565,13 @@
 				3AF7B2142FF10003000A0001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				3AF7B2032FF10003000A0001 /* ShareExtension.System */,
 				3AF7B0032FF10001000A0001 /* ShareExtension */,
+				3AF7B2032FF10003000A0001 /* ShareExtension.System */,
 			);
-			name = "ShareExtension.System";
+			name = ShareExtension.System;
 			packageProductDependencies = (
 			);
-			productName = "ShareExtension.System";
+			productName = ShareExtension.System;
 			productReference = 3AF7B2022FF10003000A0001 /* ShareExtension.System.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
@@ -3675,8 +3675,8 @@
 		3AF7B1092FF10002000A0001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ActionExtension/ActionExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -3713,8 +3713,8 @@
 		3AF7B10A2FF10002000A0001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ActionExtension/ActionExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -3753,14 +3753,14 @@
 			buildSettings = {
 				APP_GROUP_IDENTIFIER = "$(TeamIdentifierPrefix)$(BASE_PACKAGE_IDENTIFIER)";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "ShareExtension.System/ShareExtension.entitlements";
+				CODE_SIGN_ENTITLEMENTS = ShareExtension.System/ShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 287TTNZF8L;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "ShareExtension.System/Info.plist";
+				INFOPLIST_FILE = ShareExtension.System/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "sing-box";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -3770,7 +3770,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.13.18";
+				MARKETING_VERSION = 1.13.18;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfavt.standalone.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3789,14 +3789,14 @@
 			buildSettings = {
 				APP_GROUP_IDENTIFIER = "$(TeamIdentifierPrefix)$(BASE_PACKAGE_IDENTIFIER)";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "ShareExtension.System/ShareExtension.entitlements";
+				CODE_SIGN_ENTITLEMENTS = ShareExtension.System/ShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 287TTNZF8L;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "ShareExtension.System/Info.plist";
+				INFOPLIST_FILE = ShareExtension.System/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "sing-box";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -3806,7 +3806,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = "1.13.18";
+				MARKETING_VERSION = 1.13.18;
 				PRODUCT_BUNDLE_IDENTIFIER = io.nekohasekai.sfavt.standalone.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
