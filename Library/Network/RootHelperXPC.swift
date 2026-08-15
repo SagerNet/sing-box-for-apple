@@ -160,6 +160,7 @@
         func promoteOOMDraft(reply: @escaping (NSError?) -> Void)
         func triggerGoCrash(reply: @escaping (NSError?) -> Void)
         func triggerNativeCrash(reply: @escaping (NSError?) -> Void)
+        func installUpdatePackage(pkgPath: String, reply: @escaping (NSError?) -> Void)
     }
 
     public enum RootHelperXPC {
@@ -295,6 +296,12 @@
         public func triggerNativeCrash() throws {
             try callVoid("triggerNativeCrash") { proxy, reply in
                 (proxy as! RootHelperProtocol).triggerNativeCrash(reply: reply)
+            }
+        }
+
+        public func installUpdatePackage(pkgPath: String) throws {
+            try callVoid("installUpdatePackage", timeout: .seconds(600)) { proxy, reply in
+                (proxy as! RootHelperProtocol).installUpdatePackage(pkgPath: pkgPath, reply: reply)
             }
         }
     }

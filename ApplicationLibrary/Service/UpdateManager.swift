@@ -5,6 +5,7 @@
     import Libbox
     import Library
     import os
+    import Security
     import SwiftUI
 
     private let logger = Logger(category: "UpdateManager")
@@ -94,9 +95,22 @@
                     }
                 }
 
+                let helperAvailable = await Task.detached { () -> Bool in
+                    guard HelperServiceManager.rootHelperStatus == .enabled else {
+                        return false
+                    }
+                    guard let helperVersion = try? ShellHelperClient.shared.getVersion() else {
+                        return false
+                    }
+                    return helperVersion == Bundle.main.version
+                }.value
+
                 isInstalling = true
 
-                let authRef = try PKGInstaller.authorize()
+                var authRef: AuthorizationRef?
+                if !helperAvailable {
+                    authRef = try PKGInstaller.authorize()
+                }
 
                 var profile = environments.extensionProfile
                 if profile == nil {
@@ -112,9 +126,16 @@
                     }
                 }
 
-                try await Task.detached {
-                    try PKGInstaller.install(pkgPath: pkgURL.path, authorization: authRef)
-                }.value
+                if helperAvailable {
+                    try await Task.detached {
+                        try RootHelperClient.shared.installUpdatePackage(pkgPath: pkgURL.path)
+                    }.value
+                } else {
+                    let authorization = authRef!
+                    try await Task.detached {
+                        try PKGInstaller.install(pkgPath: pkgURL.path, authorization: authorization)
+                    }.value
+                }
 
                 do {
                     try PKGInstaller.scheduleInstalledApplicationRelaunch()

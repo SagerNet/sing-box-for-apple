@@ -27,6 +27,8 @@ class RootHelperService: NSObject {
     private var pathMonitor: NWPathMonitor?
     private var pendingNATFlush: DispatchWorkItem?
     private var tunInterfaceName: String?
+    private let updateLock = NSLock()
+    private var updateInProgress = false
     var pendingCrashLogs: [CrashLogFileResult] = []
 
     private let shellSessionManager = ShellSessionManager()
@@ -269,6 +271,35 @@ extension RootHelperService: RootHelperProtocol {
     func triggerGoCrash(reply: @escaping (NSError?) -> Void) {
         reply(nil)
         LibboxTriggerGoPanic()
+    }
+
+    func installUpdatePackage(pkgPath: String, reply: @escaping (NSError?) -> Void) {
+        updateLock.lock()
+        if updateInProgress {
+            updateLock.unlock()
+            reply(NSError(domain: "RootHelper", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "update installation is already in progress",
+            ]))
+            return
+        }
+        updateInProgress = true
+        updateLock.unlock()
+        DispatchQueue.global().async { [weak self] in
+            defer {
+                if let self {
+                    self.updateLock.lock()
+                    self.updateInProgress = false
+                    self.updateLock.unlock()
+                }
+            }
+            do {
+                try UpdateInstaller.install(pkgPath: pkgPath)
+                reply(nil)
+            } catch {
+                logger.error("installUpdatePackage: \(error.localizedDescription, privacy: .public)")
+                reply(error as NSError)
+            }
+        }
     }
 
     func triggerNativeCrash(reply: @escaping (NSError?) -> Void) {
