@@ -184,9 +184,7 @@ public class ConnectionListViewModel: BaseViewModel {
         commandClient.disconnect()
         connectTask?.cancel()
         connectTask = nil
-        saveStateFilterTask?.cancel()
         saveStateFilterTask = nil
-        saveSortTask?.cancel()
         saveSortTask = nil
     }
 
