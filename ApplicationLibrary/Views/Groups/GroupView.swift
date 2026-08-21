@@ -97,11 +97,11 @@ public struct GroupContentView: View {
     @EnvironmentObject private var listViewModel: GroupListViewModel
 
     private let group: OutboundGroup
-    private let contentWidth: CGFloat
 
-    public init(group: OutboundGroup, contentWidth: CGFloat) {
+    @State private var contentWidth: CGFloat = 0
+
+    public init(group: OutboundGroup) {
         self.group = group
-        self.contentWidth = contentWidth
     }
 
     public var body: some View {
@@ -136,7 +136,7 @@ public struct GroupContentView: View {
         let columns = max(1, Int((contentWidth + GroupsLayout.dotSpacing) / (GroupsLayout.dotSize + GroupsLayout.dotSpacing)))
         let horizontalSpacing: CGFloat
         if columns > 1 {
-            horizontalSpacing = (contentWidth - CGFloat(columns) * GroupsLayout.dotSize) / CGFloat(columns - 1)
+            horizontalSpacing = ((contentWidth - CGFloat(columns) * GroupsLayout.dotSize) / CGFloat(columns - 1)).rounded(.down)
         } else {
             horizontalSpacing = 0
         }
@@ -160,8 +160,19 @@ public struct GroupContentView: View {
                 }
             }
         }
-        .frame(height: height)
+        .frame(height: contentWidth > 0 ? height : 0)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            GeometryReader { geometry in
+                Color.clear
+                    .onAppear {
+                        contentWidth = geometry.size.width
+                    }
+                    .onChangeCompat(of: geometry.size.width) { newValue in
+                        contentWidth = newValue
+                    }
+            }
+        }
     }
 }
 
