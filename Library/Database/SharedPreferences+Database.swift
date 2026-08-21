@@ -49,7 +49,7 @@ extension SharedPreferences {
         if T.self == String.self {
             return String(data: item.data, encoding: .utf8) as? T
         } else {
-            return try BinaryDecoder().decode(from: item.data)
+            return try decodeBinary(from: item.data)
         }
     }
 

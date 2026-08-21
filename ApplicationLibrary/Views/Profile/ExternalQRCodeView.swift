@@ -3,8 +3,8 @@ import QRCode
 import SwiftUI
 
 #if JAILBREAK
-    // The QRCode library's default engine (QRCode.DefaultEngine on non-watchOS) is
-    // QRCodeGenerator_CoreImage, which holds a `CIContext()`. Constructing any QRCode /
+    // The QRCode library's default engine (QRCode.DefaultEngine() on non-watchOS) is
+    // QRCodeEngineCoreImage, which holds a `CIContext()`. Constructing any QRCode /
     // QRCode.Document / QRCodeViewUI eagerly builds that engine as a stored-property default,
     // and creating the CIContext spins up an EAGL/OpenGL context that crashes in this app
     // process (SIGSEGV in CI::GLContext) — the `generator:` override happens too late to help.
@@ -18,7 +18,7 @@ import SwiftUI
         backgroundColor: CGColor,
         quietZone: Int = 4
     ) -> CGImage? {
-        guard let matrix = QRCodeGenerator_External().generate(text: content, errorCorrection: .low) else {
+        guard let matrix = try? QRCodeEngineExternal().generate(text: content, errorCorrection: .low) else {
             return nil
         }
         let moduleCount = matrix.dimension
@@ -43,7 +43,7 @@ import SwiftUI
         context.setFillColor(backgroundColor)
         context.fill(CGRect(x: 0, y: 0, width: pixelDimension, height: pixelDimension))
         context.setFillColor(foregroundColor)
-        // QRCodeGenerator_External's matrix has row 0 at the top, not the bottom.
+        // QRCodeEngineExternal's matrix has row 0 at the top, not the bottom.
         for row in 0 ..< moduleCount {
             for column in 0 ..< moduleCount {
                 guard matrix[row, column] else { continue }

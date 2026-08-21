@@ -1,13 +1,13 @@
 {
-  "originHash" : "ab84feaf00c06657efdb9ce159d63e9c872e58e06d255717c9fb92c88fba513b",
+  "originHash" : "c0c12907f3950ce6a9bd3abea1b6c51ac1d2d788773fd6cfc8517fb243b08989",
   "pins" : [
     {
       "identity" : "binarycodable",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/christophhagen/BinaryCodable",
       "state" : {
-        "revision" : "33643e2343f591368647935d14a94e35dc2d3bf0",
-        "version" : "2.0.3"
+        "revision" : "9e5ef6ca38f18d0bdfbe134dadbe1517f7468293",
+        "version" : "4.0.0"
       }
     },
     {
@@ -60,8 +60,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift",
       "state" : {
-        "revision" : "2cf6c756e1e5ef6901ebae16576a7e4e4b834622",
-        "version" : "6.29.3"
+        "revision" : "b83108d10f42680d78f23fe4d4d80fc88dab3212",
+        "version" : "7.11.1"
+      }
+    },
+    {
+      "identity" : "legacybinarycodable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/christophhagen/LegacyBinaryCodable",
+      "state" : {
+        "revision" : "bf13e2bc2aa27d8b119738054357dd6ab7eb0a95",
+        "version" : "2.0.3"
       }
     },
     {
@@ -69,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/libghostty-spm",
       "state" : {
-        "revision" : "df168f41e5a22b319c184e40f021895746ad4e8f",
-        "version" : "1.2.3"
+        "revision" : "356f730bec03281fc7b83666a129b0246137ea26",
+        "version" : "1.4.0"
       }
     },
     {
@@ -78,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/MSDisplayLink.git",
       "state" : {
-        "revision" : "1ba3e769b734e456317fa7e45321fa7f53eefb67",
-        "version" : "2.1.0"
+        "revision" : "87eb0af130744c8cbe2e31b6e1a5bcd659f1c220",
+        "version" : "2.2.0"
       }
     },
     {
@@ -105,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/qrcode.git",
       "state" : {
-        "revision" : "6e32d9e56b25ab50af62a902d29d119d407d05e1",
-        "version" : "17.1.0"
+        "revision" : "a8b8a5166e072156baf66ec2fff0850aa14b5297",
+        "version" : "28.1.0"
       }
     },
     {
@@ -159,8 +168,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/SwiftImageReadWrite",
       "state" : {
-        "revision" : "96361ba7f9dce5184d95aba8ea90d9faa4acabb2",
-        "version" : "1.6.1"
+        "revision" : "42ace2412279f18bc264bc306e96b51c36e12a33",
+        "version" : "1.9.2"
       }
     },
     {
