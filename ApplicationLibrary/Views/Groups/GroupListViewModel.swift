@@ -23,11 +23,9 @@ public class GroupListViewModel: BaseViewModel {
                     OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 20),
                     OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 30),
                 ]),
-                OutboundGroup(tag: "Auto", type: "urltest", selected: "Tokyo", selectable: true, isExpand: false, items: [
-                    OutboundGroupItem(tag: "Tokyo", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 10),
-                    OutboundGroupItem(tag: "Singapore", type: "VMess", urlTestTime: .now, urlTestDelay: 20),
-                    OutboundGroupItem(tag: "Hong Kong", type: "Trojan", urlTestTime: .now, urlTestDelay: 15),
-                ]),
+                OutboundGroup(tag: "Auto", type: "urltest", selected: "Tokyo", selectable: true, isExpand: false, items: (0 ..< 137).map { index in
+                    OutboundGroupItem(tag: index == 0 ? "Tokyo" : "node-\(index)", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: UInt16(100 + index * 13))
+                }),
             ]
             isLoading = false
         }
