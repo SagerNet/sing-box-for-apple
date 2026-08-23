@@ -44,7 +44,7 @@ import SwiftUI
             let textView = UITextView()
             textView.isEditable = false
             textView.isSelectable = true
-            textView.isScrollEnabled = false
+            textView.isScrollEnabled = true
             textView.backgroundColor = .clear
             textView.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
             textView.textContainer.lineFragmentPadding = 0

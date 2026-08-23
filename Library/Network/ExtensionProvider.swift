@@ -169,6 +169,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #else
             options.oomKillerEnabled = true
         #endif
+        options.powerReportEnabled = (effectiveOptions["powerReportEnabled"] as? NSNumber)?.boolValue ?? false
 
         var setupError: NSError?
         LibboxSetup(options, &setupError)
@@ -176,6 +177,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             throw ExtensionStartupError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
         }
         LibboxPromoteOOMDraft()
+        LibboxPromotePowerReportDraft()
 
         var error: NSError?
         commandServer = LibboxNewCommandServer(platformInterface, platformInterface, &error)

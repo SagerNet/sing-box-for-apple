@@ -17,6 +17,7 @@ public struct ToolsView: View {
     #if os(iOS)
         @State private var showCrashReportList = false
         @State private var showOOMReportList = false
+        @State private var showPowerReportList = false
         @State private var remoteServers: [RemoteServer] = []
     #endif
     #if !os(tvOS)
@@ -161,6 +162,8 @@ public struct ToolsView: View {
                                         showCrashReportList = true
                                     case .oom:
                                         showOOMReportList = true
+                                    case .power:
+                                        showPowerReportList = true
                                     }
                                 }
                             }
@@ -170,6 +173,12 @@ public struct ToolsView: View {
                         } label: {
                             Label("OOM Report", systemImage: "memorychip")
                                 .badge(environments.oomReportManager.unreadCount)
+                        }
+                        NavigationLink(isActive: $showPowerReportList) {
+                            PowerReportListView()
+                        } label: {
+                            Label("Power Report", systemImage: "battery.50percent")
+                                .badge(environments.powerReportManager.unreadCount)
                         }
                     #else
                         FormNavigationLink {
@@ -206,6 +215,23 @@ public struct ToolsView: View {
                             #else
                                 Label("OOM Report", systemImage: "memorychip")
                                     .badge(environments.oomReportManager.unreadCount)
+                            #endif
+                        }
+                        FormNavigationLink {
+                            PowerReportListView()
+                        } label: {
+                            #if os(tvOS)
+                                HStack {
+                                    Label("Power Report", systemImage: "battery.50percent")
+                                    Spacer()
+                                    if environments.powerReportManager.unreadCount > 0 {
+                                        Text(verbatim: "\(environments.powerReportManager.unreadCount)")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            #else
+                                Label("Power Report", systemImage: "battery.50percent")
+                                    .badge(environments.powerReportManager.unreadCount)
                             #endif
                         }
                     #endif

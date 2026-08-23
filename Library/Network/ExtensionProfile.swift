@@ -247,6 +247,7 @@ public class ExtensionProfile: ObservableObject {
             options["oomMemoryLimitMB"] = await NSNumber(value: SharedPreferences.oomMemoryLimitMB.get())
             options["oomKillerKillConnections"] = await NSNumber(value: SharedPreferences.oomKillerKillConnections.get())
         #endif
+        options["powerReportEnabled"] = await NSNumber(value: SharedPreferences.powerReportEnabled.get())
         options["systemProxyEnabled"] = await NSNumber(value: SharedPreferences.systemProxyEnabled.get())
         options["excludeDefaultRoute"] = await NSNumber(value: SharedPreferences.excludeDefaultRoute.get())
         options["autoRouteUseSubRangesByDefault"] = await NSNumber(value: SharedPreferences.autoRouteUseSubRangesByDefault.get())

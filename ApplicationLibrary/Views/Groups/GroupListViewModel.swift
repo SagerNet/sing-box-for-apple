@@ -17,15 +17,19 @@ public class GroupListViewModel: BaseViewModel {
 
     public func connect() {
         if Variant.screenshotMode {
+            let selectorItems: [OutboundGroupItem] = [
+                OutboundGroupItem(tag: "server", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 10),
+                OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 20),
+                OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 30),
+            ]
+            let urlTestItems: [OutboundGroupItem] = (0 ..< 137).map { index in
+                let tag = index == 0 ? "Tokyo" : "node-\(index)"
+                let delay = UInt16(100 + index * 13)
+                return OutboundGroupItem(tag: tag, type: "Shadowsocks", urlTestTime: .now, urlTestDelay: delay)
+            }
             groups = [
-                OutboundGroup(tag: "my_group", type: "selector", selected: "server", selectable: true, isExpand: true, items: [
-                    OutboundGroupItem(tag: "server", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: 10),
-                    OutboundGroupItem(tag: "server2", type: "WireGuard", urlTestTime: .now, urlTestDelay: 20),
-                    OutboundGroupItem(tag: "auto", type: "URLTest", urlTestTime: .now, urlTestDelay: 30),
-                ]),
-                OutboundGroup(tag: "Auto", type: "urltest", selected: "Tokyo", selectable: true, isExpand: false, items: (0 ..< 137).map { index in
-                    OutboundGroupItem(tag: index == 0 ? "Tokyo" : "node-\(index)", type: "Shadowsocks", urlTestTime: .now, urlTestDelay: UInt16(100 + index * 13))
-                }),
+                OutboundGroup(tag: "my_group", type: "selector", selected: "server", selectable: true, isExpand: true, items: selectorItems),
+                OutboundGroup(tag: "Auto", type: "urltest", selected: "Tokyo", selectable: true, isExpand: false, items: urlTestItems),
             ]
             isLoading = false
         }

@@ -62,24 +62,38 @@ struct ReportFileContentView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                #if os(iOS)
-                    ScrollView {
-                        PlainTextView(content: content)
-                    }
-                #else
-                    PlainTextView(content: content)
-                #endif
+                PlainTextView(content: content)
             }
         }
         .navigationTitle(displayName)
     }
 
+    private static let maxContentBytes: UInt64 = 2 * 1024 * 1024
+
     private nonisolated static func loadContent(fileURL: URL) async -> String {
         await BlockingIO.run {
-            guard let data = try? Data(contentsOf: fileURL) else {
+            guard let handle = try? FileHandle(forReadingFrom: fileURL) else {
                 return ""
             }
-            return String(data: data, encoding: .utf8) ?? ""
+            defer { try? handle.close() }
+            let size = (try? handle.seekToEnd()) ?? 0
+            var truncated = false
+            if size > maxContentBytes {
+                truncated = true
+                try? handle.seek(toOffset: size - maxContentBytes)
+            } else {
+                try? handle.seek(toOffset: 0)
+            }
+            guard let data = try? handle.readToEnd(), var content = String(data: data, encoding: .utf8) else {
+                return ""
+            }
+            if truncated {
+                if let lineStart = content.firstIndex(of: "\n") {
+                    content = String(content[content.index(after: lineStart)...])
+                }
+                content = "…\n" + content
+            }
+            return content
         }
     }
 }

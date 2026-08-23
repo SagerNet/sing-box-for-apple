@@ -54,6 +54,8 @@ public enum SharedPreferences {
 
     public static let maxLogLines = Preference<Int>("max_log_lines", defaultValue: 300)
 
+    public static let powerReportEnabled = Preference<Bool>("power_report_enabled", defaultValue: false)
+
     #if os(macOS)
         public static let oomKillerEnabled = Preference<Bool>("oom_killer_enabled", defaultValue: false)
         public static let oomMemoryLimitMB = Preference<Int>("oom_memory_limit_mb", defaultValue: 50)

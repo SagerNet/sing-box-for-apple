@@ -5,11 +5,13 @@ import Library
 public enum ReportType: String, Codable {
     case crash
     case oom
+    case power
 
     public var directoryName: String {
         switch self {
         case .crash: return "crash_reports"
         case .oom: return "oom_reports"
+        case .power: return "power_reports"
         }
     }
 }

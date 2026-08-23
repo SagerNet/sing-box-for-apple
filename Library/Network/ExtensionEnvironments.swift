@@ -185,8 +185,9 @@ public class ExtensionEnvironments: ObservableObject {
     @Published public var commandClient = CommandClient([.log, .status, .groups, .clashMode])
     public let crashReportManager = CrashReportManager()
     public let oomReportManager = OOMReportManager()
+    public let powerReportManager = PowerReportManager()
     public var totalUnreadReportCount: Int {
-        crashReportManager.unreadCount + oomReportManager.unreadCount
+        crashReportManager.unreadCount + oomReportManager.unreadCount + powerReportManager.unreadCount
     }
 
     @Published public var taildropUnreadCount = 0
@@ -233,6 +234,11 @@ public class ExtensionEnvironments: ObservableObject {
             }
             .store(in: &cancellables)
         oomReportManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        powerReportManager.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
@@ -284,6 +290,7 @@ public class ExtensionEnvironments: ObservableObject {
             await reload()
             await crashReportManager.refresh()
             await oomReportManager.refresh()
+            await powerReportManager.refresh()
         }
     }
 
