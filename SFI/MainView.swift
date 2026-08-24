@@ -9,7 +9,16 @@ struct MainView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var sendManager: TaildropSendManager
 
-    @State private var selection = NavigationPage.dashboard
+    @State private var selection: NavigationPage = {
+        if Variant.screenshotMode,
+           let pageValue = ProcessInfo.processInfo.environment["SCREENSHOT_PAGE"],
+           let page = NavigationPage(snapshotValue: pageValue)
+        {
+            return page
+        }
+        return .dashboard
+    }()
+
     @State private var importProfile: LibboxProfileContent?
     @State private var importRemoteProfile: LibboxImportRemoteProfile?
     @State private var alert: AlertState?

@@ -2,14 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BasePackageIdentifier</key>
-	<string>$(BASE_PACKAGE_IDENTIFIER)</string>
 	<key>AppGroupIdentifier</key>
 	<string>$(APP_GROUP_IDENTIFIER)</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(BASE_PACKAGE_IDENTIFIER).update_profiles</string>
 	</array>
+	<key>BasePackageIdentifier</key>
+	<string>$(BASE_PACKAGE_IDENTIFIER)</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -50,6 +50,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSApplicationServices</key>
 	<dict>
 		<key>Advertises</key>
@@ -131,14 +136,5 @@
 			</dict>
 		</dict>
 	</array>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>As a universal proxy platform, sing-box configures routing according to your configuration.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Camera access is required to scan QR codes for importing profiles.</string>
 </dict>
 </plist>

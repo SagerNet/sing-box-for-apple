@@ -51,7 +51,7 @@ fi
 # standalone target keeps the full prerelease form (set by sing-box's update_apple_version).
 VERSION="$(awk -F' = ' '
 	/MARKETING_VERSION = / { v=$2; gsub(/[";]/,"",v) }
-	/PRODUCT_BUNDLE_IDENTIFIER = io\.nekohasekai\.sfavt\.standalone;/ { print v; exit }
+	/PRODUCT_BUNDLE_IDENTIFIER = "\$\(BASE_PACKAGE_IDENTIFIER\)\.standalone";/ { print v; exit }
 ' sing-box.xcodeproj/project.pbxproj)"
 [[ -n "$VERSION" ]] || { echo "error: could not read standalone MARKETING_VERSION from project.pbxproj" >&2; exit 1; }
 echo "Packaging $PRODUCT_NAME $VERSION"
@@ -148,7 +148,7 @@ find "$DEB_ROOT" -name '.DS_Store' -delete
 INSTALLED_SIZE="$(du -ks "$DEB_ROOT/var" | cut -f1)"
 # dpkg sorts '~' before everything, so 1.14.0~alpha.33 < 1.14.0 (the eventual release);
 # a literal '-' would parse as a Debian revision and sort *after* it, breaking upgrades.
-DEB_VERSION="${VERSION//-/~}"
+DEB_VERSION="${VERSION//-/'~'}"
 cat > "$DEB_ROOT/DEBIAN/control" <<EOF
 Package: $BASE_PACKAGE_IDENTIFIER
 Name: sing-box JB

@@ -2,13 +2,21 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BasePackageIdentifier</key>
-	<string>$(BASE_PACKAGE_IDENTIFIER)</string>
 	<key>AppGroupIdentifier</key>
 	<string>$(APP_GROUP_IDENTIFIER)</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(BASE_PACKAGE_IDENTIFIER).update_profiles</string>
+	</array>
+	<key>BasePackageIdentifier</key>
+	<string>$(BASE_PACKAGE_IDENTIFIER)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hans</string>
+		<string>zh-Hant</string>
+		<string>ru</string>
+		<string>fa</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -25,8 +33,6 @@
 			</array>
 		</dict>
 	</array>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>NSApplicationServices</key>
 	<dict>
 		<key>Browses</key>
@@ -59,17 +65,5 @@
 	<array>
 		<string>fetch</string>
 	</array>
-	<key>CFBundleLocalizations</key>
-	<array>
-		<string>en</string>
-		<string>zh-Hans</string>
-		<string>zh-Hant</string>
-		<string>ru</string>
-		<string>fa</string>
-	</array>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>As a universal proxy platform, sing-box configures routing according to your configuration.</string>
 </dict>
 </plist>

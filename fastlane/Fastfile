@@ -1,7 +1,11 @@
 default_platform(:ios)
 
+require "json"
+
 ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "0"
-ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "30"
+ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "120"
+
+BASE_PACKAGE_IDENTIFIER = File.read(File.expand_path("../sing-box.xcodeproj/project.pbxproj", __dir__))[/BASE_PACKAGE_IDENTIFIER = "?([^";]+)"?;/, 1].freeze
 
 SCREENSHOT_LANGUAGES = ["en-US", "zh-Hans"].freeze
 SCREENSHOT_LOCALES = {
@@ -31,14 +35,35 @@ def shutdown_simulator(name)
   sh("xcrun simctl shutdown \"#{name}\" || true")
 end
 
+def ensure_simulator(name, device_type, sdk, platform)
+  version = sh("xcrun", "--sdk", sdk, "--show-sdk-version", log: false).strip
+  runtime = "com.apple.CoreSimulator.SimRuntime.#{platform}-#{version.tr('.', '-')}"
+  devices = JSON.parse(sh("xcrun", "simctl", "list", "devices", "-j", log: false)).fetch("devices", {})
+  return if devices.fetch(runtime, []).any? { |device| device["name"] == name && device["isAvailable"] }
+
+  sh("xcrun", "simctl", "create", name, device_type, runtime)
+end
+
 platform :ios do
   desc "Generate iOS screenshots"
   lane :screenshots do
+    ensure_simulator(
+      "iPhone 12 Pro Max",
+      "com.apple.CoreSimulator.SimDeviceType.iPhone-12-Pro-Max",
+      "iphonesimulator",
+      "iOS"
+    )
+    ensure_simulator(
+      "iPad Pro 13-inch (M4)",
+      "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M4-8GB",
+      "iphonesimulator",
+      "iOS"
+    )
     ENV["SNAPSHOT_SIMULATOR_WAIT_FOR_BOOT_TIMEOUT"] = "10"
     screenshots_cache = File.expand_path("~/Library/Caches/tools.fastlane/screenshots")
     reset_dir(screenshots_cache)
-    capture_screenshots
-    shutdown_simulator("iPhone 11 Pro Max")
+    capture_screenshots(app_identifier: BASE_PACKAGE_IDENTIFIER)
+    shutdown_simulator("iPhone 12 Pro Max")
     shutdown_simulator("iPad Pro 13-inch (M4)")
   end
 end
@@ -49,7 +74,7 @@ platform :mac do
     output_base_dir = File.expand_path("../screenshots/macos", __dir__)
     screenshots_cache_candidates = [
       File.expand_path("~/Library/Caches/tools.fastlane/screenshots"),
-      File.expand_path("~/Library/Containers/io.nekohasekai.sfavt.SFMUITests.xctrunner/Data/Library/Caches/tools.fastlane/screenshots")
+      File.expand_path("~/Library/Containers/#{BASE_PACKAGE_IDENTIFIER}.SFMUITests.xctrunner/Data/Library/Caches/tools.fastlane/screenshots")
     ].uniq
     ENV["DISABLE_SWIFTLINT"] = "1"
     ENV["SCREENSHOT_WINDOW_PIXEL_HEIGHT"] = "1000"
@@ -77,7 +102,7 @@ platform :mac do
         destination: "platform=macOS",
         result_bundle: false,
         reinstall_app: false,
-        app_identifier: "io.nekohasekai.sfavt",
+        app_identifier: BASE_PACKAGE_IDENTIFIER,
         only_testing: ["SFMUITests/SnapshotTests"],
         number_of_retries: 0
       )
@@ -156,6 +181,8 @@ platform :mac do
             "center",
             "-extent",
             "#{canvas_width}x#{canvas_height}",
+            "-alpha",
+            "off",
             tmp_file
           )
         else
@@ -209,6 +236,8 @@ platform :mac do
             "center",
             "-extent",
             "#{canvas_width}x#{canvas_height}",
+            "-alpha",
+            "off",
             tmp_file
           )
         end
@@ -221,6 +250,12 @@ end
 platform :tvos do
   desc "Generate tvOS screenshots"
   lane :screenshots do
+    ensure_simulator(
+      "Apple TV 4K Screenshot",
+      "com.apple.CoreSimulator.SimDeviceType.Apple-TV-4K-3rd-generation-4K",
+      "appletvsimulator",
+      "tvOS"
+    )
     output_base_dir = File.expand_path("../screenshots/tvos", __dir__)
     screenshots_cache = File.expand_path("~/Library/Caches/tools.fastlane/screenshots")
 
@@ -242,10 +277,10 @@ platform :tvos do
       run_tests(
         project: "sing-box.xcodeproj",
         scheme: "SFT",
-        devices: ["Apple TV 4K (3rd generation)"],
+        devices: ["Apple TV 4K Screenshot"],
         result_bundle: false,
         reinstall_app: true,
-        app_identifier: "io.nekohasekai.sfavt",
+        app_identifier: BASE_PACKAGE_IDENTIFIER,
         only_testing: ["SFTUITests/SnapshotTests"],
         number_of_retries: 0,
         cloned_source_packages_path: "/tmp/fastlane_source_packages",
@@ -253,9 +288,12 @@ platform :tvos do
       )
 
       Dir.glob("#{screenshots_cache}/*.png").each do |file|
-        FileUtils.cp(file, output_dir)
+        match = File.basename(file).match(/-(\d{2}_.+\.png)\z/)
+        next unless match
+
+        FileUtils.cp(file, File.join(output_dir, "Apple TV 4K-#{match[1]}"))
       end
     end
-    shutdown_simulator("Apple TV 4K (3rd generation)")
+    shutdown_simulator("Apple TV 4K Screenshot")
   end
 end

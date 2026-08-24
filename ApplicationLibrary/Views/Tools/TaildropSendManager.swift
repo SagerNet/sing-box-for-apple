@@ -370,7 +370,7 @@ import UniformTypeIdentifiers
 
             func dropInteraction(_: UIDropInteraction, performDrop session: UIDropSession) {
                 let loadGroup = DispatchGroup()
-                let resultAccess = DispatchQueue(label: "io.nekohasekai.sfavt.taildrop-drop")
+                let resultAccess = DispatchQueue(label: "\(AppConfiguration.packageName).taildrop-drop")
                 var files: [TaildropDroppedFile] = []
                 var firstError: Error?
                 let reportError = { (error: Error) in

@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>application-identifier</key>
-	<string>287TTNZF8L.io.nekohasekai.sfajb</string>
+	<string>P8XK3KHB48.io.nekohasekai.sfajb</string>
 	<key>com.apple.developer.team-identifier</key>
-	<string>287TTNZF8L</string>
+	<string>P8XK3KHB48</string>
 	<key>com.apple.developer.networking.networkextension</key>
 	<array>
 		<string>packet-tunnel-provider</string>

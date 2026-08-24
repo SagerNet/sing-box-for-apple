@@ -1,9 +1,9 @@
 # iOS Screenshots
 # App Store requirements:
-# - iPhone 6.5" Display
+# - iPhone 6.5" Display (1284 x 2778)
 # - iPad 13" Display
 devices([
-  "iPhone 11 Pro Max",
+  "iPhone 12 Pro Max",
   "iPad Pro 13-inch (M4)"
 ])
 
@@ -14,7 +14,6 @@ languages([
 
 project("./sing-box.xcodeproj")
 scheme("SFI")
-app_identifier("io.nekohasekai.sfavt")
 output_directory("./screenshots/ios")
 clear_previous_screenshots(true)
 reinstall_app(true)

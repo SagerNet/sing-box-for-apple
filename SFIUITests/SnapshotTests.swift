@@ -6,8 +6,27 @@ final class SnapshotTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
+        if let page = screenshotPage() {
+            app.launchEnvironment["SCREENSHOT_PAGE"] = page
+        } else {
+            app.launchEnvironment["SCREENSHOT_PAGE"] = ""
+        }
         setupSnapshot(app)
         app.launch()
+    }
+
+    private func screenshotPage() -> String? {
+        let testName = name
+        if testName.contains("test01Dashboard") {
+            return "dashboard"
+        }
+        if testName.contains("test02Logs") {
+            return "logs"
+        }
+        if testName.contains("test03Settings") {
+            return "settings"
+        }
+        return nil
     }
 
     func test01Dashboard() {
@@ -15,28 +34,11 @@ final class SnapshotTests: XCTestCase {
     }
 
     func test02Logs() {
-        if app.tabBars.buttons["Logs"].exists {
-            app.tabBars.buttons["Logs"].firstMatch.tap()
-        } else if app.buttons["Logs"].exists {
-            app.buttons["Logs"].firstMatch.tap()
-        }
         sleep(1)
         snapshot("02_Logs")
     }
 
     func test03Settings() {
-        // iPad on iOS 18+ uses floating tab bar which creates nested elements
-        // Use firstMatch to handle multiple matching elements
-        if app.tabBars.buttons["Settings"].exists {
-            app.tabBars.buttons["Settings"].firstMatch.tap()
-        } else if app.buttons["Settings"].exists {
-            app.buttons["Settings"].firstMatch.tap()
-        } else {
-            let tabBar = app.tabBars.firstMatch
-            if tabBar.exists {
-                tabBar.buttons.element(boundBy: tabBar.buttons.count - 1).tap()
-            }
-        }
         sleep(1)
         snapshot("03_Settings")
     }
