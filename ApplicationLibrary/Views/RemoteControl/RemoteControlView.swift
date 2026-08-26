@@ -8,10 +8,7 @@ public struct RemoteControlView: View {
     @State private var servers: [RemoteServer] = []
     @State private var alert: AlertState?
 
-    #if os(tvOS)
-        @Environment(\.dismiss) private var dismiss
-        @Environment(\.selection) private var selection
-    #else
+    #if !os(tvOS)
         @State private var editingServer: RemoteServer?
         @State private var showNewServer = false
     #endif
@@ -57,37 +54,10 @@ public struct RemoteControlView: View {
             .navigationTitle("Remote Control")
         }
 
-        @ViewBuilder
         private func serverRow(_ server: RemoteServer) -> some View {
-            let isActive = environments.remoteServer?.id == server.id
             HStack {
-                Button {
-                    if isActive {
-                        environments.exitRemoteControl()
-                    } else {
-                        environments.enterRemoteControl(server)
-                        dismiss()
-                        selection.wrappedValue = .dashboard
-                    }
-                } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(server.displayName)
-                                .foregroundStyle(.primary)
-                            if server.name != nil {
-                                Text(server.url)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        Spacer()
-                        if isActive {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                ServerActivateButton(server: server)
+                    .frame(maxWidth: .infinity)
                 NavigationLink {
                     EditRemoteServerView(server) {
                         await reload()
@@ -210,3 +180,47 @@ public struct RemoteControlView: View {
         isLoading = false
     }
 }
+
+#if os(tvOS)
+    /// Owns the DismissAction instead of RemoteControlView: capturing one in a
+    /// NavigationLink destination makes SwiftUI on iOS/tvOS 17 loop forever laying
+    /// the pushed view out.
+    @MainActor
+    private struct ServerActivateButton: View {
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @Environment(\.dismiss) private var dismiss
+        @Environment(\.selection) private var selection
+
+        let server: RemoteServer
+
+        var body: some View {
+            let isActive = environments.remoteServer?.id == server.id
+            Button {
+                if isActive {
+                    environments.exitRemoteControl()
+                } else {
+                    environments.enterRemoteControl(server)
+                    dismiss()
+                    selection.wrappedValue = .dashboard
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(server.displayName)
+                            .foregroundStyle(.primary)
+                        if server.name != nil {
+                            Text(server.url)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Spacer()
+                    if isActive {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                    }
+                }
+            }
+        }
+    }
+#endif

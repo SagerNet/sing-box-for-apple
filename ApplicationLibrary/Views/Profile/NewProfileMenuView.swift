@@ -11,6 +11,7 @@ public struct NewProfileMenuView: View {
     @State private var alert: AlertState?
     @State private var importRequest: NewProfileView.ImportRequest?
     @State private var localImportRequest: NewProfileView.LocalImportRequest?
+    @State private var manualCreateSucceeded = false
     #if !os(tvOS)
         @State private var showFileImporter = false
         @State private var showQRScanner = false
@@ -116,6 +117,11 @@ public struct NewProfileMenuView: View {
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
+            .onChangeCompat(of: manualCreateSucceeded) { newValue in
+                if newValue {
+                    complete()
+                }
+            }
             .alert($alert)
         #if !os(tvOS)
             .fileImporter(
@@ -179,9 +185,11 @@ public struct NewProfileMenuView: View {
                     }
                 #else
                     FormNavigationLink {
-                        NewProfileView(onSuccess: { profile in
+                        // Capturing anything that holds the sheet's DismissAction here makes
+                        // SwiftUI on iOS 17 loop forever laying the pushed view out.
+                        NewProfileView(onSuccess: { [$manualCreateSucceeded] profile in
                             await SharedPreferences.selectedProfileID.set(profile.mustID)
-                            complete()
+                            $manualCreateSucceeded.wrappedValue = true
                         })
                         .environmentObject(environments)
                     } label: {
