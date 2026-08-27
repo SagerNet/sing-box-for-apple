@@ -203,7 +203,7 @@ build_macos_pkg_universal: archive_macos_standalone_universal export_macos_stand
 build_macos_pkg: build_macos_pkg_apple build_macos_pkg_intel build_macos_pkg_universal
 
 build_macos_pkg_all: archive_macos_standalone_universal export_macos_standalone_universal
-	bash SFM.System/package_from_universal.sh
+	INSTALLER_SIGN_IDENTITY="$(INSTALLER_SIGN_IDENTITY)" bash SFM.System/package_from_universal.sh
 
 # PKG notarize commands
 notarize_macos_pkg_apple:
