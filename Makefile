@@ -2,6 +2,7 @@ SHELL := /bin/bash
 .SHELLFLAGS := -o pipefail -c
 .SILENT:
 
+APPLICATION_SIGN_IDENTITY := 34EED4C8F8E609CD5D253D88202A071521D1BE74
 INSTALLER_SIGN_IDENTITY := 21E03A44ACC2B48753BABB3DAE9B5F9A9CFF0480
 XCODEBUILD_FLAGS ?= -skipPackagePluginValidation
 export DISABLE_SWIFTLINT := 1
@@ -203,7 +204,7 @@ build_macos_pkg_universal: archive_macos_standalone_universal export_macos_stand
 build_macos_pkg: build_macos_pkg_apple build_macos_pkg_intel build_macos_pkg_universal
 
 build_macos_pkg_all: archive_macos_standalone_universal export_macos_standalone_universal
-	INSTALLER_SIGN_IDENTITY="$(INSTALLER_SIGN_IDENTITY)" bash SFM.System/package_from_universal.sh
+	APPLICATION_SIGN_IDENTITY="$(APPLICATION_SIGN_IDENTITY)" INSTALLER_SIGN_IDENTITY="$(INSTALLER_SIGN_IDENTITY)" bash SFM.System/package_from_universal.sh
 
 # PKG notarize commands
 notarize_macos_pkg_apple:
