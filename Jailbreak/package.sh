@@ -174,7 +174,11 @@ EOF
 cat > "$DEB_ROOT/DEBIAN/prerm" <<EOF
 #!/bin/sh
 launchctl bootout system /var/jb/Library/LaunchDaemons/$HELPER_PLIST 2>/dev/null
-uicache -u /var/jb/Applications/sing-box.app 2>/dev/null
+case "\$1" in
+	remove | purge)
+		uicache -u /var/jb/Applications/sing-box.app 2>/dev/null
+		;;
+esac
 exit 0
 EOF
 
