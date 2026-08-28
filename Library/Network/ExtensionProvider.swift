@@ -151,6 +151,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         options.logMaxLines = 3000
         options.debug = Variant.inDebug
         options.crashReportSource = "NetworkExtension"
+        options.appVersion = Bundle.application.versionNumber
+        options.appMarketingVersion = Bundle.application.version
 
         #if os(tvOS)
             if let port = effectiveOptions["commandServerPort"] as? NSNumber {

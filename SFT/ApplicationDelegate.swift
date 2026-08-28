@@ -32,6 +32,8 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         options.commandServerListenPort = port
         options.commandServerSecret = secret
         options.crashReportSource = "Application"
+        options.appVersion = Bundle.application.versionNumber
+        options.appMarketingVersion = Bundle.application.version
         var error: NSError?
         LibboxSetup(options, &error)
         if let error {

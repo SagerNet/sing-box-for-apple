@@ -8,6 +8,8 @@ public enum ServiceSetup {
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
         options.crashReportSource = crashReportSource
+        options.appVersion = Bundle.application.versionNumber
+        options.appMarketingVersion = Bundle.application.version
         var error: NSError?
         LibboxSetup(options, &error)
         if let error {

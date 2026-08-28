@@ -8,4 +8,19 @@ public extension Bundle {
     var versionNumber: String {
         infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
     }
+
+    static var application: Bundle {
+        var currentURL = main.bundleURL
+        while currentURL.path != "/" {
+            if currentURL.pathExtension.lowercased() == "app" {
+                return Bundle(url: currentURL) ?? main
+            }
+            let parentURL = currentURL.deletingLastPathComponent()
+            if parentURL == currentURL {
+                break
+            }
+            currentURL = parentURL
+        }
+        return main
+    }
 }
