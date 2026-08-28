@@ -148,7 +148,10 @@ find "$DEB_ROOT" -name '.DS_Store' -delete
 INSTALLED_SIZE="$(du -ks "$DEB_ROOT/var" | cut -f1)"
 # dpkg sorts '~' before everything, so 1.14.0~alpha.33 < 1.14.0 (the eventual release);
 # a literal '-' would parse as a Debian revision and sort *after* it, breaking upgrades.
-DEB_VERSION="${VERSION//-/'~'}"
+# A literal '~' in the replacement is tilde-expanded by bash 5, and a quoted or escaped one
+# is kept verbatim by the bash 3.2 that macOS ships as /bin/bash; only a variable works in both.
+TILDE="~"
+DEB_VERSION="${VERSION//-/$TILDE}"
 cat > "$DEB_ROOT/DEBIAN/control" <<EOF
 Package: $BASE_PACKAGE_IDENTIFIER
 Name: sing-box JB
