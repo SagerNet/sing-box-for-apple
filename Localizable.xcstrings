@@ -85,6 +85,34 @@
         }
       }
     },
+    "A report is saved for each service run" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "برای هر بار اجرای سرویس یک گزارش ذخیره می‌شود"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчёт сохраняется при каждом запуске службы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次服务运行都会保存一份报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次服務運行都會儲存一份報告"
+          }
+        }
+      }
+    },
     "About" : {
       "localizations" : {
         "fa" : {
@@ -3603,34 +3631,6 @@
         }
       }
     },
-    "Drop files here to send, or tap to select" : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "فایل‌ها را برای ارسال اینجا رها کنید، یا برای انتخاب ضربه بزنید"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Перетащите файлы сюда для отправки или коснитесь, чтобы выбрать"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拖放文件到此处发送，或轻点选择"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拖放檔案到此處傳送，或輕點選擇"
-          }
-        }
-      }
-    },
     "Drop files here to send, or click to select" : {
       "localizations" : {
         "fa" : {
@@ -3655,6 +3655,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拖放檔案到此處傳送，或點擊選擇"
+          }
+        }
+      }
+    },
+    "Drop files here to send, or tap to select" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل‌ها را برای ارسال اینجا رها کنید، یا برای انتخاب ضربه بزنید"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перетащите файлы сюда для отправки или коснитесь, чтобы выбрать"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖放文件到此处发送，或轻点选择"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖放檔案到此處傳送，或輕點選擇"
           }
         }
       }
@@ -3991,6 +4019,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟用記憶體限制"
+          }
+        }
+      }
+    },
+    "Enable Power Report" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فعال‌سازی گزارش انرژی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить отчёт о питании"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用电源报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用電源報告"
           }
         }
       }
@@ -8981,6 +9037,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請爲 **SFMExtension** 授予權限，然後我們可以繼續。"
+          }
+        }
+      }
+    },
+    "Power Report" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گزارش انرژی"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отчёт о питании"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电源报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "電源報告"
           }
         }
       }
