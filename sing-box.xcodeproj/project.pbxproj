@@ -637,6 +637,7 @@
 		3ADDCFB02E8B72A6009ACE1D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppIcon.icon,
 				Assets.xcassets,
 				Icons/AppIcon.icns,
 			);
@@ -645,6 +646,7 @@
 		3ADDCFB12E8B72A6009ACE1D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppIcon.icon,
 				Assets.xcassets,
 				Icons/AppIcon.icns,
 			);
@@ -660,6 +662,7 @@
 		3ADDCFB32E8B72A6009ACE1D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				AppIcon.icon,
 				Assets.xcassets,
 			);
 			target = 3AEECC2E2A6DFDAD006A0E0C /* MacLibrary */;
