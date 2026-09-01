@@ -800,6 +800,16 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
+    public func usePlatformAutoRedirect() -> Bool {
+        false
+    }
+
+    public func createAutoRedirect(_: Data?, handler _: (any LibboxAutoRedirectHandlerProtocol)?) throws -> any LibboxAutoRedirectSessionProtocol {
+        throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+            NSLocalizedDescriptionKey: "auto redirect is not supported on Apple platforms",
+        ])
+    }
+
     #if os(macOS) || JAILBREAK
         private class BridgeServiceSession: NSObject, LibboxBridgeSessionProtocol {
             private let tunFileDescriptor: Int32
