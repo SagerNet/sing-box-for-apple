@@ -303,6 +303,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     private func onUpdateDefaultInterface(_ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath) {
+        listener.updateNetworkPath(describeNetworkPath(path))
         guard path.status != .unsatisfied,
               let defaultInterface = path.availableInterfaces.first
         else {
@@ -310,6 +311,42 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             return
         }
         listener.updateDefaultInterface(defaultInterface.name, interfaceIndex: Int32(defaultInterface.index), isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+    }
+
+    private func describeNetworkPath(_ path: Network.NWPath) -> String {
+        var components: [String] = []
+        switch path.status {
+        case .satisfied:
+            components.append("satisfied")
+        case .unsatisfied:
+            components.append("unsatisfied(\(path.unsatisfiedReason))")
+        case .requiresConnection:
+            components.append("requiresConnection")
+        @unknown default:
+            components.append("unknown")
+        }
+        if !path.availableInterfaces.isEmpty {
+            components.append("interfaces=" + path.availableInterfaces.map { "\($0.name)#\($0.index)/\($0.type)" }.joined(separator: ","))
+        }
+        if !path.gateways.isEmpty {
+            components.append("gateways=" + path.gateways.map { "\($0)" }.sorted().joined(separator: ","))
+        }
+        if path.supportsIPv4 {
+            components.append("ipv4")
+        }
+        if path.supportsIPv6 {
+            components.append("ipv6")
+        }
+        if path.supportsDNS {
+            components.append("dns")
+        }
+        if path.isExpensive {
+            components.append("expensive")
+        }
+        if path.isConstrained {
+            components.append("constrained")
+        }
+        return components.joined(separator: " ")
     }
 
     public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {

@@ -223,9 +223,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #endif
     }
 
-    func writeMessage(_ message: String) {
+    func writeMessage(_ message: String, level: LogLevel = .error) {
         if let commandServer {
-            commandServer.writeMessage(2, message: message)
+            commandServer.writeMessage(Int32(level.rawValue), message: message)
         }
     }
 
