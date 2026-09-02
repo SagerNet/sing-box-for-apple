@@ -78,32 +78,15 @@ public struct PowerReportListView: View {
             }
         #endif
             .toolbar {
-                if !manager.reports.isEmpty {
-                    #if os(tvOS)
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button {
-                                Task {
-                                    await manager.deleteAll()
-                                }
-                            } label: {
-                                Image(systemName: "trash.fill")
-                            }
-                            .tint(.red)
-                        }
-                    #else
-                        Menu {
-                            Button(role: .destructive) {
-                                Task {
-                                    await manager.deleteAll()
-                                }
-                            } label: {
-                                Label("Delete All", systemImage: "trash.fill")
-                            }
-                        } label: {
-                            Label("Others", systemImage: "line.3.horizontal.circle")
-                        }
-                    #endif
-                }
+                #if os(tvOS)
+                    ToolbarItem(placement: .confirmationAction) {
+                        PowerReportDeleteButton(manager: manager)
+                    }
+                #else
+                    ToolbarItem {
+                        PowerReportToolbarMenu(manager: manager)
+                    }
+                #endif
             }
     }
 
@@ -122,3 +105,42 @@ public struct PowerReportListView: View {
         }
     }
 }
+
+#if os(tvOS)
+    private struct PowerReportDeleteButton: View {
+        @ObservedObject var manager: PowerReportManager
+
+        var body: some View {
+            if !manager.reports.isEmpty {
+                Button {
+                    Task {
+                        await manager.deleteAll()
+                    }
+                } label: {
+                    Image(systemName: "trash.fill")
+                }
+                .tint(.red)
+            }
+        }
+    }
+#else
+    private struct PowerReportToolbarMenu: View {
+        @ObservedObject var manager: PowerReportManager
+
+        var body: some View {
+            if !manager.reports.isEmpty {
+                Menu {
+                    Button(role: .destructive) {
+                        Task {
+                            await manager.deleteAll()
+                        }
+                    } label: {
+                        Label("Delete All", systemImage: "trash.fill")
+                    }
+                } label: {
+                    Label("Others", systemImage: "line.3.horizontal.circle")
+                }
+            }
+        }
+    }
+#endif

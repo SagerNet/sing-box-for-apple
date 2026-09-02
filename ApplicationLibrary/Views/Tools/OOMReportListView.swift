@@ -130,38 +130,15 @@ public struct OOMReportListView: View {
         #endif
         .toolbar {
             #if os(tvOS)
-                if !manager.reports.isEmpty {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button {
-                            Task {
-                                await manager.deleteAll()
-                            }
-                        } label: {
-                            Image(systemName: "trash.fill")
-                        }
-                        .tint(.red)
-                    }
+                ToolbarItem(placement: .confirmationAction) {
+                    OOMReportDeleteButton(manager: manager)
                 }
-                if let profile = environments.extensionProfile {
-                    ToolbarItem(placement: .confirmationAction) {
-                        OOMReportTriggerButton(manager: manager, profile: profile)
-                    }
+                ToolbarItem(placement: .confirmationAction) {
+                    OOMReportTriggerButton(manager: manager, profile: environments.extensionProfile)
                 }
             #else
-                if let profile = environments.extensionProfile {
-                    OOMReportToolbarMenu(manager: manager, profile: profile)
-                } else if !manager.reports.isEmpty {
-                    Menu {
-                        Button(role: .destructive) {
-                            Task {
-                                await manager.deleteAll()
-                            }
-                        } label: {
-                            Label("Delete All", systemImage: "trash.fill")
-                        }
-                    } label: {
-                        Label("Others", systemImage: "line.3.horizontal.circle")
-                    }
+                ToolbarItem {
+                    OOMReportToolbarMenu(manager: manager, profile: environments.extensionProfile)
                 }
             #endif
         }
@@ -188,46 +165,69 @@ public struct OOMReportListView: View {
 }
 
 #if os(tvOS)
+    private struct OOMReportDeleteButton: View {
+        @ObservedObject var manager: OOMReportManager
+
+        var body: some View {
+            if !manager.reports.isEmpty {
+                Button {
+                    Task {
+                        await manager.deleteAll()
+                    }
+                } label: {
+                    Image(systemName: "trash.fill")
+                }
+                .tint(.red)
+            }
+        }
+    }
+
     private struct OOMReportTriggerButton: View {
         let manager: OOMReportManager
-        @ObservedObject var profile: ExtensionProfile
+        let profile: ExtensionProfile?
         @State private var alert: AlertState?
 
         var body: some View {
-            Button {
-                triggerOOMReport(profile: profile, manager: manager, alert: &alert)
-            } label: {
-                Image(systemName: "memorychip")
+            if let profile {
+                Button {
+                    triggerOOMReport(profile: profile, manager: manager, alert: &alert)
+                } label: {
+                    Image(systemName: "memorychip")
+                }
+                .alert($alert)
             }
-            .alert($alert)
         }
     }
 #else
     private struct OOMReportToolbarMenu: View {
-        let manager: OOMReportManager
-        @ObservedObject var profile: ExtensionProfile
+        @ObservedObject var manager: OOMReportManager
+        let profile: ExtensionProfile?
         @State private var alert: AlertState?
 
         var body: some View {
-            Menu {
-                Button {
-                    triggerOOMReport(profile: profile, manager: manager, alert: &alert)
-                } label: {
-                    Label("Fetch Memory Report", systemImage: "memorychip")
-                }
-                if !manager.reports.isEmpty {
-                    Button(role: .destructive) {
-                        Task {
-                            await manager.deleteAll()
+            if profile != nil || !manager.reports.isEmpty {
+                Menu {
+                    if let profile {
+                        Button {
+                            triggerOOMReport(profile: profile, manager: manager, alert: &alert)
+                        } label: {
+                            Label("Fetch Memory Report", systemImage: "memorychip")
                         }
-                    } label: {
-                        Label("Delete All", systemImage: "trash.fill")
                     }
+                    if !manager.reports.isEmpty {
+                        Button(role: .destructive) {
+                            Task {
+                                await manager.deleteAll()
+                            }
+                        } label: {
+                            Label("Delete All", systemImage: "trash.fill")
+                        }
+                    }
+                } label: {
+                    Label("Others", systemImage: "line.3.horizontal.circle")
                 }
-            } label: {
-                Label("Others", systemImage: "line.3.horizontal.circle")
+                .alert($alert)
             }
-            .alert($alert)
         }
     }
 #endif
@@ -238,7 +238,12 @@ private func triggerOOMReport(profile: ExtensionProfile, manager: OOMReportManag
         alert = AlertState(errorMessage: String(localized: "Service not started"))
         return
     }
-    try? LibboxNewStandaloneCommandClient()?.triggerOOMReport()
+    do {
+        try LibboxNewStandaloneCommandClient()?.triggerOOMReport()
+    } catch {
+        alert = AlertState(action: "trigger OOM report", error: error)
+        return
+    }
     Task {
         try? await Task.sleep(nanoseconds: NSEC_PER_SEC)
         await manager.refresh()
