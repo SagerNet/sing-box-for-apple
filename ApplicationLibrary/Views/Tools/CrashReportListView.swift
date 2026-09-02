@@ -86,57 +86,14 @@ public struct CrashReportListView: View {
                     }
                 }
             }
-            if !manager.reports.isEmpty {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        Task {
-                            await manager.deleteAll()
-                        }
-                    } label: {
-                        Image(systemName: "trash.fill")
-                    }
-                    .tint(.red)
-                }
+            ToolbarItem(placement: .confirmationAction) {
+                CrashReportDeleteButton(manager: manager)
             }
         }
         #else
         .toolbar {
-                    if !manager.reports.isEmpty || Variant.inDebug {
-                        Menu {
-                            if Variant.inDebug {
-                                Menu {
-                                    Menu("Application") {
-                                        Button("Go Crash") {
-                                            LibboxTriggerGoPanic()
-                                        }
-                                        Button("Native Crash") {
-                                            DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(200)) {
-                                                fatalError("debug native crash")
-                                            }
-                                        }
-                                    }
-                                    if let profile = environments.extensionProfile {
-                                        NetworkExtensionCrashMenu(profile: profile)
-                                    }
-                                    #if os(macOS)
-                                        RootHelperCrashMenu()
-                                    #endif
-                                } label: {
-                                    Label("Crash Trigger", systemImage: "ant.fill")
-                                }
-                            }
-                            if !manager.reports.isEmpty {
-                                Button(role: .destructive) {
-                                    Task {
-                                        await manager.deleteAll()
-                                    }
-                                } label: {
-                                    Label("Delete All", systemImage: "trash.fill")
-                                }
-                            }
-                        } label: {
-                            Label("Others", systemImage: "line.3.horizontal.circle")
-                        }
+                    ToolbarItem {
+                        CrashReportToolbarMenu(manager: manager)
                     }
                 }
         #endif
@@ -242,6 +199,70 @@ public struct CrashReportListView: View {
                             await environments.crashReportManager.refresh()
                         }
                     }
+                }
+            }
+        }
+    }
+#endif
+
+#if os(tvOS)
+    private struct CrashReportDeleteButton: View {
+        @ObservedObject var manager: CrashReportManager
+
+        var body: some View {
+            if !manager.reports.isEmpty {
+                Button {
+                    Task {
+                        await manager.deleteAll()
+                    }
+                } label: {
+                    Image(systemName: "trash.fill")
+                }
+                .tint(.red)
+            }
+        }
+    }
+#else
+    private struct CrashReportToolbarMenu: View {
+        @EnvironmentObject private var environments: ExtensionEnvironments
+        @ObservedObject var manager: CrashReportManager
+
+        var body: some View {
+            if !manager.reports.isEmpty || Variant.inDebug {
+                Menu {
+                    if Variant.inDebug {
+                        Menu {
+                            Menu("Application") {
+                                Button("Go Crash") {
+                                    LibboxTriggerGoPanic()
+                                }
+                                Button("Native Crash") {
+                                    DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(200)) {
+                                        fatalError("debug native crash")
+                                    }
+                                }
+                            }
+                            if let profile = environments.extensionProfile {
+                                NetworkExtensionCrashMenu(profile: profile)
+                            }
+                            #if os(macOS)
+                                RootHelperCrashMenu()
+                            #endif
+                        } label: {
+                            Label("Crash Trigger", systemImage: "ant.fill")
+                        }
+                    }
+                    if !manager.reports.isEmpty {
+                        Button(role: .destructive) {
+                            Task {
+                                await manager.deleteAll()
+                            }
+                        } label: {
+                            Label("Delete All", systemImage: "trash.fill")
+                        }
+                    }
+                } label: {
+                    Label("Others", systemImage: "line.3.horizontal.circle")
                 }
             }
         }
