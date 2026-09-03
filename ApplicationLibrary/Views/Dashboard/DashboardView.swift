@@ -66,8 +66,8 @@ public struct DashboardView: View {
         }
         #else
         .sheet(item: $environments.pendingImportRemoteProfile) { request in
-                    importRemoteProfileSheet(for: request)
-                }
+            importRemoteProfileSheet(for: request)
+        }
         #endif
         #if os(macOS)
             .onChangeCompat(of: controlActiveState) { state in
