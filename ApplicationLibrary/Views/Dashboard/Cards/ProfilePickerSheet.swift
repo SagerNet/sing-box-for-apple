@@ -136,64 +136,64 @@ struct ProfilePickerSheet: View {
         private var nonIOSBody: some View {
             listContent
             #if os(tvOS)
-            .environment(\.editMode, $editMode)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    TVToolbarButton(title: editMode.isEditing ? String(localized: "Done") : String(localized: "Edit")) {
-                        toggleEditMode()
+                .environment(\.editMode, $editMode)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        TVToolbarButton(title: editMode.isEditing ? String(localized: "Done") : String(localized: "Edit")) {
+                            toggleEditMode()
+                        }
                     }
                 }
-            }
-            .navigationDestination(item: $profileToEdit) { profile in
-                EditProfileView()
-                    .environmentObject(profile)
-                    .environmentObject(environments)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .topBarLeading) {
-                            BackButton()
-                        }
-                    }
-            }
-            #elseif os(macOS)
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 0) {
-                    Divider()
-                    HStack {
-                        Spacer()
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                        .keyboardShortcut(.escape, modifiers: [])
-                        if isEditing {
-                            Button("Done") {
-                                withAnimation {
-                                    isEditing = false
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                        } else {
-                            Button("Edit") {
-                                withAnimation {
-                                    isEditing = true
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-                    .padding()
-                    .background(Color(NSColor.controlBackgroundColor))
-                }
-            }
-            .sheet(item: $profileToEdit) { profile in
-                NavigationSheet {
+                .navigationDestination(item: $profileToEdit) { profile in
                     EditProfileView()
                         .environmentObject(profile)
                         .environmentObject(environments)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .topBarLeading) {
+                                BackButton()
+                            }
+                        }
                 }
-                .frame(minWidth: 500, minHeight: 400)
-            }
+            #elseif os(macOS)
+                .safeAreaInset(edge: .bottom) {
+                    VStack(spacing: 0) {
+                        Divider()
+                        HStack {
+                            Spacer()
+                            Button("Cancel") {
+                                dismiss()
+                            }
+                            .keyboardShortcut(.escape, modifiers: [])
+                            if isEditing {
+                                Button("Done") {
+                                    withAnimation {
+                                        isEditing = false
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                            } else {
+                                Button("Edit") {
+                                    withAnimation {
+                                        isEditing = true
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                        }
+                        .padding()
+                        .background(Color(NSColor.controlBackgroundColor))
+                    }
+                }
+                .sheet(item: $profileToEdit) { profile in
+                    NavigationSheet {
+                        EditProfileView()
+                            .environmentObject(profile)
+                            .environmentObject(environments)
+                    }
+                    .frame(minWidth: 500, minHeight: 400)
+                }
             #endif
-            .alert($alert)
+                .alert($alert)
         }
     #endif
 
