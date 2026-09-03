@@ -14,9 +14,19 @@ struct LogTextView: View {
     let shouldAutoScroll: Bool
     let searchText: String
 
+    #if os(iOS)
+        @Environment(\.logBottomInset) private var bottomInset
+    #endif
+
     var body: some View {
         #if os(iOS)
-            LogTextViewIOS(logs: logs, font: font, shouldAutoScroll: shouldAutoScroll, searchText: searchText)
+            LogTextViewIOS(
+                logs: logs,
+                font: font,
+                shouldAutoScroll: shouldAutoScroll,
+                searchText: searchText,
+                bottomInset: bottomInset
+            )
         #elseif os(macOS)
             LogTextViewMacOS(logs: logs, font: font, shouldAutoScroll: shouldAutoScroll, searchText: searchText)
         #endif
@@ -237,6 +247,7 @@ struct LogTextView: View {
         let font: Font
         let shouldAutoScroll: Bool
         let searchText: String
+        let bottomInset: CGFloat
 
         private static let monoFont = UIFont.monospacedSystemFont(ofSize: 11, weight: .regular)
         private static let defaultColor = UIColor.label
@@ -255,6 +266,15 @@ struct LogTextView: View {
         }
 
         func updateUIView(_ textView: UITextView, context: Context) {
+            if textView.contentInset.bottom != bottomInset {
+                let wasPinnedToBottom = Self.isPinnedToBottom(textView)
+                textView.contentInset.bottom = bottomInset
+                textView.verticalScrollIndicatorInsets.bottom = bottomInset
+                if shouldAutoScroll, wasPinnedToBottom {
+                    Self.scrollToBottom(textView)
+                }
+            }
+
             let backgroundColor = UIColor.systemBackground.resolvedColor(with: textView.traitCollection)
             let backgroundColorHash = backgroundColor.hash
 
