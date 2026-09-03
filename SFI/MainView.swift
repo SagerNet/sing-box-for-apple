@@ -26,6 +26,7 @@ struct MainView: View {
     @State private var showConnections = false
     @State private var buttonState = ButtonVisibilityState()
     @State private var initializedTabs: Set<NavigationPage> = []
+    @State private var logsAccessoryHeight: CGFloat = 0
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
         AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
@@ -58,16 +59,14 @@ struct MainView: View {
 
     @ViewBuilder
     private func tabContent(for page: NavigationPage) -> some View {
+        let accessory = accessoryInset
+            .transaction { transaction in
+                if !initializedTabs.contains(page) {
+                    transaction.disablesAnimations = true
+                }
+            }
         let content = page.contentView
             .navigationTitle(page.title)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                accessoryInset
-                    .transaction { transaction in
-                        if !initializedTabs.contains(page) {
-                            transaction.disablesAnimations = true
-                        }
-                    }
-            }
             .onAppear {
                 if !initializedTabs.contains(page) {
                     DispatchQueue.main.async {
@@ -76,9 +75,23 @@ struct MainView: View {
                 }
             }
         if page == .logs {
-            content.navigationBarTitleDisplayMode(.inline)
-        } else {
             content
+                .navigationBarTitleDisplayMode(.inline)
+                .overlay(alignment: .bottom) {
+                    accessory.background(
+                        GeometryReader { proxy in
+                            Color.clear.preference(key: AccessoryHeightKey.self, value: proxy.size.height)
+                        }
+                    )
+                }
+                .onPreferenceChange(AccessoryHeightKey.self) { newValue in
+                    logsAccessoryHeight = newValue
+                }
+                .environment(\.logBottomInset, logsAccessoryHeight)
+        } else {
+            content.safeAreaInset(edge: .bottom, spacing: 0) {
+                accessory
+            }
         }
     }
 
@@ -314,6 +327,13 @@ struct MainView: View {
         }
         if newState != buttonState {
             buttonState = newState
+        }
+    }
+
+    private struct AccessoryHeightKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = max(value, nextValue())
         }
     }
 
