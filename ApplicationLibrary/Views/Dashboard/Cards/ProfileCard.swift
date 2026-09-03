@@ -96,51 +96,51 @@ public struct ProfileCard: View {
             )
         #else
             .sheet(isPresented: $viewModel.showNewProfile, onDismiss: {
-                    environments.profileUpdate.send()
-                }, content: {
-                    NewProfileNavigationView()
-                        .environmentObject(environments)
-                })
-                .sheet(isPresented: $viewModel.showProfilePicker) {
-                    profilePickerSheet
-                }
-                .sheet(item: $viewModel.profileToEdit) { profile in
-                    editProfileSheet(for: profile)
-                }
+                environments.profileUpdate.send()
+            }, content: {
+                NewProfileNavigationView()
+                    .environmentObject(environments)
+            })
+            .sheet(isPresented: $viewModel.showProfilePicker) {
+                profilePickerSheet
+            }
+            .sheet(item: $viewModel.profileToEdit) { profile in
+                editProfileSheet(for: profile)
+            }
             #if os(iOS)
-                .sheet(isPresented: $viewModel.showQRCode) {
-                    if let profile = selectedProfile, let remoteURL = profile.remoteURL {
-                        QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
-                    }
+            .sheet(isPresented: $viewModel.showQRCode) {
+                if let profile = selectedProfile, let remoteURL = profile.remoteURL {
+                    QRCodeSheet(profileName: profile.name, remoteURL: remoteURL)
                 }
+            }
             #endif
-                .sheet(
-                    isPresented: $viewModel.showQRSShare,
-                    onDismiss: {
-                        viewModel.qrsShareData = nil
-                        viewModel.qrsShareProfileName = nil
-                    },
-                    content: {
-                        if let data = viewModel.qrsShareData, let name = viewModel.qrsShareProfileName {
-                            QRSSheet(profileName: name, profileData: data)
-                        } else {
-                            ProgressView()
-                        }
-                    }
-                )
-                .fileExporter(
-                    isPresented: $viewModel.showExporter,
-                    document: viewModel.exportDocument,
-                    contentType: viewModel.exportDocument?.contentType ?? .data,
-                    defaultFilename: viewModel.exportDocument?.filename
-                ) { result in
-                    viewModel.exportDocument = nil
-                    if case let .failure(error) = result {
-                        viewModel.alert = AlertState(action: "export profile", error: error)
+            .sheet(
+                isPresented: $viewModel.showQRSShare,
+                onDismiss: {
+                    viewModel.qrsShareData = nil
+                    viewModel.qrsShareProfileName = nil
+                },
+                content: {
+                    if let data = viewModel.qrsShareData, let name = viewModel.qrsShareProfileName {
+                        QRSSheet(profileName: name, profileData: data)
+                    } else {
+                        ProgressView()
                     }
                 }
+            )
+            .fileExporter(
+                isPresented: $viewModel.showExporter,
+                document: viewModel.exportDocument,
+                contentType: viewModel.exportDocument?.contentType ?? .data,
+                defaultFilename: viewModel.exportDocument?.filename
+            ) { result in
+                viewModel.exportDocument = nil
+                if case let .failure(error) = result {
+                    viewModel.alert = AlertState(action: "export profile", error: error)
+                }
+            }
         #endif
-                .alert($viewModel.alert)
+            .alert($viewModel.alert)
     }
 
     private var headerView: some View {
