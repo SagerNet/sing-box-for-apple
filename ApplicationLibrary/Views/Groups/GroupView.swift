@@ -121,10 +121,10 @@ public struct GroupContentView: View {
             } else {
                 dotGrid
                 #if !os(tvOS)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    listViewModel.toggleExpand(groupTag: group.tag)
-                }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        listViewModel.toggleExpand(groupTag: group.tag)
+                    }
                 #endif
             }
         }

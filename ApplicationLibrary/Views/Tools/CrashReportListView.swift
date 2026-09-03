@@ -92,10 +92,10 @@ public struct CrashReportListView: View {
         }
         #else
         .toolbar {
-                    ToolbarItem {
-                        CrashReportToolbarMenu(manager: manager)
-                    }
-                }
+            ToolbarItem {
+                CrashReportToolbarMenu(manager: manager)
+            }
+        }
         #endif
     }
 
