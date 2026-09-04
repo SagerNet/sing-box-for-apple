@@ -246,7 +246,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 let result = LibboxConnectionOwner()
                 result.userId = owner.userId
                 result.userName = owner.userName
-                result.processPath = owner.processPath
+                result.setProcessPaths(owner.processPaths.toStringIterator())
                 return result
             }
         #elseif JAILBREAK
@@ -265,7 +265,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let result = LibboxConnectionOwner()
             result.userId = owner.userId
             result.userName = owner.userName
-            result.processPath = owner.processPath
+            result.setProcessPaths(owner.processPaths.toStringIterator())
             return result
         #endif
         throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Not implemented")])
