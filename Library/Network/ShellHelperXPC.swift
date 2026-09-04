@@ -53,24 +53,24 @@
 
         @objc public var userId: Int32
         @objc public var userName: String
-        @objc public var processPath: String
+        @objc public var processPaths: [String]
 
-        public init(userId: Int32, userName: String, processPath: String) {
+        public init(userId: Int32, userName: String, processPaths: [String]) {
             self.userId = userId
             self.userName = userName
-            self.processPath = processPath
+            self.processPaths = processPaths
         }
 
         public required init?(coder: NSCoder) {
             userId = coder.decodeInt32(forKey: "userId")
             userName = coder.decodeObject(of: NSString.self, forKey: "userName") as? String ?? ""
-            processPath = coder.decodeObject(of: NSString.self, forKey: "processPath") as? String ?? ""
+            processPaths = coder.decodeObject(of: [NSArray.self, NSString.self], forKey: "processPaths") as? [String] ?? []
         }
 
         public func encode(with coder: NSCoder) {
             coder.encode(userId, forKey: "userId")
             coder.encode(userName as NSString, forKey: "userName")
-            coder.encode(processPath as NSString, forKey: "processPath")
+            coder.encode(processPaths as NSArray, forKey: "processPaths")
         }
     }
 
@@ -133,7 +133,7 @@
                 argumentIndex: 2,
                 ofReply: false
             )
-            let connectionOwnerClasses = NSSet(array: [ConnectionOwnerResult.self, NSString.self]) as! Set<AnyHashable>
+            let connectionOwnerClasses = NSSet(array: [ConnectionOwnerResult.self, NSArray.self, NSString.self]) as! Set<AnyHashable>
             interface.setClasses(
                 connectionOwnerClasses,
                 for: #selector(ShellHelperProtocol.findConnectionOwner(ipProtocol:sourceAddress:sourcePort:destinationAddress:destinationPort:reply:)),
