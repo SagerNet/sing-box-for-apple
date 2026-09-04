@@ -96,7 +96,7 @@ extension IOSRootHelperService: ShellHelperProtocol {
         reply(ConnectionOwnerResult(
             userId: result.userId,
             userName: result.userName,
-            processPath: result.processPath
+            processPaths: result.processPaths
         ), nil)
     }
 

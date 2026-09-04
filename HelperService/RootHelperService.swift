@@ -95,7 +95,7 @@ extension RootHelperService: RootHelperProtocol {
         let ownerResult = ConnectionOwnerResult(
             userId: result.userId,
             userName: result.userName,
-            processPath: result.processPath
+            processPaths: result.processPaths
         )
         reply(ownerResult, nil)
     }

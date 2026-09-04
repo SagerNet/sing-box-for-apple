@@ -6,7 +6,7 @@
         public struct Result {
             public let userId: Int32
             public let userName: String
-            public let processPath: String
+            public let processPaths: [String]
         }
 
         public static func find(
@@ -30,7 +30,7 @@
             return Result(
                 userId: result.userId,
                 userName: result.userName,
-                processPath: result.processPath
+                processPaths: result.processPaths()?.toArray() ?? []
             )
         }
     }
