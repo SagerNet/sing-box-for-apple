@@ -100,7 +100,7 @@ public struct CrashReportListView: View {
     }
 
     private func reportLabel(_ report: CrashReport) -> some View {
-        ReportLabel(date: report.date, isRead: report.isRead, origin: report.origin)
+        ReportLabel(date: report.date, isRead: report.isRead, origin: report.origin, kind: report.kind)
     }
 }
 
@@ -119,6 +119,12 @@ public struct CrashReportListView: View {
                         DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(200)) {
                             fatalError("debug native crash")
                         }
+                    }
+                    Button("Hang (Swift)") {
+                        Thread.sleep(forTimeInterval: 5)
+                    }
+                    Button("Hang (Go)") {
+                        LibboxTriggerGoHang(5)
                     }
                 }
                 if let profile = environments.extensionProfile, profile.status.isConnectedStrict {
@@ -240,6 +246,12 @@ public struct CrashReportListView: View {
                                     DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(200)) {
                                         fatalError("debug native crash")
                                     }
+                                }
+                                Button("Hang (Swift)") {
+                                    Thread.sleep(forTimeInterval: 5)
+                                }
+                                Button("Hang (Go)") {
+                                    LibboxTriggerGoHang(5)
                                 }
                             }
                             if let profile = environments.extensionProfile {
