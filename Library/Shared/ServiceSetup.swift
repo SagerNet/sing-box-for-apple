@@ -10,6 +10,7 @@ public enum ServiceSetup {
         options.crashReportSource = crashReportSource
         options.appVersion = Bundle.application.versionNumber
         options.appMarketingVersion = Bundle.application.version
+        options.platformMetadata = PlatformMetadata.json()
         var error: NSError?
         LibboxSetup(options, &error)
         if let error {
