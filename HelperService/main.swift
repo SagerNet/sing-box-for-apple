@@ -17,6 +17,7 @@ setupOptions.tempPath = WorkingDirectoryManager.helperTempDirectoryPath
 setupOptions.crashReportSource = "RootHelper"
 setupOptions.appVersion = Bundle.application.versionNumber
 setupOptions.appMarketingVersion = Bundle.application.version
+setupOptions.platformMetadata = PlatformMetadata.json()
 var setupError: NSError?
 LibboxSetup(setupOptions, &setupError)
 if let setupError {
