@@ -9,6 +9,7 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         LibboxPrepareCrashSignalHandlers()
         NativeCrashReporter.installForCurrentProcess()
         LibboxReinstallCrashSignalHandlers()
+        HangWatchdog.installForCurrentProcess()
         NSLog("Here I stand")
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath

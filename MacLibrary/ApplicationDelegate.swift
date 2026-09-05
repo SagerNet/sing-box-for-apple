@@ -13,6 +13,7 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
         LibboxPrepareCrashSignalHandlers()
         NativeCrashReporter.installForCurrentProcess()
         LibboxReinstallCrashSignalHandlers()
+        HangWatchdog.installForCurrentProcess()
         NSLog("Here I stand")
         do {
             try ServiceSetup.apply(crashReportSource: "Application")
