@@ -15,6 +15,7 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         LibboxPrepareCrashSignalHandlers()
         NativeCrashReporter.installForCurrentProcess()
         LibboxReinstallCrashSignalHandlers()
+        HangWatchdog.installForCurrentProcess()
         NSLog("Here I stand")
         setup()
         setupTask = Task {

@@ -16,6 +16,16 @@ public struct CrashReportMetadata: Codable, Sendable {
     public var exceptionName: String?
     public var exceptionReason: String?
     public var deviceOrigin: String?
+    public var kind: String?
+    public var hangDuration: String?
+    public var hangResolved: String?
+    public var applicationState: String?
+    public var mainThreadState: String?
+    public var mainThreadCPUUsage: String?
+    public var sinceLaunch: String?
+    public var sinceForeground: String?
+
+    public static let hangKind = "hang"
 
     public init(
         source: String? = nil,
@@ -32,7 +42,15 @@ public struct CrashReportMetadata: Codable, Sendable {
         signalCode: String? = nil,
         exceptionName: String? = nil,
         exceptionReason: String? = nil,
-        deviceOrigin: String? = nil
+        deviceOrigin: String? = nil,
+        kind: String? = nil,
+        hangDuration: String? = nil,
+        hangResolved: String? = nil,
+        applicationState: String? = nil,
+        mainThreadState: String? = nil,
+        mainThreadCPUUsage: String? = nil,
+        sinceLaunch: String? = nil,
+        sinceForeground: String? = nil
     ) {
         self.source = source
         self.bundleIdentifier = bundleIdentifier
@@ -49,6 +67,14 @@ public struct CrashReportMetadata: Codable, Sendable {
         self.exceptionName = exceptionName
         self.exceptionReason = exceptionReason
         self.deviceOrigin = deviceOrigin
+        self.kind = kind
+        self.hangDuration = hangDuration
+        self.hangResolved = hangResolved
+        self.applicationState = applicationState
+        self.mainThreadState = mainThreadState
+        self.mainThreadCPUUsage = mainThreadCPUUsage
+        self.sinceLaunch = sinceLaunch
+        self.sinceForeground = sinceForeground
     }
 }
 

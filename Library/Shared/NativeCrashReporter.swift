@@ -53,6 +53,23 @@ public enum NativeCrashReporter {
         return data
     }
 
+    public static func liveReportText(thread: thread_t) -> String? {
+        installLock.lock()
+        let reporter = reporter
+        installLock.unlock()
+        guard let reporter else {
+            return nil
+        }
+        do {
+            let data = try reporter.generateLiveReport(withThread: thread, exception: nil)
+            let crashReport = try PLCrashReport(data: data)
+            return PLCrashReportTextFormatter.stringValue(for: crashReport, with: PLCrashReportTextFormatiOS)
+        } catch {
+            logger.warning("Failed to generate live report: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
     public static func archiveLiveReportForCurrentProcess() {
         installLock.lock()
         guard let reporter else {

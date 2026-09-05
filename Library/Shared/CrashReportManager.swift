@@ -12,6 +12,7 @@ public struct CrashReport: Identifiable, Hashable, Sendable {
     public let fileURL: URL
     public var isRead: Bool
     public let origin: String?
+    public let kind: String?
 }
 
 public struct CrashReportFile: Identifiable, Hashable, Sendable {
@@ -197,13 +198,14 @@ public class CrashReportManager: ObservableObject {
                 let date = CrashReportArchive.crashDate(for: url)
                     ?? (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate)
                     ?? Date.distantPast
-                let origin = CrashReportArchive.readMetadata(for: url)?.deviceOrigin
+                let metadata = CrashReportArchive.readMetadata(for: url)
                 return CrashReport(
                     id: url.lastPathComponent,
                     date: date,
                     fileURL: url,
                     isRead: FileManager.default.fileExists(atPath: url.appendingPathComponent(ReportArchive.readMarkerFileName).path),
-                    origin: origin
+                    origin: metadata?.deviceOrigin,
+                    kind: metadata?.kind
                 )
             }
             .sorted { $0.date > $1.date }
@@ -250,7 +252,7 @@ public class CrashReportManager: ObservableObject {
     }
 
     private nonisolated static func coalesceArchivedCrashReports() {
-        let records = loadArchivedReportRecords()
+        let records = loadArchivedReportRecords().filter { $0.metadata.kind != CrashReportMetadata.hangKind }
         let goOnlyRecords = records.filter { $0.contents.goLog != nil && $0.contents.nativeLog == nil }
         let nativeOnlyRecords = records.filter { $0.contents.nativeLog != nil && $0.contents.goLog == nil }
         guard !goOnlyRecords.isEmpty, !nativeOnlyRecords.isEmpty else {
@@ -525,7 +527,15 @@ enum CrashReportMetadataBuilder {
             signalName: firstNonEmpty(metadata.signalName, parsedDetails.signalName),
             signalCode: firstNonEmpty(metadata.signalCode, parsedDetails.signalCode),
             exceptionName: firstNonEmpty(metadata.exceptionName, parsedDetails.exceptionName),
-            exceptionReason: firstNonEmpty(metadata.exceptionReason, parsedDetails.exceptionReason)
+            exceptionReason: firstNonEmpty(metadata.exceptionReason, parsedDetails.exceptionReason),
+            kind: normalizedString(metadata.kind),
+            hangDuration: normalizedString(metadata.hangDuration),
+            hangResolved: normalizedString(metadata.hangResolved),
+            applicationState: normalizedString(metadata.applicationState),
+            mainThreadState: normalizedString(metadata.mainThreadState),
+            mainThreadCPUUsage: normalizedString(metadata.mainThreadCPUUsage),
+            sinceLaunch: normalizedString(metadata.sinceLaunch),
+            sinceForeground: normalizedString(metadata.sinceForeground)
         )
     }
 
