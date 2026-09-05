@@ -39,6 +39,34 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         )
     }
 
+    private func platformMetadata() -> String {
+        var metadata: [String: Any] = [:]
+        #if !os(tvOS)
+            var networkExtension: [String: Any] = [
+                "includeAllNetworks": protocolConfiguration.includeAllNetworks,
+                "excludeLocalNetworks": protocolConfiguration.excludeLocalNetworks,
+                "enforceRoutes": protocolConfiguration.enforceRoutes,
+            ]
+            if #available(iOS 16.4, macOS 13.3, *) {
+                networkExtension["excludeAPNs"] = protocolConfiguration.excludeAPNs
+                networkExtension["excludeCellularServices"] = protocolConfiguration.excludeCellularServices
+            }
+            if #available(iOS 17.4, macOS 14.4, *) {
+                networkExtension["excludeDeviceCommunication"] = protocolConfiguration.excludeDeviceCommunication
+            }
+            metadata["networkExtension"] = networkExtension
+        #endif
+        if let overridePreferences {
+            metadata["profileOverride"] = [
+                "systemProxyEnabled": overridePreferences.systemProxyEnabled,
+                "excludeDefaultRoute": overridePreferences.excludeDefaultRoute,
+                "autoRouteUseSubRangesByDefault": overridePreferences.autoRouteUseSubRangesByDefault,
+                "excludeAPNsRoute": overridePreferences.excludeAPNsRoute,
+            ]
+        }
+        return PlatformMetadata.json(metadata)
+    }
+
     private func persistStartOptions(_ options: [String: NSObject]) throws {
         guard let startOptionsURL else {
             return
@@ -153,6 +181,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         options.crashReportSource = "NetworkExtension"
         options.appVersion = Bundle.application.versionNumber
         options.appMarketingVersion = Bundle.application.version
+        options.platformMetadata = platformMetadata()
 
         #if os(tvOS)
             if let port = effectiveOptions["commandServerPort"] as? NSNumber {
