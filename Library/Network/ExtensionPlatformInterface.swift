@@ -283,6 +283,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     private var nwMonitor: NWPathMonitor?
+    private var lastNetworkPath: String?
 
     public func startDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?) throws {
         guard let listener else {
@@ -303,7 +304,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     private func onUpdateDefaultInterface(_ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath) {
-        listener.updateNetworkPath(describeNetworkPath(path))
+        let networkPath = describeNetworkPath(path)
+        listener.updateNetworkPath(networkPath)
+        if networkPath == lastNetworkPath {
+            return
+        }
+        lastNetworkPath = networkPath
         guard path.status != .unsatisfied,
               let defaultInterface = path.availableInterfaces.first
         else {
@@ -352,6 +358,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
         nwMonitor?.cancel()
         nwMonitor = nil
+        lastNetworkPath = nil
     }
 
     public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
