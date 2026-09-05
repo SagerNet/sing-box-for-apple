@@ -5375,6 +5375,40 @@
         }
       }
     },
+    "Hang" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنگ"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зависание"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "卡顿"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "卡頓"
+          }
+        }
+      }
+    },
+    "Hang (Go)" : {
+      "shouldTranslate" : false
+    },
+    "Hang (Swift)" : {
+      "shouldTranslate" : false
+    },
     "Helper Service" : {
       "localizations" : {
         "fa" : {
