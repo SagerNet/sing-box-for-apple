@@ -26,6 +26,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     public var overridePreferences: OverridePreferences?
+    #if os(iOS)
+        private var screenStateObserver: ScreenStateObserver?
+    #endif
 
     private func applyStartOptions(_ options: [String: NSObject]) throws {
         try ApplicationLocale.apply(options["locale"] as? String)
@@ -240,6 +243,11 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             throw error
         }
         writeMessage("(packet-tunnel): Here I stand")
+        #if os(iOS)
+            if let commandServer {
+                screenStateObserver = ScreenStateObserver(commandServer: commandServer)
+            }
+        #endif
         #if os(macOS)
             if Variant.useSystemExtension {
                 xpcService.markServiceReady()
@@ -311,6 +319,10 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {
         writeMessage("(packet-tunnel) stopping, reason: \(reason)")
+        #if os(iOS)
+            screenStateObserver?.cancel()
+            screenStateObserver = nil
+        #endif
         stopService()
         if let server = commandServer {
             try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
