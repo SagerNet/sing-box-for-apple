@@ -1,5 +1,5 @@
 {
-  "originHash" : "c0c12907f3950ce6a9bd3abea1b6c51ac1d2d788773fd6cfc8517fb243b08989",
+  "originHash" : "791198c42597f0d2883a4d6dff208eebefc92881525b592e5026ca3f914af200",
   "pins" : [
     {
       "identity" : "binarycodable",
@@ -78,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/libghostty-spm",
       "state" : {
-        "revision" : "356f730bec03281fc7b83666a129b0246137ea26",
-        "version" : "1.4.0"
+        "revision" : "733ae3b29d447b6707cbfc00879027a076dfd0eb",
+        "version" : "1.5.20260906"
       }
     },
     {
@@ -177,8 +177,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lukepistrol/SwiftLintPlugin",
       "state" : {
-        "revision" : "a3877065a7d72ee40e1fa64e13b9e33e846c667c",
-        "version" : "0.63.1"
+        "revision" : "b384a67cf45d9989aed5aab23e226cbc7bc2cd54",
+        "version" : "0.65.0"
       }
     },
     {
