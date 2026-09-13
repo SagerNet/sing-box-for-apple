@@ -142,15 +142,9 @@ public struct ClashModeCard: View {
             }
         }
 
-        @ViewBuilder
         private var selectorCapsule: some View {
-            if #available(iOS 26.0, macOS 26.0, *) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.ultraThinMaterial)
-            } else {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.primary.opacity(0.1))
-            }
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.primary.opacity(0.1))
         }
     #endif
 
