@@ -14,7 +14,7 @@ struct Application: App {
 
     init() {
         Task { @MainActor in
-            ImportedFontStore.shared.bootstrap()
+            await ImportedFontStore.shared.bootstrap()
         }
     }
 
