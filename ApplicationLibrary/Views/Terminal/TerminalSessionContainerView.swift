@@ -35,6 +35,11 @@
                     }
                 }
             }
+            .overlay {
+                if sessionManager.sessions.isEmpty {
+                    ProgressView()
+                }
+            }
             .navigationTitle(sessionManager.activeDisplayTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

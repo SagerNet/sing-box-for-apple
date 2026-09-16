@@ -8,16 +8,47 @@
 
     @MainActor
     public struct TerminalWrapperView: View {
-        @StateObject private var viewModel = TerminalWrapperViewModel()
         private let presentedSession: TailscaleSSHPresentedSession
-        @Environment(\.dismiss) private var dismiss
-        @Environment(\.openURL) private var openURL
+        #if os(iOS)
+            @State private var fontsReady = false
+        #endif
 
         public init(_ presentedSession: TailscaleSSHPresentedSession) {
             self.presentedSession = presentedSession
         }
 
         public var body: some View {
+            #if os(iOS)
+                Group {
+                    if fontsReady {
+                        TerminalSessionView(presentedSession)
+                    } else {
+                        ProgressView()
+                    }
+                }
+                .task {
+                    await ImportedFontStore.shared.bootstrap()
+                    guard !Task.isCancelled else { return }
+                    fontsReady = true
+                }
+            #else
+                TerminalSessionView(presentedSession)
+            #endif
+        }
+    }
+
+    @MainActor
+    private struct TerminalSessionView: View {
+        @StateObject private var viewModel = TerminalWrapperViewModel()
+        private let presentedSession: TailscaleSSHPresentedSession
+        @Environment(\.dismiss) private var dismiss
+        @Environment(\.openURL) private var openURL
+
+        init(_ presentedSession: TailscaleSSHPresentedSession) {
+            self.presentedSession = presentedSession
+        }
+
+        var body: some View {
             TerminalSessionContentView(
                 viewModel: viewModel,
                 presentedSession: presentedSession
