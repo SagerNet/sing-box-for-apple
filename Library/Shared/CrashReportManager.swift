@@ -20,6 +20,7 @@ public struct CrashReportFile: Identifiable, Hashable, Sendable {
         case goLog
         case nativeLog
         case metadata
+        case hangReport
         case configContent
     }
 
@@ -299,6 +300,10 @@ public class CrashReportManager: ObservableObject {
             if fm.fileExists(atPath: metadataURL.path) {
                 files.append(CrashReportFile(id: .metadata, displayName: "Metadata", fileURL: metadataURL))
             }
+            let hangURL = CrashReportArchive.hangReportURL(for: report.fileURL)
+            if fm.fileExists(atPath: hangURL.path) {
+                files.append(CrashReportFile(id: .hangReport, displayName: "Hang", fileURL: hangURL))
+            }
             let nativeURL = CrashReportArchive.nativeLogURL(for: report.fileURL)
             if fm.fileExists(atPath: nativeURL.path) {
                 files.append(CrashReportFile(id: .nativeLog, displayName: "Crash Report", fileURL: nativeURL))
@@ -531,9 +536,12 @@ enum CrashReportMetadataBuilder {
             kind: normalizedString(metadata.kind),
             hangDuration: normalizedString(metadata.hangDuration),
             hangResolved: normalizedString(metadata.hangResolved),
+            hangOutcome: normalizedString(metadata.hangOutcome),
             applicationState: normalizedString(metadata.applicationState),
             mainThreadState: normalizedString(metadata.mainThreadState),
             mainThreadCPUUsage: normalizedString(metadata.mainThreadCPUUsage),
+            mainThreadCPUTime: normalizedString(metadata.mainThreadCPUTime),
+            mainThreadCPURatio: normalizedString(metadata.mainThreadCPURatio),
             sinceLaunch: normalizedString(metadata.sinceLaunch),
             sinceForeground: normalizedString(metadata.sinceForeground)
         )
