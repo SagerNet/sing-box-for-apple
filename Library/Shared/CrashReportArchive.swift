@@ -19,9 +19,12 @@ public struct CrashReportMetadata: Codable, Sendable {
     public var kind: String?
     public var hangDuration: String?
     public var hangResolved: String?
+    public var hangOutcome: String?
     public var applicationState: String?
     public var mainThreadState: String?
     public var mainThreadCPUUsage: String?
+    public var mainThreadCPUTime: String?
+    public var mainThreadCPURatio: String?
     public var sinceLaunch: String?
     public var sinceForeground: String?
 
@@ -46,9 +49,12 @@ public struct CrashReportMetadata: Codable, Sendable {
         kind: String? = nil,
         hangDuration: String? = nil,
         hangResolved: String? = nil,
+        hangOutcome: String? = nil,
         applicationState: String? = nil,
         mainThreadState: String? = nil,
         mainThreadCPUUsage: String? = nil,
+        mainThreadCPUTime: String? = nil,
+        mainThreadCPURatio: String? = nil,
         sinceLaunch: String? = nil,
         sinceForeground: String? = nil
     ) {
@@ -70,9 +76,12 @@ public struct CrashReportMetadata: Codable, Sendable {
         self.kind = kind
         self.hangDuration = hangDuration
         self.hangResolved = hangResolved
+        self.hangOutcome = hangOutcome
         self.applicationState = applicationState
         self.mainThreadState = mainThreadState
         self.mainThreadCPUUsage = mainThreadCPUUsage
+        self.mainThreadCPUTime = mainThreadCPUTime
+        self.mainThreadCPURatio = mainThreadCPURatio
         self.sinceLaunch = sinceLaunch
         self.sinceForeground = sinceForeground
     }
@@ -82,17 +91,19 @@ public struct CrashReportArtifactContents {
     public var goLog: String?
     public var nativeLog: String?
     public var configContent: String?
+    public var hangReport: HangReport?
 
-    public init(goLog: String? = nil, nativeLog: String? = nil, configContent: String? = nil) {
+    public init(goLog: String? = nil, nativeLog: String? = nil, configContent: String? = nil, hangReport: HangReport? = nil) {
         self.goLog = goLog
         self.nativeLog = nativeLog
         self.configContent = configContent
+        self.hangReport = hangReport
     }
 
     public var isEmpty: Bool {
         let goBody = goLog?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let nativeBody = nativeLog?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return goBody.isEmpty && nativeBody.isEmpty
+        return goBody.isEmpty && nativeBody.isEmpty && hangReport == nil
     }
 }
 
@@ -102,6 +113,7 @@ public enum ReportArchive {
     public static let configFileName = "configuration.json"
     public static let goLogFileName = "go.log"
     public static let nativeLogFileName = "native.log"
+    public static let hangReportFileName = "hang.json"
     public static let tvOSDeviceOrigin = "tvOS"
 
     public static let timestampFormatter: DateFormatter = {
@@ -166,6 +178,10 @@ public enum CrashReportArchive {
         artifactURL.appendingPathComponent(ReportArchive.nativeLogFileName)
     }
 
+    static func hangReportURL(for artifactURL: URL) -> URL {
+        artifactURL.appendingPathComponent(ReportArchive.hangReportFileName)
+    }
+
     static func configURL(for artifactURL: URL) -> URL {
         artifactURL.appendingPathComponent(ReportArchive.configFileName)
     }
@@ -218,8 +234,23 @@ public enum CrashReportArchive {
             try? FileManager.default.removeItem(at: configURL(for: artifactURL))
         }
 
+        if let hangReport = contents.hangReport {
+            try updateHangReport(at: artifactURL, report: hangReport)
+        }
+
+        try updateMetadata(at: artifactURL, metadata: metadata)
+    }
+
+    static func updateMetadata(at artifactURL: URL, metadata: CrashReportMetadata) throws {
         let metadataData = try metadataEncoder.encode(metadata)
         try metadataData.write(to: metadataURL(for: artifactURL), options: .atomic)
+    }
+
+    static func updateHangReport(at artifactURL: URL, report: HangReport) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(report)
+        try data.write(to: hangReportURL(for: artifactURL), options: .atomic)
     }
 
     public static func readMetadata(for artifactURL: URL) -> CrashReportMetadata? {
@@ -233,7 +264,10 @@ public enum CrashReportArchive {
         let goLog = try? String(contentsOf: goLogURL(for: artifactURL), encoding: .utf8)
         let nativeLog = try? String(contentsOf: nativeLogURL(for: artifactURL), encoding: .utf8)
         let configContent = try? String(contentsOf: configURL(for: artifactURL), encoding: .utf8)
-        return CrashReportArtifactContents(goLog: goLog, nativeLog: nativeLog, configContent: configContent)
+        let hangReport = (try? Data(contentsOf: hangReportURL(for: artifactURL))).flatMap {
+            try? JSONDecoder().decode(HangReport.self, from: $0)
+        }
+        return CrashReportArtifactContents(goLog: goLog, nativeLog: nativeLog, configContent: configContent, hangReport: hangReport)
     }
 
     static func removeArtifact(at artifactURL: URL) {
