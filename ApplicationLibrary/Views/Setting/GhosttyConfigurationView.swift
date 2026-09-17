@@ -41,8 +41,8 @@
             #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
             #endif
-                .onAppear {
-                    reload()
+                .task {
+                    await reload()
                 }
         }
 
@@ -144,8 +144,15 @@
             }
         }
 
-        private func reload() {
-            let lightStored = SharedPreferences.tailscaleSSHGhosttyLightTheme.getBlocking()
+        @MainActor
+        private func reload() async {
+            isLoading = true
+            let lightStored = await SharedPreferences.tailscaleSSHGhosttyLightTheme.get()
+            let darkStored = await SharedPreferences.tailscaleSSHGhosttyDarkTheme.get()
+            let storedFontFollowTheme = await SharedPreferences.tailscaleSSHTerminalFontFollowTheme.get()
+            let storedFontFamily = await SharedPreferences.tailscaleSSHTerminalFontFamily.get()
+            let storedFontSize = await SharedPreferences.tailscaleSSHTerminalFontSize.get()
+            guard !Task.isCancelled else { return }
             if lightStored.isEmpty {
                 lightCustomEnabled = true
                 lightPickerTheme = Self.lightDefaultTheme
@@ -153,7 +160,6 @@
                 lightCustomEnabled = false
                 lightPickerTheme = lightStored
             }
-            let darkStored = SharedPreferences.tailscaleSSHGhosttyDarkTheme.getBlocking()
             if darkStored.isEmpty {
                 darkCustomEnabled = true
                 darkPickerTheme = Self.darkDefaultTheme
@@ -161,9 +167,9 @@
                 darkCustomEnabled = false
                 darkPickerTheme = darkStored
             }
-            fontFollowTheme = SharedPreferences.tailscaleSSHTerminalFontFollowTheme.getBlocking()
-            fontFamily = SharedPreferences.tailscaleSSHTerminalFontFamily.getBlocking()
-            fontSize = SharedPreferences.tailscaleSSHTerminalFontSize.getBlocking()
+            fontFollowTheme = storedFontFollowTheme
+            fontFamily = storedFontFamily
+            fontSize = storedFontSize
             isLoading = false
         }
     }

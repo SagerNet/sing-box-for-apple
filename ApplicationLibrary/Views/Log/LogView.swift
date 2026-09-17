@@ -209,14 +209,13 @@ private struct LogViewContent: View {
                         title: NSLocalizedString("To File", comment: ""),
                         image: UIImage(systemName: "arrow.down.doc")
                     ) { _ in
-                        viewModel.dataModel.prepareLogFile()
-                        viewModel.dataModel.showFileExporter = true
+                        Task { await viewModel.dataModel.prepareLogFile(export: true) }
                     },
                     UIAction(
                         title: NSLocalizedString("Share", comment: ""),
                         image: UIImage(systemName: "square.and.arrow.up")
                     ) { _ in
-                        viewModel.dataModel.prepareLogFile()
+                        Task { await viewModel.dataModel.prepareLogFile() }
                     },
                 ]
 
@@ -288,13 +287,12 @@ private struct LogViewContent: View {
                         Label("To Clipboard", systemImage: "doc.on.clipboard")
                     }
                     Button {
-                        viewModel.dataModel.prepareLogFile()
-                        viewModel.dataModel.showFileExporter = true
+                        Task { await viewModel.dataModel.prepareLogFile(export: true) }
                     } label: {
                         Label("To File", systemImage: "arrow.down.doc")
                     }
                     Button {
-                        viewModel.dataModel.prepareLogFile()
+                        Task { await viewModel.dataModel.prepareLogFile() }
                     } label: {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
@@ -515,8 +513,8 @@ private struct LogContentInnerView: View {
                     contentType: .plainText,
                     defaultFilename: "logs.txt"
                 ) { result in
-                    dataModel.cleanupLogFile()
-                    dataModel.logFileURL = nil
+                    let url = dataModel.logFileURL
+                    Task { await dataModel.cleanupLogFile(url) }
                     if case let .failure(error) = result {
                         alert = AlertState(action: "export log file", error: error)
                     }
@@ -537,8 +535,8 @@ private struct LogContentInnerView: View {
                 }
                 .onChange(of: showShareSheet) { newValue in
                     if !newValue {
-                        dataModel.cleanupLogFile()
-                        dataModel.logFileURL = nil
+                        let url = dataModel.logFileURL
+                        Task { await dataModel.cleanupLogFile(url) }
                     }
                 }
         }

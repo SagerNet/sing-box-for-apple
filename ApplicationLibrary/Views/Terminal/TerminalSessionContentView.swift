@@ -20,11 +20,13 @@
                     Color(nsColor: .windowBackgroundColor)
                         .ignoresSafeArea()
                 #endif
-                TailsshTerminalSurfaceView(
-                    state: viewModel.terminalState,
-                    extras: viewModel.extras,
-                    isActive: isActive
-                )
+                if let terminalState = viewModel.terminalState {
+                    TailsshTerminalSurfaceView(
+                        state: terminalState,
+                        extras: viewModel.extras,
+                        isActive: isActive
+                    )
+                }
                 if case .connecting = viewModel.phase {
                     VStack(spacing: 16) {
                         ProgressView()

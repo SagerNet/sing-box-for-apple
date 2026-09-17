@@ -53,10 +53,12 @@
                             presentTerminalSelectionSheet(request: request)
                         }
                     #endif
-                    viewModel.start(presentedSession)
+                }
+                .task {
+                    await viewModel.start(presentedSession)
                 }
                 .onDisappear {
-                    viewModel.disconnect()
+                    Task { await viewModel.disconnect() }
                 }
         }
 

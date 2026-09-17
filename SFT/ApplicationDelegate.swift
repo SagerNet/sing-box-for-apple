@@ -1,51 +1,65 @@
 import ApplicationLibrary
+import Combine
 import Foundation
 import Libbox
 import Library
 import UIKit
 
-class ApplicationDelegate: NSObject, UIApplicationDelegate {
+@MainActor
+class ApplicationDelegate: NSObject, UIApplicationDelegate, ObservableObject {
+    @Published private(set) var isReady = false
+
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         LibboxPrepareCrashSignalHandlers()
         NativeCrashReporter.installForCurrentProcess()
         LibboxReinstallCrashSignalHandlers()
         NSLog("Here I stand")
+        setup()
+        Task {
+            await setupService()
+            isReady = true
+        }
+        return true
+    }
+
+    private func setupService() async {
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
-        var port = SharedPreferences.commandServerPort.getBlocking()
-        var secret = SharedPreferences.commandServerSecret.getBlocking()
+        var port = await SharedPreferences.commandServerPort.get()
+        var secret = await SharedPreferences.commandServerSecret.get()
         if port == 0 || secret.isEmpty {
-            var error: NSError?
-            LibboxAvailablePort(7990, &port, &error)
-            if let error {
-                port = 7990
-                NSLog("Failed to get available port for control server: \(error.localizedDescription)")
+            (port, secret) = await BlockingIO.run {
+                var port: Int32 = 0
+                var error: NSError?
+                LibboxAvailablePort(7990, &port, &error)
+                if let error {
+                    port = 7990
+                    NSLog("Failed to get available port for control server: \(error.localizedDescription)")
+                }
+                return (port, LibboxRandomHex(16)!.value)
             }
-            secret = LibboxRandomHex(16)!.value
-            Task {
-                await SharedPreferences.commandServerPort.set(port)
-                await SharedPreferences.commandServerSecret.set(secret)
-            }
+            await SharedPreferences.commandServerPort.set(port)
+            await SharedPreferences.commandServerSecret.set(secret)
         }
         options.commandServerListenPort = port
         options.commandServerSecret = secret
         options.crashReportSource = "Application"
         options.appVersion = Bundle.application.versionNumber
         options.appMarketingVersion = Bundle.application.version
-        var error: NSError?
-        LibboxSetup(options, &error)
-        if let error {
-            NSLog("setup service error: \(error.localizedDescription)")
+        await BlockingIO.run {
+            var error: NSError?
+            LibboxSetup(options, &error)
+            if let error {
+                NSLog("setup service error: \(error.localizedDescription)")
+            }
+            do {
+                try ApplicationLocale.apply()
+            } catch {
+                NSLog("failed to set locale: \(error)")
+            }
         }
-        do {
-            try ApplicationLocale.apply()
-        } catch {
-            NSLog("failed to set locale: \(error)")
-        }
-        setup()
-        return true
     }
 
     private func setup() {

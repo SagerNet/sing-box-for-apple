@@ -38,7 +38,7 @@
         @Published public private(set) var phase: Phase = .connecting
         @Published public private(set) var authBanner: String?
 
-        public let terminalState: TerminalViewState
+        @Published public private(set) var terminalState: TerminalViewState?
         public let extras = TailsshTerminalExtras()
         public var onWindowClose: (() -> Void)?
         private let terminalSession: InMemoryTerminalSession
@@ -46,6 +46,11 @@
         private var commandClient: LibboxCommandClient?
         private var libboxSession: LibboxTailscaleSSHSession?
         private var hasStarted = false
+        private var isDisconnected = false
+        private var inputContinuation: AsyncStream<Data>.Continuation?
+        private var resizeContinuation: AsyncStream<TerminalResize>.Continuation?
+        private var inputTask: Task<Void, Never>?
+        private var resizeTask: Task<Void, Never>?
         private let startedAt = Date()
         private var notificationAuthorizationRequested = false
         private var extrasCancellable: AnyCancellable?
@@ -64,29 +69,9 @@
                     }
                 }
             )
-            let theme = TerminalTheme(
-                light: Self.resolveConfiguration(
-                    themeName: SharedPreferences.tailscaleSSHGhosttyLightTheme.getBlocking(),
-                    customText: SharedPreferences.tailscaleSSHGhosttyLightConfig.getBlocking(),
-                    fallback: .alabaster
-                ),
-                dark: Self.resolveConfiguration(
-                    themeName: SharedPreferences.tailscaleSSHGhosttyDarkTheme.getBlocking(),
-                    customText: SharedPreferences.tailscaleSSHGhosttyDarkConfig.getBlocking(),
-                    fallback: .afterglow
-                )
-            )
-            let state = TerminalViewState(
-                configSource: .none,
-                theme: theme,
-                terminalConfiguration: Self.resolveFontOverlay()
-            )
-            state.configuration = TerminalSurfaceOptions(backend: .inMemory(session))
             self.relay = relay
             terminalSession = session
-            terminalState = state
             relay.viewModel = self
-            extras.state = state
             extras.onDesktopNotification = { [weak self] title, body in
                 self?.postSystemNotification(title: title, body: body)
             }
@@ -120,9 +105,32 @@
             }
         }
 
-        public func start(_ presentedSession: TailscaleSSHPresentedSession) {
-            guard !hasStarted else { return }
+        public func start(_ presentedSession: TailscaleSSHPresentedSession) async {
+            guard !hasStarted, !isDisconnected, !Task.isCancelled else { return }
             hasStarted = true
+
+            let lightTheme = await SharedPreferences.tailscaleSSHGhosttyLightTheme.get()
+            let lightConfig = await SharedPreferences.tailscaleSSHGhosttyLightConfig.get()
+            let darkTheme = await SharedPreferences.tailscaleSSHGhosttyDarkTheme.get()
+            let darkConfig = await SharedPreferences.tailscaleSSHGhosttyDarkConfig.get()
+            let fontOverlay = await Self.resolveFontOverlay()
+            guard !isDisconnected, !Task.isCancelled else { return }
+
+            let inputs = AsyncStream<Data> { inputContinuation = $0 }
+            let resizes = AsyncStream<TerminalResize>(bufferingPolicy: .bufferingNewest(1)) {
+                resizeContinuation = $0
+            }
+            let state = TerminalViewState(
+                configSource: .none,
+                theme: TerminalTheme(
+                    light: Self.resolveConfiguration(themeName: lightTheme, customText: lightConfig, fallback: .alabaster),
+                    dark: Self.resolveConfiguration(themeName: darkTheme, customText: darkConfig, fallback: .afterglow)
+                ),
+                terminalConfiguration: fontOverlay
+            )
+            state.configuration = TerminalSurfaceOptions(backend: .inMemory(terminalSession))
+            extras.state = state
+            terminalState = state
 
             let options = LibboxTailscaleSSHOptions()
             options.endpointTag = presentedSession.endpointTag
@@ -139,10 +147,61 @@
             do {
                 let client = try CommandTarget.ownedStandaloneClient()
                 commandClient = client
-                libboxSession = try client.startTailscaleSSHSession(options, handler: handler)
+                let session = try await withTaskCancellationHandler {
+                    try await BlockingIO.run {
+                        try client.startTailscaleSSHSession(options, handler: handler)
+                    }
+                } onCancel: {
+                    Task {
+                        await BlockingIO.run { try? client.disconnect() }
+                    }
+                }
+                libboxSession = session
+                guard !isDisconnected, !Task.isCancelled else {
+                    await disconnect()
+                    return
+                }
+                if case .finished = phase {
+                    await disconnect()
+                    return
+                }
+                inputTask = Task {
+                    for await data in inputs {
+                        guard !Task.isCancelled else { return }
+                        do {
+                            try await BlockingIO.run {
+                                let sanitized = Self.sanitizeTerminalInput(data)
+                                if !sanitized.isEmpty {
+                                    try session.sendInput(sanitized)
+                                }
+                            }
+                        } catch {
+                            return
+                        }
+                    }
+                }
+                resizeTask = Task {
+                    for await resize in resizes {
+                        guard !Task.isCancelled else { return }
+                        do {
+                            try await BlockingIO.run {
+                                try session.sendResize(
+                                    resize.columns,
+                                    rows: resize.rows,
+                                    widthPixels: resize.widthPixels,
+                                    heightPixels: resize.heightPixels
+                                )
+                            }
+                        } catch {
+                            return
+                        }
+                    }
+                }
             } catch {
-                phase = .finished(reason: .error(error.localizedDescription))
-                cleanupCommandClient()
+                if !isDisconnected, !Task.isCancelled {
+                    phase = .finished(reason: .error(error.localizedDescription))
+                }
+                await disconnect()
             }
         }
 
@@ -157,14 +216,15 @@
             return GhosttyThemeCatalog.theme(named: themeName)?.toTerminalConfiguration() ?? fallback
         }
 
-        private static func resolveFontOverlay() -> TerminalConfiguration {
-            let size = SharedPreferences.tailscaleSSHTerminalFontSize.getBlocking()
-            guard !SharedPreferences.tailscaleSSHTerminalFontFollowTheme.getBlocking() else {
+        private static func resolveFontOverlay() async -> TerminalConfiguration {
+            let size = await SharedPreferences.tailscaleSSHTerminalFontSize.get()
+            let followTheme = await SharedPreferences.tailscaleSSHTerminalFontFollowTheme.get()
+            guard !followTheme else {
                 return TerminalConfiguration { builder in
                     builder.withFontSize(Float(size))
                 }
             }
-            let family = SharedPreferences.tailscaleSSHTerminalFontFamily.getBlocking()
+            let family = await SharedPreferences.tailscaleSSHTerminalFontFamily.get()
             return TerminalConfiguration { builder in
                 if !family.isEmpty {
                     builder.withFontFamily(family)
@@ -189,26 +249,31 @@
             }
         }
 
-        public func disconnect() {
-            guard libboxSession != nil || commandClient != nil else { return }
-            try? libboxSession?.close()
+        public func disconnect() async {
+            isDisconnected = true
+            inputContinuation?.finish()
+            resizeContinuation?.finish()
+            inputContinuation = nil
+            resizeContinuation = nil
+            inputTask?.cancel()
+            resizeTask?.cancel()
+            inputTask = nil
+            resizeTask = nil
+            let session = libboxSession
+            let client = commandClient
             libboxSession = nil
-            cleanupCommandClient()
-        }
-
-        private func cleanupCommandClient() {
-            try? commandClient?.disconnect()
             commandClient = nil
+            await BlockingIO.run {
+                try? client?.disconnect()
+                try? session?.close()
+            }
         }
 
         fileprivate func handleTerminalWrite(_ data: Data) {
-            guard let session = libboxSession else { return }
-            let sanitized = Self.sanitizeTerminalInput(data)
-            guard !sanitized.isEmpty else { return }
-            try? session.sendInput(sanitized)
+            inputContinuation?.yield(data)
         }
 
-        private static func sanitizeTerminalInput(_ data: Data) -> Data {
+        private nonisolated static func sanitizeTerminalInput(_ data: Data) -> Data {
             let startMarker: [UInt8] = [0x1B, 0x5B, 0x32, 0x30, 0x30, 0x7E]
             let endMarker: [UInt8] = [0x1B, 0x5B, 0x32, 0x30, 0x31, 0x7E]
             let input = Array(data)
@@ -232,16 +297,23 @@
         }
 
         fileprivate func handleTerminalResize(_ viewport: InMemoryTerminalViewport) {
-            guard let session = libboxSession else { return }
-            try? session.sendResize(
-                Int32(viewport.columns),
+            resizeContinuation?.yield(TerminalResize(
+                columns: Int32(viewport.columns),
                 rows: Int32(viewport.rows),
                 widthPixels: Int32(viewport.widthPixels),
                 heightPixels: Int32(viewport.heightPixels)
-            )
+            ))
+        }
+
+        private struct TerminalResize: Sendable {
+            let columns: Int32
+            let rows: Int32
+            let widthPixels: Int32
+            let heightPixels: Int32
         }
 
         fileprivate func didReceiveExit(exitCode: Int32, signal: String, message: String) {
+            guard !isDisconnected else { return }
             let runtimeMs = UInt64(max(0, Date().timeIntervalSince(startedAt)) * 1000)
             terminalSession.finish(exitCode: UInt32(max(0, exitCode)), runtimeMilliseconds: runtimeMs)
             let reason: TailscaleSSHEndReason
@@ -256,10 +328,11 @@
             if reason == .cleanExit {
                 onWindowClose?()
             }
-            cleanupCommandClient()
+            Task { await disconnect() }
         }
 
         fileprivate func appendAuthBanner(_ message: String) {
+            guard !isDisconnected else { return }
             let banner = message.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !banner.isEmpty else { return }
             guard let existingBanner = authBanner, !existingBanner.isEmpty else {
@@ -271,11 +344,12 @@
         }
 
         fileprivate func didReceiveError(_ message: String) {
+            guard !isDisconnected else { return }
             if case .finished = phase {
                 return
             }
             phase = .finished(reason: .error(message))
-            cleanupCommandClient()
+            Task { await disconnect() }
         }
 
         private final class SessionHandler: NSObject, LibboxTailscaleSSHHandlerProtocol, @unchecked Sendable {
@@ -287,7 +361,7 @@
 
             func onReady() {
                 DispatchQueue.main.async { [self] in
-                    guard let viewModel else { return }
+                    guard let viewModel, !viewModel.isDisconnected else { return }
                     if case .connecting = viewModel.phase {
                         viewModel.phase = .running
                     }
@@ -326,6 +400,7 @@
         }
 
         fileprivate func handleOutput(_ data: Data) {
+            guard !isDisconnected else { return }
             terminalSession.receive(data)
         }
     }

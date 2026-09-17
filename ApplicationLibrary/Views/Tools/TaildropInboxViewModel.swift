@@ -39,11 +39,12 @@ import SwiftUI
         @Published public private(set) var inboxes: [String: Inbox] = [:]
 
         private var subscriptions: [String: LibboxTaildropInboxSubscription] = [:]
+        private var subscriptionIDs: [String: UUID] = [:]
         private var retainCounts: [String: Int] = [:]
 
         override public init() {
             super.init()
-            try? FileManager.default.removeItem(at: Self.temporaryRoot)
+            _ = Self.temporaryCleanup
         }
 
         public func inbox(endpointTag: String) -> Inbox {
@@ -53,19 +54,21 @@ import SwiftUI
         public func open(endpointTag: String) {
             retainCounts[endpointTag, default: 0] += 1
             guard retainCounts[endpointTag] == 1 else { return }
-            let handler = InboxHandler(self, endpointTag: endpointTag)
+            let subscriptionID = UUID()
+            subscriptionIDs[endpointTag] = subscriptionID
+            let handler = InboxHandler(self, endpointTag: endpointTag, subscriptionID: subscriptionID)
             Task { [weak self] in
                 do {
                     let subscription = try await Task.detached {
                         try CommandTarget.standaloneClient().subscribeTaildropInbox(endpointTag, handler: handler)
                     }.value
-                    guard let self, retainCounts[endpointTag] != nil else {
-                        try? subscription.close()
+                    guard let self, subscriptionIDs[endpointTag] == subscriptionID else {
+                        await BlockingIO.run { try? subscription.close() }
                         return
                     }
                     subscriptions[endpointTag] = subscription
                 } catch {
-                    guard let self, retainCounts[endpointTag] != nil else { return }
+                    guard let self, subscriptionIDs[endpointTag] == subscriptionID else { return }
                     alert = AlertState(action: "subscribe Taildrop inbox", error: error)
                 }
             }
@@ -83,7 +86,12 @@ import SwiftUI
         }
 
         private func drop(endpointTag: String) {
-            try? subscriptions.removeValue(forKey: endpointTag)?.close()
+            subscriptionIDs.removeValue(forKey: endpointTag)
+            if let subscription = subscriptions.removeValue(forKey: endpointTag) {
+                Task {
+                    await BlockingIO.run { try? subscription.close() }
+                }
+            }
             inboxes.removeValue(forKey: endpointTag)
         }
 
@@ -133,12 +141,21 @@ import SwiftUI
             FileManager.default.temporaryDirectory.appendingPathComponent("taildrop", isDirectory: true)
         }
 
-        public static func removeTemporaryFile(_ url: URL) {
+        private static let temporaryCleanup = Task<Void, Never> {
+            let directory = temporaryRoot
+            await BlockingIO.run {
+                try? FileManager.default.removeItem(at: directory)
+            }
+        }
+
+        public static func removeTemporaryFile(_ url: URL) async {
             let directory = url.deletingLastPathComponent()
             guard directory.deletingLastPathComponent().standardizedFileURL == temporaryRoot.standardizedFileURL else {
                 return
             }
-            try? FileManager.default.removeItem(at: directory)
+            await BlockingIO.run {
+                try? FileManager.default.removeItem(at: directory)
+            }
         }
 
         public static func downloadToTemporaryDirectory(
@@ -146,29 +163,56 @@ import SwiftUI
             name: String,
             onProgress: @escaping @Sendable (Double) -> Void
         ) async throws -> URL {
+            await temporaryCleanup.value
+            try Task.checkCancellation()
             let directory = temporaryRoot.appendingPathComponent(UUID().uuidString, isDirectory: true)
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             let destination = directory.appendingPathComponent((name as NSString).lastPathComponent)
             let destinationPath = destination.path
             let completion = DownloadCompletion()
             let handler = DownloadHandler(onProgress: onProgress, completion: completion)
-            let session = try await Task.detached {
-                try CommandTarget.standaloneClient().downloadTaildropFile(
-                    endpointTag,
-                    name: name,
-                    destinationPath: destinationPath,
-                    handler: handler
-                )
-            }.value
+            let client = try CommandTarget.ownedStandaloneClient()
             do {
-                try await completion.wait()
+                return try await withTaskCancellationHandler {
+                    try Task.checkCancellation()
+                    try await BlockingIO.run {
+                        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                    }
+                    try Task.checkCancellation()
+                    let session = try await BlockingIO.run {
+                        try client.downloadTaildropFile(
+                            endpointTag,
+                            name: name,
+                            destinationPath: destinationPath,
+                            handler: handler
+                        )
+                    }
+                    do {
+                        try Task.checkCancellation()
+                        try await completion.wait()
+                        try Task.checkCancellation()
+                    } catch {
+                        await BlockingIO.run { try? session.close() }
+                        throw error
+                    }
+                    await BlockingIO.run {
+                        try? session.close()
+                        try? client.disconnect()
+                    }
+                    try Task.checkCancellation()
+                    return destination
+                } onCancel: {
+                    completion.resolve(.failure(CancellationError()))
+                    Task {
+                        await BlockingIO.run { try? client.disconnect() }
+                    }
+                }
             } catch {
-                try? session.close()
-                try? FileManager.default.removeItem(at: directory)
+                await BlockingIO.run {
+                    try? client.disconnect()
+                    try? FileManager.default.removeItem(at: directory)
+                }
                 throw error
             }
-            try? session.close()
-            return destination
         }
 
         private final class DownloadCompletion: @unchecked Sendable {
@@ -231,10 +275,12 @@ import SwiftUI
         private final class InboxHandler: NSObject, LibboxTaildropInboxHandlerProtocol, @unchecked Sendable {
             private weak var viewModel: TaildropInboxViewModel?
             private let endpointTag: String
+            private let subscriptionID: UUID
 
-            init(_ viewModel: TaildropInboxViewModel?, endpointTag: String) {
+            init(_ viewModel: TaildropInboxViewModel?, endpointTag: String, subscriptionID: UUID) {
                 self.viewModel = viewModel
                 self.endpointTag = endpointTag
+                self.subscriptionID = subscriptionID
             }
 
             func onInboxUpdate(_ update: LibboxTaildropInbox?) {
@@ -267,7 +313,7 @@ import SwiftUI
                     }
                 }
                 DispatchQueue.main.async { [self] in
-                    guard let viewModel, viewModel.retainCounts[endpointTag] != nil else { return }
+                    guard let viewModel, viewModel.subscriptionIDs[endpointTag] == subscriptionID else { return }
                     viewModel.inboxes[endpointTag] = inbox
                     viewModel.markRead(endpointTag: endpointTag)
                 }
@@ -275,7 +321,7 @@ import SwiftUI
 
             func onError(_ message: String?) {
                 DispatchQueue.main.async { [self] in
-                    guard let viewModel, viewModel.retainCounts[endpointTag] != nil else { return }
+                    guard let viewModel, viewModel.subscriptionIDs[endpointTag] == subscriptionID else { return }
                     viewModel.retainCounts.removeValue(forKey: endpointTag)
                     viewModel.drop(endpointTag: endpointTag)
                     if let message {

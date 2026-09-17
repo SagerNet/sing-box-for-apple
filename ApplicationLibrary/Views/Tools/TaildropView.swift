@@ -140,7 +140,7 @@ import UniformTypeIdentifiers
                 let exported = exportedFile
                 exportedFile = nil
                 if let exported {
-                    TaildropInboxViewModel.removeTemporaryFile(exported)
+                    Task { await TaildropInboxViewModel.removeTemporaryFile(exported) }
                 }
                 if case let .failure(error) = result {
                     alert = AlertState(action: "save received file", error: error)
@@ -151,7 +151,7 @@ import UniformTypeIdentifiers
                 let previewed = previewedFile
                 previewedFile = nil
                 if let previewed {
-                    TaildropInboxViewModel.removeTemporaryFile(previewed)
+                    Task { await TaildropInboxViewModel.removeTemporaryFile(previewed) }
                 }
             }) { item in
                 TaildropQuickLookView(url: item.url)

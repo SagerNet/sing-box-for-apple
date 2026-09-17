@@ -40,18 +40,20 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
         let launchedAsLogInItem =
             event?.eventID == kAEOpenApplication &&
             event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
-        let shouldShowWindow = Variant.screenshotMode ||
-            Variant.inDebug ||
-            !launchedAsLogInItem ||
-            !SharedPreferences.showMenuBarExtra.getBlocking() ||
-            !SharedPreferences.menuBarExtraInBackground.getBlocking()
-        if shouldShowWindow {
-            NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
-        } else {
-            NSApp.windows.first?.close()
-        }
         Task {
+            let showMenuBarExtra = await SharedPreferences.showMenuBarExtra.get()
+            let menuBarExtraInBackground = await SharedPreferences.menuBarExtraInBackground.get()
+            let shouldShowWindow = Variant.screenshotMode ||
+                Variant.inDebug ||
+                !launchedAsLogInItem ||
+                !showMenuBarExtra ||
+                !menuBarExtraInBackground
+            if shouldShowWindow {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
+            } else {
+                NSApp.windows.first?.close()
+            }
             await applicationState.initialize()
             do {
                 try await ProfileUpdateTask.configure()
@@ -83,8 +85,17 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
         }
     }
 
-    public func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
-        Variant.inDebug || !SharedPreferences.menuBarExtraInBackground.getBlocking()
+    public func applicationShouldTerminateAfterLastWindowClosed(_ application: NSApplication) -> Bool {
+        if Variant.inDebug {
+            return true
+        }
+        Task {
+            let keepRunning = await SharedPreferences.menuBarExtraInBackground.get()
+            if !keepRunning, !application.windows.contains(where: { $0.isVisible && $0.canBecomeMain }) {
+                application.terminate(nil)
+            }
+        }
+        return false
     }
 
     public func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

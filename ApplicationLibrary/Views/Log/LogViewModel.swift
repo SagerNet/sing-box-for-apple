@@ -26,6 +26,7 @@ public class LogDataModel: ObservableObject {
     private var lastEffectiveLevel: Int?
     private var lastSearchText = ""
     private var cancellables = Set<AnyCancellable>()
+    private var isPreparingLogFile = false
 
     private static let maxVisibleLogs = 1000
     private static let maxFilteredLogs = 3000
@@ -161,22 +162,37 @@ public class LogDataModel: ObservableObject {
             #endif
         }
 
-        public func cleanupLogFile() {
-            guard let url = logFileURL else { return }
-            try? FileManager.default.removeItem(at: url)
+        public func cleanupLogFile(_ url: URL?) async {
+            guard let url else { return }
+            if logFileURL == url {
+                logFileURL = nil
+            }
+            await BlockingIO.run {
+                try? FileManager.default.removeItem(at: url)
+            }
         }
 
-        public func prepareLogFile() {
-            cleanupLogFile()
+        public func prepareLogFile(export: Bool = false) async {
+            guard !isPreparingLogFile else { return }
+            isPreparingLogFile = true
+            defer { isPreparingLogFile = false }
+            let text = getLogsText()
+            await cleanupLogFile(logFileURL)
+            let dateString = Self.dateFormatter.string(from: Date())
+            let fileURL = FilePath.cacheDirectory.appendingPathComponent("logs-\(dateString)-\(UUID().uuidString).txt")
             do {
-                let text = getLogsText()
-                let dateString = Self.dateFormatter.string(from: Date())
-                let tempDirectory = FilePath.cacheDirectory
-                let fileURL = tempDirectory.appendingPathComponent("logs-\(dateString).txt")
-                try text.write(to: fileURL, atomically: true, encoding: .utf8)
+                try Task.checkCancellation()
+                try await BlockingIO.run {
+                    try text.write(to: fileURL, atomically: true, encoding: .utf8)
+                }
+                try Task.checkCancellation()
+                showFileExporter = export
                 logFileURL = fileURL
             } catch {
-                viewModel?.alert = AlertState(action: "prepare log file", error: error)
+                await cleanupLogFile(fileURL)
+                if !Task.isCancelled {
+                    viewModel?.alert = AlertState(action: "prepare log file", error: error)
+                }
             }
         }
     #endif

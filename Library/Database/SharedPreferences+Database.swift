@@ -24,12 +24,6 @@ extension SharedPreferences {
             }
         }
 
-        public func getBlocking() -> T {
-            runBlocking { [self] in
-                await get()
-            }
-        }
-
         public nonisolated func set(_ newValue: T?) async {
             do {
                 try await SharedPreferences.write(name, newValue)

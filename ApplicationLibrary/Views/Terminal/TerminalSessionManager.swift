@@ -66,13 +66,13 @@
                     }
                 }
 
-            vm.start(presented)
+            Task { await vm.start(presented) }
         }
 
         func closeSession(id: UUID) {
             guard let index = sessions.firstIndex(where: { $0.id == id }) else { return }
             let session = sessions[index]
-            session.viewModel.disconnect()
+            Task { await session.viewModel.disconnect() }
             phaseCancellables.removeValue(forKey: id)
             viewModelCancellables.removeValue(forKey: id)
             sessions.remove(at: index)
@@ -88,7 +88,7 @@
 
         func disconnectAll() {
             for session in sessions {
-                session.viewModel.disconnect()
+                Task { await session.viewModel.disconnect() }
             }
             phaseCancellables.removeAll()
             viewModelCancellables.removeAll()

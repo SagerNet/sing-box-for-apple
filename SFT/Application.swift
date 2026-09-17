@@ -16,11 +16,15 @@ struct Application: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView()
-                .tailscaleStatusSubscription(tailscaleViewModel, environments: environments, peerStore: peerStore)
-                .environmentObject(environments)
-                .environmentObject(peerStore)
-                .environmentObject(tailscaleViewModel)
+            if appDelegate.isReady {
+                MainView()
+                    .tailscaleStatusSubscription(tailscaleViewModel, environments: environments, peerStore: peerStore)
+                    .environmentObject(environments)
+                    .environmentObject(peerStore)
+                    .environmentObject(tailscaleViewModel)
+            } else {
+                ProgressView()
+            }
         }
     }
 }
