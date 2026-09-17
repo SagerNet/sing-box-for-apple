@@ -17,6 +17,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private var speedMode: MenuBarExtraSpeedMode = .enabled
     private var statusItemTitle: String?
     private var statusItemIsHighlighted = false
+    private var statusItemIsConnected = false
     private var statusItemTextModeSize: NSSize?
 
     private enum StatusItemLayout {
@@ -76,6 +77,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             image.isTemplate = true
             menuIcon = image
         }
+        statusItemIsConnected = environments.extensionProfile?.status.isConnectedStrict == true
         button.image = renderStatusItemIconOnlyImage(highlighted: statusItemIsHighlighted)
         statusItem!.length = statusItemIconOnlyImageSize().width
         isIconOnlyMode = true
@@ -151,6 +153,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
             .sink { [weak self] profile in
                 self?.headerView?.updateProfile(profile)
                 self?.observeProfileStatus(profile)
+                self?.updateStatusItemConnected()
                 self?.updateCommandClient()
                 self?.updateGroupsVisibility()
             }
@@ -188,9 +191,17 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         statusCancellable = profile.$status
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
+                self?.updateStatusItemConnected()
                 self?.updateCommandClient()
                 self?.updateGroupsVisibility()
             }
+    }
+
+    private func updateStatusItemConnected() {
+        let connected = environments.extensionProfile?.status.isConnectedStrict == true
+        guard statusItemIsConnected != connected else { return }
+        statusItemIsConnected = connected
+        redrawStatusItem()
     }
 
     private func updateGroupsVisibility() {
@@ -557,15 +568,19 @@ public class StatusBarController: NSObject, NSMenuDelegate {
     private func setStatusItemHighlighted(_ highlighted: Bool) {
         guard statusItemIsHighlighted != highlighted else { return }
         statusItemIsHighlighted = highlighted
+        redrawStatusItem()
+    }
+
+    private func redrawStatusItem() {
         guard let button = statusItem?.button else { return }
         if isIconOnlyMode {
-            button.image = renderStatusItemIconOnlyImage(highlighted: highlighted)
+            button.image = renderStatusItemIconOnlyImage(highlighted: statusItemIsHighlighted)
             return
         }
         guard let title = statusItemTitle else { return }
         button.image = renderStatusItemImage(
             title: title,
-            highlighted: highlighted,
+            highlighted: statusItemIsHighlighted,
             unified: speedMode == .unified
         )
     }
@@ -576,6 +591,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         let iconSize = statusItemIconSize(forHeight: size.height)
         guard iconSize.width > 0, iconSize.height > 0 else { return nil }
         let iconColor = highlighted ? NSColor.unemphasizedSelectedTextColor : NSColor.labelColor
+        let connected = statusItemIsConnected
 
         let image = NSImage(size: size, flipped: false) { _ in
             let iconRect = NSRect(
@@ -584,18 +600,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
                 width: iconSize.width,
                 height: iconSize.height
             )
-            NSGraphicsContext.saveGraphicsState()
-            iconColor.setFill()
-            iconRect.fill()
-            icon.draw(
-                in: iconRect,
-                from: .zero,
-                operation: .destinationIn,
-                fraction: 1,
-                respectFlipped: true,
-                hints: nil
-            )
-            NSGraphicsContext.restoreGraphicsState()
+            drawStatusItemIcon(icon, in: iconRect, color: iconColor, connected: connected)
             return true
         }
         image.isTemplate = false
@@ -607,6 +612,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
         let textColor = highlighted ? NSColor.unemphasizedSelectedTextColor : NSColor.labelColor
         let iconColor = textColor
         let icon = menuIcon
+        let connected = statusItemIsConnected
         let iconSize = statusItemIconSize(forHeight: size.height)
         let lineHeight = unified ? StatusItemLayout.unifiedLineHeight : StatusItemLayout.lineHeight
         let fontSize = unified ? StatusItemLayout.unifiedFontSize : StatusItemLayout.fontSize
@@ -646,18 +652,7 @@ public class StatusBarController: NSObject, NSMenuDelegate {
                     width: iconSize.width,
                     height: iconSize.height
                 )
-                NSGraphicsContext.saveGraphicsState()
-                iconColor.setFill()
-                iconRect.fill()
-                icon.draw(
-                    in: iconRect,
-                    from: .zero,
-                    operation: .destinationIn,
-                    fraction: 1,
-                    respectFlipped: true,
-                    hints: nil
-                )
-                NSGraphicsContext.restoreGraphicsState()
+                drawStatusItemIcon(icon, in: iconRect, color: iconColor, connected: connected)
             }
 
             if unified, let context = NSGraphicsContext.current?.cgContext {
@@ -1084,4 +1079,38 @@ extension NSColor {
             }
         }
     }
+}
+
+private func drawStatusItemIcon(_ icon: NSImage, in iconRect: NSRect, color: NSColor, connected: Bool) {
+    NSGraphicsContext.saveGraphicsState()
+    color.setFill()
+    iconRect.fill()
+    icon.draw(
+        in: iconRect,
+        from: .zero,
+        operation: .destinationIn,
+        fraction: 1,
+        respectFlipped: true,
+        hints: nil
+    )
+    if !connected, let context = NSGraphicsContext.current?.cgContext {
+        let lineWidth = max(1.5, iconRect.height * 0.09)
+        let slash = NSBezierPath()
+        slash.lineCapStyle = .round
+        slash.lineWidth = lineWidth
+        slash.move(to: NSPoint(x: iconRect.minX, y: iconRect.maxY))
+        slash.line(to: NSPoint(x: iconRect.maxX, y: iconRect.minY))
+        let knockoutOffset = lineWidth / (2 * sqrt(2))
+        let knockout = NSBezierPath()
+        knockout.lineCapStyle = .round
+        knockout.lineWidth = lineWidth * 2
+        knockout.move(to: NSPoint(x: iconRect.minX + knockoutOffset, y: iconRect.maxY + knockoutOffset))
+        knockout.line(to: NSPoint(x: iconRect.maxX + knockoutOffset, y: iconRect.minY + knockoutOffset))
+        context.setBlendMode(.destinationOut)
+        knockout.stroke()
+        context.setBlendMode(.normal)
+        color.setStroke()
+        slash.stroke()
+    }
+    NSGraphicsContext.restoreGraphicsState()
 }
