@@ -1,13 +1,15 @@
 import ApplicationLibrary
-import Combine
 import Foundation
 import Libbox
 import Library
 import UIKit
 
 @MainActor
-class ApplicationDelegate: NSObject, UIApplicationDelegate, ObservableObject {
-    @Published private(set) var isReady = false
+class ApplicationDelegate: NSObject, UIApplicationDelegate {
+    /// SwiftUI does not invalidate the App body when a delegate published through
+    /// UIApplicationDelegateAdaptor sends objectWillChange, so readiness is awaited
+    /// instead of observed.
+    private(set) var setupTask: Task<Void, Never>?
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         LibboxPrepareCrashSignalHandlers()
@@ -15,9 +17,8 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, ObservableObject {
         LibboxReinstallCrashSignalHandlers()
         NSLog("Here I stand")
         setup()
-        Task {
+        setupTask = Task {
             await setupService()
-            isReady = true
         }
         return true
     }
