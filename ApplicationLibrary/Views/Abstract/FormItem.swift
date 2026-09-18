@@ -58,6 +58,14 @@ public func FormTextItem(_ name: LocalizedStringKey, _ systemImage: String, @Vie
     #endif
 }
 
+public func FormProgressView() -> some View {
+    // ProgressView reports Double.leastNormalMagnitude as its first text baseline on iOS,
+    // dragging the baseline of the enclosing stack to the top of the item.
+    ProgressView()
+        .controlSize(.small)
+        .alignmentGuide(.firstTextBaseline) { $0[.bottom] }
+}
+
 public func FormItem(_ title: String, @ViewBuilder content: () -> some View) -> some View {
     #if os(iOS)
         HStack {

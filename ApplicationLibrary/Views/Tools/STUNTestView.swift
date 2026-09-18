@@ -32,14 +32,12 @@ public struct STUNTestView: View {
         if let value {
             HStack(spacing: 6) {
                 if viewModel.isRunning, active {
-                    ProgressView()
-                        .controlSize(.small)
+                    FormProgressView()
                 }
                 Text(value)
             }
         } else if viewModel.isRunning, active {
-            ProgressView()
-                .controlSize(.small)
+            FormProgressView()
         } else {
             Text(verbatim: "-")
         }

@@ -35,8 +35,7 @@ public struct NetworkQualityView: View {
         if let value {
             HStack(spacing: 6) {
                 if viewModel.isRunning, active {
-                    ProgressView()
-                        .controlSize(.small)
+                    FormProgressView()
                 }
                 Text(value)
                 if let accuracy {
@@ -46,8 +45,7 @@ public struct NetworkQualityView: View {
                 }
             }
         } else if viewModel.isRunning, active {
-            ProgressView()
-                .controlSize(.small)
+            FormProgressView()
         } else {
             Text(verbatim: "-")
         }
