@@ -47,7 +47,7 @@ public struct OverviewView: View {
     @ViewBuilder
     private var cardGrid: some View {
         let visibleCards = configuration.orderedEnabledCards.filter(shouldShowCard)
-        let groupedCards = groupCards(visibleCards)
+        let groupedCards = DashboardCard.groupIntoRows(visibleCards)
 
         VStack(spacing: 16) {
             ForEach(Array(groupedCards.enumerated()), id: \.offset) { _, group in
@@ -63,23 +63,6 @@ public struct OverviewView: View {
                 }
             }
         }
-    }
-
-    private func groupCards(_ cards: [DashboardCard]) -> [[DashboardCard]] {
-        var result: [[DashboardCard]] = []
-        var index = 0
-
-        while index < cards.count {
-            let card = cards[index]
-            if card.isHalfWidth, index + 1 < cards.count, cards[index + 1].isHalfWidth {
-                result.append([card, cards[index + 1]])
-                index += 2
-            } else {
-                result.append([card])
-                index += 1
-            }
-        }
-        return result
     }
 
     private func shouldShowCard(_ card: DashboardCard) -> Bool {

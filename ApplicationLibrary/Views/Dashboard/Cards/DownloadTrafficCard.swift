@@ -8,7 +8,7 @@ public struct DownloadTrafficCard: View {
     public init() {}
 
     public var body: some View {
-        DashboardCardView(title: "", isHalfWidth: true) {
+        DashboardCardView(title: "") {
             VStack(alignment: .leading, spacing: 8) {
                 DashboardCardHeader(icon: "arrow.down.circle.fill", title: "Download")
 

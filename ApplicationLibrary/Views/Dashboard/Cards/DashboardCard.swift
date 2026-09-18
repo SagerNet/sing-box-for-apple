@@ -52,13 +52,31 @@ public enum DashboardCard: String, CaseIterable, Identifiable, Codable, Hashable
         }
     }
 
-    public var isHalfWidth: Bool {
+    public var pairGroup: DashboardCardPairGroup? {
         switch self {
-        case .status, .connections, .uploadTraffic, .downloadTraffic:
-            return true
+        case .uploadTraffic, .downloadTraffic:
+            return .traffic
+        case .status, .connections:
+            return .statistics
         case .httpProxy, .clashMode, .profile:
-            return false
+            return nil
         }
+    }
+
+    public static func groupIntoRows(_ cards: [DashboardCard]) -> [[DashboardCard]] {
+        var rows: [[DashboardCard]] = []
+        var index = 0
+        while index < cards.count {
+            let card = cards[index]
+            if let pairGroup = card.pairGroup, index + 1 < cards.count, cards[index + 1].pairGroup == pairGroup {
+                rows.append([card, cards[index + 1]])
+                index += 2
+            } else {
+                rows.append([card])
+                index += 1
+            }
+        }
+        return rows
     }
 
     public static var defaultCards: [DashboardCard] {
@@ -68,4 +86,9 @@ public enum DashboardCard: String, CaseIterable, Identifiable, Codable, Hashable
     public static var defaultOrder: [DashboardCard] {
         [.uploadTraffic, .downloadTraffic, .status, .connections, .httpProxy, .clashMode, .profile]
     }
+}
+
+public enum DashboardCardPairGroup {
+    case traffic
+    case statistics
 }

@@ -2,12 +2,10 @@ import SwiftUI
 
 public struct DashboardCardView<Content: View>: View {
     private let title: String
-    private let isHalfWidth: Bool
     @ViewBuilder private let content: () -> Content
 
-    public init(title: String, isHalfWidth: Bool = false, @ViewBuilder content: @escaping () -> Content) {
+    public init(title: String, @ViewBuilder content: @escaping () -> Content) {
         self.title = title
-        self.isHalfWidth = isHalfWidth
         self.content = content
     }
 
