@@ -45,7 +45,7 @@ public struct GroupHeaderView: View {
                 .padding(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
                 .background(Color.urlTestNeutral)
                 .clipShape(Capsule())
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 Button {
                     listViewModel.performGroupURLTest(group.tag)
                 } label: {
@@ -79,6 +79,7 @@ public struct GroupHeaderView: View {
                 .buttonStyle(.borderless)
                 #endif
             }
+            .padding(.leading, 12)
         }
         .padding(EdgeInsets(top: 12, leading: 16, bottom: 10, trailing: 8))
         .frame(maxWidth: .infinity, alignment: .leading)
