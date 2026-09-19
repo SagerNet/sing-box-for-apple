@@ -181,11 +181,14 @@ public struct MainView: View {
     }
 
     private var remoteControlPicker: some View {
+        // macOS 27 hides Text-only toolbar menu labels in apps linked against older SDKs
         Menu {
             RemoteControlMenuItems(servers: remoteServers)
+                .labelStyle(.automatic)
         } label: {
             Text(environments.remoteServer?.displayName ?? String(localized: "Local Device"))
         }
+        .labelStyle(.titleOnly)
     }
 
     private var disconnectButton: some View {
