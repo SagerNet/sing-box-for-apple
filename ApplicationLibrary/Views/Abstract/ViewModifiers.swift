@@ -194,7 +194,7 @@ private struct CardStyleModifier: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, macOS 26.0, tvOS 26.0, *) {
             content
-                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+                .glassEffect(.regular, in: .rect(cornerRadius: 16))
         } else {
             content
                 .background(backgroundColor)
