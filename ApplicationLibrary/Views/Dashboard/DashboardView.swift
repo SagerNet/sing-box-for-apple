@@ -9,6 +9,7 @@ public struct DashboardView: View {
     @StateObject private var cardConfiguration = DashboardCardConfiguration()
 
     #if os(iOS)
+        @Environment(\.horizontalSizeClass) private var horizontalSizeClass
         @State private var showCardManagement = false
         @State private var remoteServers: [RemoteServer] = []
     #endif
@@ -81,16 +82,25 @@ public struct DashboardView: View {
     }
 
     #if os(iOS)
+        @ViewBuilder
         private var othersMenu: some View {
-            Menu {
+            if SidebarLayout.isEnabled(horizontalSizeClass) {
                 Button {
                     showCardManagement = true
                 } label: {
                     Label("Dashboard Items", systemImage: "square.grid.2x2")
                 }
-                RemoteControlMenuItems(servers: remoteServers)
-            } label: {
-                Label("Others", systemImage: "line.3.horizontal.circle")
+            } else {
+                Menu {
+                    Button {
+                        showCardManagement = true
+                    } label: {
+                        Label("Dashboard Items", systemImage: "square.grid.2x2")
+                    }
+                    RemoteControlMenuItems(servers: remoteServers)
+                } label: {
+                    Label("Others", systemImage: "line.3.horizontal.circle")
+                }
             }
         }
 

@@ -35,11 +35,11 @@ public struct StartStopButton: View {
         @EnvironmentObject private var environments: ExtensionEnvironments
         @EnvironmentObject private var profile: ExtensionProfile
         @State private var alert: AlertState?
-        @State private var currentTime = Date()
         @State private var isStarting = false
+        #if os(iOS)
+            @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+        #endif
         let showsRuntimeDuration: Bool
-
-        private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
         var body: some View {
             Button {
@@ -49,19 +49,13 @@ public struct StartStopButton: View {
             } label: {
                 #if os(iOS)
                     HStack(spacing: 8) {
-                        if showsRuntimeDuration, profile.status.isConnectedStrict, let duration = runtimeDuration {
-                            Text(duration)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                                .fixedSize()
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .trailing).combined(with: .opacity),
-                                    removal: .move(edge: .trailing).combined(with: .opacity)
-                                ))
+                        if showsRuntimeDuration {
+                            RuntimeDurationText(profile: profile)
                         }
 
-                        if !profile.status.isConnected {
+                        if SidebarLayout.isEnabled(horizontalSizeClass) {
+                            Image(systemName: profile.status.isConnected ? "stop.fill" : "play.fill")
+                        } else if !profile.status.isConnected {
                             Label("Start", systemImage: "play.fill")
                                 .padding(.horizontal, 12)
                         } else {
@@ -77,17 +71,7 @@ public struct StartStopButton: View {
                     }
                 #else
                     HStack(spacing: 8) {
-                        if profile.status.isConnectedStrict, let duration = runtimeDuration {
-                            Text(duration)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                                .fixedSize()
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .trailing).combined(with: .opacity),
-                                    removal: .move(edge: .trailing).combined(with: .opacity)
-                                ))
-                        }
+                        RuntimeDurationText(profile: profile)
 
                         if !profile.status.isConnected {
                             Label("Start", systemImage: "play.fill")
@@ -104,12 +88,6 @@ public struct StartStopButton: View {
             #endif
                 .disabled(!profile.status.isEnabled)
                 .alert($alert)
-                .onReceive(timer) { _ in
-                    guard !Variant.screenshotMode else { return }
-                    Task { @MainActor in
-                        currentTime = Date()
-                    }
-                }
                 .onChangeCompat(of: profile.status) { status in
                     Task { @MainActor in
                         if isStarting {
@@ -125,27 +103,6 @@ public struct StartStopButton: View {
                         }
                     }
                 }
-        }
-
-        private var runtimeDuration: String? {
-            guard let connectedDate = profile.connectedDate else { return nil }
-            let interval: TimeInterval
-            if Variant.screenshotMode {
-                interval = 3600
-            } else {
-                interval = currentTime.timeIntervalSince(connectedDate)
-            }
-            guard interval >= 0 else { return nil }
-
-            let hours = Int(interval) / 3600
-            let minutes = Int(interval) / 60 % 60
-            let seconds = Int(interval) % 60
-
-            if hours > 0 {
-                return String(format: "%d:%02d:%02d", hours, minutes, seconds)
-            } else {
-                return String(format: "%d:%02d", minutes, seconds)
-            }
         }
 
         @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
