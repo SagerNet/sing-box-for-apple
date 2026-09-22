@@ -189,11 +189,9 @@ public struct SettingView: View {
             }
             #if !os(tvOS)
                 Section("About") {
-                    Link(destination: URL(string: String(localized: "https://sing-box.sagernet.org/"))!) {
+                    FormLink(destination: URL(string: String(localized: "https://sing-box.sagernet.org/"))!) {
                         Label("Documentation", systemImage: "doc.on.doc.fill")
                     }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
                     .contextMenu {
                         Link(destination: URL(string: String(localized: "https://sing-box.sagernet.org/changelog/"))!) {
                             Text("Changelog")
@@ -202,11 +200,9 @@ public struct SettingView: View {
                             Text("Configuration")
                         }
                     }
-                    Link(destination: URL(string: String("https://github.com/SagerNet/sing-box"))!) {
+                    FormLink(destination: URL(string: String("https://github.com/SagerNet/sing-box"))!) {
                         Label("Source Code", systemImage: "pills.fill")
                     }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
                     .contextMenu {
                         Link(destination: URL(string: String("https://github.com/SagerNet/sing-box/releases"))!) {
                             Text("Releases")

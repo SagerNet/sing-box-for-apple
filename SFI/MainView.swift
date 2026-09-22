@@ -6,6 +6,7 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var sendManager: TaildropSendManager
 
@@ -27,6 +28,7 @@ struct MainView: View {
     @State private var buttonState = ButtonVisibilityState()
     @State private var initializedTabs: Set<NavigationPage> = []
     @State private var logsAccessoryHeight: CGFloat = 0
+    @State private var remoteServers: [RemoteServer] = []
 
     private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
         AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
@@ -38,7 +40,7 @@ struct MainView: View {
 
     private var tabViewContent: some View {
         TabView(selection: $selection) {
-            ForEach(NavigationPage.allCases, id: \.self) { page in
+            ForEach(NavigationPage.tabPages, id: \.self) { page in
                 NavigationStackCompat {
                     tabContent(for: page)
                 }
@@ -46,6 +48,113 @@ struct MainView: View {
                 .tabItem { page.label }
                 .badge(page == .tools ? environments.toolsBadgeCount + sendManager.failedSessionCount : 0)
             }
+        }
+    }
+
+    private var sidebarPages: [NavigationPage] {
+        var pages: [NavigationPage] = [.dashboard]
+        if buttonState.showGroupsButton {
+            pages.append(.groups)
+        }
+        if buttonState.showConnectionsButton {
+            pages.append(.connections)
+        }
+        pages.append(contentsOf: NavigationPage.sidebarDefaultPages)
+        return pages
+    }
+
+    @available(iOS 18.0, *)
+    private var adaptiveTabViewContent: some View {
+        TabView(selection: $selection) {
+            ForEach(sidebarPages) { page in
+                Tab(value: page) {
+                    sidebarPageContent(for: page)
+                } label: {
+                    page.label
+                }
+                .badge(page == .tools ? environments.toolsBadgeCount + sendManager.failedSessionCount : 0)
+            }
+        }
+        .tabViewStyle(.sidebarAdaptable)
+        .onChangeCompat(of: sidebarPages) { pages in
+            if !pages.contains(selection) {
+                selection = .dashboard
+            }
+        }
+    }
+
+    @available(iOS 16.0, *)
+    private var splitViewContent: some View {
+        NavigationSplitView {
+            SidebarView(selection: $selection)
+        } detail: {
+            sidebarPageContent(for: selection)
+                .id(selection)
+        }
+    }
+
+    private func sidebarPageContent(for page: NavigationPage) -> some View {
+        NavigationStackCompat {
+            page.contentView
+                .navigationTitle(page.title)
+                .toolbar {
+                    if environments.remoteServer != nil || !remoteServers.isEmpty {
+                        ToolbarItem(placement: .topBarLeading) {
+                            remoteControlPicker
+                        }
+                        if #available(iOS 26.0, *) {
+                            ToolbarSpacer(.fixed, placement: .topBarLeading)
+                        }
+                    }
+                    ToolbarItem(placement: .topBarLeading) {
+                        serviceToolbarItem
+                    }
+                }
+        }
+    }
+
+    private var remoteControlPicker: some View {
+        Menu {
+            RemoteControlMenuItems(servers: remoteServers)
+        } label: {
+            Text(environments.remoteServer?.displayName ?? String(localized: "Local Device"))
+        }
+    }
+
+    @ViewBuilder
+    private var serviceToolbarItem: some View {
+        if environments.remoteServer != nil {
+            Button {
+                environments.exitRemoteControl()
+            } label: {
+                HStack(spacing: 8) {
+                    RemoteUptimeText(commandClient: environments.commandClient)
+                    Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                }
+            }
+            .accessibilityLabel("Disconnect")
+        } else {
+            StartStopButton(showsRuntimeDuration: true)
+        }
+    }
+
+    private func reloadRemoteServers() async {
+        remoteServers = await (try? RemoteServerManager.list()) ?? []
+    }
+
+    @ViewBuilder
+    private var rootContent: some View {
+        if #available(iOS 18.0, *), SidebarLayout.isEnabled(horizontalSizeClass) {
+            adaptiveTabViewContent
+        } else if #available(iOS 16.0, *), SidebarLayout.isEnabled(horizontalSizeClass) {
+            splitViewContent
+        } else {
+            tabViewContent
+                .onAppear {
+                    if !NavigationPage.tabPages.contains(selection) {
+                        selection = .dashboard
+                    }
+                }
         }
     }
 
@@ -233,9 +342,13 @@ struct MainView: View {
     }
 
     private var mainBody: some View {
-        tabViewContent
+        rootContent
             .onAppear {
                 updateButtonVisibility()
+                Task { await reloadRemoteServers() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .remoteServersUpdated)) { _ in
+                Task { await reloadRemoteServers() }
             }
             .onReceive(environments.commandClient.$groups) { _ in
                 Task { @MainActor in updateButtonVisibility() }

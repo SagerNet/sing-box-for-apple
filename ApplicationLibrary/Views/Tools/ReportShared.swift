@@ -11,7 +11,7 @@ struct ReportLabel: View {
     let date: Date
     let isRead: Bool
     let origin: String?
-    var kind: String? = nil
+    var kind: String?
 
     var body: some View {
         HStack(spacing: 8) {
