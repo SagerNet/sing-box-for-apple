@@ -11,6 +11,16 @@ PKG_IDENTIFIER="$(sed -n 's/.*<pkg-ref id="\([^"]*\)".*/\1/p' SFM.System/distrib
 
 [[ -d "$UNIVERSAL_APP" ]] || { echo "error: $UNIVERSAL_APP not found" >&2; exit 1; }
 
+thin() {
+	local arch="$1" app="$2"
+	local file
+	while IFS= read -r -d '' file; do
+		[[ "$(lipo -archs "$file" 2>/dev/null)" == *" "* ]] || continue
+		lipo "$file" -thin "$arch" -output "$file.thin"
+		mv -f "$file.thin" "$file"
+	done < <(find "$app" -type f -print0)
+}
+
 resign() {
 	local app="$1"
 	local sysext
@@ -53,7 +63,8 @@ build_pkg() {
 for arch in arm64 x86_64; do
 	rm -rf "build/SFM.System-$arch-thin"
 	mkdir -p "build/SFM.System-$arch-thin"
-	ditto --arch "$arch" "$UNIVERSAL_APP" "build/SFM.System-$arch-thin/SFM.app"
+	ditto "$UNIVERSAL_APP" "build/SFM.System-$arch-thin/SFM.app"
+	thin "$arch" "build/SFM.System-$arch-thin/SFM.app"
 	resign "build/SFM.System-$arch-thin/SFM.app"
 done
 
