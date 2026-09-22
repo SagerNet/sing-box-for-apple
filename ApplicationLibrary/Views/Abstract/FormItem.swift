@@ -162,6 +162,14 @@ public func FormButton(role: ButtonRole?, action: @escaping () -> Void, @ViewBui
     #endif
 }
 
+public func FormLink(destination: URL, @ViewBuilder label: () -> some View) -> some View {
+    Link(destination: destination, label: label)
+    #if os(macOS)
+        .buttonStyle(.plain)
+        .foregroundColor(.accentColor)
+    #endif
+}
+
 public func FormNavigationLink(@ViewBuilder destination: () -> some View, @ViewBuilder label: () -> some View) -> some View {
     #if !os(tvOS)
         return NavigationLink(destination: destination, label: label)
