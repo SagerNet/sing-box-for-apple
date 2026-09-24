@@ -2689,7 +2689,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.14.3;
+				MARKETING_VERSION = 1.14.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER)";
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2725,7 +2725,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.14.3;
+				MARKETING_VERSION = 1.14.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER)";
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -3120,7 +3120,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.14.5;
+				MARKETING_VERSION = 1.14.6;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER)";
 				PRODUCT_NAME = "sing-box";
@@ -3164,7 +3164,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.14.5;
+				MARKETING_VERSION = 1.14.6;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER)";
 				PRODUCT_NAME = "sing-box";
