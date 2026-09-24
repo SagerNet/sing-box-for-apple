@@ -30,6 +30,10 @@ public class LogDataModel: ObservableObject {
 
     private static let maxVisibleLogs = 1000
     private static let maxFilteredLogs = 3000
+    /// Trimming the head of visibleLogs makes the text view delete from the front of
+    /// its storage, which invalidates layout for the whole document. Letting the
+    /// window overgrow and trimming in chunks keeps steady-state batches append-only.
+    private static let visibleLogsTrimThreshold = 1250
 
     public var isEmpty: Bool {
         commandClient.logBuffer.entries.isEmpty
@@ -49,7 +53,7 @@ public class LogDataModel: ObservableObject {
 
     private func appendVisibleLogs(_ newLogs: [LogEntry]) {
         visibleLogs.append(contentsOf: newLogs)
-        if visibleLogs.count > Self.maxVisibleLogs {
+        if visibleLogs.count > Self.visibleLogsTrimThreshold {
             visibleLogs.removeFirst(visibleLogs.count - Self.maxVisibleLogs)
         }
     }
