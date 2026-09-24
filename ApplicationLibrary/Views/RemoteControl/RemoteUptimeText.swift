@@ -6,7 +6,6 @@
     /// local service displays next to the stop button.
     public struct RemoteUptimeText: View {
         @ObservedObject private var commandClient: CommandClient
-        @State private var startedAt: Date?
         @State private var currentTime = Date()
 
         private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -29,25 +28,19 @@
                 }
             }
             .onAppear {
-                if commandClient.isConnected {
-                    fetchStartedAt()
-                }
+                commandClient.loadStartedAt()
             }
-            .onChangeCompat(of: commandClient.isConnected) { isConnected in
-                if isConnected {
-                    fetchStartedAt()
-                } else {
-                    startedAt = nil
-                }
+            .onChangeCompat(of: commandClient.isConnected) { _ in
+                commandClient.loadStartedAt()
             }
             .onReceive(timer) { _ in
-                guard startedAt != nil else { return }
+                guard commandClient.startedAt != nil else { return }
                 currentTime = Date()
             }
         }
 
         private var uptime: String? {
-            guard commandClient.isConnected, let startedAt else { return nil }
+            guard commandClient.isConnected, let startedAt = commandClient.startedAt else { return nil }
             let interval = currentTime.timeIntervalSince(startedAt)
             guard interval >= 0 else { return nil }
 
@@ -59,20 +52,6 @@
                 return String(format: "%d:%02d:%02d", hours, minutes, seconds)
             } else {
                 return String(format: "%d:%02d", minutes, seconds)
-            }
-        }
-
-        private func fetchStartedAt() {
-            Task.detached {
-                guard let client = try? CommandTarget.standaloneClient() else { return }
-                var value: Int64 = 0
-                try? client.getStartedAt(&value)
-                guard value > 0 else { return }
-                let date = Date(timeIntervalSince1970: Double(value) / 1000)
-                await MainActor.run {
-                    startedAt = date
-                    currentTime = Date()
-                }
             }
         }
     }
