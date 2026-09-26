@@ -4,7 +4,6 @@ import Libbox
 
 public enum GitHubUpdateChecker {
     private static let releasesURL = "https://api.github.com/repos/SagerNet/sing-box/releases"
-    private static let releasesPerPage = 100
     private static let minimumSemver = "0.0.0-0"
 
     public static func checkAsync(track: UpdateTrack, githubToken: String = "", force: Bool = false) async throws -> UpdateInfo? {
@@ -14,9 +13,20 @@ public enum GitHubUpdateChecker {
     }
 
     public static func check(track: UpdateTrack, githubToken: String = "", force: Bool = false) throws -> UpdateInfo? {
+        var headers = ["Accept": "application/vnd.github+json"]
+        let token = githubToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !token.isEmpty {
+            headers["Authorization"] = "Bearer \(token)"
+        }
         let client = HTTPClient()
-        guard let releases = try fetchReleases(client: client, track: track, githubToken: githubToken) else {
-            return nil
+        let releases: [GitHubRelease]
+        switch track {
+        case .stable:
+            let releaseJSON = try client.getString("\(releasesURL)/latest", headers: headers)
+            releases = try [JSONDecoder().decode(GitHubRelease.self, from: Data(releaseJSON.utf8))]
+        case .beta:
+            let releasesJSON = try client.getString("\(releasesURL)?per_page=3", headers: headers)
+            releases = try JSONDecoder().decode([GitHubRelease].self, from: Data(releasesJSON.utf8))
         }
         let currentVersion = Bundle.main.version
 
@@ -131,34 +141,6 @@ public enum GitHubUpdateChecker {
     private static func isValidPrereleaseSemver(_ version: String) -> Bool {
         let trimmedVersion = version.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmedVersion.contains("-") && isValidSemver(trimmedVersion)
-    }
-
-    private static func fetchReleases(client: HTTPClient, track: UpdateTrack, githubToken: String) throws -> [GitHubRelease]? {
-        var allReleases: [GitHubRelease] = []
-        var page = 1
-        var headers: [String: String] = [:]
-        let token = githubToken.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !token.isEmpty {
-            headers["Authorization"] = "Bearer \(token)"
-        }
-
-        while true {
-            let releasesJSON = try client.getString(
-                "\(releasesURL)?per_page=\(releasesPerPage)&page=\(page)",
-                headers: headers
-            )
-            guard let data = releasesJSON.data(using: .utf8) else {
-                return nil
-            }
-
-            let pageReleases = try JSONDecoder().decode([GitHubRelease].self, from: data)
-            allReleases.append(contentsOf: pageReleases)
-
-            if track != .stable || pageReleases.count < releasesPerPage {
-                return allReleases
-            }
-            page += 1
-        }
     }
 }
 
