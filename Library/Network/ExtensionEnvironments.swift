@@ -205,19 +205,6 @@ public class ExtensionEnvironments: ObservableObject {
     /// (back to local device), and the UI should surface this alert once.
     @Published public var remoteControlAlert: AlertState?
     private var remoteSessionHadConnected = false
-    private var remoteSessionConnectedAt: Date?
-    private var remoteReconnectAttempts = 0
-    private var remoteReconnectPending = false
-    #if canImport(UIKit)
-        private var isInBackground = false
-    #endif
-
-    /// A dropped session gets this many silent reconnect attempts before the
-    /// failure is surfaced. The counter resets once a connection survives
-    /// `remoteStableConnectionInterval`, so only rapid connect-drop loops
-    /// exhaust it.
-    private static let maxRemoteReconnectAttempts = 3
-    private static let remoteStableConnectionInterval: TimeInterval = 5
 
     public var logSearchText = ""
     public var connectionSearchText = ""
@@ -249,15 +236,14 @@ public class ExtensionEnvironments: ObservableObject {
                 Task { @MainActor [weak self] in
                     guard let self, remoteServer != nil else { return }
                     remoteSessionHadConnected = true
-                    remoteSessionConnectedAt = Date()
                 }
             }
             .store(in: &cancellables)
         commandClient.$lastError
-            .sink { [weak self] error in
-                guard let error else { return }
+            .sink { [weak self] message in
+                guard let message else { return }
                 Task { @MainActor [weak self] in
-                    self?.handleRemoteControlError(error)
+                    self?.handleRemoteControlError(message)
                 }
             }
             .store(in: &cancellables)
@@ -265,14 +251,16 @@ public class ExtensionEnvironments: ObservableObject {
             NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
                 .sink { [weak self] _ in
                     Task { @MainActor [weak self] in
-                        self?.isInBackground = true
+                        guard let self, remoteServer != nil else { return }
+                        commandClient.disconnect()
                     }
                 }
                 .store(in: &cancellables)
             NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
                 .sink { [weak self] _ in
                     Task { @MainActor [weak self] in
-                        self?.handleEnterForeground()
+                        guard let self, remoteServer != nil else { return }
+                        commandClient.connect()
                     }
                 }
                 .store(in: &cancellables)
@@ -359,7 +347,7 @@ public class ExtensionEnvironments: ObservableObject {
     public func enterRemoteControl(_ server: RemoteServer) {
         CommandTarget.setRemoteServer(server)
         remoteServer = server
-        resetRemoteSessionState()
+        remoteSessionHadConnected = false
         commandClient.disconnect()
         commandClient.lastError = nil
         commandClient.connect()
@@ -374,7 +362,7 @@ public class ExtensionEnvironments: ObservableObject {
         }
         CommandTarget.setRemoteServer(nil)
         remoteServer = nil
-        resetRemoteSessionState()
+        remoteSessionHadConnected = false
         commandClient.disconnect()
         commandClient.lastError = nil
         connect()
@@ -383,76 +371,14 @@ public class ExtensionEnvironments: ObservableObject {
         }
     }
 
-    private func resetRemoteSessionState() {
-        remoteSessionHadConnected = false
-        remoteSessionConnectedAt = nil
-        remoteReconnectAttempts = 0
-        remoteReconnectPending = false
-    }
-
-    #if canImport(UIKit)
-        private func handleEnterForeground() {
-            isInBackground = false
-            // Recover the remote session on resume: a drop deferred while
-            // backgrounded, or a connection iOS suspended (whose isConnected
-            // flag may still read true against a now-dead socket). A suspension
-            // is not a real failure, so the retry budget is restored.
-            guard remoteServer != nil, remoteReconnectPending || !commandClient.isConnected else {
-                return
-            }
-            remoteReconnectPending = false
-            remoteReconnectAttempts = 0
-            if commandClient.isConnected {
-                commandClient.disconnect()
-            }
-            commandClient.connect()
-        }
-    #endif
-
-    /// A remote session that cannot connect falls back to the local device
-    /// immediately: leaving the app in remote mode would just make every
-    /// command call fail at the point of use. A drop of an established session
-    /// (app suspension, network change, server restart) is recoverable instead,
-    /// so it reconnects silently and only surfaces the error once reconnecting
-    /// fails too.
-    private func handleRemoteControlError(_ error: CommandClient.ConnectionError) {
-        guard let server = remoteServer, commandClient.lastError == error else {
+    private func handleRemoteControlError(_ message: String) {
+        guard let server = remoteServer, commandClient.lastError == message else {
             return
         }
-        #if canImport(UIKit)
-            if isInBackground {
-                // A connection cannot be (re)established while iOS has the app
-                // suspended, and an alert shown now would be invisible. Defer
-                // recovery to the next foreground transition for any error,
-                // without spending a retry attempt on a doomed connection.
-                remoteSessionConnectedAt = nil
-                remoteReconnectAttempts = 0
-                remoteReconnectPending = true
-                commandClient.lastError = nil
-                return
-            }
-        #endif
-        if error.kind == .connectionLost {
-            if let connectedAt = remoteSessionConnectedAt,
-               Date().timeIntervalSince(connectedAt) >= Self.remoteStableConnectionInterval
-            {
-                remoteReconnectAttempts = 0
-            }
-            remoteSessionConnectedAt = nil
-            if remoteReconnectAttempts < Self.maxRemoteReconnectAttempts {
-                remoteReconnectAttempts += 1
-                commandClient.lastError = nil
-                commandClient.connect()
-                return
-            }
-        }
-        // A non-retryable connect failure, or a dropped session whose retry
-        // budget is spent: fall back to the local device, then surface the
-        // failure once.
         let description = remoteSessionHadConnected
             ? "Disconnected from remote server \(server.displayName)"
             : "Failed to connect to remote server \(server.displayName)"
         exitRemoteControl()
-        remoteControlAlert = AlertState(errorMessage: "\(description)\n\(error.message)")
+        remoteControlAlert = AlertState(errorMessage: "\(description)\n\(message)")
     }
 }
