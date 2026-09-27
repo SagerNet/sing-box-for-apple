@@ -24,6 +24,7 @@ private struct LogViewContent: View {
     @StateObject private var viewModel: LogViewModel
     #if os(iOS)
         @State private var remoteServers: [RemoteServer] = []
+        @Environment(\.remoteControlInToolbar) private var remoteControlInToolbar
     #endif
 
     init(commandClient: CommandClient, initialSearchText: String = "") {
@@ -119,7 +120,7 @@ private struct LogViewContent: View {
                 if #available(iOS 16.0, *) {
                     return AnyView(LogMenuButton(
                         viewModel: viewModel,
-                        remoteServers: remoteServers,
+                        remoteServers: remoteControlInToolbar ? [] : remoteServers,
                         activeRemoteServerID: environments.remoteServer?.id,
                         onSelectLocalDevice: { environments.exitRemoteControl() },
                         onSelectRemoteServer: { server in

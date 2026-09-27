@@ -68,7 +68,9 @@ struct MainView: View {
         TabView(selection: $selection) {
             ForEach(sidebarPages) { page in
                 Tab(value: page) {
-                    sidebarPageContent(for: page)
+                    TabBarPlacementReader { tabBarPlacement in
+                        sidebarPageContent(for: page, remoteControlInToolbar: tabBarPlacement == .sidebar)
+                    }
                 } label: {
                     page.label
                 }
@@ -88,17 +90,27 @@ struct MainView: View {
         NavigationSplitView {
             SidebarView(selection: $selection)
         } detail: {
-            sidebarPageContent(for: selection)
+            sidebarPageContent(for: selection, remoteControlInToolbar: true)
                 .id(selection)
         }
     }
 
-    private func sidebarPageContent(for page: NavigationPage) -> some View {
+    @available(iOS 18.0, *)
+    private struct TabBarPlacementReader<Content: View>: View {
+        @Environment(\.tabBarPlacement) private var tabBarPlacement
+        @ViewBuilder let content: (TabBarPlacement?) -> Content
+
+        var body: some View {
+            content(tabBarPlacement)
+        }
+    }
+
+    private func sidebarPageContent(for page: NavigationPage, remoteControlInToolbar: Bool) -> some View {
         NavigationStackCompat {
             page.contentView
                 .navigationTitle(page.title)
                 .toolbar {
-                    if environments.remoteServer != nil || !remoteServers.isEmpty {
+                    if remoteControlInToolbar, environments.remoteServer != nil || !remoteServers.isEmpty {
                         ToolbarItem(placement: .topBarLeading) {
                             remoteControlPicker
                         }
@@ -111,6 +123,7 @@ struct MainView: View {
                     }
                 }
         }
+        .environment(\.remoteControlInToolbar, remoteControlInToolbar)
     }
 
     private var remoteControlPicker: some View {
