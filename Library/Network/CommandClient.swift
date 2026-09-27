@@ -85,19 +85,6 @@ public class CommandClient: ObservableObject {
         case outbounds
     }
 
-    public struct ConnectionError: Equatable {
-        public enum Kind: Equatable {
-            /// A connect attempt failed; retrying is not expected to succeed.
-            case connectFailed
-            /// An established connection dropped (app suspension, network
-            /// change, server restart); reconnecting may recover.
-            case connectionLost
-        }
-
-        public let kind: Kind
-        public let message: String
-    }
-
     private let connectionTypes: [ConnectionType]
     private let logMaxLines: Int
     private let localOnly: Bool
@@ -107,7 +94,7 @@ public class CommandClient: ObservableObject {
     private var isConnecting = false
     @Published public var isConnected: Bool
     @Published public private(set) var startedAt: Date?
-    @Published public var lastError: ConnectionError?
+    @Published public var lastError: String?
     // Coalesce traffic updates so SwiftUI re-renders once per status tick.
     @Published private var trafficSnapshot = TrafficSnapshot()
     public var status: LibboxStatusMessage? {
@@ -333,7 +320,7 @@ public class CommandClient: ObservableObject {
     private func reportConnectError(token: UInt64, error: Error) async {
         await MainActor.run { [self] in
             guard token == activeConnectionToken else { return }
-            lastError = ConnectionError(kind: .connectFailed, message: error.localizedDescription)
+            lastError = error.localizedDescription
         }
     }
 
@@ -385,7 +372,7 @@ public class CommandClient: ObservableObject {
             DispatchQueue.main.async { [self] in
                 guard isActiveConnection() else { return }
                 if let message {
-                    commandClient.lastError = ConnectionError(kind: .connectionLost, message: message)
+                    commandClient.lastError = message
                 }
                 commandClient.isConnected = false
                 commandClient.startedAt = nil
