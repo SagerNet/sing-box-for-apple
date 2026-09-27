@@ -94,4 +94,17 @@ public extension EnvironmentValues {
             self[logBottomInsetKey.self] = newValue
         }
     }
+
+    private struct remoteControlInToolbarKey: EnvironmentKey {
+        static var defaultValue: Bool = false
+    }
+
+    var remoteControlInToolbar: Bool {
+        get {
+            self[remoteControlInToolbarKey.self]
+        }
+        set {
+            self[remoteControlInToolbarKey.self] = newValue
+        }
+    }
 }

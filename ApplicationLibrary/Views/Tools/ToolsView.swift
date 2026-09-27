@@ -19,6 +19,7 @@ public struct ToolsView: View {
         @State private var showOOMReportList = false
         @State private var showPowerReportList = false
         @State private var remoteServers: [RemoteServer] = []
+        @Environment(\.remoteControlInToolbar) private var remoteControlInToolbar
     #endif
     #if !os(tvOS)
         @EnvironmentObject private var sendManager: TaildropSendManager
@@ -260,7 +261,7 @@ public struct ToolsView: View {
         #if os(iOS)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !remoteServers.isEmpty {
+                    if !remoteServers.isEmpty, !remoteControlInToolbar {
                         othersMenu
                     }
                 }

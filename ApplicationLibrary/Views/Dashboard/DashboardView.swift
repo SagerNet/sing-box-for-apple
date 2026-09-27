@@ -9,7 +9,7 @@ public struct DashboardView: View {
     @StateObject private var cardConfiguration = DashboardCardConfiguration()
 
     #if os(iOS)
-        @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+        @Environment(\.remoteControlInToolbar) private var remoteControlInToolbar
         @State private var showCardManagement = false
         @State private var remoteServers: [RemoteServer] = []
     #endif
@@ -84,7 +84,7 @@ public struct DashboardView: View {
     #if os(iOS)
         @ViewBuilder
         private var othersMenu: some View {
-            if SidebarLayout.isEnabled(horizontalSizeClass) {
+            if remoteControlInToolbar {
                 Button {
                     showCardManagement = true
                 } label: {
