@@ -12,7 +12,7 @@ public struct ConnectionListView: View {
     public init() {}
 
     public var body: some View {
-        ConnectionListContentView(dataModel: viewModel.dataModel)
+        ConnectionListContentView(dataModel: viewModel.dataModel, stateFilter: viewModel.connectionStateFilter, searchText: viewModel.searchText)
         #if os(iOS)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
@@ -61,11 +61,26 @@ public struct ConnectionListView: View {
 
 private struct ConnectionListContentView: View {
     @ObservedObject var dataModel: ConnectionDataModel
+    let stateFilter: ConnectionStateFilter
+    let searchText: String
 
     var body: some View {
         VStack {
             if dataModel.isLoading {
                 Text("Loading...")
+            } else if dataModel.filteredConnections.isEmpty {
+                if !searchText.isEmpty {
+                    Text("No matching connections")
+                } else {
+                    switch stateFilter {
+                    case .all:
+                        Text("No connections")
+                    case .active:
+                        Text("No active connections")
+                    case .closed:
+                        Text("No closed connections")
+                    }
+                }
             } else {
                 ScrollView {
                     LazyVStack {
