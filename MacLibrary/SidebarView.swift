@@ -76,6 +76,7 @@ private struct RemoteSidebarContentView: View {
     @ObservedObject var environments: ExtensionEnvironments
     @EnvironmentObject private var sendManager: TaildropSendManager
     @State private var hasGroups = false
+    @State private var isConnected = false
 
     var body: some View {
         List(selection: $localSelection) {
@@ -86,7 +87,9 @@ private struct RemoteSidebarContentView: View {
                 if hasGroups {
                     NavigationPage.groups.label.tag(NavigationPage.groups)
                 }
-                NavigationPage.connections.label.tag(NavigationPage.connections)
+                if isConnected {
+                    NavigationPage.connections.label.tag(NavigationPage.connections)
+                }
             }
             ForEach(NavigationPage.macosDefaultPages, id: \.self) { it in
                 it.label
@@ -98,6 +101,7 @@ private struct RemoteSidebarContentView: View {
         .onAppear {
             localSelection = selection
             hasGroups = environments.commandClient.groups?.isEmpty == false
+            isConnected = environments.commandClient.isConnected
         }
         .onChangeCompat(of: selection) { newValue in
             if localSelection != newValue {
@@ -114,6 +118,14 @@ private struct RemoteSidebarContentView: View {
         .onReceive(environments.commandClient.$groups) { groups in
             hasGroups = groups?.isEmpty == false
             if localSelection == .groups, groups?.isEmpty != false {
+                Task { @MainActor in
+                    localSelection = .dashboard
+                }
+            }
+        }
+        .onReceive(environments.commandClient.$isConnected) { newValue in
+            isConnected = newValue
+            if localSelection == .connections, !newValue {
                 Task { @MainActor in
                     localSelection = .dashboard
                 }
