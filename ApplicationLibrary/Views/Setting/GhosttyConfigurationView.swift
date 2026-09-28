@@ -14,6 +14,9 @@
         @State private var fontFollowTheme: Bool = true
         @State private var fontFamily: String = ""
         @State private var fontSize: Double = 0
+        #if os(iOS)
+            @State private var alwaysShowSymbolBar = false
+        #endif
 
         public init() {}
 
@@ -35,6 +38,20 @@
                         themePreference: SharedPreferences.tailscaleSSHGhosttyDarkTheme
                     )
                     fontSection()
+                    #if os(iOS)
+                        Section {
+                            Toggle("Always Show Symbol Bar", isOn: $alwaysShowSymbolBar)
+                                .onChangeCompat(of: alwaysShowSymbolBar) { newValue in
+                                    Task {
+                                        await SharedPreferences.tailscaleSSHAlwaysShowSymbolBar.set(newValue)
+                                    }
+                                }
+                        } header: {
+                            Text("Keyboard")
+                        } footer: {
+                            Text("The symbol bar is hidden while a hardware keyboard is connected unless this is enabled.")
+                        }
+                    #endif
                 }
             }
             .navigationTitle("Ghostty Configuration")
@@ -152,6 +169,9 @@
             let storedFontFollowTheme = await SharedPreferences.tailscaleSSHTerminalFontFollowTheme.get()
             let storedFontFamily = await SharedPreferences.tailscaleSSHTerminalFontFamily.get()
             let storedFontSize = await SharedPreferences.tailscaleSSHTerminalFontSize.get()
+            #if os(iOS)
+                let storedAlwaysShowSymbolBar = await SharedPreferences.tailscaleSSHAlwaysShowSymbolBar.get()
+            #endif
             guard !Task.isCancelled else { return }
             if lightStored.isEmpty {
                 lightCustomEnabled = true
@@ -170,6 +190,9 @@
             fontFollowTheme = storedFontFollowTheme
             fontFamily = storedFontFamily
             fontSize = storedFontSize
+            #if os(iOS)
+                alwaysShowSymbolBar = storedAlwaysShowSymbolBar
+            #endif
             isLoading = false
         }
     }

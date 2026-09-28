@@ -146,6 +146,9 @@ public enum SharedPreferences {
     #if os(macOS)
         public static let tailscaleSSHForwardAgent = Preference<Bool>("tailscale_ssh_forward_agent", defaultValue: false)
     #endif
+    #if os(iOS)
+        public static let tailscaleSSHAlwaysShowSymbolBar = Preference<Bool>("tailscale_ssh_always_show_symbol_bar", defaultValue: false)
+    #endif
     public static let tailscaleSSHGhosttyLightTheme = Preference<String>("tailscale_ssh_ghostty_light_theme", defaultValue: "Alabaster")
     public static let tailscaleSSHGhosttyDarkTheme = Preference<String>("tailscale_ssh_ghostty_dark_theme", defaultValue: "Afterglow")
     public static let tailscaleSSHGhosttyLightConfig = Preference<String>("tailscale_ssh_ghostty_light_config", defaultValue: "")

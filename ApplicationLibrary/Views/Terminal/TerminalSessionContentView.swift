@@ -26,8 +26,9 @@
                         extras: viewModel.extras,
                         isActive: isActive
                     )
+                    .opacity(viewModel.hasReceivedOutput ? 1 : 0)
                 }
-                if case .connecting = viewModel.phase {
+                if viewModel.phase == .connecting || (viewModel.phase == .running && !viewModel.hasReceivedOutput) {
                     VStack(spacing: 16) {
                         ProgressView()
                             .controlSize(.large)
@@ -84,20 +85,20 @@
             Self.displayTitle(
                 phase: viewModel.phase,
                 extrasTitle: viewModel.extras.title,
-                peerHostName: presentedSession.peerHostName
+                peerDisplayName: presentedSession.peerDisplayName
             )
         }
 
         static func displayTitle(
             phase: TerminalWrapperViewModel.Phase,
             extrasTitle: String,
-            peerHostName: String
+            peerDisplayName: String
         ) -> String {
             if case .connecting = phase {
-                return peerHostName
+                return peerDisplayName
             }
             let remote = extrasTitle.trimmingCharacters(in: .whitespaces)
-            return remote.isEmpty ? peerHostName : remote
+            return remote.isEmpty ? peerDisplayName : remote
         }
 
         static func bannerAttributedString(_ text: String) -> AttributedString {

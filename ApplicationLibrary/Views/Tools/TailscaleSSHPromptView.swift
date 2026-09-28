@@ -87,7 +87,7 @@ public struct TailscaleSSHPromptView: View {
                 #endif
             }
         }
-        .navigationTitle(peer.hostName)
+        .navigationTitle(peer.displayName)
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -163,7 +163,7 @@ public struct TailscaleSSHPromptView: View {
 
         onConnect(TailscaleSSHPresentedSession(
             endpointTag: endpointTag,
-            peerHostName: peer.hostName,
+            peerDisplayName: peer.displayName,
             peerAddress: peer.tailscaleIPs.first!,
             username: trimmed,
             terminalType: effectiveTerm,

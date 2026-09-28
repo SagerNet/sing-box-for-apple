@@ -29,7 +29,7 @@
             return TerminalSessionContentView.displayTitle(
                 phase: active.viewModel.phase,
                 extrasTitle: active.viewModel.extras.title,
-                peerHostName: active.presentedSession.peerHostName
+                peerDisplayName: active.presentedSession.peerDisplayName
             )
         }
 
@@ -37,7 +37,7 @@
             TerminalSessionContentView.displayTitle(
                 phase: session.viewModel.phase,
                 extrasTitle: session.viewModel.extras.title,
-                peerHostName: session.presentedSession.peerHostName
+                peerDisplayName: session.presentedSession.peerDisplayName
             )
         }
 
@@ -119,7 +119,7 @@
             let src = active.presentedSession
             let newSession = TailscaleSSHPresentedSession(
                 endpointTag: src.endpointTag,
-                peerHostName: src.peerHostName,
+                peerDisplayName: src.peerDisplayName,
                 peerAddress: src.peerAddress,
                 username: src.username,
                 terminalType: src.terminalType,

@@ -143,7 +143,7 @@ public final class TailscaleStatusViewModel: BaseViewModel {
                 for peer in group.peers where peer.online && !peer.sshHostKeys.isEmpty && !peer.tailscaleIPs.isEmpty {
                     allSSHPeers.append(TailscaleSSHPeerEntry(
                         endpointTag: endpoint.endpointTag,
-                        hostName: peer.hostName,
+                        displayName: peer.displayName,
                         peerAddress: peer.tailscaleIPs.first!,
                         stableID: peer.stableID,
                         sshHostKeys: peer.sshHostKeys

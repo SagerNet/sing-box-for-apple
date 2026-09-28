@@ -6,14 +6,14 @@ public struct TailscaleSSHPeerEntry: Identifiable {
     }
 
     public let endpointTag: String
-    public let hostName: String
+    public let displayName: String
     public let peerAddress: String
     public let stableID: String
     public let sshHostKeys: [String]
 
-    public init(endpointTag: String, hostName: String, peerAddress: String, stableID: String, sshHostKeys: [String]) {
+    public init(endpointTag: String, displayName: String, peerAddress: String, stableID: String, sshHostKeys: [String]) {
         self.endpointTag = endpointTag
-        self.hostName = hostName
+        self.displayName = displayName
         self.peerAddress = peerAddress
         self.stableID = stableID
         self.sshHostKeys = sshHostKeys
@@ -30,7 +30,7 @@ public struct TailscaleSSHPeerEntry: Identifiable {
         #endif
         return TailscaleSSHPresentedSession(
             endpointTag: endpointTag,
-            peerHostName: hostName,
+            peerDisplayName: displayName,
             peerAddress: peerAddress,
             username: usernames[stableID] ?? "root",
             terminalType: termTypes[stableID] ?? "xterm-256color",

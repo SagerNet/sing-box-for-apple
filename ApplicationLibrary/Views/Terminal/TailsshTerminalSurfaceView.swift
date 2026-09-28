@@ -5,6 +5,7 @@
     #if canImport(AppKit)
         import AppKit
     #elseif canImport(UIKit)
+        import GameController
         import UIKit
     #endif
 
@@ -56,24 +57,85 @@
                 let extras: TailsshTerminalExtras
                 var isActive: Bool = true
 
-                func makeUIView(context _: Context) -> UITerminalView {
-                    let view = UITerminalView(frame: .zero)
+                func makeUIView(context _: Context) -> TailsshUITerminalView {
+                    let view = TailsshUITerminalView(frame: .zero)
                     view.controller = state.controller
                     view.configuration = state.configuration
                     view.delegate = extras
+                    extras.terminalView = view
                     return view
                 }
 
-                func updateUIView(_ view: UITerminalView, context _: Context) {
+                func updateUIView(_ view: TailsshUITerminalView, context _: Context) {
                     if view.controller !== state.controller {
                         view.controller = state.controller
                     }
                     view.configuration = state.configuration
                     if view.delegate !== extras {
                         view.delegate = extras
+                        extras.terminalView = view
                     }
                     if isActive, !view.isFirstResponder {
                         view.becomeFirstResponder()
+                    }
+                }
+            }
+
+            final class TailsshUITerminalView: UITerminalView {
+                private var interceptedPresses: Set<UIPress> = []
+
+                override init(frame: CGRect) {
+                    super.init(frame: frame)
+                    NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidChange), name: .GCKeyboardDidConnect, object: nil)
+                    NotificationCenter.default.addObserver(self, selector: #selector(hardwareKeyboardDidChange), name: .GCKeyboardDidDisconnect, object: nil)
+                }
+
+                @available(*, unavailable)
+                required init?(coder _: NSCoder) {
+                    fatalError()
+                }
+
+                override var inputAccessoryView: UIView? {
+                    if GCKeyboard.coalesced != nil, (delegate as? TailsshTerminalExtras)?.alwaysShowsSymbolBar != true {
+                        return nil
+                    }
+                    return super.inputAccessoryView
+                }
+
+                @objc private func hardwareKeyboardDidChange() {
+                    reloadInputViews()
+                }
+
+                override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+                    var remaining = presses
+                    if let onCommandKey = (delegate as? TailsshTerminalExtras)?.onCommandKey {
+                        for press in presses {
+                            guard let key = press.key,
+                                  key.modifierFlags.intersection([.command, .control, .alternate, .shift]) == .command,
+                                  onCommandKey(key.charactersIgnoringModifiers.lowercased())
+                            else { continue }
+                            interceptedPresses.insert(press)
+                            remaining.remove(press)
+                        }
+                    }
+                    if !remaining.isEmpty {
+                        super.pressesBegan(remaining, with: event)
+                    }
+                }
+
+                override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+                    let remaining = presses.subtracting(interceptedPresses)
+                    interceptedPresses.subtract(presses)
+                    if !remaining.isEmpty {
+                        super.pressesEnded(remaining, with: event)
+                    }
+                }
+
+                override func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+                    let remaining = presses.subtracting(interceptedPresses)
+                    interceptedPresses.subtract(presses)
+                    if !remaining.isEmpty {
+                        super.pressesCancelled(remaining, with: event)
                     }
                 }
             }

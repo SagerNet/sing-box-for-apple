@@ -89,16 +89,32 @@
                 openURL(url)
             }
             #if !targetEnvironment(macCatalyst)
-                managed.viewModel.extras.onRequestTextSelection = { request in
-                    presentTerminalSelectionSheet(request: request)
+                let extras = managed.viewModel.extras
+                extras.onRequestTextSelection = { [weak extras] request in
+                    presentTerminalSelectionSheet(request: request, in: extras?.terminalView?.window)
+                }
+                extras.onCommandKey = { key in
+                    switch key {
+                    case "n":
+                        sessionManager.createDuplicateSession()
+                        return true
+                    case "w":
+                        sessionManager.closeSession(id: managed.id)
+                        return true
+                    default:
+                        return false
+                    }
                 }
             #endif
         }
 
         #if !targetEnvironment(macCatalyst)
             @MainActor
-            private func presentTerminalSelectionSheet(request: TerminalTextSelectionRequest) {
-                guard let presenter = topmostViewController() else { return }
+            private func presentTerminalSelectionSheet(request: TerminalTextSelectionRequest, in window: UIWindow?) {
+                guard var presenter = window?.rootViewController else { return }
+                while let presented = presenter.presentedViewController {
+                    presenter = presented
+                }
                 let selectionVC = TailsshTerminalSelectionViewController(
                     text: request.text,
                     anchorRange: request.anchorRange
@@ -115,23 +131,6 @@
                 presenter.present(nav, animated: true)
             }
 
-            @MainActor
-            private func topmostViewController() -> UIViewController? {
-                let scene = UIApplication.shared.connectedScenes
-                    .compactMap { $0 as? UIWindowScene }
-                    .first { $0.activationState == .foregroundActive }
-                    ?? UIApplication.shared.connectedScenes
-                    .compactMap { $0 as? UIWindowScene }
-                    .first
-                guard let root = scene?.windows.first(where: { $0.isKeyWindow })?.rootViewController
-                    ?? scene?.windows.first?.rootViewController
-                else { return nil }
-                var top = root
-                while let presented = top.presentedViewController {
-                    top = presented
-                }
-                return top
-            }
         #endif
     }
 #endif

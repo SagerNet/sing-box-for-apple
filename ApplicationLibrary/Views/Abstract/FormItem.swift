@@ -146,7 +146,7 @@ public func FormButton(action: @escaping () -> Void, @ViewBuilder label: () -> s
     #endif
 }
 
-public func FormButton(_ titleKey: some StringProtocol, action: @escaping () -> Void) -> some View {
+public func FormButton(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) -> some View {
     Button(titleKey, action: action)
     #if os(macOS)
         .buttonStyle(.plain)

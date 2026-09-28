@@ -49,7 +49,7 @@
                 var submenuChildren: [UIAction] = []
                 if let current = currentSession {
                     submenuChildren.append(UIAction(
-                        title: current.peerHostName,
+                        title: current.peerDisplayName,
                         image: UIImage(systemName: "doc.on.doc")
                     ) { _ in
                         sessionManager.createDuplicateSession()
@@ -58,7 +58,7 @@
                 for peer in otherQCPeers {
                     let peerEntry = peer
                     submenuChildren.append(UIAction(
-                        title: peerEntry.hostName
+                        title: peerEntry.displayName
                     ) { _ in
                         sessionManager.addSessionFromPeer(peerEntry)
                     })

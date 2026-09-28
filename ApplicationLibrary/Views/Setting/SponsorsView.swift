@@ -14,10 +14,10 @@ public struct SponsorsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            FormButton(String(localized: "GitHub Sponsors (recommended)")) {
+            FormButton("GitHub Sponsors (recommended)") {
                 openURL(URL(string: "https://github.com/sponsors/nekohasekai")!)
             }
-            FormButton(String(localized: "Other methods")) {
+            FormButton("Other methods") {
                 openURL(URL(string: "https://sekai.icu/sponsors/")!)
             }
         }
