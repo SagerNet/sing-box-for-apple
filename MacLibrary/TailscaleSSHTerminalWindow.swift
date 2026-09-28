@@ -19,6 +19,7 @@ struct TailscaleSSHTerminalWindow: View {
             }
         }
         .background(WindowAccessor(callback: { window in
+            window?.isRestorable = false
             hostWindow = window
         }))
         .onAppear {
