@@ -21,6 +21,11 @@
         TerminalSurfaceTextSelectionRequestDelegate
     {
         public weak var state: TerminalViewState?
+        #if os(iOS)
+            weak var terminalView: UITerminalView?
+            var onCommandKey: ((String) -> Bool)?
+            var alwaysShowsSymbolBar = false
+        #endif
 
         public var onClose: ((Bool) -> Void)?
         public var onOpenURL: ((String, TerminalOpenURLKind) -> Void)?

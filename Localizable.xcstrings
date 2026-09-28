@@ -421,6 +421,34 @@
         }
       }
     },
+    "Always Show Symbol Bar" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "همیشه نوار نمادها را نشان بده"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Всегда показывать панель символов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终显示符号栏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始終顯示符號列"
+          }
+        }
+      }
+    },
     "Any" : {
       "localizations" : {
         "fa" : {
@@ -6562,6 +6590,34 @@
         }
       }
     },
+    "Keyboard" : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صفحه‌کلید"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Клавиатура"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "键盘"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鍵盤"
+          }
+        }
+      }
+    },
     "Kill all connections to free memory when the service memory exceeds the limit." : {
       "localizations" : {
         "fa" : {
@@ -12168,6 +12224,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "sing-box 服務需要輔助服務來提供進程查找功能，以支持 `process_name` 和 `process_path` 路由規則。"
+          }
+        }
+      }
+    },
+    "The symbol bar is hidden while a hardware keyboard is connected unless this is enabled." : {
+      "localizations" : {
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هنگام اتصال صفحه‌کلید سخت‌افزاری، نوار نمادها پنهان می‌شود مگر اینکه این گزینه فعال باشد."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока подключена аппаратная клавиатура, панель символов скрыта, если этот параметр не включён."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接硬件键盘时隐藏符号栏，除非开启此选项。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連接硬體鍵盤時隱藏符號列，除非開啟此選項。"
           }
         }
       }

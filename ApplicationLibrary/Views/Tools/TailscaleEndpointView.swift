@@ -12,9 +12,6 @@ public struct TailscaleEndpointView: View {
         @State private var pendingSSHSession: TailscaleSSHPresentedSession?
         @EnvironmentObject private var sendManager: TaildropSendManager
     #endif
-    #if os(macOS)
-        @Environment(\.openWindow) private var openWindow
-    #endif
     let endpointTag: String
 
     public init(viewModel: TailscaleStatusViewModel, endpointTag: String) {
@@ -100,11 +97,11 @@ public struct TailscaleEndpointView: View {
                     if !endpoint.authURL.isEmpty {
                         if let url = URL(string: endpoint.authURL) {
                             #if !os(tvOS)
-                                Link(destination: url) {
+                                FormLink(destination: url) {
                                     Label("Open Auth URL", systemImage: "arrow.up.forward.app")
                                 }
                             #endif
-                            Button {
+                            FormButton {
                                 showAuthURLQRCode = true
                             } label: {
                                 Label("Open Auth URL as QR Code", systemImage: "qrcode")
@@ -144,19 +141,7 @@ public struct TailscaleEndpointView: View {
         }) { peer in
             TailscaleSSHPromptView(peer: peer, endpointTag: endpointTag, onConnect: { session in pendingSSHSession = session })
         }
-            #if os(iOS)
-        .sheet(item: $sshPresentedSession) { presented in
-            NavigationStackCompat {
-                TerminalSessionContainerView(presented)
-            }
-        }
-            #elseif os(macOS)
-        .onChangeCompat(of: sshPresentedSession) { newValue in
-            guard let newValue else { return }
-            openWindow(value: newValue)
-            sshPresentedSession = nil
-        }
-            #endif
+        .terminalPresentation(item: $sshPresentedSession)
         #endif
     }
 
@@ -213,7 +198,7 @@ public struct TailscaleEndpointView: View {
                     #endif
                     sshPresentedSession = TailscaleSSHPresentedSession(
                         endpointTag: endpointTag,
-                        peerHostName: peer.hostName,
+                        peerDisplayName: peer.displayName,
                         peerAddress: peer.tailscaleIPs.first!,
                         username: usernames[peer.stableID] ?? "root",
                         terminalType: termTypes[peer.stableID] ?? "xterm-256color",

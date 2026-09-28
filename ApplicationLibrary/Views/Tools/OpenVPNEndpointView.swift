@@ -72,10 +72,14 @@ public struct OpenVPNEndpointView: View {
                         if challenge.kind == "open-url" {
                             if let url = URL(string: authURL) {
                                 #if !os(tvOS)
-                                    Link("Open Auth URL", destination: url)
+                                    FormLink(destination: url) {
+                                        Text("Open Auth URL")
+                                    }
                                 #endif
-                                Button("Open Auth URL as QR Code") {
+                                FormButton {
                                     showAuthURLQRCode = true
+                                } label: {
+                                    Text("Open Auth URL as QR Code")
                                 }
                             }
                         } else {

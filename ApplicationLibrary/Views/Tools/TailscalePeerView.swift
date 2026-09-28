@@ -25,9 +25,6 @@ public struct TailscalePeerView: View {
         @State private var sshPresentedSession: TailscaleSSHPresentedSession?
         @State private var pendingSSHSession: TailscaleSSHPresentedSession?
     #endif
-    #if os(macOS)
-        @Environment(\.openWindow) private var openWindow
-    #endif
 
     public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool, canShareFiles: Bool = false, networkName: String = "", canLogout: Bool = false, logoutModel: TailscaleStatusViewModel? = nil) {
         self.peer = peer
@@ -238,19 +235,7 @@ public struct TailscalePeerView: View {
                     onConnect: { session in pendingSSHSession = session }
                 )
             }
-            #if os(iOS)
-            .sheet(item: $sshPresentedSession) { presented in
-                NavigationStackCompat {
-                    TerminalSessionContainerView(presented)
-                }
-            }
-            #elseif os(macOS)
-            .onChangeCompat(of: sshPresentedSession) { newValue in
-                guard let newValue else { return }
-                openWindow(value: newValue)
-                sshPresentedSession = nil
-            }
-            #endif
+            .terminalPresentation(item: $sshPresentedSession)
         #endif
     }
 
