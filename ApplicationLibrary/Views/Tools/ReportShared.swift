@@ -237,10 +237,14 @@ struct ReportFileContentView: View {
             while let presented = topViewController.presentedViewController {
                 topViewController = presented
             }
-            topViewController.present(
-                UIActivityViewController(activityItems: [item], applicationActivities: nil),
-                animated: true
-            )
+            let activityViewController = UIActivityViewController(activityItems: [item], applicationActivities: nil)
+            if let popoverPresentationController = activityViewController.popoverPresentationController {
+                let sourceView: UIView = topViewController.view
+                popoverPresentationController.sourceView = sourceView
+                popoverPresentationController.sourceRect = CGRect(x: sourceView.bounds.midX, y: sourceView.bounds.midY, width: 0, height: 0)
+                popoverPresentationController.permittedArrowDirections = []
+            }
+            topViewController.present(activityViewController, animated: true)
         }
     #endif
 #endif
