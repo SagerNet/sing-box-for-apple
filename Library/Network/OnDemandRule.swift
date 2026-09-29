@@ -31,7 +31,7 @@ public enum OnDemandRuleAction: Int, Codable, CaseIterable, Identifiable {
         case .disconnect:
             return NSLocalizedString("Stop the VPN connection when conditions match.", comment: "")
         case .evaluateConnection:
-            return NSLocalizedString("Evaluate the destination host before deciding to connect.", comment: "")
+            return NSLocalizedString("Decide for each connection by its destination domain, using the domain rules below.", comment: "")
         case .ignore:
             return NSLocalizedString("Leave the VPN connection in its current state.", comment: "")
         }
