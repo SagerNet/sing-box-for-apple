@@ -10,16 +10,12 @@
         var isActive: Bool = true
         var onCloseSession: (() -> Void)?
         @Environment(\.dismiss) private var dismiss
+        @Environment(\.colorScheme) private var colorScheme
 
         var body: some View {
             ZStack {
-                #if os(iOS)
-                    Color(uiColor: .systemBackground)
-                        .ignoresSafeArea()
-                #elseif os(macOS)
-                    Color(nsColor: .windowBackgroundColor)
-                        .ignoresSafeArea()
-                #endif
+                backgroundColor
+                    .ignoresSafeArea()
                 if let terminalState = viewModel.terminalState {
                     TailsshTerminalSurfaceView(
                         state: terminalState,
@@ -79,6 +75,15 @@
                     }
                 }
             }
+        }
+
+        private var backgroundColor: Color {
+            let themeColor = colorScheme == .dark ? viewModel.darkBackgroundColor : viewModel.lightBackgroundColor
+            #if os(iOS)
+                return themeColor ?? Color(uiColor: .systemBackground)
+            #else
+                return themeColor ?? Color(nsColor: .windowBackgroundColor)
+            #endif
         }
 
         var displayedTitle: String {

@@ -40,6 +40,8 @@
         @Published public private(set) var hasReceivedOutput = false
 
         @Published public private(set) var terminalState: TerminalViewState?
+        @Published public private(set) var lightBackgroundColor: Color?
+        @Published public private(set) var darkBackgroundColor: Color?
         public let extras = TailsshTerminalExtras()
         public var onWindowClose: (() -> Void)?
         private let terminalSession: InMemoryTerminalSession
@@ -124,6 +126,8 @@
             let resizes = AsyncStream<TerminalResize>(bufferingPolicy: .bufferingNewest(1)) {
                 resizeContinuation = $0
             }
+            lightBackgroundColor = Self.resolveBackgroundColor(themeName: lightTheme, customText: lightConfig, fallback: "Alabaster")
+            darkBackgroundColor = Self.resolveBackgroundColor(themeName: darkTheme, customText: darkConfig, fallback: "Afterglow")
             let state = TerminalViewState(
                 configSource: .none,
                 theme: TerminalTheme(
@@ -218,6 +222,37 @@
                 return parseCustomConfig(customText)
             }
             return GhosttyThemeCatalog.theme(named: themeName)?.toTerminalConfiguration() ?? fallback
+        }
+
+        /// The theme definition stands in for the surface's own background until
+        /// libghostty-spm ships https://github.com/Lakr233/libghostty-spm/pull/62;
+        /// a background the program sets (OSC 11) is not reflected.
+        private static func resolveBackgroundColor(themeName: String, customText: String, fallback: String) -> Color? {
+            let value: String?
+            if themeName.isEmpty {
+                value = customText
+                    .split(separator: "\n")
+                    .compactMap { line -> String? in
+                        let parts = line.split(separator: "=", maxSplits: 1)
+                        guard parts.count == 2, parts[0].trimmingCharacters(in: .whitespaces) == "background" else { return nil }
+                        return parts[1].trimmingCharacters(in: .whitespaces)
+                    }
+                    .last
+            } else {
+                value = (GhosttyThemeCatalog.theme(named: themeName) ?? GhosttyThemeCatalog.theme(named: fallback))?.background
+            }
+            guard let value else { return nil }
+            var hex = Substring(value)
+            if hex.hasPrefix("#") {
+                hex = hex.dropFirst()
+            }
+            guard hex.count == 6, let rgb = UInt32(hex, radix: 16) else { return nil }
+            return Color(
+                .sRGB,
+                red: Double(rgb >> 16 & 0xFF) / 255,
+                green: Double(rgb >> 8 & 0xFF) / 255,
+                blue: Double(rgb & 0xFF) / 255
+            )
         }
 
         private static func resolveFontOverlay() async -> TerminalConfiguration {
