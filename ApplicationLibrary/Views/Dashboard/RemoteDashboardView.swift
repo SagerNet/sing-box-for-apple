@@ -1,3 +1,4 @@
+import Combine
 import Library
 import SwiftUI
 
@@ -44,7 +45,7 @@ public struct RemoteDashboardView: View {
             }
             environments.connect()
         }
-        .onReceive(commandClient.$isConnected) { newValue in
+        .onReceive(commandClient.$isConnected.combineLatest(commandClient.$isReconnecting).map { $0 && !$1 }) { newValue in
             if isConnected != newValue {
                 isConnected = newValue
             }

@@ -2,6 +2,9 @@ import Combine
 import Foundation
 import Libbox
 import os
+#if canImport(UIKit)
+    import UIKit
+#endif
 
 private let logger = Logger(category: "CommandClient")
 
@@ -92,7 +95,10 @@ public class CommandClient: ObservableObject {
     private var connectTask: Task<Void, Never>?
     private var activeConnectionToken: UInt64 = 0
     private var isConnecting = false
+    private var suspended = false
+    private var cancellables = Set<AnyCancellable>()
     @Published public var isConnected: Bool
+    @Published public private(set) var isReconnecting = false
     @Published public private(set) var startedAt: Date?
     @Published public var lastError: String?
     // Coalesce traffic updates so SwiftUI re-renders once per status tick.
@@ -145,6 +151,18 @@ public class CommandClient: ObservableObject {
         clashModeList = []
         clashMode = ""
         isConnected = false
+        #if canImport(UIKit)
+            NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
+                .sink { [weak self] _ in
+                    self?.suspend()
+                }
+                .store(in: &cancellables)
+            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+                .sink { [weak self] _ in
+                    self?.resume()
+                }
+                .store(in: &cancellables)
+        #endif
     }
 
     public convenience init(_ connectionType: ConnectionType, logMaxLines: Int = 300, localOnly: Bool = false) {
@@ -163,9 +181,13 @@ public class CommandClient: ObservableObject {
     }
 
     public func connect() {
-        if isConnected || isConnecting {
+        if isConnected || isConnecting || suspended {
             return
         }
+        startConnection()
+    }
+
+    private func startConnection() {
         if let commandClient {
             try? commandClient.disconnect()
             self.commandClient = nil
@@ -179,6 +201,16 @@ public class CommandClient: ObservableObject {
     }
 
     public func disconnect() {
+        suspended = false
+        isReconnecting = false
+        closeConnection()
+        if isConnected {
+            isConnected = false
+        }
+        startedAt = nil
+    }
+
+    private func closeConnection() {
         if let connectTask {
             connectTask.cancel()
             self.connectTask = nil
@@ -189,10 +221,23 @@ public class CommandClient: ObservableObject {
             try? commandClient.disconnect()
             self.commandClient = nil
         }
-        if isConnected {
-            isConnected = false
+    }
+
+    private func suspend() {
+        guard !localOnly, CommandTarget.isRemote, isConnected || isConnecting else {
+            return
         }
-        startedAt = nil
+        closeConnection()
+        suspended = true
+    }
+
+    private func resume() {
+        guard suspended else {
+            return
+        }
+        suspended = false
+        isReconnecting = true
+        startConnection()
     }
 
     public func loadStartedAt() {
@@ -321,21 +366,24 @@ public class CommandClient: ObservableObject {
         await MainActor.run { [self] in
             guard token == activeConnectionToken else { return }
             lastError = error.localizedDescription
+            if isConnected {
+                isConnected = false
+            }
+            isReconnecting = false
+            startedAt = nil
         }
     }
 
     private func finishConnectionAttempt(token: UInt64, client: LibboxCommandClient?) async {
         await MainActor.run { [self] in
-            defer {
-                isConnecting = false
-                connectTask = nil
-            }
             guard token == activeConnectionToken else {
                 if let client {
                     try? client.disconnect()
                 }
                 return
             }
+            isConnecting = false
+            connectTask = nil
             if let client {
                 commandClient = client
             }
@@ -365,6 +413,11 @@ public class CommandClient: ObservableObject {
                 }
                 commandClient.lastError = nil
                 commandClient.isConnected = true
+                commandClient.isReconnecting = false
+                if commandClient.startedAt != nil {
+                    commandClient.startedAt = nil
+                    commandClient.loadStartedAt()
+                }
             }
         }
 
@@ -375,6 +428,7 @@ public class CommandClient: ObservableObject {
                     commandClient.lastError = message
                 }
                 commandClient.isConnected = false
+                commandClient.isReconnecting = false
                 commandClient.startedAt = nil
             }
             if let message {
