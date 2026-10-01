@@ -24,66 +24,79 @@
                     )
                     .opacity(viewModel.hasReceivedOutput ? 1 : 0)
                 }
-                if viewModel.phase == .connecting || (viewModel.phase == .running && !viewModel.hasReceivedOutput) {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .controlSize(.large)
-                        if let banner = viewModel.authBanner, !banner.isEmpty {
-                            Text(Self.bannerAttributedString(banner))
-                                .font(.callout)
-                                .multilineTextAlignment(.leading)
-                                .foregroundColor(.primary)
-                                .padding()
-                                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-                                .padding(.horizontal)
-                                .frame(maxWidth: 480)
-                                .textSelection(.enabled)
-                        }
-                    }
-                } else if case let .finished(reason) = viewModel.phase {
-                    VStack {
-                        Spacer()
-                        if let banner = viewModel.authBanner, !banner.isEmpty {
-                            Text(Self.bannerAttributedString(banner))
-                                .font(.callout)
-                                .multilineTextAlignment(.leading)
-                                .foregroundColor(.primary)
-                                .padding()
-                                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
-                                .padding(.horizontal)
-                                .frame(maxWidth: 480)
-                                .textSelection(.enabled)
-                        }
-                        HStack(spacing: 12) {
-                            Text(reason.displayText)
-                                .font(.callout)
-                                .multilineTextAlignment(.leading)
-                                .textSelection(.enabled)
-                            Spacer(minLength: 8)
-                            Button("Close") {
-                                if let onCloseSession {
-                                    onCloseSession()
-                                } else {
-                                    dismiss()
-                                }
+                Group {
+                    if viewModel.phase == .connecting || (viewModel.phase == .running && !viewModel.hasReceivedOutput) {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .controlSize(.large)
+                            if let banner = viewModel.authBanner, !banner.isEmpty {
+                                Text(Self.bannerAttributedString(banner))
+                                    .font(.callout)
+                                    .multilineTextAlignment(.leading)
+                                    .foregroundColor(.primary)
+                                    .padding()
+                                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                                    .padding(.horizontal)
+                                    .frame(maxWidth: 480)
+                                    .textSelection(.enabled)
                             }
-                            .buttonStyle(.borderedProminent)
                         }
-                        .padding()
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                        .padding()
+                    } else if case let .finished(reason) = viewModel.phase {
+                        VStack {
+                            Spacer()
+                            if let banner = viewModel.authBanner, !banner.isEmpty {
+                                Text(Self.bannerAttributedString(banner))
+                                    .font(.callout)
+                                    .multilineTextAlignment(.leading)
+                                    .foregroundColor(.primary)
+                                    .padding()
+                                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                                    .padding(.horizontal)
+                                    .frame(maxWidth: 480)
+                                    .textSelection(.enabled)
+                            }
+                            HStack(spacing: 12) {
+                                Text(reason.displayText)
+                                    .font(.callout)
+                                    .multilineTextAlignment(.leading)
+                                    .textSelection(.enabled)
+                                Spacer(minLength: 8)
+                                Button("Close") {
+                                    if let onCloseSession {
+                                        onCloseSession()
+                                    } else {
+                                        dismiss()
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                            .padding()
+                            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                            .padding()
+                        }
                     }
                 }
+                .environment(\.colorScheme, overlayColorScheme)
             }
         }
 
         private var backgroundColor: Color {
-            let themeColor = colorScheme == .dark ? viewModel.darkBackgroundColor : viewModel.lightBackgroundColor
+            if let terminalColor = viewModel.backgroundColor {
+                return Color(terminalColor)
+            }
             #if os(iOS)
-                return themeColor ?? Color(uiColor: .systemBackground)
+                return Color(uiColor: .systemBackground)
             #else
-                return themeColor ?? Color(nsColor: .windowBackgroundColor)
+                return Color(nsColor: .windowBackgroundColor)
             #endif
+        }
+
+        private var overlayColorScheme: ColorScheme {
+            guard let terminalColor = viewModel.backgroundColor else {
+                return colorScheme
+            }
+            let luminance = 0.2126 * Double(terminalColor.red) + 0.7152 * Double(terminalColor.green) + 0.0722 * Double(terminalColor.blue)
+            return luminance < 128 ? .dark : .light
         }
 
         var displayedTitle: String {
