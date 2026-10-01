@@ -247,24 +247,6 @@ public class ExtensionEnvironments: ObservableObject {
                 }
             }
             .store(in: &cancellables)
-        #if canImport(UIKit)
-            NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
-                .sink { [weak self] _ in
-                    Task { @MainActor [weak self] in
-                        guard let self, remoteServer != nil else { return }
-                        commandClient.disconnect()
-                    }
-                }
-                .store(in: &cancellables)
-            NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
-                .sink { [weak self] _ in
-                    Task { @MainActor [weak self] in
-                        guard let self, remoteServer != nil else { return }
-                        commandClient.connect()
-                    }
-                }
-                .store(in: &cancellables)
-        #endif
         if Variant.screenshotMode {
             extensionProfileLoading = false
             extensionProfile = .mock
