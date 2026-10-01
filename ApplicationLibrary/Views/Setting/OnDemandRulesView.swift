@@ -374,6 +374,9 @@ private struct OnDemandRuleEditView: View {
     private let isNew: Bool
     private let onSave: (OnDemandRule) -> Void
     private let onDelete: (() -> Void)?
+    #if os(macOS)
+        @State private var editingConnectionRule: EvaluateConnectionRule?
+    #endif
 
     init(rule: OnDemandRule, isNew: Bool, onSave: @escaping (OnDemandRule) -> Void, onDelete: (() -> Void)? = nil) {
         _rule = State(initialValue: rule)
@@ -389,9 +392,7 @@ private struct OnDemandRuleEditView: View {
         guard rule.action == .evaluateConnection else {
             return true
         }
-        return rule.connectionRules.allSatisfy { connectionRule in
-            isValidProbeURL(connectionRule.probeURL) && connectionRule.useDNSServers.allSatisfy(isValidIPAddress)
-        }
+        return rule.connectionRules.allSatisfy { domainRuleIssue($0) == nil }
     }
 
     var body: some View {
@@ -465,21 +466,39 @@ private struct OnDemandRuleEditView: View {
         #endif
         #if os(macOS)
         .formStyle(.grouped)
+        .platformSheet(item: $editingConnectionRule, size: .small) { connectionRule in
+            if let index = rule.connectionRules.firstIndex(where: { $0.id == connectionRule.id }) {
+                EvaluateConnectionRuleEditView(rule: $rule.connectionRules[index])
+            }
+        }
         #endif
     }
 
     private var domainRulesSection: some View {
         Section {
             ForEach($rule.connectionRules) { $connectionRule in
-                FormNavigationLink {
-                    EvaluateConnectionRuleEditView(rule: $connectionRule)
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(connectionRule.action.name)
-                        Text(connectionRule.matchDomains.isEmpty ? String(localized: "No domains") : listSummary(connectionRule.matchDomains))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                Group {
+                    #if os(macOS)
+                        Button {
+                            editingConnectionRule = connectionRule
+                        } label: {
+                            HStack {
+                                domainRuleLabel(connectionRule)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    #else
+                        FormNavigationLink {
+                            EvaluateConnectionRuleEditView(rule: $connectionRule)
+                        } label: {
+                            domainRuleLabel(connectionRule)
+                        }
+                    #endif
                 }
                 .contextMenu {
                     Button {
@@ -517,6 +536,21 @@ private struct OnDemandRuleEditView: View {
             Text("Domain Rules")
         } footer: {
             Text("Each new connection is checked against these rules by its destination domain, from top to bottom.")
+        }
+    }
+
+    private func domainRuleLabel(_ connectionRule: EvaluateConnectionRule) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(connectionRule.action.name)
+            if let issue = domainRuleIssue(connectionRule) {
+                Text(issue)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            } else {
+                Text(listSummary(normalizedList(connectionRule.matchDomains)))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -578,12 +612,9 @@ private struct OnDemandRuleEditView: View {
         savedRule.dnsSearchDomainMatch = normalizedList(rule.dnsSearchDomainMatch)
         savedRule.dnsServerAddressMatch = normalizedList(rule.dnsServerAddressMatch)
         savedRule.probeURL = rule.probeURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        savedRule.connectionRules = rule.connectionRules.compactMap { connectionRule in
+        savedRule.connectionRules = rule.connectionRules.map { connectionRule in
             var savedConnectionRule = connectionRule
             savedConnectionRule.matchDomains = normalizedList(connectionRule.matchDomains)
-            guard !savedConnectionRule.matchDomains.isEmpty else {
-                return nil
-            }
             savedConnectionRule.useDNSServers = normalizedList(connectionRule.useDNSServers)
             savedConnectionRule.probeURL = connectionRule.probeURL.trimmingCharacters(in: .whitespacesAndNewlines)
             return savedConnectionRule
@@ -594,6 +625,9 @@ private struct OnDemandRuleEditView: View {
 }
 
 private struct EvaluateConnectionRuleEditView: View {
+    #if os(macOS)
+        @Environment(\.dismiss) private var dismiss
+    #endif
     @Binding var rule: EvaluateConnectionRule
 
     var body: some View {
@@ -648,40 +682,53 @@ private struct EvaluateConnectionRuleEditView: View {
         #endif
         #if os(macOS)
         .formStyle(.grouped)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
         #endif
     }
 }
 
 private struct StringListRows: View {
+    private struct Row: Identifiable, Equatable {
+        let id = UUID()
+        var value: String
+    }
+
     let title: LocalizedStringKey
     let prompt: LocalizedStringKey
     let addTitle: LocalizedStringKey
     @Binding var items: [String]
-    var isValid: (String) -> Bool = { _ in true }
-    @FocusState private var focusedIndex: Int?
+    let isValid: (String) -> Bool
+    @State private var rows: [Row]
+    @FocusState private var focusedRow: UUID?
+
+    init(title: LocalizedStringKey, prompt: LocalizedStringKey, addTitle: LocalizedStringKey, items: Binding<[String]>, isValid: @escaping (String) -> Bool = { _ in true }) {
+        self.title = title
+        self.prompt = prompt
+        self.addTitle = addTitle
+        _items = items
+        self.isValid = isValid
+        _rows = State(initialValue: items.wrappedValue.map { Row(value: $0) })
+    }
 
     var body: some View {
-        ForEach(items.indices, id: \.self) { index in
+        ForEach($rows) { $row in
             HStack {
-                TextField(title, text: Binding(
-                    get: { index < items.count ? items[index] : "" },
-                    set: { newValue in
-                        if index < items.count {
-                            items[index] = newValue
-                        }
-                    }
-                ), prompt: Text(prompt))
+                TextField(title, text: $row.value, prompt: Text(prompt))
                     .labelsHidden()
-                    .foregroundColor(isValid(items[index]) ? nil : .red)
-                    .focused($focusedIndex, equals: index)
+                    .foregroundColor(isValid(row.value) ? nil : .red)
+                    .focused($focusedRow, equals: row.id)
                 #if os(iOS)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled(true)
                 #endif
                 Button {
-                    if index < items.count {
-                        items.remove(at: index)
-                    }
+                    rows.removeAll { $0.id == row.id }
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .foregroundStyle(.red)
@@ -690,20 +737,23 @@ private struct StringListRows: View {
             }
         }
         .onDelete { offsets in
-            items.remove(atOffsets: offsets)
+            rows.remove(atOffsets: offsets)
         }
         FormButton {
-            if let emptyIndex = items.firstIndex(where: { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
-                focusedIndex = emptyIndex
+            if let emptyRow = rows.first(where: { $0.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+                focusedRow = emptyRow.id
                 return
             }
-            items.append("")
-            let newIndex = items.count - 1
+            let newRow = Row(value: "")
+            rows.append(newRow)
             DispatchQueue.main.async {
-                focusedIndex = newIndex
+                focusedRow = newRow.id
             }
         } label: {
             Label(addTitle, systemImage: "plus.circle.fill")
+        }
+        .onChangeCompat(of: rows) { newValue in
+            items = newValue.map(\.value)
         }
     }
 }
@@ -750,6 +800,22 @@ private func normalizedList(_ items: [String]) -> [String] {
         }
     }
     return result
+}
+
+private func domainRuleIssue(_ rule: EvaluateConnectionRule) -> String? {
+    if normalizedList(rule.matchDomains).isEmpty {
+        return String(localized: "No domains")
+    }
+    guard rule.action == .connectIfNeeded else {
+        return nil
+    }
+    if !rule.useDNSServers.allSatisfy(isValidIPAddress) {
+        return String(localized: "Invalid IP address")
+    }
+    if !isValidProbeURL(rule.probeURL) {
+        return String(localized: "Only HTTP and HTTPS URLs are allowed")
+    }
+    return nil
 }
 
 private func isValidProbeURL(_ string: String) -> Bool {
