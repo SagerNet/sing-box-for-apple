@@ -2559,7 +2559,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"/var/jb/Applications/sing-box.app/Frameworks",
+					"@executable_path/../../Applications/sing-box.app/Frameworks",
 				);
 				MARKETING_VERSION = "1.13.0-alpha.21";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER).helper";
@@ -2584,7 +2584,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"/var/jb/Applications/sing-box.app/Frameworks",
+					"@executable_path/../../Applications/sing-box.app/Frameworks",
 				);
 				MARKETING_VERSION = "1.13.0-alpha.21";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(BASE_PACKAGE_IDENTIFIER).helper";

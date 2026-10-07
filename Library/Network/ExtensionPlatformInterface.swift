@@ -743,7 +743,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
     public func lookupSFTPServer(_ error: NSErrorPointer) -> String {
         #if JAILBREAK
-            return "\(JailbreakConfiguration.rootlessPrefix)/usr/libexec/sftp-server"
+            return JailbreakConfiguration.sftpServerPath
         #else
             error?.pointee = NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
                 NSLocalizedDescriptionKey: "lookupSFTPServer is not supported on Apple platforms",

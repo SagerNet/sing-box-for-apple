@@ -2,19 +2,26 @@
     import Foundation
 
     public enum JailbreakConfiguration {
-        /// procursus rootless prefix (palera1n / Dopamine default).
-        public static let rootlessPrefix = "/var/jb"
+        public static let roothideRoot: String? = {
+            let components = Bundle.main.bundleURL.pathComponents
+            guard let index = components.firstIndex(where: { $0.hasPrefix(".jbroot-") }) else {
+                return nil
+            }
+            return NSString.path(withComponents: Array(components[...index]))
+        }()
+
+        public static let root = roothideRoot ?? "/var/jb"
 
         public static let shellCandidates = [
-            "\(rootlessPrefix)/bin/bash",
-            "\(rootlessPrefix)/bin/zsh",
-            "\(rootlessPrefix)/bin/fish",
-            "\(rootlessPrefix)/bin/sh",
+            "\(root)/bin/bash",
+            "\(root)/bin/zsh",
+            "\(root)/bin/fish",
+            "\(root)/bin/sh",
             "/bin/sh",
         ]
 
-        public static let sftpServerPath = "\(rootlessPrefix)/usr/libexec/sftp-server"
+        public static let sftpServerPath = roothideRoot == nil ? "\(root)/usr/libexec/sftp-server" : "/usr/libexec/sftp-server"
 
-        public static let systemSSHHostKeyPath = "\(rootlessPrefix)/etc/ssh/ssh_host_ed25519_key"
+        public static let systemSSHHostKeyPath = "\(root)/etc/ssh/ssh_host_ed25519_key"
     }
 #endif

@@ -19,10 +19,15 @@ private func resolveShell(_ hint: String) -> String {
 private func resolveHomeDirectory(_ hint: String) -> String {
     let fileManager = FileManager.default
     var isDirectory: ObjCBool = false
-    if !hint.isEmpty, fileManager.fileExists(atPath: hint, isDirectory: &isDirectory), isDirectory.boolValue {
-        return hint
+    var candidates: [String] = []
+    if !hint.isEmpty {
+        if let roothideRoot = JailbreakConfiguration.roothideRoot {
+            candidates.append(roothideRoot + hint)
+        }
+        candidates.append(hint)
     }
-    for candidate in ["/var/root", "/var/mobile", "/"] where fileManager.fileExists(atPath: candidate, isDirectory: &isDirectory) && isDirectory.boolValue {
+    candidates += ["/var/root", "/var/mobile", "/"]
+    for candidate in candidates where fileManager.fileExists(atPath: candidate, isDirectory: &isDirectory) && isDirectory.boolValue {
         return candidate
     }
     return "/"

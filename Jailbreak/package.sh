@@ -15,7 +15,7 @@ APP_DISPLAY_NAME="sing-box JB"
 PRODUCT_NAME="sing-box"
 DERIVED_DATA="$REPO_ROOT/build/jailbreak/DerivedData"
 APP_SRC="$DERIVED_DATA/Build/Products/Release-iphoneos/$PRODUCT_NAME.app"
-DEB_ROOT="$REPO_ROOT/build/jailbreak/debroot"
+STAGE="$REPO_ROOT/build/jailbreak/stage"
 ENT="$REPO_ROOT/Jailbreak"
 DAEMON_BIN="$DERIVED_DATA/Build/Products/Release-iphoneos/sfajb-roothelper"
 HELPER_PLIST="io.nekohasekai.sfajb.helper.plist"
@@ -27,7 +27,7 @@ fi
 echo "Building $PRODUCT_NAME (JAILBREAK, $BASE_PACKAGE_IDENTIFIER)"
 build() {
 	xcodebuild build \
-		"${XCODEBUILD_FLAGS[@]}" \
+		${XCODEBUILD_FLAGS[@]+"${XCODEBUILD_FLAGS[@]}"} \
 		-scheme SFI \
 		-configuration Release \
 		-destination 'generic/platform=iOS' \
@@ -59,7 +59,7 @@ echo "Packaging $PRODUCT_NAME $VERSION"
 echo "Building sfajb-roothelper daemon ($VERSION)"
 build_daemon() {
 	xcodebuild build \
-		"${XCODEBUILD_FLAGS[@]}" \
+		${XCODEBUILD_FLAGS[@]+"${XCODEBUILD_FLAGS[@]}"} \
 		-scheme JailbreakDaemon \
 		-configuration Release \
 		-destination 'generic/platform=iOS' \
@@ -80,9 +80,9 @@ if [[ ! -f "$DAEMON_BIN" ]]; then
 fi
 ldid -S"$REPO_ROOT/JailbreakDaemon/RootHelper.entitlements" "$DAEMON_BIN"
 
-rm -rf "$DEB_ROOT"
-APP_DEST="$DEB_ROOT/var/jb/Applications/$PRODUCT_NAME.app"
-mkdir -p "$DEB_ROOT/var/jb/Applications" "$DEB_ROOT/var/jb/usr/libexec" "$DEB_ROOT/var/jb/Library/LaunchDaemons" "$DEB_ROOT/DEBIAN"
+rm -rf "$STAGE"
+APP_DEST="$STAGE/Applications/$PRODUCT_NAME.app"
+mkdir -p "$STAGE/Applications" "$STAGE/usr/libexec" "$STAGE/Library/LaunchDaemons"
 cp -R "$APP_SRC" "$APP_DEST"
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_DISPLAY_NAME" "$APP_DEST/Info.plist" 2>/dev/null \
@@ -98,9 +98,9 @@ cp -R "$APP_SRC" "$APP_DEST"
 rm -rf "$APP_DEST/SC_Info" "$APP_DEST/_CodeSignature" "$APP_DEST/embedded.mobileprovision" "$APP_DEST/Export.plist"
 find "$APP_DEST" -name '.DS_Store' -delete
 
-cp "$DAEMON_BIN" "$DEB_ROOT/var/jb/usr/libexec/sfajb-roothelper"
-chmod 755 "$DEB_ROOT/var/jb/usr/libexec/sfajb-roothelper"
-cp "$REPO_ROOT/JailbreakDaemon/$HELPER_PLIST" "$DEB_ROOT/var/jb/Library/LaunchDaemons/"
+cp "$DAEMON_BIN" "$STAGE/usr/libexec/sfajb-roothelper"
+chmod 755 "$STAGE/usr/libexec/sfajb-roothelper"
+cp "$REPO_ROOT/JailbreakDaemon/$HELPER_PLIST" "$STAGE/Library/LaunchDaemons/"
 
 # ldid signs per-binary: its recursive directory mode can't give nested code (the
 # appexes) distinct entitlement sets.
@@ -141,22 +141,33 @@ done <<< "$SIGN_TABLE"
 sign "$APP_DEST/$MAIN" "$ENT/App.plist"
 
 export COPYFILE_DISABLE=1
-find "$DEB_ROOT" -print0 | xargs -0 xattr -c 2>/dev/null || true
-find "$DEB_ROOT" -name '._*' -delete
-find "$DEB_ROOT" -name '.DS_Store' -delete
-
-INSTALLED_SIZE="$(du -ks "$DEB_ROOT/var" | cut -f1)"
+INSTALLED_SIZE="$(du -ks "$STAGE" | cut -f1)"
 # dpkg sorts '~' before everything, so 1.14.0~alpha.33 < 1.14.0 (the eventual release);
 # a literal '-' would parse as a Debian revision and sort *after* it, breaking upgrades.
 # A literal '~' in the replacement is tilde-expanded by bash 5, and a quoted or escaped one
 # is kept verbatim by the bash 3.2 that macOS ships as /bin/bash; only a variable works in both.
 TILDE="~"
 DEB_VERSION="${VERSION//-/$TILDE}"
-cat > "$DEB_ROOT/DEBIAN/control" <<EOF
+
+build_deb() {
+	local prefix="$1" architecture="$2"
+	local deb_root="$REPO_ROOT/build/jailbreak/debroot-$architecture"
+	local deb_out="$REPO_ROOT/build/jailbreak/SFI-${VERSION}-${architecture}.deb"
+
+	rm -rf "$deb_root"
+	mkdir -p "$deb_root$prefix" "$deb_root/DEBIAN"
+	cp -R "$STAGE/." "$deb_root$prefix/"
+	/usr/libexec/PlistBuddy -c "Set :Program $prefix/usr/libexec/sfajb-roothelper" "$deb_root$prefix/Library/LaunchDaemons/$HELPER_PLIST"
+
+	find "$deb_root" -print0 | xargs -0 xattr -c 2>/dev/null || true
+	find "$deb_root" -name '._*' -delete
+	find "$deb_root" -name '.DS_Store' -delete
+
+	cat > "$deb_root/DEBIAN/control" <<EOF
 Package: $BASE_PACKAGE_IDENTIFIER
 Name: sing-box JB
 Version: $DEB_VERSION
-Architecture: iphoneos-arm64
+Architecture: $architecture
 Installed-Size: $INSTALLED_SIZE
 Description: The universal proxy platform.
 Maintainer: nekohasekai
@@ -165,33 +176,35 @@ Section: Applications
 Depends: firmware (>= 15.0)
 EOF
 
-cat > "$DEB_ROOT/DEBIAN/postinst" <<EOF
+	cat > "$deb_root/DEBIAN/postinst" <<EOF
 #!/bin/sh
-PLIST=/var/jb/Library/LaunchDaemons/$HELPER_PLIST
+PLIST=$prefix/Library/LaunchDaemons/$HELPER_PLIST
 launchctl bootout system "\$PLIST" 2>/dev/null
 launchctl bootstrap system "\$PLIST" 2>/dev/null
-uicache -p /var/jb/Applications/sing-box.app
+uicache -p $prefix/Applications/sing-box.app
 exit 0
 EOF
 
-cat > "$DEB_ROOT/DEBIAN/prerm" <<EOF
+	cat > "$deb_root/DEBIAN/prerm" <<EOF
 #!/bin/sh
-launchctl bootout system /var/jb/Library/LaunchDaemons/$HELPER_PLIST 2>/dev/null
+launchctl bootout system $prefix/Library/LaunchDaemons/$HELPER_PLIST 2>/dev/null
 case "\$1" in
 	remove | purge)
-		uicache -u /var/jb/Applications/sing-box.app 2>/dev/null
+		uicache -u $prefix/Applications/sing-box.app 2>/dev/null
 		;;
 esac
 exit 0
 EOF
 
-chmod 755 "$DEB_ROOT/DEBIAN/postinst" "$DEB_ROOT/DEBIAN/prerm"
+	chmod 755 "$deb_root/DEBIAN/postinst" "$deb_root/DEBIAN/prerm"
 
-( cd "$DEB_ROOT" && find . -type f ! -path './DEBIAN/*' | sed 's|^\./||' | LC_ALL=C sort \
-	| while IFS= read -r f; do printf '%s  %s\n' "$(md5 -q "$f")" "$f"; done ) > "$DEB_ROOT/DEBIAN/md5sums"
-chmod 644 "$DEB_ROOT/DEBIAN/md5sums"
+	( cd "$deb_root" && find . -type f ! -path './DEBIAN/*' | sed 's|^\./||' | LC_ALL=C sort \
+		| while IFS= read -r f; do printf '%s  %s\n' "$(md5 -q "$f")" "$f"; done ) > "$deb_root/DEBIAN/md5sums"
+	chmod 644 "$deb_root/DEBIAN/md5sums"
 
-DEB_OUT="$REPO_ROOT/build/jailbreak/SFI-${VERSION}-iphoneos-arm64.deb"
+	dpkg-deb --root-owner-group -Zxz -z9 -Sextreme --build "$deb_root" "$deb_out"
+	echo "Built $deb_out"
+}
 
-dpkg-deb --root-owner-group -Zxz -z9 -Sextreme --build "$DEB_ROOT" "$DEB_OUT"
-echo "Built $DEB_OUT"
+build_deb /var/jb iphoneos-arm64
+build_deb "" iphoneos-arm64e

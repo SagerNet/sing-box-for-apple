@@ -5,7 +5,7 @@
 	<key>Label</key>
 	<string>io.nekohasekai.sfajb.helper</string>
 	<key>Program</key>
-	<string>/var/jb/usr/libexec/sfajb-roothelper</string>
+	<string>/usr/libexec/sfajb-roothelper</string>
 	<key>MachServices</key>
 	<dict>
 		<key>group.io.nekohasekai.sfajb.helper</key>
@@ -20,10 +20,5 @@
 	</dict>
 	<key>UserName</key>
 	<string>root</string>
-	<key>EnvironmentVariables</key>
-	<dict>
-		<key>PATH</key>
-		<string>/var/jb/usr/bin:/var/jb/bin:/var/jb/usr/sbin:/var/jb/sbin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-	</dict>
 </dict>
 </plist>
