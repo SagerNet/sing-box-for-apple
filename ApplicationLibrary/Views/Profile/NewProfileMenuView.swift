@@ -25,6 +25,12 @@ public struct NewProfileMenuView: View {
         self.onComplete = onComplete
     }
 
+    #if !os(tvOS)
+        private static var importContentTypes: [UTType] {
+            ["bpf", "json"].flatMap { UTType.types(tag: $0, tagClass: .filenameExtension, conformingTo: nil) }
+        }
+    #endif
+
     public var body: some View {
         #if os(macOS)
             macOSBody
@@ -60,7 +66,7 @@ public struct NewProfileMenuView: View {
             .alert($alert)
             .fileImporter(
                 isPresented: $showFileImporter,
-                allowedContentTypes: [.profile, .json],
+                allowedContentTypes: Self.importContentTypes,
                 allowsMultipleSelection: false
             ) { result in
                 handleFileImport(result)
@@ -126,7 +132,7 @@ public struct NewProfileMenuView: View {
         #if !os(tvOS)
             .fileImporter(
                 isPresented: $showFileImporter,
-                allowedContentTypes: [.profile, .json],
+                allowedContentTypes: Self.importContentTypes,
                 allowsMultipleSelection: false
             ) { result in
                 handleFileImport(result)
