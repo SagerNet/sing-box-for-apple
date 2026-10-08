@@ -56,6 +56,15 @@
       }
     },
     {
+      "identity" : "displaylink",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Lakr233/DisplayLink.git",
+      "state" : {
+        "revision" : "41bea2661e04bebcb1c4f15fc0b6197850100fdd",
+        "version" : "3.0.1"
+      }
+    },
+    {
       "identity" : "grdb.swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift",
@@ -78,17 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/libghostty-spm",
       "state" : {
-        "revision" : "37557cd6db4f8af3157f90cd3ad549d1107a9ab1",
-        "version" : "1.6.20260929"
-      }
-    },
-    {
-      "identity" : "msdisplaylink",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Lakr233/MSDisplayLink.git",
-      "state" : {
-        "revision" : "87eb0af130744c8cbe2e31b6e1a5bcd659f1c220",
-        "version" : "2.2.0"
+        "revision" : "cffef22c16dd61d22ebef539ae2ff1624db77363",
+        "version" : "2.2.2026100703"
       }
     },
     {

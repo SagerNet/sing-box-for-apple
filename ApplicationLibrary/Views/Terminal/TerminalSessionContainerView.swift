@@ -2,9 +2,6 @@
     import GhosttyTerminal
     import Library
     import SwiftUI
-    #if !targetEnvironment(macCatalyst)
-        import UIKit
-    #endif
 
     @MainActor
     struct TerminalSessionContainerView: View {
@@ -89,11 +86,7 @@
                 openURL(url)
             }
             #if !targetEnvironment(macCatalyst)
-                let extras = managed.viewModel.extras
-                extras.onRequestTextSelection = { [weak extras] request in
-                    presentTerminalSelectionSheet(request: request, in: extras?.terminalView?.window)
-                }
-                extras.onCommandKey = { key in
+                managed.viewModel.extras.onCommandKey = { key in
                     switch key {
                     case "n":
                         sessionManager.createDuplicateSession()
@@ -107,30 +100,5 @@
                 }
             #endif
         }
-
-        #if !targetEnvironment(macCatalyst)
-            @MainActor
-            private func presentTerminalSelectionSheet(request: TerminalTextSelectionRequest, in window: UIWindow?) {
-                guard var presenter = window?.rootViewController else { return }
-                while let presented = presenter.presentedViewController {
-                    presenter = presented
-                }
-                let selectionVC = TailsshTerminalSelectionViewController(
-                    text: request.text,
-                    anchorRange: request.anchorRange
-                )
-                selectionVC.onOpenURL = { url in
-                    openURL(url)
-                }
-                let nav = UINavigationController(rootViewController: selectionVC)
-                nav.modalPresentationStyle = .pageSheet
-                if let sheet = nav.sheetPresentationController {
-                    sheet.detents = [.medium(), .large()]
-                    sheet.prefersGrabberVisible = true
-                }
-                presenter.present(nav, animated: true)
-            }
-
-        #endif
     }
 #endif

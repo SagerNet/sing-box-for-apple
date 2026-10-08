@@ -62,7 +62,6 @@
                     view.controller = state.controller
                     view.configuration = state.configuration
                     view.delegate = extras
-                    extras.terminalView = view
                     return view
                 }
 
@@ -73,7 +72,6 @@
                     view.configuration = state.configuration
                     if view.delegate !== extras {
                         view.delegate = extras
-                        extras.terminalView = view
                     }
                     if isActive, !view.isFirstResponder {
                         view.becomeFirstResponder()
