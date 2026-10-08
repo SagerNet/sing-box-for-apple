@@ -149,6 +149,28 @@ public class ExtensionProfile: ObservableObject {
         try await manager.saveToPreferences()
     }
 
+    private func applyProtocolConfiguration() async {
+        #if !os(tvOS)
+            guard let protocolConfiguration = manager?.protocolConfiguration else { return }
+            protocolConfiguration.includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
+            protocolConfiguration.excludeLocalNetworks = await SharedPreferences.excludeLocalNetworks.get()
+            protocolConfiguration.enforceRoutes = await SharedPreferences.enforceRoutes.get()
+            if #available(iOS 16.4, macOS 13.3, *) {
+                protocolConfiguration.excludeAPNs = await SharedPreferences.excludeAPNs.get()
+                protocolConfiguration.excludeCellularServices = await SharedPreferences.excludeCellularServices.get()
+            }
+            if #available(iOS 17.4, macOS 14.4, *) {
+                protocolConfiguration.excludeDeviceCommunication = await SharedPreferences.excludeDeviceCommunication.get()
+            }
+        #endif
+    }
+
+    public func updateProtocolConfiguration() async throws {
+        guard let manager else { return }
+        await applyProtocolConfiguration()
+        try await manager.saveToPreferences()
+    }
+
     @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
     public func fetchLastDisconnectError() async throws {
         guard let connection else { return }
@@ -168,8 +190,8 @@ public class ExtensionProfile: ObservableObject {
         manager.isEnabled = true
         let alwaysOn = await SharedPreferences.alwaysOn.get()
         let onDemandEnabled = await SharedPreferences.onDemandEnabled.get()
-        if alwaysOn || onDemandEnabled {
-            manager.isOnDemandEnabled = true
+        manager.isOnDemandEnabled = alwaysOn || onDemandEnabled
+        if manager.isOnDemandEnabled {
             await setOnDemandRules(useDefaultRules: alwaysOn)
         }
         if let proto = manager.protocolConfiguration as? NETunnelProviderProtocol {
@@ -178,21 +200,7 @@ public class ExtensionProfile: ObservableObject {
                 proto.providerConfiguration = config
             }
         }
-        #if !os(tvOS)
-            if let protocolConfiguration = manager.protocolConfiguration {
-                let includeAllNetworks = await SharedPreferences.includeAllNetworks.get()
-                protocolConfiguration.includeAllNetworks = includeAllNetworks
-                protocolConfiguration.excludeLocalNetworks = await SharedPreferences.excludeLocalNetworks.get()
-                protocolConfiguration.enforceRoutes = await SharedPreferences.enforceRoutes.get()
-                if #available(iOS 16.4, macOS 13.3, *) {
-                    protocolConfiguration.excludeAPNs = await SharedPreferences.excludeAPNs.get()
-                    protocolConfiguration.excludeCellularServices = await SharedPreferences.excludeCellularServices.get()
-                }
-                if #available(iOS 17.4, macOS 14.4, *) {
-                    protocolConfiguration.excludeDeviceCommunication = await SharedPreferences.excludeDeviceCommunication.get()
-                }
-            }
-        #endif
+        await applyProtocolConfiguration()
         try await manager.saveToPreferences()
         let options = try await prepareStartOptions()
         try manager.connection.startVPNTunnel(options: options)

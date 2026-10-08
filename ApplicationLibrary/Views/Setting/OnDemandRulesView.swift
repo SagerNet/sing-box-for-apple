@@ -287,7 +287,7 @@ public struct OnDemandRulesView: View {
             Task {
                 do {
                     try await SharedPreferences.resetOnDemandRules()
-                    await updateService()
+                    await updateService(.disabled)
                     isLoading = true
                 } catch {
                     alert = AlertState(action: "reset on-demand rules", error: error)
@@ -328,16 +328,16 @@ public struct OnDemandRulesView: View {
         let onDemandEnabled = newMode == .enabled
         await SharedPreferences.alwaysOn.set(alwaysOn)
         await SharedPreferences.onDemandEnabled.set(onDemandEnabled)
-        await updateService()
+        await updateService(newMode)
     }
 
-    private func updateService() async {
-        guard let profile = environments.extensionProfile, profile.status.isConnected else {
+    private func updateService(_ newMode: OnDemandMode) async {
+        guard let profile = environments.extensionProfile, newMode == .disabled || profile.status.isConnected else {
             return
         }
         do {
-            let enabled = mode != .disabled
-            try await profile.updateOnDemand(enabled: enabled, useDefaultRules: mode == .alwaysOn)
+            let enabled = newMode != .disabled
+            try await profile.updateOnDemand(enabled: enabled, useDefaultRules: newMode == .alwaysOn)
         } catch {
             alert = AlertState(action: "update on-demand rules", error: error)
         }
@@ -350,7 +350,7 @@ public struct OnDemandRulesView: View {
             alert = AlertState(errorMessage: String(localized: "Failed to save rules"))
             return
         }
-        await updateService()
+        await updateService(mode)
     }
 
     private func loadSettings() async {

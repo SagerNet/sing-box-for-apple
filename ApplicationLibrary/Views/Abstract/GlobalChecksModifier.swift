@@ -170,6 +170,7 @@ public struct GlobalChecksModifier: ViewModifier {
     @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
     private nonisolated func checkLastDisconnectError(profile: ExtensionProfile) async {
         if let alertState = await profile.checkLastDisconnectError() {
+            try? await profile.stop()
             await MainActor.run {
                 alert = alertState
             }

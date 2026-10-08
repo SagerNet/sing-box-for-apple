@@ -33,7 +33,7 @@ struct PacketTunnelView: View {
                         [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3131931-includeallnetworks)
                         """, $includeAllNetworks) { newValue in
                             await SharedPreferences.includeAllNetworks.set(newValue)
-                            await restartService()
+                            await applySettings()
                         }
 
                         if #available(iOS 16.4, macOS 13.3, *) {
@@ -43,7 +43,7 @@ struct PacketTunnelView: View {
                             [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140516-excludeapns)
                             """, $excludeAPNs) { newValue in
                                 await SharedPreferences.excludeAPNs.set(newValue)
-                                await restartService()
+                                await applySettings()
                             }
 
                             FormToggle("excludeCellularServices", """
@@ -52,7 +52,7 @@ struct PacketTunnelView: View {
                             [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/4140517-excludecellularservices)
                             """, $excludeCellularServices) { newValue in
                                 await SharedPreferences.excludeCellularServices.set(newValue)
-                                await restartService()
+                                await applySettings()
                             }
                         }
 
@@ -62,7 +62,7 @@ struct PacketTunnelView: View {
                         [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3143658-excludelocalnetworks)
                         """, $excludeLocalNetworks) { newValue in
                             await SharedPreferences.excludeLocalNetworks.set(newValue)
-                            await restartService()
+                            await applySettings()
                         }
 
                         FormToggle("enforceRoutes", """
@@ -73,7 +73,7 @@ struct PacketTunnelView: View {
                         [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/3689459-enforceroutes)
                         """, $enforceRoutes) { newValue in
                             await SharedPreferences.enforceRoutes.set(newValue)
-                            await restartService()
+                            await applySettings()
                         }
 
                         if #available(iOS 17.4, macOS 14.4, *) {
@@ -83,7 +83,7 @@ struct PacketTunnelView: View {
                             [Apple Documentation](https://developer.apple.com/documentation/networkextension/nevpnprotocol/excludedevicecommunication)
                             """, $excludeDeviceCommunication) { newValue in
                                 await SharedPreferences.excludeDeviceCommunication.set(newValue)
-                                await restartService()
+                                await applySettings()
                             }
                         }
 
@@ -92,7 +92,7 @@ struct PacketTunnelView: View {
                     FormButton {
                         Task {
                             await SharedPreferences.resetPacketTunnel()
-                            await restartService()
+                            await applySettings()
                             isLoading = true
                         }
                     } label: {
@@ -109,8 +109,16 @@ struct PacketTunnelView: View {
         #endif
     }
 
-    private func restartService() async {
-        guard let profile = environments.extensionProfile, profile.status.isConnected else {
+    private func applySettings() async {
+        guard let profile = environments.extensionProfile else {
+            return
+        }
+        if !profile.status.isConnected {
+            do {
+                try await profile.updateProtocolConfiguration()
+            } catch {
+                alert = AlertState(action: "update packet tunnel settings", error: error)
+            }
             return
         }
         do {
