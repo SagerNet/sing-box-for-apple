@@ -15,6 +15,7 @@
         TerminalSurfacePwdDelegate,
         TerminalSurfaceCommandFinishedDelegate,
         TerminalSurfaceLifecycleDelegate,
+        TerminalSurfaceColorChangeDelegate,
         TerminalSurfaceOpenURLDelegate,
         TerminalSurfaceHoverLinkDelegate,
         TerminalSurfaceProgressReportDelegate
@@ -79,6 +80,10 @@
 
         public func terminalDidDetachSurface() {
             state?.terminalDidDetachSurface()
+        }
+
+        public func terminalDidChangeColor(_ change: TerminalColorChange) {
+            state?.terminalDidChangeColor(change)
         }
 
         public func terminalDidRequestOpenURL(_ url: String, kind: TerminalOpenURLKind) {
