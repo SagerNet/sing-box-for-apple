@@ -109,11 +109,7 @@
         }
 
         func registerUserServiceEndpoint(_ endpoint: NSXPCListenerEndpoint?, reply: @escaping (NSError?) -> Void) {
-            if let endpoint {
-                UserServiceEndpointRegistry.shared.update(endpoint)
-            } else {
-                UserServiceEndpointRegistry.shared.clear()
-            }
+            UserServiceClient.shared.updateEndpoint(endpoint)
             reply(nil)
             guard endpoint != nil, let commandServer = service.commandServer, commandServer.needWIFIState() else {
                 return

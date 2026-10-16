@@ -44,151 +44,104 @@
 
         private init() {}
 
-        private func getConnection() -> NSXPCConnection? {
+        func updateEndpoint(_ endpoint: NSXPCListenerEndpoint?) {
+            var newConnection: NSXPCConnection?
+            if let endpoint {
+                let endpointConnection = NSXPCConnection(listenerEndpoint: endpoint)
+                let remoteInterface = NSXPCInterface(with: UserServiceProtocol.self)
+                UserServiceXPC.configureInterface(remoteInterface)
+                endpointConnection.remoteObjectInterface = remoteInterface
+                endpointConnection.invalidationHandler = { [weak self, weak endpointConnection] in
+                    guard let self else { return }
+                    connectionLock.lock()
+                    if connection === endpointConnection {
+                        connection = nil
+                    }
+                    connectionLock.unlock()
+                }
+                endpointConnection.resume()
+                newConnection = endpointConnection
+            }
             connectionLock.lock()
-            defer { connectionLock.unlock() }
-
-            if let existing = connection {
-                return existing
-            }
-
-            guard let endpoint = UserServiceEndpointRegistry.shared.get() else {
-                logger.error("UserService endpoint unavailable")
-                return nil
-            }
-
-            let newConnection = NSXPCConnection(listenerEndpoint: endpoint)
-            let remoteInterface = NSXPCInterface(with: UserServiceProtocol.self)
-            UserServiceXPC.configureInterface(remoteInterface)
-            newConnection.remoteObjectInterface = remoteInterface
-
-            newConnection.invalidationHandler = { [weak self] in
-                guard let self else { return }
-                connectionLock.lock()
-                connection = nil
-                connectionLock.unlock()
-            }
-
-            newConnection.resume()
+            let oldConnection = connection
             connection = newConnection
-            return newConnection
+            connectionLock.unlock()
+            oldConnection?.invalidate()
         }
 
-        private func getProxy() -> UserServiceProtocol? {
-            guard let conn = getConnection() else {
-                return nil
-            }
-            guard let proxy = conn.remoteObjectProxyWithErrorHandler { [weak self] error in
-                guard let self else { return }
-                logger.error("UserService XPC error: \(error.localizedDescription)")
-                connectionLock.lock()
-                connection = nil
-                connectionLock.unlock()
-            } as? UserServiceProtocol else {
-                connectionLock.lock()
-                connection = nil
-                connectionLock.unlock()
-                conn.invalidate()
-                return nil
-            }
-            return proxy
-        }
-
-        private func performXPCCallVoid(
+        private func call(
             _ operation: String,
-            call: (UserServiceProtocol, @escaping (NSError?) -> Void) -> Void
+            _ body: (UserServiceProtocol, @escaping (NSError?) -> Void) -> Void
         ) throws {
-            let semaphore = DispatchSemaphore(value: 0)
-            var resultError: NSError?
-
-            guard let proxy = getProxy() else {
+            connectionLock.lock()
+            let currentConnection = connection
+            connectionLock.unlock()
+            guard let currentConnection else {
+                logger.error("\(operation): no UserService connection")
                 throw NSError(domain: "UserService", code: -1, userInfo: [
                     NSLocalizedDescriptionKey: "UserService connection unavailable",
                 ])
             }
 
-            call(proxy) { error in
+            let semaphore = DispatchSemaphore(value: 0)
+            var resultError: NSError?
+            let proxy = currentConnection.remoteObjectProxyWithErrorHandler { error in
+                resultError = error as NSError
+                semaphore.signal()
+            } as! UserServiceProtocol
+            body(proxy) { error in
                 resultError = error
                 semaphore.signal()
             }
 
-            let deadline = DispatchTime.now() + .seconds(5)
-            if semaphore.wait(timeout: deadline) == .timedOut {
-                let error = NSError(domain: "UserService", code: -1, userInfo: [
+            if semaphore.wait(timeout: .now() + .seconds(5)) == .timedOut {
+                logger.error("\(operation): timeout")
+                throw NSError(domain: "UserService", code: -1, userInfo: [
                     NSLocalizedDescriptionKey: "\(operation) request timeout",
                 ])
-                logger.error("\(operation): timeout")
-                throw error
             }
-
-            if let error = resultError {
-                logger.error("\(operation) error: \(error.localizedDescription)")
-                throw error
+            if let resultError {
+                logger.error("\(operation) error: \(resultError.localizedDescription)")
+                throw resultError
             }
         }
 
         public func readWIFIState() -> LibboxWIFIState? {
-            let semaphore = DispatchSemaphore(value: 0)
-            var resultSSID: String?
-            var resultBSSID: String?
-
-            guard let proxy = getProxy() else {
-                logger.error("readWIFIState: no UserService connection")
-                return nil
-            }
-
-            proxy.getWIFIState { ssid, bssid, error in
-                if let error {
-                    logger.error("readWIFIState error: \(error.localizedDescription)")
-                } else {
-                    resultSSID = ssid
-                    resultBSSID = bssid
+            var state: LibboxWIFIState?
+            do {
+                try call("readWIFIState") { proxy, reply in
+                    proxy.getWIFIState { ssid, bssid, error in
+                        if let ssid, let bssid {
+                            state = LibboxWIFIState(ssid, wifiBSSID: bssid)
+                        }
+                        reply(error)
+                    }
                 }
-                semaphore.signal()
-            }
-
-            let timeout = DispatchTime.now() + .seconds(5)
-            if semaphore.wait(timeout: timeout) == .timedOut {
-                logger.error("readWIFIState: timeout")
+            } catch {
                 return nil
             }
-
-            guard let ssid = resultSSID, let bssid = resultBSSID else {
-                return nil
-            }
-
-            return LibboxWIFIState(ssid, wifiBSSID: bssid)
+            return state
         }
 
         public func connectSSHAgent() -> Int32? {
-            let semaphore = DispatchSemaphore(value: 0)
-            var resultFD: Int32?
-
-            guard let proxy = getProxy() else {
-                logger.error("connectSSHAgent: no UserService connection")
-                return nil
-            }
-
-            proxy.connectSSHAgent { handle, error in
-                if let error {
-                    logger.error("connectSSHAgent error: \(error.localizedDescription)")
-                } else if let handle {
-                    resultFD = dup(handle.fileDescriptor)
+            var fd: Int32?
+            do {
+                try call("connectSSHAgent") { proxy, reply in
+                    proxy.connectSSHAgent { handle, error in
+                        if error == nil, let handle {
+                            fd = dup(handle.fileDescriptor)
+                        }
+                        reply(error)
+                    }
                 }
-                semaphore.signal()
-            }
-
-            let timeout = DispatchTime.now() + .seconds(5)
-            if semaphore.wait(timeout: timeout) == .timedOut {
-                logger.error("connectSSHAgent: timeout")
+            } catch {
                 return nil
             }
-
-            return resultFD
+            return fd
         }
 
         public func sendNotification(_ notification: LibboxNotification) throws {
-            try performXPCCallVoid("sendNotification") { proxy, reply in
+            try call("sendNotification") { proxy, reply in
                 proxy.sendNotification(
                     identifier: notification.identifier,
                     typeName: notification.typeName,
@@ -203,7 +156,7 @@
         }
 
         public func cancelNotification(_ identifier: String) throws {
-            try performXPCCallVoid("cancelNotification") { proxy, reply in
+            try call("cancelNotification") { proxy, reply in
                 proxy.cancelNotification(identifier: identifier, reply: reply)
             }
         }

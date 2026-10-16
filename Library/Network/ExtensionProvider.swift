@@ -338,7 +338,6 @@ open class ExtensionProvider: NEPacketTunnelProvider {
                 xpcListener = nil
                 xpcService.commandServer = nil
                 xpcService = nil
-                UserServiceEndpointRegistry.shared.clear()
             }
             locationManager = nil
             locationDelegate = nil
