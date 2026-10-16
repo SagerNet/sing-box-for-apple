@@ -101,7 +101,7 @@
         }
 
         private func registerEndpoint(_ endpoint: NSXPCListenerEndpoint?) {
-            let machServiceName = AppConfiguration.appGroupID + ".system"
+            let machServiceName = AppConfiguration.systemExtensionMachServiceName
             let connection = NSXPCConnection(machServiceName: machServiceName)
             let remoteInterface = NSXPCInterface(with: CommandXPCProtocol.self)
             CommandXPC.configureInterface(remoteInterface)

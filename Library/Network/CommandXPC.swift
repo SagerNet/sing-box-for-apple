@@ -115,6 +115,12 @@
                 UserServiceEndpointRegistry.shared.clear()
             }
             reply(nil)
+            guard endpoint != nil, let commandServer = service.commandServer, commandServer.needWIFIState() else {
+                return
+            }
+            DispatchQueue.global().async {
+                commandServer.updateWIFIState()
+            }
         }
 
         func extensionRequirements(reply: @escaping (Bool, Bool, NSError?) -> Void) {
