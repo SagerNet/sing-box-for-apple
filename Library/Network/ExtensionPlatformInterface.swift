@@ -270,10 +270,6 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Not implemented")])
     }
 
-    public func useProcFS() -> Bool {
-        false
-    }
-
     public func writeLog(_ message: String?) {
         guard let message else {
             return
