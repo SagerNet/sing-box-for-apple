@@ -93,9 +93,6 @@ public struct StartStopButton: View {
                         if isStarting {
                             if status == .disconnected {
                                 isStarting = false
-                                if #available(iOS 16.0, macOS 13.0, tvOS 17.0, *) {
-                                    await checkStartupError()
-                                }
                             } else if status.isConnectedStrict {
                                 isStarting = false
                                 environments.commandClient.connect()
@@ -103,13 +100,6 @@ public struct StartStopButton: View {
                         }
                     }
                 }
-        }
-
-        @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
-        private func checkStartupError() async {
-            if let alertState = await profile.checkLastDisconnectError() {
-                alert = alertState
-            }
         }
 
         private nonisolated func switchProfile(_ isEnabled: Bool) async {
