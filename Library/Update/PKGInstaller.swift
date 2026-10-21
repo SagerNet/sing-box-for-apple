@@ -14,19 +14,28 @@
             UnsafeMutablePointer<UnsafeMutablePointer<FILE>?>?
         ) -> OSStatus
 
-        public static func authorize() throws -> AuthorizationRef {
+        public static func authorize() async throws -> AuthorizationRef {
             var authRef: AuthorizationRef?
             var status = AuthorizationCreate(nil, nil, [], &authRef)
             guard status == errAuthorizationSuccess, let authRef else {
                 throw PKGInstallerError.authorizationFailed
             }
 
-            let rightName = kAuthorizationRightExecute
-            var item = AuthorizationItem(name: rightName, valueLength: 0, value: nil, flags: 0)
-            withUnsafeMutablePointer(to: &item) { itemPtr in
-                var rights = AuthorizationRights(count: 1, items: itemPtr)
-                let flags: AuthorizationFlags = [.interactionAllowed, .extendRights, .preAuthorize]
-                status = AuthorizationCopyRights(authRef, &rights, nil, flags, nil)
+            status = await withCheckedContinuation { continuation in
+                kAuthorizationRightExecute.withCString { rightName in
+                    var item = AuthorizationItem(name: rightName, valueLength: 0, value: nil, flags: 0)
+                    withUnsafeMutablePointer(to: &item) { itemPtr in
+                        var rights = AuthorizationRights(count: 1, items: itemPtr)
+                        let flags: AuthorizationFlags = [.interactionAllowed, .extendRights, .preAuthorize]
+                        // Security copies rights into its XPC message before returning, and calls back twice only when building that message fails (NULL reference or allocation failure).
+                        AuthorizationCopyRightsAsync(authRef, &rights, nil, flags) { copyStatus, authorizedRights in
+                            if let authorizedRights {
+                                AuthorizationFreeItemSet(authorizedRights)
+                            }
+                            continuation.resume(returning: copyStatus)
+                        }
+                    }
+                }
             }
             guard status == errAuthorizationSuccess else {
                 if status == errAuthorizationCanceled {

@@ -109,7 +109,7 @@
 
                 var authRef: AuthorizationRef?
                 if !helperAvailable {
-                    authRef = try PKGInstaller.authorize()
+                    authRef = try await PKGInstaller.authorize()
                 }
 
                 var profile = environments.extensionProfile
