@@ -27,9 +27,6 @@ import SwiftUI
             viewModel.onCancel = { [weak self] in
                 self?.extensionContext?.cancelRequest(withError: CocoaError(.userCancelled))
             }
-            viewModel.onOpenApplication = { [weak self] url in
-                self?.extensionContext?.open(url)
-            }
         }
     }
 
@@ -60,9 +57,6 @@ import SwiftUI
             }
             viewModel.onCancel = { [weak self] in
                 self?.extensionContext?.cancelRequest(withError: CocoaError(.userCancelled))
-            }
-            viewModel.onOpenApplication = { url in
-                NSWorkspace.shared.open(url)
             }
         }
     }

@@ -57,9 +57,11 @@ struct ShareView: View {
                     .foregroundStyle(.secondary)
                 Text(unavailableMessage)
                     .multilineTextAlignment(.center)
-                Button("Open sing-box") {
-                    viewModel.openApplication()
-                }
+                #if os(macOS)
+                    Button("Open sing-box") {
+                        viewModel.openApplication()
+                    }
+                #endif
             }
         } else {
             List {

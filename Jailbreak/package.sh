@@ -113,6 +113,7 @@ PlugIns/Extension.appex/Extension|Extension.plist
 PlugIns/FileProviderExtension.appex/FileProviderExtension|FileProvider.plist
 PlugIns/WidgetExtension.appex/WidgetExtension|Widget.plist
 PlugIns/ShareExtension.appex/ShareExtension|Share.plist
+PlugIns/ActionExtension.appex/ActionExtension|Action.plist
 Extensions/IntentsExtension.appex/IntentsExtension|Intents.plist"
 
 is_entitled() {

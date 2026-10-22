@@ -707,6 +707,7 @@
 		3AF7B0042FF10001000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Info-iOS.plist",
 				Info.plist,
 			);
 			target = 3AF7B0012FF10001000A0001 /* ShareExtension */;
@@ -721,6 +722,7 @@
 		3AF7B1152FF10002000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Info-iOS.plist",
 				Info.plist,
 			);
 			target = 3AF7B1012FF10002000A0001 /* ActionExtension */;
@@ -735,6 +737,7 @@
 		3AF7B2152FF10003000A0001 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Info-iOS.plist",
 				Info.plist,
 			);
 			target = 3AF7B2012FF10003000A0001 /* ShareExtension.System */;
@@ -3617,6 +3620,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
+				"INFOPLIST_FILE[sdk=iphone*]" = "ShareExtension/Info-iOS.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "sing-box";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -3656,6 +3660,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
+				"INFOPLIST_FILE[sdk=iphone*]" = "ShareExtension/Info-iOS.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "sing-box";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;

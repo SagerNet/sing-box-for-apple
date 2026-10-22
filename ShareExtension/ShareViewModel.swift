@@ -2,6 +2,10 @@ import Foundation
 import Library
 import UniformTypeIdentifiers
 
+#if os(macOS)
+    import AppKit
+#endif
+
 @MainActor
 final class ShareViewModel: ObservableObject {
     @Published private(set) var files: [TaildropSendFile] = []
@@ -14,7 +18,6 @@ final class ShareViewModel: ObservableObject {
 
     var onFinish: (() -> Void)?
     var onCancel: (() -> Void)?
-    var onOpenApplication: ((URL) -> Void)?
 
     private var loaded = false
     private var session: TaildropSendSession?
@@ -142,10 +145,12 @@ final class ShareViewModel: ObservableObject {
         onCancel?()
     }
 
-    func openApplication() {
-        onOpenApplication?(URL(string: "sing-box://taildrop")!)
-        cancel()
-    }
+    #if os(macOS)
+        func openApplication() {
+            NSWorkspace.shared.open(URL(string: "sing-box://taildrop")!)
+            cancel()
+        }
+    #endif
 
     private func mutateFile(_ fileIndex: Int32, _ mutate: (inout TaildropSendFile) -> Void) {
         let position = Int(fileIndex)
