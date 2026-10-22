@@ -90,6 +90,11 @@ public struct TailscaleExitNodePickerView: View {
         .searchable(text: $searchText)
         #endif
         .navigationTitle("Exit Node")
+        .onChangeCompat(of: endpoint?.backendState != "Running") { notRunning in
+            if notRunning {
+                dismiss()
+            }
+        }
     }
 
     private func select(stableID: String) {

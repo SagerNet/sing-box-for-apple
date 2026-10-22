@@ -23,10 +23,6 @@ public struct TailscaleEndpointView: View {
         viewModel.endpoint(tag: endpointTag)
     }
 
-    private var canShareFiles: Bool {
-        endpoint?.canShareFiles ?? false
-    }
-
     private var navigationTitleKey: LocalizedStringKey {
         viewModel.endpoints.count > 1 ? "Tailscale: \(endpointTag)" : "Tailscale"
     }
@@ -45,7 +41,7 @@ public struct TailscaleEndpointView: View {
                     }
                     if endpoint.backendState == "Running", let selfPeer = endpoint.selfPeer {
                         FormNavigationLink {
-                            TailscalePeerView(peer: selfPeer, endpointTag: endpointTag, isSelf: true, canShareFiles: endpoint.canShareFiles, networkName: endpoint.networkName, canLogout: !endpoint.keyAuth, logoutModel: viewModel)
+                            TailscalePeerView(viewModel: viewModel, endpointTag: endpointTag, stableID: selfPeer.stableID)
                         } label: {
                             HStack {
                                 Label("This Device", systemImage: "laptopcomputer")
@@ -113,7 +109,7 @@ public struct TailscaleEndpointView: View {
                 ForEach(endpoint.userGroups) { group in
                     Section {
                         ForEach(group.peers) { peer in
-                            peerLink(peer, isSelf: false)
+                            peerLink(peer)
                         }
                     } header: {
                         Text(group.displayName.isEmpty ? group.loginName : group.displayName)
@@ -145,9 +141,9 @@ public struct TailscaleEndpointView: View {
         #endif
     }
 
-    private func peerLink(_ peer: TailscalePeerData, isSelf: Bool) -> some View {
+    private func peerLink(_ peer: TailscalePeerData) -> some View {
         FormNavigationLink {
-            TailscalePeerView(peer: peer, endpointTag: endpointTag, isSelf: isSelf, canShareFiles: canShareFiles)
+            TailscalePeerView(viewModel: viewModel, endpointTag: endpointTag, stableID: peer.stableID)
         } label: {
             HStack {
                 Image(systemName: "circle.fill")
@@ -173,7 +169,7 @@ public struct TailscaleEndpointView: View {
         }
         #if !os(tvOS)
         .contextMenu {
-            if !peer.sshHostKeys.isEmpty, peer.online, !isSelf, !peer.tailscaleIPs.isEmpty {
+            if !peer.sshHostKeys.isEmpty, peer.online, !peer.tailscaleIPs.isEmpty {
                 Button {
                     handleSSHFromPeerList(peer)
                 } label: {

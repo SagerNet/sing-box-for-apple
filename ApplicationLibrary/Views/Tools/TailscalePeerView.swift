@@ -10,14 +10,11 @@ import SwiftUI
 
 @MainActor
 public struct TailscalePeerView: View {
-    let peer: TailscalePeerData
+    @ObservedObject var viewModel: TailscaleStatusViewModel
     let endpointTag: String
-    let isSelf: Bool
-    let canShareFiles: Bool
-    let networkName: String
-    let canLogout: Bool
-    let logoutModel: TailscaleStatusViewModel?
+    let stableID: String
 
+    @Environment(\.dismiss) private var dismiss
     @State private var copiedAddress: String?
     @StateObject private var pingViewModel = TailscalePingViewModel()
     #if !os(tvOS)
@@ -26,192 +23,208 @@ public struct TailscalePeerView: View {
         @State private var pendingSSHSession: TailscaleSSHPresentedSession?
     #endif
 
-    public init(peer: TailscalePeerData, endpointTag: String, isSelf: Bool, canShareFiles: Bool = false, networkName: String = "", canLogout: Bool = false, logoutModel: TailscaleStatusViewModel? = nil) {
-        self.peer = peer
+    public init(viewModel: TailscaleStatusViewModel, endpointTag: String, stableID: String) {
+        self.viewModel = viewModel
         self.endpointTag = endpointTag
-        self.isSelf = isSelf
-        self.canShareFiles = canShareFiles
-        self.networkName = networkName
-        self.canLogout = canLogout
-        self.logoutModel = logoutModel
+        self.stableID = stableID
+    }
+
+    private var endpoint: TailscaleEndpointData? {
+        viewModel.endpoint(tag: endpointTag)
+    }
+
+    private var isSelf: Bool {
+        endpoint?.selfPeer?.stableID == stableID
+    }
+
+    private var peer: TailscalePeerData? {
+        guard let endpoint else { return nil }
+        if isSelf {
+            return endpoint.backendState == "Running" ? endpoint.selfPeer : nil
+        }
+        return endpoint.userGroups.lazy.flatMap(\.peers).first { $0.stableID == stableID }
     }
 
     public var body: some View {
         FormView {
-            if isSelf, !networkName.isEmpty || (canLogout && logoutModel != nil) {
-                Section("Network") {
-                    if !networkName.isEmpty {
-                        addressRow(networkName, label: "Network")
-                    }
-                    if canLogout, let logoutModel {
-                        FormButton(role: .destructive) {
-                            Task {
-                                await logoutModel.logout(endpointTag: endpointTag)
+            if let endpoint, let peer {
+                if isSelf, !endpoint.networkName.isEmpty || !endpoint.keyAuth {
+                    Section("Network") {
+                        if !endpoint.networkName.isEmpty {
+                            addressRow(endpoint.networkName, label: "Network")
+                        }
+                        if !endpoint.keyAuth {
+                            FormButton(role: .destructive) {
+                                Task {
+                                    await viewModel.logout(endpointTag: endpointTag)
+                                }
+                            } label: {
+                                Label("Log out", systemImage: "rectangle.portrait.and.arrow.right").foregroundColor(.red)
                             }
-                        } label: {
-                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right").foregroundColor(.red)
                         }
                     }
                 }
-            }
-            Section("Tailscale Addresses") {
-                if !peer.dnsName.isEmpty {
-                    addressRow(LibboxFormatFQDN(peer.dnsName), label: "MagicDNS")
-                }
-                if !peer.hostName.isEmpty {
-                    addressRow(peer.hostName, label: String(localized: "Hostname"))
-                }
-                ForEach(Array(peer.tailscaleIPs.enumerated()), id: \.offset) { _, ip in
-                    if ip.contains(":") {
-                        addressRow(ip, label: "IPv6")
-                    } else {
-                        addressRow(ip, label: "IPv4")
+                Section("Tailscale Addresses") {
+                    if !peer.dnsName.isEmpty {
+                        addressRow(LibboxFormatFQDN(peer.dnsName), label: "MagicDNS")
+                    }
+                    if !peer.hostName.isEmpty {
+                        addressRow(peer.hostName, label: String(localized: "Hostname"))
+                    }
+                    ForEach(Array(peer.tailscaleIPs.enumerated()), id: \.offset) { _, ip in
+                        if ip.contains(":") {
+                            addressRow(ip, label: "IPv6")
+                        } else {
+                            addressRow(ip, label: "IPv4")
+                        }
                     }
                 }
-            }
 
-            if !isSelf, peer.online, let peerIP = peer.tailscaleIPs.first {
-                Section {
-                    if pingViewModel.hasResult {
-                        connectionTypeRow
-                        if pingViewModel.isDirect, !pingViewModel.endpoint.isEmpty {
-                            FormTextItem("Endpoint", pingViewModel.endpoint)
+                if !isSelf, peer.online, let peerIP = peer.tailscaleIPs.first {
+                    Section {
+                        if pingViewModel.hasResult {
+                            connectionTypeRow
+                            if pingViewModel.isDirect, !pingViewModel.endpoint.isEmpty {
+                                FormTextItem("Endpoint", pingViewModel.endpoint)
+                            }
+                            if !pingViewModel.isDirect, !pingViewModel.peerRelay.isEmpty {
+                                FormTextItem("Peer relay", pingViewModel.peerRelay)
+                            }
+                            if !pingViewModel.isDirect, pingViewModel.peerRelay.isEmpty, !pingViewModel.derpRegionCode.isEmpty {
+                                FormTextItem("DERP region", pingViewModel.derpRegionCode)
+                            }
                         }
-                        if !pingViewModel.isDirect, !pingViewModel.peerRelay.isEmpty {
-                            FormTextItem("Peer relay", pingViewModel.peerRelay)
+                        if pingViewModel.isRunning, pingViewModel.hasResult {
+                            pingChartView
                         }
-                        if !pingViewModel.isDirect, pingViewModel.peerRelay.isEmpty, !pingViewModel.derpRegionCode.isEmpty {
-                            FormTextItem("DERP region", pingViewModel.derpRegionCode)
-                        }
-                    }
-                    if pingViewModel.isRunning, pingViewModel.hasResult {
-                        pingChartView
-                    }
-                    if !pingViewModel.pingError.isEmpty {
-                        Text(pingViewModel.pingError)
-                            .foregroundStyle(.red)
-                    } else if pingViewModel.isRunning, !pingViewModel.hasResult {
-                        HStack(spacing: 8) {
-                            ProgressView()
-                                .controlSize(.small)
-                            Text("Connecting...")
+                        if !pingViewModel.pingError.isEmpty {
+                            Text(pingViewModel.pingError)
+                                .foregroundStyle(.red)
+                        } else if pingViewModel.isRunning, !pingViewModel.hasResult {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Connecting...")
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else if !pingViewModel.hasResult {
+                            Text("No data")
                                 .foregroundStyle(.secondary)
                         }
-                    } else if !pingViewModel.hasResult {
-                        Text("No data")
-                            .foregroundStyle(.secondary)
-                    }
-                } header: {
-                    HStack {
-                        Text("Ping")
-                        Spacer()
-                        ActionIconButton(pingViewModel.isRunning ? "stop.fill" : "play.fill") {
-                            if pingViewModel.isRunning {
-                                pingViewModel.stop()
-                            } else {
-                                pingViewModel.start(endpointTag: endpointTag, peerIP: peerIP)
-                            }
-                        }
-                        .textCase(nil)
-                    }
-                }
-            }
-
-            #if !os(tvOS)
-                if canSendFiles {
-                    Section("Taildrop") {
-                        TaildropSendZone(endpointTag: endpointTag, peerStableID: peer.stableID, peerName: peer.displayName)
-                            .listRowInsets(EdgeInsets())
-                    }
-                }
-            #endif
-
-            Section("Details") {
-                if peer.expired {
-                    FormTextItem("Key Expiry", "key") {
-                        Text("Expired")
-                            .foregroundStyle(.red)
-                    }
-                } else if peer.keyExpiry > 0 {
-                    FormTextItem("Key Expiry", "key") {
-                        Text(keyExpiryText)
-                    }
-                } else {
-                    FormTextItem("Key Expiry", "key") {
-                        Text("Disabled")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                if !peer.os.isEmpty {
-                    FormTextItem("OS", "desktopcomputer") {
-                        Text(peer.os)
-                    }
-                }
-                if !peer.online, peer.lastSeen > 0 {
-                    FormTextItem("Last Seen", "clock") {
-                        Text(lastSeenText)
-                    }
-                }
-                if peer.exitNode {
-                    FormTextItem("Exit Node", "arrow.triangle.turn.up.right.diamond") {
-                        Text("Active")
-                    }
-                } else if peer.exitNodeOption {
-                    FormTextItem("Exit Node", "arrow.triangle.turn.up.right.diamond") {
-                        Text("Available")
-                    }
-                }
-                if peer.shareeNode {
-                    FormTextItem("Shared in", "person.crop.circle.badge.exclamationmark") {
-                        Text("Yes")
-                    }
-                }
-                if !peer.sshHostKeys.isEmpty {
-                    #if !os(tvOS)
-                        if peer.online, !isSelf, !peer.tailscaleIPs.isEmpty {
-                            FormButton {
-                                sshPromptPresented = true
-                            } label: {
-                                HStack {
-                                    Label("Connect via SSH", systemImage: "terminal")
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.tertiary)
+                    } header: {
+                        HStack {
+                            Text("Ping")
+                            Spacer()
+                            ActionIconButton(pingViewModel.isRunning ? "stop.fill" : "play.fill") {
+                                if pingViewModel.isRunning {
+                                    pingViewModel.stop()
+                                } else {
+                                    pingViewModel.start(endpointTag: endpointTag, peerIP: peerIP)
                                 }
                             }
-                        } else {
+                            .textCase(nil)
+                        }
+                    }
+                }
+
+                #if !os(tvOS)
+                    if !isSelf, peer.online, peer.canReceiveFiles, endpoint.canShareFiles {
+                        Section("Taildrop") {
+                            TaildropSendZone(endpointTag: endpointTag, peerStableID: peer.stableID, peerName: peer.displayName)
+                                .listRowInsets(EdgeInsets())
+                        }
+                    }
+                #endif
+
+                Section("Details") {
+                    if peer.expired {
+                        FormTextItem("Key Expiry", "key") {
+                            Text("Expired")
+                                .foregroundStyle(.red)
+                        }
+                    } else if peer.keyExpiry > 0 {
+                        FormTextItem("Key Expiry", "key") {
+                            Text(relativeText(peer.keyExpiry))
+                        }
+                    } else {
+                        FormTextItem("Key Expiry", "key") {
+                            Text("Disabled")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    if !peer.os.isEmpty {
+                        FormTextItem("OS", "desktopcomputer") {
+                            Text(peer.os)
+                        }
+                    }
+                    if !peer.online, peer.lastSeen > 0 {
+                        FormTextItem("Last Seen", "clock") {
+                            Text(relativeText(peer.lastSeen))
+                        }
+                    }
+                    if peer.exitNode {
+                        FormTextItem("Exit Node", "arrow.triangle.turn.up.right.diamond") {
+                            Text("Active")
+                        }
+                    } else if peer.exitNodeOption {
+                        FormTextItem("Exit Node", "arrow.triangle.turn.up.right.diamond") {
+                            Text("Available")
+                        }
+                    }
+                    if peer.shareeNode {
+                        FormTextItem("Shared in", "person.crop.circle.badge.exclamationmark") {
+                            Text("Yes")
+                        }
+                    }
+                    if !peer.sshHostKeys.isEmpty {
+                        #if !os(tvOS)
+                            if peer.online, !isSelf, !peer.tailscaleIPs.isEmpty {
+                                FormButton {
+                                    sshPromptPresented = true
+                                } label: {
+                                    HStack {
+                                        Label("Connect via SSH", systemImage: "terminal")
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                }
+                            } else {
+                                FormTextItem("SSH", "terminal") {
+                                    Text("Available")
+                                }
+                            }
+                        #else
                             FormTextItem("SSH", "terminal") {
                                 Text("Available")
                             }
-                        }
-                    #else
-                        FormTextItem("SSH", "terminal") {
-                            Text("Available")
-                        }
-                    #endif
+                        #endif
+                    }
                 }
             }
         }
-        .navigationTitle(peer.displayName)
+        .navigationTitle(peer?.displayName ?? "")
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #elseif os(macOS)
-            .navigationSubtitle(peer.online ? String(localized: "Connected") : String(localized: "Not Connected"))
+            .navigationSubtitle(peer?.online == true ? String(localized: "Connected") : String(localized: "Not Connected"))
         #endif
             .toolbar {
                 #if !os(macOS)
                     ToolbarItem(placement: .principal) {
-                        VStack(spacing: 4) {
-                            Text(peer.displayName)
-                                .font(.headline)
-                            HStack(spacing: 4) {
-                                Image(systemName: "circle.fill")
-                                    .font(.system(size: 6))
-                                    .foregroundStyle(peer.online ? .green : Color(.systemGray))
-                                Text(peer.online ? "Connected" : "Not Connected")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                        if let peer {
+                            VStack(spacing: 4) {
+                                Text(peer.displayName)
+                                    .font(.headline)
+                                HStack(spacing: 4) {
+                                    Image(systemName: "circle.fill")
+                                        .font(.system(size: 6))
+                                        .foregroundStyle(peer.online ? .green : Color(.systemGray))
+                                    Text(peer.online ? "Connected" : "Not Connected")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }
@@ -222,6 +235,11 @@ public struct TailscalePeerView: View {
                     pingViewModel.stop()
                 }
             }
+            .onChangeCompat(of: peer == nil) { isNil in
+                if isNil {
+                    dismiss()
+                }
+            }
         #if !os(tvOS)
             .platformSheet(isPresented: $sshPromptPresented, size: PlatformSheetSize(minWidth: 360, minHeight: 220), onDismiss: {
                 if let session = pendingSSHSession {
@@ -229,18 +247,16 @@ public struct TailscalePeerView: View {
                     sshPresentedSession = session
                 }
             }) {
-                TailscaleSSHPromptView(
-                    peer: peer,
-                    endpointTag: endpointTag,
-                    onConnect: { session in pendingSSHSession = session }
-                )
+                if let peer {
+                    TailscaleSSHPromptView(
+                        peer: peer,
+                        endpointTag: endpointTag,
+                        onConnect: { session in pendingSSHSession = session }
+                    )
+                }
             }
             .terminalPresentation(item: $sshPresentedSession)
         #endif
-    }
-
-    private var canSendFiles: Bool {
-        !isSelf && peer.online && peer.canReceiveFiles && canShareFiles
     }
 
     private var connectionTypeRow: some View {
@@ -301,15 +317,8 @@ public struct TailscalePeerView: View {
         #endif
     }
 
-    private var keyExpiryText: String {
-        let date = Date(timeIntervalSince1970: TimeInterval(peer.keyExpiry))
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
-
-    private var lastSeenText: String {
-        let date = Date(timeIntervalSince1970: TimeInterval(peer.lastSeen))
+    private func relativeText(_ timestamp: Int64) -> String {
+        let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         return formatter.localizedString(for: date, relativeTo: Date())
