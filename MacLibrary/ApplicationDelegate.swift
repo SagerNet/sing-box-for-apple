@@ -53,6 +53,10 @@ open class ApplicationDelegate: NSObject, NSApplicationDelegate, UNUserNotificat
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
             } else {
+                let transformState = ProcessApplicationTransformState(kProcessTransformToUIElementApplication)
+                var psn = ProcessSerialNumber(highLongOfPSN: 0, lowLongOfPSN: UInt32(kCurrentProcess))
+                TransformProcessType(&psn, transformState)
+                NSApp.setActivationPolicy(.accessory)
                 NSApp.windows.first?.close()
             }
             await applicationState.initialize()
