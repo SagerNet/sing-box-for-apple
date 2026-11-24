@@ -40,19 +40,21 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         let systemProxyEnabled = prefs.systemProxyEnabled
 
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
-        if options.getAutoRoute() {
+        let autoRoute = options.getAutoRoute()
+        let dnsMode = options.getDNSMode()!.value
+        var dnsServers: [String] = []
+        if dnsMode != LibboxDNSModeDisabled, autoRoute || !dnsMode.isEmpty {
+            let dnsServerIterator = try options.getDNSServerAddress()
+            while dnsServerIterator.hasNext() {
+                dnsServers.append(dnsServerIterator.next())
+            }
+        }
+        if autoRoute || !dnsServers.isEmpty {
             settings.mtu = NSNumber(value: options.getMTU())
 
             var dnsSettings: NEDNSSettings?
-            if options.getDNSMode()!.value != LibboxDNSModeDisabled {
-                let dnsServerIterator = try options.getDNSServerAddress()
-                var dnsServers: [String] = []
-                while dnsServerIterator.hasNext() {
-                    dnsServers.append(dnsServerIterator.next())
-                }
-                if !dnsServers.isEmpty {
-                    dnsSettings = NEDNSSettings(servers: dnsServers)
-                }
+            if !dnsServers.isEmpty {
+                dnsSettings = NEDNSSettings(servers: dnsServers)
             }
 
             var ipv4Address: [String] = []
@@ -64,12 +66,15 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 ipv4Mask.append(ipv4Prefix.mask())
             }
 
-            let ipv4Settings = NEIPv4Settings(addresses: ipv4Address, subnetMasks: ipv4Mask)
             var ipv4Routes: [NEIPv4Route] = []
             var ipv4ExcludeRoutes: [NEIPv4Route] = []
 
             let inet4RouteAddressIterator = options.getInet4RouteAddress()!
-            if inet4RouteAddressIterator.hasNext() {
+            if !autoRoute {
+                for dnsServer in dnsServers where !dnsServer.contains(":") {
+                    ipv4Routes.append(NEIPv4Route(destinationAddress: dnsServer, subnetMask: "255.255.255.255"))
+                }
+            } else if inet4RouteAddressIterator.hasNext() {
                 while inet4RouteAddressIterator.hasNext() {
                     let ipv4RoutePrefix = inet4RouteAddressIterator.next()!
                     ipv4Routes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
@@ -107,9 +112,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 }
             }
 
-            ipv4Settings.includedRoutes = ipv4Routes
-            ipv4Settings.excludedRoutes = ipv4ExcludeRoutes
-            settings.ipv4Settings = ipv4Settings
+            if !ipv4Address.isEmpty {
+                let ipv4Settings = NEIPv4Settings(addresses: ipv4Address, subnetMasks: ipv4Mask)
+                ipv4Settings.includedRoutes = ipv4Routes
+                ipv4Settings.excludedRoutes = ipv4ExcludeRoutes
+                settings.ipv4Settings = ipv4Settings
+            }
 
             var ipv6Address: [String] = []
             var ipv6Prefixes: [NSNumber] = []
@@ -119,12 +127,15 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 ipv6Address.append(ipv6Prefix.address())
                 ipv6Prefixes.append(NSNumber(value: ipv6Prefix.prefix()))
             }
-            let ipv6Settings = NEIPv6Settings(addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
             var ipv6Routes: [NEIPv6Route] = []
             var ipv6ExcludeRoutes: [NEIPv6Route] = []
 
             let inet6RouteAddressIterator = options.getInet6RouteAddress()!
-            if inet6RouteAddressIterator.hasNext() {
+            if !autoRoute {
+                for dnsServer in dnsServers where dnsServer.contains(":") {
+                    ipv6Routes.append(NEIPv6Route(destinationAddress: dnsServer, networkPrefixLength: 128))
+                }
+            } else if inet6RouteAddressIterator.hasNext() {
                 while inet6RouteAddressIterator.hasNext() {
                     let ipv6RoutePrefix = inet6RouteAddressIterator.next()!
                     ipv6Routes.append(NEIPv6Route(destinationAddress: ipv6RoutePrefix.address(), networkPrefixLength: NSNumber(value: ipv6RoutePrefix.prefix())))
@@ -156,9 +167,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 }
             }
 
-            ipv6Settings.includedRoutes = ipv6Routes
-            ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
-            settings.ipv6Settings = ipv6Settings
+            if !ipv6Address.isEmpty {
+                let ipv6Settings = NEIPv6Settings(addresses: ipv6Address, networkPrefixLengths: ipv6Prefixes)
+                ipv6Settings.includedRoutes = ipv6Routes
+                ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
+                settings.ipv6Settings = ipv6Settings
+            }
 
             let hasDefaultRoute = ipv4Routes.contains(where: {
                 $0.destinationAddress == "0.0.0.0" && $0.destinationSubnetMask == "0.0.0.0"
