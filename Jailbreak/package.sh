@@ -7,6 +7,7 @@ cd "$REPO_ROOT"
 need() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 not found${2:+ ($2)}" >&2; exit 1; }; }
 need xcodebuild
 need ldid "brew install ldid"
+need dpkg "brew install dpkg"
 need dpkg-deb "brew install dpkg"
 [[ -x /usr/libexec/PlistBuddy ]] || { echo "error: /usr/libexec/PlistBuddy missing" >&2; exit 1; }
 
@@ -177,12 +178,23 @@ Section: Applications
 Depends: firmware (>= 15.0)
 EOF
 
+	local app_root="$deb_root$prefix/Applications/sing-box.app"
+	local app_minimum appex minimum strip_appex=""
+	app_minimum="$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$app_root/Info.plist")"
+	while IFS= read -r appex; do
+		minimum="$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$appex/Info.plist")"
+		dpkg --compare-versions "$minimum" gt "$app_minimum" || continue
+		strip_appex+="[ -n \"\$OS_VERSION\" ] && dpkg --compare-versions \"\$OS_VERSION\" lt $minimum && rm -rf $prefix/Applications/sing-box.app/${appex#"$app_root/"}"$'\n'
+	done < <(find "$app_root/PlugIns" "$app_root/Extensions" -maxdepth 1 -name '*.appex' 2>/dev/null | LC_ALL=C sort)
+
+	# uicache registers every bundled appex without checking MinimumOSVersion as installd does.
 	cat > "$deb_root/DEBIAN/postinst" <<EOF
 #!/bin/sh
 PLIST=$prefix/Library/LaunchDaemons/$HELPER_PLIST
 launchctl bootout system "\$PLIST" 2>/dev/null
 launchctl bootstrap system "\$PLIST" 2>/dev/null
-uicache -p $prefix/Applications/sing-box.app
+OS_VERSION="\$(sysctl -n kern.osproductversion 2>/dev/null)"
+${strip_appex}uicache -p $prefix/Applications/sing-box.app
 exit 0
 EOF
 
