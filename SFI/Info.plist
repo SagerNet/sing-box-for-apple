@@ -4,10 +4,6 @@
 <dict>
 	<key>AppGroupIdentifier</key>
 	<string>$(APP_GROUP_IDENTIFIER)</string>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>$(BASE_PACKAGE_IDENTIFIER).update_profiles</string>
-	</array>
 	<key>BasePackageIdentifier</key>
 	<string>$(BASE_PACKAGE_IDENTIFIER)</string>
 	<key>CFBundleDocumentTypes</key>
@@ -86,11 +82,6 @@
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>processing</string>
-	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

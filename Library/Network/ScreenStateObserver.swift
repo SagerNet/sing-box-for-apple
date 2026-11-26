@@ -7,13 +7,14 @@
         private let queue = DispatchQueue(label: "io.nekohasekai.sfamt.screen-state")
         private var displayToken: Int32 = -1
 
-        init(commandServer: LibboxCommandServer) {
+        init(commandServer: LibboxCommandServer, onScreenOn: @escaping () -> Void) {
             notify_register_dispatch("com.apple.iokit.hid.displayStatus", &displayToken, queue) { token in
                 var state: UInt64 = 0
                 notify_get_state(token, &state)
                 commandServer.recordScreenState(state == 1)
                 if state == 1 {
                     commandServer.wakeNow()
+                    onScreenOn()
                 }
             }
         }

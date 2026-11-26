@@ -4,10 +4,6 @@
 <dict>
 	<key>AppGroupIdentifier</key>
 	<string>$(APP_GROUP_IDENTIFIER)</string>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>$(BASE_PACKAGE_IDENTIFIER).update_profiles</string>
-	</array>
 	<key>BasePackageIdentifier</key>
 	<string>$(BASE_PACKAGE_IDENTIFIER)</string>
 	<key>CFBundleLocalizations</key>
@@ -61,9 +57,5 @@
 			</dict>
 		</array>
 	</dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-	</array>
 </dict>
 </plist>

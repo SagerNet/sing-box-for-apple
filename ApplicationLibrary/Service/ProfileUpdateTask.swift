@@ -1,79 +1,90 @@
 import Foundation
 import Library
+#if canImport(UIKit)
+    import UIKit
+#endif
 
+@MainActor
 public enum ProfileUpdateTask {
-    static let minUpdateInterval: TimeInterval = 15 * 60
-    static let defaultUpdateInterval: TimeInterval = 60 * 60
-
     private static var timer: Timer?
+    #if os(iOS) || os(tvOS)
+        private static var foregroundObserver: NSObjectProtocol?
+    #endif
 
     public static func configure() async throws {
+        #if os(iOS) || os(tvOS)
+            if foregroundObserver == nil {
+                foregroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { _ in
+                    Task { @MainActor in
+                        do {
+                            try await configure()
+                        } catch {
+                            NSLog("configure profile update task failed: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        #endif
+        let profiles = try await ProfileManager.listAutoUpdateEnabled()
+        let extensionProfileID = await extensionManagedProfileID()
         timer?.invalidate()
         timer = nil
-        let profiles = try await ProfileManager.listAutoUpdateEnabled()
         if profiles.isEmpty {
             return
         }
         var updateInterval = profiles.map { it in
             it.autoUpdateIntervalOrDefault
         }.min()!
-        if updateInterval < minUpdateInterval {
-            updateInterval = minUpdateInterval
+        if updateInterval < Profile.minAutoUpdateInterval {
+            updateInterval = Profile.minAutoUpdateInterval
         }
-        let newTimer = Timer(fire: calculateEarliestBeginDate(profiles), interval: updateInterval, repeats: true) { _ in
+        let nextDate = profiles.filter { it in
+            it.id != extensionProfileID
+        }.map { it in
+            dueDate(it)
+        }.min() ?? Date(timeIntervalSinceNow: updateInterval)
+        let newTimer = Timer(fire: max(nextDate, .now), interval: updateInterval, repeats: true) { _ in
             Task {
-                await getAndupdateProfiles()
+                await getAndUpdateProfiles()
             }
         }
         RunLoop.main.add(newTimer, forMode: .common)
         timer = newTimer
     }
 
-    static func calculateEarliestBeginDate(_ profiles: [Profile]) -> Date {
-        let nowTime = Date.now
-        var earliestBeginDate = profiles.map { it in
-            it.lastUpdated!.addingTimeInterval(it.autoUpdateIntervalOrDefault)
-        }.min()!
-        if earliestBeginDate <= nowTime {
-            earliestBeginDate = nowTime
-        }
-        return earliestBeginDate
+    private nonisolated static func dueDate(_ profile: Profile) -> Date {
+        (profile.lastUpdated ?? .distantPast).addingTimeInterval(profile.autoUpdateIntervalOrDefault)
     }
 
-    private nonisolated static func getAndupdateProfiles() async {
+    private nonisolated static func extensionManagedProfileID() async -> Int64? {
+        #if os(iOS) || os(tvOS)
+            if let extensionProfile = try? await ExtensionProfile.load(), await extensionProfile.status.isStarted {
+                return await SharedPreferences.selectedProfileID.get()
+            }
+        #endif
+        return nil
+    }
+
+    private nonisolated static func getAndUpdateProfiles() async {
+        let profiles: [Profile]
         do {
-            _ = try await updateProfiles(ProfileManager.listAutoUpdateEnabled())
-            NSLog("profile update task succeed")
+            profiles = try await ProfileManager.listAutoUpdateEnabled()
         } catch {
             NSLog("profile update task failed: \(error.localizedDescription)")
+            return
         }
-    }
-
-    static func updateProfiles(_ profiles: [Profile]) async -> Bool {
-        var success = true
+        let extensionProfileID = await extensionManagedProfileID()
         for profile in profiles {
-            let profileName = profile.name
-            if profile.lastUpdated! > Date(timeIntervalSinceNow: -profile.autoUpdateIntervalOrDefault) {
+            if profile.id == extensionProfileID || dueDate(profile) > .now {
                 continue
             }
+            let profileName = profile.name
             do {
                 try await profile.updateRemoteProfile()
                 NSLog("Updated profile %@", profileName)
             } catch {
                 NSLog("Update profile %@ failed: %@", profileName, error.localizedDescription)
-                success = false
             }
-        }
-        return success
-    }
-}
-
-extension Profile {
-    var autoUpdateIntervalOrDefault: TimeInterval {
-        if autoUpdateInterval > 0 {
-            return TimeInterval(autoUpdateInterval * 60)
-        } else {
-            return ProfileUpdateTask.defaultUpdateInterval
         }
     }
 }

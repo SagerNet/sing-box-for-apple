@@ -180,11 +180,7 @@ public final class NewProfileViewModel: BaseViewModel {
         try await ProfileManager.create(profile)
 
         if profileType == .remote {
-            #if os(iOS) || os(tvOS)
-                try UIProfileUpdateTask.configure()
-            #else
-                try await ProfileUpdateTask.configure()
-            #endif
+            try await ProfileUpdateTask.configure()
         }
 
         // Return the profile object which now has its ID set by GRDB

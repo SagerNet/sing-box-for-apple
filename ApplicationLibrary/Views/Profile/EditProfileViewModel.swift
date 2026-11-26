@@ -39,11 +39,7 @@ public final class EditProfileViewModel: BaseViewModel {
     public func saveProfile(_ profile: Profile, environments: ExtensionEnvironments) async {
         do {
             _ = try await ProfileManager.update(profile)
-            #if os(iOS) || os(tvOS)
-                try UIProfileUpdateTask.configure()
-            #else
-                try await ProfileUpdateTask.configure()
-            #endif
+            try await ProfileUpdateTask.configure()
             try await profile.onProfileUpdated()
         } catch {
             alert = AlertState(action: "save profile", error: error)

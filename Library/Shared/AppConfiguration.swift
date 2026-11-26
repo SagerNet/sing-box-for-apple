@@ -60,10 +60,6 @@ public enum AppConfiguration {
         "\(packageName).profile"
     }
 
-    public static var backgroundTaskID: String {
-        "\(packageName).update_profiles"
-    }
-
     public static var iCloudContainerID: String {
         "iCloud.\(packageName)"
     }

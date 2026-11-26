@@ -53,6 +53,12 @@ public enum ProfileManager {
         }
     }
 
+    public nonisolated static func updateLastUpdated(_ profileID: Int64, _ lastUpdated: Date) async throws {
+        _ = try await Database.sharedWriter.write { db in
+            try Profile.filter(id: profileID).updateAll(db, Column("lastUpdated").set(to: lastUpdated))
+        }
+    }
+
     public nonisolated static func update(_ profileList: [Profile]) async throws {
         // TODO: batch update
         try await Database.sharedWriter.write { db in

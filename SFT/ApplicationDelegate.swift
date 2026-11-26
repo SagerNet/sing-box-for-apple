@@ -17,9 +17,15 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         LibboxReinstallCrashSignalHandlers()
         HangWatchdog.installForCurrentProcess()
         NSLog("Here I stand")
-        setup()
         setupTask = Task {
             await setupService()
+        }
+        Task {
+            do {
+                try await ProfileUpdateTask.configure()
+            } catch {
+                NSLog("setup profile update task error: \(error.localizedDescription)")
+            }
         }
         return true
     }
@@ -62,15 +68,6 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
             } catch {
                 NSLog("failed to set locale: \(error)")
             }
-        }
-    }
-
-    private func setup() {
-        do {
-            try UIProfileUpdateTask.configure()
-            NSLog("setup background task success")
-        } catch {
-            NSLog("setup background task error: \(error.localizedDescription)")
         }
     }
 }

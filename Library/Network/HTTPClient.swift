@@ -19,6 +19,11 @@ public class HTTPClient {
         client.modernTLS()
     }
 
+    public init(_ client: any LibboxHTTPClientProtocol) {
+        self.client = client
+        client.modernTLS()
+    }
+
     public func getString(_ url: String?, headers: [String: String] = [:]) throws -> String {
         #if DEBUG
             precondition(!Thread.isMainThread, "HTTPClient.getString(...) must not be called on the main thread")

@@ -71,11 +71,12 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
     }
 
     private func setup() {
-        do {
-            try UIProfileUpdateTask.configure()
-            NSLog("setup background task success")
-        } catch {
-            NSLog("setup background task error: \(error.localizedDescription)")
+        Task {
+            do {
+                try await ProfileUpdateTask.configure()
+            } catch {
+                NSLog("setup profile update task error: \(error.localizedDescription)")
+            }
         }
         Task {
             if UIDevice.current.userInterfaceIdiom == .phone {

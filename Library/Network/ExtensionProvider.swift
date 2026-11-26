@@ -12,9 +12,46 @@ import os.log
 open class ExtensionProvider: NEPacketTunnelProvider {
     private static let logger = Logger(category: "ExtensionProvider")
 
-    public private(set) var commandServer: LibboxCommandServer?
+    private let stateLock = NSLock()
+    private var storedCommandServer: LibboxCommandServer?
+    public private(set) var commandServer: LibboxCommandServer? {
+        get {
+            stateLock.lock()
+            defer {
+                stateLock.unlock()
+            }
+            return storedCommandServer
+        }
+        set {
+            stateLock.lock()
+            defer {
+                stateLock.unlock()
+            }
+            storedCommandServer = newValue
+        }
+    }
+
     private lazy var platformInterface = ExtensionPlatformInterface(self)
-    public var tunnelOptions: [String: NSObject]?
+    private var storedTunnelOptions: [String: NSObject]?
+    public var tunnelOptions: [String: NSObject]? {
+        get {
+            stateLock.lock()
+            defer {
+                stateLock.unlock()
+            }
+            return storedTunnelOptions
+        }
+        set {
+            stateLock.lock()
+            defer {
+                stateLock.unlock()
+            }
+            storedTunnelOptions = newValue
+        }
+    }
+
+    private let serviceQueue = DispatchQueue(label: "io.nekohasekai.sfamt.service")
+    private var serviceStopped = false
     private var startOptionsURL: URL?
 
     public struct OverridePreferences {
@@ -28,6 +65,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     public var overridePreferences: OverridePreferences?
     #if os(iOS)
         private var screenStateObserver: ScreenStateObserver?
+    #endif
+    #if os(iOS) || os(tvOS)
+        private var profileUpdater: ExtensionProfileUpdater?
     #endif
 
     private func applyStartOptions(_ options: [String: NSObject]) throws {
@@ -86,7 +126,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         return try ExtensionStartOptions.decode(data)
     }
 
-    private func resolveStartOptions(_ startOptions: [String: NSObject]?) throws -> [String: NSObject] {
+    private func resolveStartOptions(_ startOptions: [String: NSObject]?) async throws -> [String: NSObject] {
         if let startOptions, startOptions["configContent"] as? String != nil {
             return startOptions
         }
@@ -96,13 +136,24 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         } catch {
             throw ExtensionStartupError("(packet-tunnel) error: load start options: \(error.localizedDescription)")
         }
-        if let persistedOptions {
-            if let startOptions {
-                return persistedOptions.merging(startOptions) { _, new in new }
-            }
-            return persistedOptions
+        guard var options = persistedOptions else {
+            throw ExtensionStartupError("(packet-tunnel) error: missing start options")
         }
-        throw ExtensionStartupError("(packet-tunnel) error: missing start options")
+        if let startOptions {
+            options.merge(startOptions) { _, new in new }
+        }
+        #if os(iOS) || os(tvOS)
+            do {
+                let profileID = await SharedPreferences.selectedProfileID.get()
+                if let profile = try await ProfileManager.get(profileID), profile.type != .icloud {
+                    options["configContent"] = try await NSString(string: profile.readAsync())
+                    options["profileID"] = NSNumber(value: profileID)
+                }
+            } catch {
+                Self.logger.error("read profile failed, using snapshot: \(error.localizedDescription, privacy: .public)")
+            }
+        #endif
+        return options
     }
 
     #if os(macOS)
@@ -164,7 +215,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             }
         #endif
 
-        let effectiveOptions = try resolveStartOptions(startOptions)
+        let effectiveOptions = try await resolveStartOptions(startOptions)
         try applyStartOptions(effectiveOptions)
         if effectiveOptions["configContent"] == nil {
             throw ExtensionStartupError("(packet-tunnel) error: missing configContent in tunnel options")
@@ -233,7 +284,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #endif
 
         do {
-            try await startService()
+            try startService()
         } catch {
             #if os(macOS)
                 if Variant.useSystemExtension {
@@ -243,9 +294,16 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             throw error
         }
         writeMessage("(packet-tunnel): Here I stand")
+        #if os(iOS) || os(tvOS)
+            let profileUpdater = ExtensionProfileUpdater(self)
+            self.profileUpdater = profileUpdater
+            profileUpdater.check()
+        #endif
         #if os(iOS)
             if let commandServer {
-                screenStateObserver = ScreenStateObserver(commandServer: commandServer)
+                screenStateObserver = ScreenStateObserver(commandServer: commandServer) {
+                    profileUpdater.check()
+                }
             }
         #endif
         #if os(macOS)
@@ -266,19 +324,22 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
     }
 
-    private func startService() async throws {
+    private func startService() throws {
+        guard let commandServer else {
+            throw ExtensionStartupError("(packet-tunnel) error: command server stopped")
+        }
         guard let configContent = tunnelOptions?["configContent"] as? String else {
             throw ExtensionStartupError("(packet-tunnel) error: missing configContent in tunnel options")
         }
 
         let options = LibboxOverrideOptions()
         do {
-            try commandServer!.startOrReloadService(configContent, options: options)
+            try commandServer.startOrReloadService(configContent, options: options)
         } catch {
             throw ExtensionStartupError("(packet-tunnel) error: start service: \(error.localizedDescription)")
         }
         #if os(macOS)
-            if !Variant.useSystemExtension, commandServer!.needWIFIState() {
+            if !Variant.useSystemExtension, commandServer.needWIFIState() {
                 locationManager = CLLocationManager()
                 locationDelegate = stubLocationDelegate()
                 locationManager!.delegate = locationDelegate
@@ -308,13 +369,42 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         platformInterface.reset()
     }
 
-    func reloadService() async throws {
+    private func runOnServiceQueue<T>(_ body: @escaping () throws -> T) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            serviceQueue.async {
+                continuation.resume(with: Result { try body() })
+            }
+        }
+    }
+
+    private func reloadServiceLocked() throws {
+        if serviceStopped {
+            throw ExtensionStartupError("(packet-tunnel) error: service stopped")
+        }
         writeMessage("(packet-tunnel) reloading service")
         reasserting = true
         defer {
             reasserting = false
         }
-        try await startService()
+        try startService()
+    }
+
+    func reloadService() async throws {
+        try await runOnServiceQueue { [self] in
+            try reloadServiceLocked()
+        }
+    }
+
+    func reloadService(configContent: String, profileID: Int64, isCurrent: @escaping () -> Bool) async throws {
+        try await runOnServiceQueue { [self] in
+            guard !serviceStopped, isCurrent(), var options = tunnelOptions, (options["profileID"] as? NSNumber)?.int64Value == profileID else {
+                throw CancellationError()
+            }
+            options["configContent"] = NSString(string: configContent)
+            try persistStartOptions(options)
+            tunnelOptions = options
+            try reloadServiceLocked()
+        }
     }
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {
@@ -323,7 +413,14 @@ open class ExtensionProvider: NEPacketTunnelProvider {
             screenStateObserver?.cancel()
             screenStateObserver = nil
         #endif
-        stopService()
+        #if os(iOS) || os(tvOS)
+            profileUpdater?.cancel()
+            profileUpdater = nil
+        #endif
+        _ = try? await runOnServiceQueue { [self] in
+            serviceStopped = true
+            stopService()
+        }
         if let server = commandServer {
             try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
             server.close()
@@ -350,11 +447,19 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     override open func handleAppMessage(_ messageData: Data) async -> Data? {
+        #if os(iOS) || os(tvOS)
+            profileUpdater?.cancel()
+            defer {
+                profileUpdater?.check()
+            }
+        #endif
         do {
             let options = try ExtensionStartOptions.decode(messageData)
-            try applyStartOptions(options)
-            try persistStartOptions(options)
-            try await reloadService()
+            try await runOnServiceQueue { [self] in
+                try applyStartOptions(options)
+                try persistStartOptions(options)
+                try reloadServiceLocked()
+            }
             return nil
         } catch {
             return error.localizedDescription.data(using: .utf8)
@@ -371,5 +476,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let commandServer {
             commandServer.wake()
         }
+        #if os(iOS) || os(tvOS)
+            profileUpdater?.check()
+        #endif
     }
 }

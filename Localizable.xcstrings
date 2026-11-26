@@ -10198,34 +10198,6 @@
         }
       }
     },
-    "Register task failed" : {
-      "localizations" : {
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ثبت وظیفه ناموفق بود"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось зарегистрировать задачу"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "注册任务失败"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "註冊任務失敗"
-          }
-        }
-      }
-    },
     "Releases" : {
       "localizations" : {
         "fa" : {

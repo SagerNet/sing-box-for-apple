@@ -40,3 +40,16 @@ public extension Profile {
         }
     }
 }
+
+public extension Profile {
+    static let minAutoUpdateInterval: TimeInterval = 15 * 60
+    static let defaultAutoUpdateInterval: TimeInterval = 60 * 60
+
+    var autoUpdateIntervalOrDefault: TimeInterval {
+        if autoUpdateInterval > 0 {
+            return max(TimeInterval(autoUpdateInterval) * 60, Profile.minAutoUpdateInterval)
+        } else {
+            return Profile.defaultAutoUpdateInterval
+        }
+    }
+}

@@ -249,6 +249,7 @@ public class ExtensionProfile: ObservableObject {
 
         let configContent = try await profile.readAsync()
         options["configContent"] = NSString(string: configContent)
+        options["profileID"] = NSNumber(value: profileID)
 
         #if os(macOS)
             options["oomKillerEnabled"] = await NSNumber(value: SharedPreferences.oomKillerEnabled.get())
