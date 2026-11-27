@@ -273,7 +273,7 @@ extension RootHelperService: RootHelperProtocol {
         LibboxTriggerGoPanic()
     }
 
-    func installUpdatePackage(pkgPath: String, reply: @escaping (NSError?) -> Void) {
+    func installUpdatePackage(package: FileHandle, reply: @escaping (NSError?) -> Void) {
         updateLock.lock()
         if updateInProgress {
             updateLock.unlock()
@@ -293,7 +293,7 @@ extension RootHelperService: RootHelperProtocol {
                 }
             }
             do {
-                try UpdateInstaller.install(pkgPath: pkgPath)
+                try UpdateInstaller.install(package: package)
                 reply(nil)
             } catch {
                 logger.error("installUpdatePackage: \(error.localizedDescription, privacy: .public)")

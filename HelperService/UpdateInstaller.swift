@@ -8,7 +8,7 @@ private let logger = Logger(category: "UpdateInstaller")
 enum UpdateInstaller {
     private static let workDirectoryPath = (WorkingDirectoryManager.helperTempDirectoryPath as NSString).appendingPathComponent("Update")
 
-    static func install(pkgPath: String) throws {
+    static func install(package: FileHandle) throws {
         let fileManager = FileManager.default
         try? fileManager.removeItem(atPath: workDirectoryPath)
         do {
@@ -19,8 +19,16 @@ enum UpdateInstaller {
         defer { try? fileManager.removeItem(atPath: workDirectoryPath) }
 
         let localPKGPath = (workDirectoryPath as NSString).appendingPathComponent("update.pkg")
+        guard fileManager.createFile(atPath: localPKGPath, contents: nil),
+              let localPKG = FileHandle(forWritingAtPath: localPKGPath)
+        else {
+            throw serviceError("create update package")
+        }
         do {
-            try fileManager.copyItem(atPath: pkgPath, toPath: localPKGPath)
+            defer { try? localPKG.close() }
+            while let data = try package.read(upToCount: 1 << 20), !data.isEmpty {
+                try localPKG.write(contentsOf: data)
+            }
         } catch {
             throw serviceError("copy update package: \(error.localizedDescription)")
         }

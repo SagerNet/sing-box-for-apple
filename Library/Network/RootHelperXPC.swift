@@ -160,7 +160,7 @@
         func promoteOOMDraft(reply: @escaping (NSError?) -> Void)
         func triggerGoCrash(reply: @escaping (NSError?) -> Void)
         func triggerNativeCrash(reply: @escaping (NSError?) -> Void)
-        func installUpdatePackage(pkgPath: String, reply: @escaping (NSError?) -> Void)
+        func installUpdatePackage(package: FileHandle, reply: @escaping (NSError?) -> Void)
     }
 
     public enum RootHelperXPC {
@@ -189,6 +189,13 @@
             interface.setClasses(
                 endpointClasses,
                 for: #selector(RootHelperProtocol.startNeighborMonitor(callbackEndpoint:reply:)),
+                argumentIndex: 0,
+                ofReply: false
+            )
+            let fileHandleClasses = NSSet(array: [FileHandle.self]) as! Set<AnyHashable>
+            interface.setClasses(
+                fileHandleClasses,
+                for: #selector(RootHelperProtocol.installUpdatePackage(package:reply:)),
                 argumentIndex: 0,
                 ofReply: false
             )
@@ -299,9 +306,9 @@
             }
         }
 
-        public func installUpdatePackage(pkgPath: String) throws {
+        public func installUpdatePackage(package: FileHandle) throws {
             try callVoid("installUpdatePackage", timeout: .seconds(600)) { proxy, reply in
-                (proxy as! RootHelperProtocol).installUpdatePackage(pkgPath: pkgPath, reply: reply)
+                (proxy as! RootHelperProtocol).installUpdatePackage(package: package, reply: reply)
             }
         }
     }

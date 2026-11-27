@@ -128,7 +128,7 @@
 
                 if helperAvailable {
                     try await Task.detached {
-                        try RootHelperClient.shared.installUpdatePackage(pkgPath: pkgURL.path)
+                        try RootHelperClient.shared.installUpdatePackage(package: FileHandle(forReadingFrom: pkgURL))
                     }.value
                 } else {
                     let authorization = authRef!
